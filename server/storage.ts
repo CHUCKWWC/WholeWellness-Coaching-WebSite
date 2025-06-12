@@ -1,4 +1,5 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { 
   users, bookings, testimonials, resources, contacts, weightLossIntakes,
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
@@ -6,7 +7,8 @@ import {
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-const db = drizzle(process.env.DATABASE_URL!);
+const client = postgres(process.env.DATABASE_URL!);
+const db = drizzle(client);
 
 export interface IStorage {
   // Users
