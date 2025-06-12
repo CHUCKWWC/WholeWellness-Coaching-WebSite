@@ -46,6 +46,14 @@ export default function Services() {
       description: "Self-discovery coaching to help you identify strengths, clarify goals, and develop the mindset for lasting positive change.",
       features: ["Resource library access", "Goal clarification", "Strength identification", "Mindset coaching"],
       highlight: "Resource library access"
+    },
+    {
+      title: "Weight Loss Coaching",
+      icon: "⚖️",
+      description: "Comprehensive weight loss program with personalized meal plans, exercise guidance, and ongoing support for sustainable results.",
+      features: ["Comprehensive intake assessment", "Personalized 6-week meal plan", "Exercise routines", "Supplement guidance"],
+      highlight: "Free intake assessment",
+      specialized: true
     }
   ];
 
@@ -128,6 +136,16 @@ export default function Services() {
                   <Badge variant="secondary" className="mb-4">
                     {service.highlight}
                   </Badge>
+                  
+                  {service.specialized && (
+                    <div className="mt-4">
+                      <Link href="/weight-loss-intake">
+                        <Button className="w-full bg-green-600 hover:bg-green-700">
+                          Start Weight Loss Assessment
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

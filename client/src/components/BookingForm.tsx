@@ -24,7 +24,8 @@ const coachingAreas = [
   "Career Development",
   "Life Balance Coaching",
   "Relationship Coaching",
-  "Personal Development"
+  "Personal Development",
+  "Weight Loss Coaching"
 ];
 
 export default function BookingForm() {
