@@ -1,8 +1,12 @@
+import { drizzle } from "drizzle-orm/neon-serverless";
 import { 
   users, bookings, testimonials, resources, contacts, weightLossIntakes,
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
+
+const db = drizzle(process.env.DATABASE_URL!);
 
 export interface IStorage {
   // Users
@@ -41,288 +45,126 @@ export interface IStorage {
   createWeightLossIntake(intake: InsertWeightLossIntake): Promise<WeightLossIntake>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private bookings: Map<number, Booking>;
-  private testimonials: Map<number, Testimonial>;
-  private resources: Map<number, Resource>;
-  private contacts: Map<number, Contact>;
-  private weightLossIntakes: Map<number, WeightLossIntake>;
-  private currentUserId: number;
-  private currentBookingId: number;
-  private currentTestimonialId: number;
-  private currentResourceId: number;
-  private currentContactId: number;
-  private currentWeightLossIntakeId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.bookings = new Map();
-    this.testimonials = new Map();
-    this.resources = new Map();
-    this.contacts = new Map();
-    this.weightLossIntakes = new Map();
-    this.currentUserId = 1;
-    this.currentBookingId = 1;
-    this.currentTestimonialId = 1;
-    this.currentResourceId = 1;
-    this.currentContactId = 1;
-    this.currentWeightLossIntakeId = 1;
-    
-    this.seedData();
-  }
-
-  private seedData() {
-    // Seed testimonials
-    const seedTestimonials: InsertTestimonial[] = [
-      {
-        name: "Sarah M.",
-        initial: "S",
-        category: "Domestic Violence Survivor",
-        content: "The coaching I received helped me rebuild my confidence and create boundaries I never knew I needed. I'm now living independently and pursuing a career I'm passionate about.",
-        rating: 5
-      },
-      {
-        name: "Maria L.",
-        initial: "M", 
-        category: "Recently Divorced",
-        content: "After 20 years of marriage, I felt lost. Through coaching, I rediscovered who I am and what I want from life. I'm now starting my own business and feeling more confident than ever.",
-        rating: 5
-      },
-      {
-        name: "Jennifer K.",
-        initial: "J",
-        category: "Career Transition",
-        content: "The career coaching helped me identify my strengths and transition into a field I'm truly passionate about. The affordable rates made it possible when I couldn't afford traditional coaching.",
-        rating: 5
-      }
-    ];
-
-    seedTestimonials.forEach(testimonial => {
-      const id = this.currentTestimonialId++;
-      const fullTestimonial: Testimonial = {
-        ...testimonial,
-        id,
-        isApproved: true,
-        createdAt: new Date()
-      };
-      this.testimonials.set(id, fullTestimonial);
-    });
-
-    // Seed resources
-    const seedResources: InsertResource[] = [
-      {
-        title: "Rebuilding After Domestic Violence: A Step-by-Step Guide",
-        type: "article",
-        category: "Recovery",
-        content: "A comprehensive guide to help survivors of domestic violence rebuild their lives with practical steps and emotional support strategies.",
-        url: "/resources/rebuilding-guide",
-        isFree: true
-      },
-      {
-        title: "Setting Healthy Boundaries in Relationships",
-        type: "video",
-        category: "Relationships",
-        content: "Learn how to establish and maintain healthy boundaries in all your relationships for better mental health and self-respect.",
-        url: "/resources/boundaries-video",
-        isFree: true
-      },
-      {
-        title: "Career Planning Worksheet",
-        type: "worksheet",
-        category: "Career",
-        content: "A practical worksheet to help you assess your skills, interests, and goals to plan your next career move.",
-        url: "/resources/career-worksheet.pdf",
-        isFree: true
-      },
-      {
-        title: "Healing from Loss: Widow and Divorce Support",
-        type: "podcast",
-        category: "Support",
-        content: "Weekly podcast featuring expert interviews and real stories of women who have successfully navigated widowhood and divorce.",
-        url: "/resources/healing-podcast",
-        isFree: true
-      }
-    ];
-
-    seedResources.forEach(resource => {
-      const id = this.currentResourceId++;
-      const fullResource: Resource = {
-        ...resource,
-        id,
-        createdAt: new Date()
-      };
-      this.resources.set(id, fullResource);
-    });
+    // Database initialization handled by Drizzle connection
   }
 
   // Users
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
-      id,
-      isMember: false,
-      createdAt: new Date()
-    };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   // Bookings
   async getBooking(id: number): Promise<Booking | undefined> {
-    return this.bookings.get(id);
+    const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return Array.from(this.bookings.values());
+    return await db.select().from(bookings);
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const id = this.currentBookingId++;
-    const booking: Booking = {
-      ...insertBooking,
-      id,
-      status: "pending",
-      scheduledDate: null,
-      createdAt: new Date()
-    };
-    this.bookings.set(id, booking);
-    return booking;
+    const result = await db.insert(bookings).values(insertBooking).returning();
+    return result[0];
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
-    const booking = this.bookings.get(id);
-    if (booking) {
-      booking.status = status;
-      this.bookings.set(id, booking);
-      return booking;
-    }
-    return undefined;
+    const result = await db.update(bookings)
+      .set({ status })
+      .where(eq(bookings.id, id))
+      .returning();
+    return result[0];
   }
 
   // Testimonials
   async getTestimonial(id: number): Promise<Testimonial | undefined> {
-    return this.testimonials.get(id);
+    const result = await db.select().from(testimonials).where(eq(testimonials.id, id)).limit(1);
+    return result[0];
   }
 
   async getApprovedTestimonials(): Promise<Testimonial[]> {
-    return Array.from(this.testimonials.values()).filter(testimonial => testimonial.isApproved);
+    return await db.select().from(testimonials).where(eq(testimonials.isApproved, true));
   }
 
   async getAllTestimonials(): Promise<Testimonial[]> {
-    return Array.from(this.testimonials.values());
+    return await db.select().from(testimonials);
   }
 
   async createTestimonial(insertTestimonial: InsertTestimonial): Promise<Testimonial> {
-    const id = this.currentTestimonialId++;
-    const testimonial: Testimonial = {
-      ...insertTestimonial,
-      id,
-      isApproved: false,
-      createdAt: new Date()
-    };
-    this.testimonials.set(id, testimonial);
-    return testimonial;
+    const result = await db.insert(testimonials).values(insertTestimonial).returning();
+    return result[0];
   }
 
   // Resources
   async getResource(id: number): Promise<Resource | undefined> {
-    return this.resources.get(id);
+    const result = await db.select().from(resources).where(eq(resources.id, id)).limit(1);
+    return result[0];
   }
 
   async getResourcesByType(type: string): Promise<Resource[]> {
-    return Array.from(this.resources.values()).filter(resource => resource.type === type);
+    return await db.select().from(resources).where(eq(resources.type, type));
   }
 
   async getResourcesByCategory(category: string): Promise<Resource[]> {
-    return Array.from(this.resources.values()).filter(resource => resource.category === category);
+    return await db.select().from(resources).where(eq(resources.category, category));
   }
 
   async getAllResources(): Promise<Resource[]> {
-    return Array.from(this.resources.values());
+    return await db.select().from(resources);
   }
 
   async createResource(insertResource: InsertResource): Promise<Resource> {
-    const id = this.currentResourceId++;
-    const resource: Resource = {
-      ...insertResource,
-      id,
-      createdAt: new Date()
-    };
-    this.resources.set(id, resource);
-    return resource;
+    const result = await db.insert(resources).values(insertResource).returning();
+    return result[0];
   }
 
   // Contacts
   async getContact(id: number): Promise<Contact | undefined> {
-    return this.contacts.get(id);
+    const result = await db.select().from(contacts).where(eq(contacts.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllContacts(): Promise<Contact[]> {
-    return Array.from(this.contacts.values());
+    return await db.select().from(contacts);
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
-    const id = this.currentContactId++;
-    const contact: Contact = {
-      ...insertContact,
-      id,
-      status: "new",
-      createdAt: new Date()
-    };
-    this.contacts.set(id, contact);
-    return contact;
+    const result = await db.insert(contacts).values(insertContact).returning();
+    return result[0];
   }
 
   // Weight Loss Intakes
   async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
-    return this.weightLossIntakes.get(id);
+    const result = await db.select().from(weightLossIntakes).where(eq(weightLossIntakes.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllWeightLossIntakes(): Promise<WeightLossIntake[]> {
-    return Array.from(this.weightLossIntakes.values());
+    return await db.select().from(weightLossIntakes);
   }
 
   async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
-    const id = this.currentWeightLossIntakeId++;
-    const intake: WeightLossIntake = {
-      ...insertIntake,
-      id,
-      phone: insertIntake.phone || null,
-      medicalConditions: insertIntake.medicalConditions || null,
-      medications: insertIntake.medications || null,
-      allergies: insertIntake.allergies || null,
-      digestiveIssues: insertIntake.digestiveIssues || null,
-      physicalLimitations: insertIntake.physicalLimitations || null,
-      weightLossMedications: insertIntake.weightLossMedications || null,
-      weightHistory: insertIntake.weightHistory || null,
-      previousAttempts: insertIntake.previousAttempts || null,
-      challengingAspects: insertIntake.challengingAspects || null,
-      currentEatingHabits: insertIntake.currentEatingHabits || null,
-      lifestyle: insertIntake.lifestyle || null,
-      activityLevel: insertIntake.activityLevel || null,
-      mindsetFactors: insertIntake.mindsetFactors || null,
-      goalsExpectations: insertIntake.goalsExpectations || null,
-      interestedInSupplements: insertIntake.interestedInSupplements || null,
-      status: "new",
-      createdAt: new Date()
-    };
-    this.weightLossIntakes.set(id, intake);
-    return intake;
+    const result = await db.insert(weightLossIntakes).values(insertIntake).returning();
+    return result[0];
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
