@@ -1,8 +1,14 @@
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { 
   users, bookings, testimonials, resources, contacts, weightLossIntakes,
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
+
+const client = postgres(process.env.DATABASE_URL!);
+const db = drizzle(client);
 
 export interface IStorage {
   // Users
@@ -41,310 +47,208 @@ export interface IStorage {
   createWeightLossIntake(intake: InsertWeightLossIntake): Promise<WeightLossIntake>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private bookings: Map<number, Booking>;
-  private testimonials: Map<number, Testimonial>;
-  private resources: Map<number, Resource>;
-  private contacts: Map<number, Contact>;
-  private weightLossIntakes: Map<number, WeightLossIntake>;
-  private currentUserId: number;
-  private currentBookingId: number;
-  private currentTestimonialId: number;
-  private currentResourceId: number;
-  private currentContactId: number;
-  private currentWeightLossIntakeId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.bookings = new Map();
-    this.testimonials = new Map();
-    this.resources = new Map();
-    this.contacts = new Map();
-    this.weightLossIntakes = new Map();
-    this.currentUserId = 1;
-    this.currentBookingId = 1;
-    this.currentTestimonialId = 1;
-    this.currentResourceId = 1;
-    this.currentContactId = 1;
-    this.currentWeightLossIntakeId = 1;
-    
     this.seedData();
   }
 
-  private seedData() {
-    // Seed testimonials
-    const seedTestimonials: InsertTestimonial[] = [
-      {
-        name: "Sarah M.",
-        initial: "S",
-        category: "Domestic Violence Survivor",
-        testimonial: "Finding Whole Wellness Coaching changed my life. After leaving an abusive relationship, I didn't know where to start. My coach helped me rebuild my confidence and create a safety plan. Now I'm living independently with my children and feel stronger than ever.",
-        isApproved: true
-      },
-      {
-        name: "Jennifer L.",
-        initial: "J",
-        category: "Recently Divorced",
-        testimonial: "The divorce support program gave me hope when I felt lost. My coach understood exactly what I was going through and helped me navigate the emotional and practical challenges. I've rediscovered who I am and I'm excited about my future.",
-        isApproved: true
-      },
-      {
-        name: "Maria R.",
-        initial: "M",
-        category: "Career Transition",
-        testimonial: "After being out of the workforce for 15 years, I thought it was impossible to find meaningful work. The career development coaching helped me identify my skills and land a job I love. The sliding scale pricing made it accessible when money was tight.",
-        isApproved: true
-      }
-    ];
+  private async seedData() {
+    try {
+      // Check if data already exists
+      const existingTestimonials = await db.select().from(testimonials).limit(1);
+      if (existingTestimonials.length > 0) return;
 
-    seedTestimonials.forEach(testimonial => {
-      const id = this.currentTestimonialId++;
-      const fullTestimonial: Testimonial = {
-        ...testimonial,
-        id,
-        isApproved: testimonial.isApproved,
-        rating: 5,
-        content: testimonial.testimonial,
-        createdAt: new Date()
-      };
-      this.testimonials.set(id, fullTestimonial);
-    });
+      // Seed testimonials
+      await db.insert(testimonials).values([
+        {
+          name: "Sarah M.",
+          initial: "S",
+          category: "Domestic Violence Survivor",
+          content: "Finding Whole Wellness Coaching changed my life. After leaving an abusive relationship, I didn't know where to start. My coach helped me rebuild my confidence and create a safety plan. Now I'm living independently with my children and feel stronger than ever.",
+          rating: 5,
+          isApproved: true
+        },
+        {
+          name: "Jennifer L.",
+          initial: "J",
+          category: "Recently Divorced",
+          content: "The divorce support program gave me hope when I felt lost. My coach understood exactly what I was going through and helped me navigate the emotional and practical challenges. I've rediscovered who I am and I'm excited about my future.",
+          rating: 5,
+          isApproved: true
+        },
+        {
+          name: "Maria R.",
+          initial: "M",
+          category: "Career Transition",
+          content: "After being out of the workforce for 15 years, I thought it was impossible to find meaningful work. The career development coaching helped me identify my skills and land a job I love. The sliding scale pricing made it accessible when money was tight.",
+          rating: 5,
+          isApproved: true
+        }
+      ]);
 
-    // Seed resources  
-    const seedResources: InsertResource[] = [
-      {
-        title: "Safety Planning Guide",
-        type: "guide",
-        category: "Safety",
-        content: "Comprehensive guide for creating a personalized safety plan for domestic violence survivors.",
-        url: "/resources/safety-planning",
-        isFree: true
-      },
-      {
-        title: "Divorce Recovery Workbook", 
-        type: "workbook",
-        category: "Healing",
-        content: "Step-by-step workbook to help process emotions and plan for life after divorce.",
-        url: "/resources/divorce-workbook",
-        isFree: false
-      },
-      {
-        title: "Career Assessment Tool",
-        type: "assessment", 
-        category: "Career",
-        content: "Interactive tool to identify skills, interests, and potential career paths.",
-        url: "/resources/career-assessment",
-        isFree: true
-      },
-      {
-        title: "Financial Independence Planner",
-        type: "planner",
-        category: "Financial",
-        content: "Tools and worksheets for creating financial stability and independence.",
-        url: "/resources/financial-planner",
-        isFree: false
-      },
-      {
-        title: "Healing Journey Podcast",
-        type: "podcast",
-        category: "Support",
-        content: "Weekly podcast featuring expert interviews and real stories of women who have successfully navigated widowhood and divorce.",
-        url: "/resources/healing-podcast",
-        isFree: true
-      }
-    ];
-
-    seedResources.forEach(resource => {
-      const id = this.currentResourceId++;
-      const fullResource: Resource = {
-        ...resource,
-        id,
-        createdAt: new Date()
-      };
-      this.resources.set(id, fullResource);
-    });
+      // Seed resources
+      await db.insert(resources).values([
+        {
+          title: "Safety Planning Guide",
+          type: "guide",
+          category: "Safety",
+          content: "Comprehensive guide for creating a personalized safety plan for domestic violence survivors.",
+          url: "/resources/safety-planning",
+          isFree: true
+        },
+        {
+          title: "Divorce Recovery Workbook", 
+          type: "workbook",
+          category: "Healing",
+          content: "Step-by-step workbook to help process emotions and plan for life after divorce.",
+          url: "/resources/divorce-workbook",
+          isFree: false
+        },
+        {
+          title: "Career Assessment Tool",
+          type: "assessment", 
+          category: "Career",
+          content: "Interactive tool to identify skills, interests, and potential career paths.",
+          url: "/resources/career-assessment",
+          isFree: true
+        },
+        {
+          title: "Financial Independence Planner",
+          type: "planner",
+          category: "Financial",
+          content: "Tools and worksheets for creating financial stability and independence.",
+          url: "/resources/financial-planner",
+          isFree: false
+        },
+        {
+          title: "Healing Journey Podcast",
+          type: "podcast",
+          category: "Support",
+          content: "Weekly podcast featuring expert interviews and real stories of women who have successfully navigated widowhood and divorce.",
+          url: "/resources/healing-podcast",
+          isFree: true
+        }
+      ]);
+    } catch (error) {
+      console.log("Seed data already exists or tables not ready");
+    }
   }
 
   // Users
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
-      if (user.username === username) {
-        return user;
-      }
-    }
-    return undefined;
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
-      if (user.email === email) {
-        return user;
-      }
-    }
-    return undefined;
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser,
-      id,
-      isMember: false,
-      createdAt: new Date()
-    };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   // Bookings
   async getBooking(id: number): Promise<Booking | undefined> {
-    return this.bookings.get(id);
+    const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return Array.from(this.bookings.values());
+    return await db.select().from(bookings);
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const id = this.currentBookingId++;
-    const booking: Booking = {
-      ...insertBooking,
-      id,
-      status: "pending",
-      scheduledDate: null,
-      createdAt: new Date()
-    };
-    this.bookings.set(id, booking);
-    return booking;
+    const result = await db.insert(bookings).values(insertBooking).returning();
+    return result[0];
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
-    const booking = this.bookings.get(id);
-    if (booking) {
-      booking.status = status;
-      this.bookings.set(id, booking);
-      return booking;
-    }
-    return undefined;
+    const result = await db.update(bookings)
+      .set({ status })
+      .where(eq(bookings.id, id))
+      .returning();
+    return result[0];
   }
 
   // Testimonials
   async getTestimonial(id: number): Promise<Testimonial | undefined> {
-    return this.testimonials.get(id);
+    const result = await db.select().from(testimonials).where(eq(testimonials.id, id)).limit(1);
+    return result[0];
   }
 
   async getApprovedTestimonials(): Promise<Testimonial[]> {
-    return Array.from(this.testimonials.values()).filter(testimonial => testimonial.isApproved);
+    return await db.select().from(testimonials).where(eq(testimonials.isApproved, true));
   }
 
   async getAllTestimonials(): Promise<Testimonial[]> {
-    return Array.from(this.testimonials.values());
+    return await db.select().from(testimonials);
   }
 
   async createTestimonial(insertTestimonial: InsertTestimonial): Promise<Testimonial> {
-    const id = this.currentTestimonialId++;
-    const testimonial: Testimonial = {
-      ...insertTestimonial,
-      id,
-      isApproved: false,
-      rating: 5,
-      content: insertTestimonial.testimonial,
-      createdAt: new Date()
-    };
-    this.testimonials.set(id, testimonial);
-    return testimonial;
+    const result = await db.insert(testimonials).values(insertTestimonial).returning();
+    return result[0];
   }
 
   // Resources
   async getResource(id: number): Promise<Resource | undefined> {
-    return this.resources.get(id);
+    const result = await db.select().from(resources).where(eq(resources.id, id)).limit(1);
+    return result[0];
   }
 
   async getResourcesByType(type: string): Promise<Resource[]> {
-    return Array.from(this.resources.values()).filter(resource => resource.type === type);
+    return await db.select().from(resources).where(eq(resources.type, type));
   }
 
   async getResourcesByCategory(category: string): Promise<Resource[]> {
-    return Array.from(this.resources.values()).filter(resource => resource.category === category);
+    return await db.select().from(resources).where(eq(resources.category, category));
   }
 
   async getAllResources(): Promise<Resource[]> {
-    return Array.from(this.resources.values());
+    return await db.select().from(resources);
   }
 
   async createResource(insertResource: InsertResource): Promise<Resource> {
-    const id = this.currentResourceId++;
-    const resource: Resource = {
-      ...insertResource,
-      id,
-      createdAt: new Date()
-    };
-    this.resources.set(id, resource);
-    return resource;
+    const result = await db.insert(resources).values(insertResource).returning();
+    return result[0];
   }
 
   // Contacts
   async getContact(id: number): Promise<Contact | undefined> {
-    return this.contacts.get(id);
+    const result = await db.select().from(contacts).where(eq(contacts.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllContacts(): Promise<Contact[]> {
-    return Array.from(this.contacts.values());
+    return await db.select().from(contacts);
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
-    const id = this.currentContactId++;
-    const contact: Contact = {
-      ...insertContact,
-      id,
-      status: "new",
-      createdAt: new Date()
-    };
-    this.contacts.set(id, contact);
-    return contact;
+    const result = await db.insert(contacts).values(insertContact).returning();
+    return result[0];
   }
 
   // Weight Loss Intakes
   async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
-    return this.weightLossIntakes.get(id);
+    const result = await db.select().from(weightLossIntakes).where(eq(weightLossIntakes.id, id)).limit(1);
+    return result[0];
   }
 
   async getAllWeightLossIntakes(): Promise<WeightLossIntake[]> {
-    return Array.from(this.weightLossIntakes.values());
+    return await db.select().from(weightLossIntakes);
   }
 
   async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
-    const id = this.currentWeightLossIntakeId++;
-    const intake: WeightLossIntake = {
-      ...insertIntake,
-      id,
-      phone: insertIntake.phone || null,
-      medicalConditions: insertIntake.medicalConditions || null,
-      medications: insertIntake.medications || null,
-      allergies: insertIntake.allergies || null,
-      digestiveIssues: insertIntake.digestiveIssues || null,
-      physicalLimitations: insertIntake.physicalLimitations || null,
-      weightLossMedications: insertIntake.weightLossMedications || null,
-      weightHistory: insertIntake.weightHistory || null,
-      previousAttempts: insertIntake.previousAttempts || null,
-      challengingAspects: insertIntake.challengingAspects || null,
-      currentEatingHabits: insertIntake.currentEatingHabits || null,
-      lifestyle: insertIntake.lifestyle || null,
-      activityLevel: insertIntake.activityLevel || null,
-      mindsetFactors: insertIntake.mindsetFactors || null,
-      goalsExpectations: insertIntake.goalsExpectations || null,
-      interestedInSupplements: insertIntake.interestedInSupplements || null,
-      status: "new",
-      createdAt: new Date()
-    };
-    this.weightLossIntakes.set(id, intake);
-    return intake;
+    const result = await db.insert(weightLossIntakes).values(insertIntake).returning();
+    return result[0];
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
