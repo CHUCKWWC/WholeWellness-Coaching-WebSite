@@ -117,6 +117,23 @@ export const insertWeightLossIntakeSchema = createInsertSchema(weightLossIntakes
   id: true,
   status: true,
   createdAt: true,
+}).extend({
+  phone: z.string().optional(),
+  medicalConditions: z.string().optional(),
+  medications: z.string().optional(),
+  allergies: z.string().optional(),
+  digestiveIssues: z.string().optional(),
+  physicalLimitations: z.string().optional(),
+  weightLossMedications: z.string().optional(),
+  weightHistory: z.string().optional(),
+  previousAttempts: z.string().optional(),
+  challengingAspects: z.string().optional(),
+  currentEatingHabits: z.string().optional(),
+  lifestyle: z.string().optional(),
+  activityLevel: z.string().optional(),
+  mindsetFactors: z.string().optional(),
+  goalsExpectations: z.string().optional(),
+  interestedInSupplements: z.boolean().optional().default(false),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

@@ -301,6 +301,22 @@ export class MemStorage implements IStorage {
     const intake: WeightLossIntake = {
       ...insertIntake,
       id,
+      phone: insertIntake.phone || null,
+      medicalConditions: insertIntake.medicalConditions || null,
+      medications: insertIntake.medications || null,
+      allergies: insertIntake.allergies || null,
+      digestiveIssues: insertIntake.digestiveIssues || null,
+      physicalLimitations: insertIntake.physicalLimitations || null,
+      weightLossMedications: insertIntake.weightLossMedications || null,
+      weightHistory: insertIntake.weightHistory || null,
+      previousAttempts: insertIntake.previousAttempts || null,
+      challengingAspects: insertIntake.challengingAspects || null,
+      currentEatingHabits: insertIntake.currentEatingHabits || null,
+      lifestyle: insertIntake.lifestyle || null,
+      activityLevel: insertIntake.activityLevel || null,
+      mindsetFactors: insertIntake.mindsetFactors || null,
+      goalsExpectations: insertIntake.goalsExpectations || null,
+      interestedInSupplements: insertIntake.interestedInSupplements || null,
       status: "new",
       createdAt: new Date()
     };

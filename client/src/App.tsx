@@ -13,6 +13,7 @@ import Resources from "@/pages/Resources";
 import Contact from "@/pages/Contact";
 import Booking from "@/pages/Booking";
 import Members from "@/pages/Members";
+import WeightLossIntake from "@/pages/WeightLossIntake";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -29,6 +30,7 @@ function Router() {
           <Route path="/contact" component={Contact} />
           <Route path="/booking" component={Booking} />
           <Route path="/members" component={Members} />
+          <Route path="/weight-loss-intake" component={WeightLossIntake} />
           <Route component={NotFound} />
         </Switch>
       </main>

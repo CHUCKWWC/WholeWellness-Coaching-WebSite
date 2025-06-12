@@ -31,36 +31,33 @@ export default function WeightLossIntake() {
     defaultValues: {
       fullName: "",
       email: "",
-      phone: "",
-      age: 0,
+      phone: undefined,
+      age: 18,
       height: "",
       currentWeight: "",
       goalWeight: "",
-      medicalConditions: "",
-      medications: "",
-      allergies: "",
-      digestiveIssues: "",
-      physicalLimitations: "",
-      weightLossMedications: "",
-      weightHistory: "",
-      previousAttempts: "",
-      challengingAspects: "",
-      currentEatingHabits: "",
-      lifestyle: "",
-      activityLevel: "",
-      mindsetFactors: "",
-      goalsExpectations: "",
+      medicalConditions: undefined,
+      medications: undefined,
+      allergies: undefined,
+      digestiveIssues: undefined,
+      physicalLimitations: undefined,
+      weightLossMedications: undefined,
+      weightHistory: undefined,
+      previousAttempts: undefined,
+      challengingAspects: undefined,
+      currentEatingHabits: undefined,
+      lifestyle: undefined,
+      activityLevel: undefined,
+      mindsetFactors: undefined,
+      goalsExpectations: undefined,
       interestedInSupplements: false,
     },
   });
 
   const createIntakeMutation = useMutation({
     mutationFn: async (intake: InsertWeightLossIntake) => {
-      const response = await apiRequest("/api/weight-loss-intakes", {
-        method: "POST",
-        body: JSON.stringify(intake),
-      });
-      return response.json();
+      const response = await apiRequest("/api/weight-loss-intakes", "POST", intake);
+      return response;
     },
     onSuccess: () => {
       toast({
@@ -233,7 +230,7 @@ export default function WeightLossIntake() {
                           <FormItem>
                             <FormLabel>Height *</FormLabel>
                             <FormControl>
-                              <Input placeholder="5'6\" or 168cm" {...field} />
+                              <Input placeholder="5'6&quot; or 168cm" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
