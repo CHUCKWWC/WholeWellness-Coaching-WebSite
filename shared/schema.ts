@@ -24,6 +24,34 @@ export const bookings = pgTable("bookings", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const weightLossIntakes = pgTable("weight_loss_intakes", {
+  id: serial("id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  age: integer("age").notNull(),
+  height: text("height").notNull(),
+  currentWeight: text("current_weight").notNull(),
+  goalWeight: text("goal_weight").notNull(),
+  medicalConditions: text("medical_conditions"),
+  medications: text("medications"),
+  allergies: text("allergies"),
+  digestiveIssues: text("digestive_issues"),
+  physicalLimitations: text("physical_limitations"),
+  weightLossMedications: text("weight_loss_medications"),
+  weightHistory: text("weight_history"),
+  previousAttempts: text("previous_attempts"),
+  challengingAspects: text("challenging_aspects"),
+  currentEatingHabits: text("current_eating_habits"),
+  lifestyle: text("lifestyle"),
+  activityLevel: text("activity_level"),
+  mindsetFactors: text("mindset_factors"),
+  goalsExpectations: text("goals_expectations"),
+  interestedInSupplements: boolean("interested_in_supplements").default(false),
+  status: text("status").default("new"), // new, reviewed, completed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const testimonials = pgTable("testimonials", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -85,14 +113,22 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   createdAt: true,
 });
 
+export const insertWeightLossIntakeSchema = createInsertSchema(weightLossIntakes).omit({
+  id: true,
+  status: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
 export type InsertResource = z.infer<typeof insertResourceSchema>;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+export type InsertWeightLossIntake = z.infer<typeof insertWeightLossIntakeSchema>;
 
 export type User = typeof users.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type Testimonial = typeof testimonials.$inferSelect;
 export type Resource = typeof resources.$inferSelect;
 export type Contact = typeof contacts.$inferSelect;
+export type WeightLossIntake = typeof weightLossIntakes.$inferSelect;

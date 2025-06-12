@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema, insertContactSchema, insertTestimonialSchema } from "@shared/schema";
+import { insertBookingSchema, insertContactSchema, insertTestimonialSchema, insertWeightLossIntakeSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -86,6 +86,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Internal server error" });
       }
+    }
+  });
+
+  // Weight Loss Intakes
+  app.post("/api/weight-loss-intakes", async (req, res) => {
+    try {
+      const intake = insertWeightLossIntakeSchema.parse(req.body);
+      const newIntake = await storage.createWeightLossIntake(intake);
+      res.json(newIntake);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid intake data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  app.get("/api/weight-loss-intakes", async (req, res) => {
+    try {
+      const intakes = await storage.getAllWeightLossIntakes();
+      res.json(intakes);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

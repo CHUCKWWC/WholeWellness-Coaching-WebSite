@@ -1,7 +1,7 @@
 import { 
-  users, bookings, testimonials, resources, contacts,
-  type User, type Booking, type Testimonial, type Resource, type Contact,
-  type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact 
+  users, bookings, testimonials, resources, contacts, weightLossIntakes,
+  type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
+  type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake
 } from "@shared/schema";
 
 export interface IStorage {
@@ -34,6 +34,11 @@ export interface IStorage {
   getContact(id: number): Promise<Contact | undefined>;
   getAllContacts(): Promise<Contact[]>;
   createContact(contact: InsertContact): Promise<Contact>;
+  
+  // Weight Loss Intakes
+  getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined>;
+  getAllWeightLossIntakes(): Promise<WeightLossIntake[]>;
+  createWeightLossIntake(intake: InsertWeightLossIntake): Promise<WeightLossIntake>;
 }
 
 export class MemStorage implements IStorage {
@@ -42,11 +47,13 @@ export class MemStorage implements IStorage {
   private testimonials: Map<number, Testimonial>;
   private resources: Map<number, Resource>;
   private contacts: Map<number, Contact>;
+  private weightLossIntakes: Map<number, WeightLossIntake>;
   private currentUserId: number;
   private currentBookingId: number;
   private currentTestimonialId: number;
   private currentResourceId: number;
   private currentContactId: number;
+  private currentWeightLossIntakeId: number;
 
   constructor() {
     this.users = new Map();
@@ -54,11 +61,13 @@ export class MemStorage implements IStorage {
     this.testimonials = new Map();
     this.resources = new Map();
     this.contacts = new Map();
+    this.weightLossIntakes = new Map();
     this.currentUserId = 1;
     this.currentBookingId = 1;
     this.currentTestimonialId = 1;
     this.currentResourceId = 1;
     this.currentContactId = 1;
+    this.currentWeightLossIntakeId = 1;
     
     this.seedData();
   }
@@ -276,6 +285,27 @@ export class MemStorage implements IStorage {
     };
     this.contacts.set(id, contact);
     return contact;
+  }
+
+  // Weight Loss Intakes
+  async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
+    return this.weightLossIntakes.get(id);
+  }
+
+  async getAllWeightLossIntakes(): Promise<WeightLossIntake[]> {
+    return Array.from(this.weightLossIntakes.values());
+  }
+
+  async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
+    const id = this.currentWeightLossIntakeId++;
+    const intake: WeightLossIntake = {
+      ...insertIntake,
+      id,
+      status: "new",
+      createdAt: new Date()
+    };
+    this.weightLossIntakes.set(id, intake);
+    return intake;
   }
 }
 
