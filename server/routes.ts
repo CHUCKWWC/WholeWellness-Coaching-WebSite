@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./supabase-client-storage";
+import { storage } from "./memory-storage";
 import { 
   insertBookingSchema, 
   insertContactSchema, 

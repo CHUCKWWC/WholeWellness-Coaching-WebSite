@@ -101,21 +101,21 @@ export class MemoryStorage implements IStorage {
       {
         id: 1,
         name: "Sarah Johnson",
+        initial: "S.J.",
+        category: "Life Coaching",
         content: "Amazing coaching experience! Life-changing results.",
         rating: 5,
         isApproved: true,
-        location: "New York",
-        serviceType: "Life Coaching",
         createdAt: new Date()
       },
       {
         id: 2,
         name: "Mike Davis", 
+        initial: "M.D.",
+        category: "Weight Loss",
         content: "Professional and supportive. Highly recommend!",
         rating: 5,
         isApproved: true,
-        location: "California",
-        serviceType: "Weight Loss",
         createdAt: new Date()
       }
     ];
