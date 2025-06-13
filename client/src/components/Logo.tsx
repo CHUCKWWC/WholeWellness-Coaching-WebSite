@@ -1,4 +1,4 @@
-import logoImage from "@assets/wwc_logo_1749815837238.avif";
+import logoImage from "@assets/wwc_logo_1749818333586.jpg";
 
 interface LogoProps {
   className?: string;
