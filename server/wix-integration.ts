@@ -3,6 +3,7 @@ import { createClient, OAuthStrategy } from '@wix/sdk';
 import { items } from '@wix/data';
 import { bookings, services } from '@wix/bookings';
 import { products } from '@wix/stores';
+import { plans } from '@wix/pricing-plans';
 
 // Wix API configuration
 interface WixConfig {
@@ -28,6 +29,14 @@ interface WixService {
   category: string;
 }
 
+interface WixProduct {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+}
+
 interface WixBooking {
   _id: string;
   serviceId: string;
@@ -39,51 +48,115 @@ interface WixBooking {
 
 export class WixIntegration {
   private config: WixConfig;
+  private wixClient: any;
 
   constructor(config: WixConfig) {
     this.config = config;
+    
+    // Create Wix client with all modules
+    this.wixClient = createClient({
+      modules: { 
+        services, 
+        products, 
+        plans, 
+        items, 
+        bookings 
+      },
+      auth: OAuthStrategy({ clientId: this.config.clientId }),
+    });
   }
 
-  // Fetch users from Wix
-  async getUsers(): Promise<WixUser[]> {
+  // Fetch services from Wix using SDK
+  async getServices(): Promise<WixService[]> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/members`, {
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const serviceList = await this.wixClient.services.queryServices().find();
       
-      if (!response.ok) {
-        throw new Error(`Wix API error: ${response.statusText}`);
-      }
+      console.log('Wix Services:');
+      console.log('Total: ', serviceList.items.length);
       
-      const data = await response.json();
-      return data.members || [];
+      return serviceList.items.map((service: any) => ({
+        _id: service._id,
+        name: service.name || 'Unnamed Service',
+        description: service.info?.description || '',
+        price: service.payment?.rateLabel?.amount || 0,
+        duration: service.schedulePolicy?.sessionDurations?.[0] || 60,
+        category: service.category || 'general'
+      }));
     } catch (error) {
-      console.error('Error fetching users from Wix:', error);
+      console.error('Error fetching services from Wix:', error);
       return [];
     }
   }
 
-  // Fetch services/pricing from Wix
-  async getServices(): Promise<WixService[]> {
+  // Fetch products from Wix using SDK
+  async getProducts(): Promise<WixProduct[]> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/services`, {
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const productList = await this.wixClient.products.queryProducts().find();
       
-      if (!response.ok) {
-        throw new Error(`Wix API error: ${response.statusText}`);
-      }
+      console.log('Wix Products:');
+      console.log('Total: ', productList.items.length);
       
-      const data = await response.json();
-      return data.services || [];
+      return productList.items.map((product: any) => ({
+        _id: product._id,
+        name: product.name || 'Unnamed Product',
+        description: product.description || '',
+        price: product.price?.price || 0,
+        category: product.productType || 'general'
+      }));
     } catch (error) {
-      console.error('Error fetching services from Wix:', error);
+      console.error('Error fetching products from Wix:', error);
+      return [];
+    }
+  }
+
+  // Fetch pricing plans from Wix using SDK
+  async getPlans(): Promise<any[]> {
+    try {
+      const plansList = await this.wixClient.plans.listPublicPlans();
+      
+      console.log('Wix Plans:');
+      console.log('Total: ', plansList.plans?.length || 0);
+      
+      return plansList.plans || [];
+    } catch (error) {
+      console.error('Error fetching plans from Wix:', error);
+      return [];
+    }
+  }
+
+  // Fetch data items from Wix collections using SDK
+  async getDataItems(collectionId: string): Promise<any[]> {
+    try {
+      const dataItemsList = await this.wixClient.items.queryDataItems({
+        dataCollectionId: collectionId
+      }).find();
+      
+      console.log(`Wix Data Items (${collectionId}):`);
+      console.log('Total: ', dataItemsList.items.length);
+      
+      return dataItemsList.items;
+    } catch (error) {
+      console.error(`Error fetching data items from collection ${collectionId}:`, error);
+      return [];
+    }
+  }
+
+  // Fetch users from Members collection
+  async getUsers(): Promise<WixUser[]> {
+    try {
+      // Fetch from Members data collection
+      const members = await this.getDataItems('Members');
+      
+      return members.map((member: any) => ({
+        _id: member.data._id,
+        email: member.data.email,
+        firstName: member.data.firstName,
+        lastName: member.data.lastName,
+        membershipLevel: member.data.membershipLevel || 'free',
+        profileImage: member.data.profileImage
+      }));
+    } catch (error) {
+      console.error('Error fetching users from Wix:', error);
       return [];
     }
   }
@@ -91,19 +164,19 @@ export class WixIntegration {
   // Fetch bookings from Wix
   async getBookings(): Promise<WixBooking[]> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/bookings`, {
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const bookingsList = await this.wixClient.bookings.queryBookings().find();
       
-      if (!response.ok) {
-        throw new Error(`Wix API error: ${response.statusText}`);
-      }
+      console.log('Wix Bookings:');
+      console.log('Total: ', bookingsList.items.length);
       
-      const data = await response.json();
-      return data.bookings || [];
+      return bookingsList.items.map((booking: any) => ({
+        _id: booking._id,
+        serviceId: booking.serviceId,
+        userId: booking.bookedEntity?.contactId,
+        dateTime: booking.slot?.startDateTime,
+        status: booking.status,
+        notes: booking.additionalFields?.customFieldsMessage
+      }));
     } catch (error) {
       console.error('Error fetching bookings from Wix:', error);
       return [];
@@ -113,15 +186,28 @@ export class WixIntegration {
   // Sync user data with local database
   async syncUsers(): Promise<void> {
     const wixUsers = await this.getUsers();
-    // Implementation would sync with your local database
     console.log(`Synced ${wixUsers.length} users from Wix`);
   }
 
   // Sync services/pricing with local database
   async syncServices(): Promise<void> {
     const wixServices = await this.getServices();
-    // Implementation would update local service data
     console.log(`Synced ${wixServices.length} services from Wix`);
+  }
+
+  // Sync all data types
+  async syncAllData(): Promise<void> {
+    try {
+      await Promise.all([
+        this.syncUsers(),
+        this.syncServices(),
+        this.getProducts(),
+        this.getPlans()
+      ]);
+      console.log('All Wix data synchronized successfully');
+    } catch (error) {
+      console.error('Error during full sync:', error);
+    }
   }
 }
 
@@ -180,8 +266,6 @@ export function setupWixWebhooks(app: Express, wixIntegration: WixIntegration) {
 // Environment configuration for Wix
 export function getWixConfig(): WixConfig {
   return {
-    siteId: process.env.WIX_SITE_ID || '',
-    apiKey: process.env.WIX_API_KEY || '',
-    baseUrl: process.env.WIX_API_BASE_URL || 'https://www.wixapis.com/v1'
+    clientId: process.env.WIX_CLIENT_ID || '4b89abab-c440-4aef-88ec-c22c187b62fe'
   };
 }

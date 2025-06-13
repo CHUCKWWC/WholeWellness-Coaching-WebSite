@@ -159,6 +159,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/wix/products", async (req, res) => {
+    try {
+      const products = await wixIntegration.getProducts();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching Wix products:", error);
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
+  });
+
+  app.get("/api/wix/plans", async (req, res) => {
+    try {
+      const plans = await wixIntegration.getPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching Wix plans:", error);
+      res.status(500).json({ error: "Failed to fetch plans" });
+    }
+  });
+
+  app.get("/api/wix/bookings", async (req, res) => {
+    try {
+      const bookings = await wixIntegration.getBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching Wix bookings:", error);
+      res.status(500).json({ error: "Failed to fetch bookings" });
+    }
+  });
+
+  app.get("/api/wix/data/:collectionId", async (req, res) => {
+    try {
+      const { collectionId } = req.params;
+      const dataItems = await wixIntegration.getDataItems(collectionId);
+      res.json(dataItems);
+    } catch (error) {
+      console.error("Error fetching Wix data items:", error);
+      res.status(500).json({ error: "Failed to fetch data items" });
+    }
+  });
+
+  app.post("/api/wix/sync/all", async (req, res) => {
+    try {
+      await wixIntegration.syncAllData();
+      res.json({ success: true, message: "All data synchronized from Wix" });
+    } catch (error) {
+      console.error("Error syncing all data:", error);
+      res.status(500).json({ error: "Failed to sync all data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

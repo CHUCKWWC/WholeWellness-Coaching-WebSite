@@ -66,10 +66,10 @@ This guide will help you set up Wix as your administrative backend for managing 
 ### 3.2 Set Environment Variables
 Add these to your Replit environment secrets:
 ```
-WIX_SITE_ID=your_site_id_here
-WIX_API_KEY=your_api_key_here
-WIX_API_BASE_URL=https://www.wixapis.com/v1
+WIX_CLIENT_ID=your_client_id_here
 ```
+
+Note: The default client ID is already configured for testing. Replace with your actual Wix app client ID for production use.
 
 ## Step 4: Create Admin Interface in Wix
 

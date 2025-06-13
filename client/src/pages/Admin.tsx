@@ -35,9 +35,24 @@ export default function Admin() {
   const { toast } = useToast();
   const [syncLoading, setSyncLoading] = useState(false);
 
-  // Fetch Wix services
+  // Fetch Wix data
   const { data: wixServices = [], isLoading: servicesLoading, refetch: refetchServices } = useQuery<WixService[]>({
     queryKey: ["/api/wix/services"],
+    retry: false,
+  });
+
+  const { data: wixProducts = [], isLoading: productsLoading, refetch: refetchProducts } = useQuery({
+    queryKey: ["/api/wix/products"],
+    retry: false,
+  });
+
+  const { data: wixPlans = [], isLoading: plansLoading, refetch: refetchPlans } = useQuery({
+    queryKey: ["/api/wix/plans"],
+    retry: false,
+  });
+
+  const { data: wixBookings = [], isLoading: bookingsLoading, refetch: refetchBookings } = useQuery({
+    queryKey: ["/api/wix/bookings"],
     retry: false,
   });
 
