@@ -72,13 +72,13 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+            <div className="ml-10 flex items-center space-x-6">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap",
                     location === item.href
                       ? "text-primary"
                       : "text-gray-600 hover:text-primary"
@@ -88,14 +88,14 @@ export default function Navigation() {
                 </Link>
               ))}
               <Link href="/beta-test">
-                <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 mr-2">
+                <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 ml-4 whitespace-nowrap">
                   🧪 Beta Test AI Coach
                 </Button>
               </Link>
               {isAuthenticated ? (
-                <>
+                <div className="flex items-center space-x-3 ml-4">
                   <Link href="/donate">
-                    <Button variant="outline" className="mr-2">
+                    <Button variant="outline" className="whitespace-nowrap">
                       Donate
                     </Button>
                   </Link>
@@ -138,9 +138,9 @@ export default function Navigation() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center space-x-3 ml-4">
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="mr-2">
@@ -156,7 +156,7 @@ export default function Navigation() {
                       Get Started
                     </Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
