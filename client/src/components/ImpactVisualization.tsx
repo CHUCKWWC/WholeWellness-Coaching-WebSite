@@ -492,7 +492,7 @@ export default function ImpactVisualization() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Crisis Response Time</span>
-                      <span className="font-semibold">< 5 min</span>
+                      <span className="font-semibold">&lt; 5 min</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-green-600 h-2 rounded-full" style={{ width: '98%' }}></div>
