@@ -8,8 +8,12 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// Create connection with proper SSL configuration for Supabase/Neon
 const client = postgres(process.env.DATABASE_URL, {
-  ssl: { rejectUnauthorized: false }
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
 });
 
 export const db = drizzle(client, { schema });
