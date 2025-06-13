@@ -1,15 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  fullName: string;
-  isMember: boolean;
-}
-
 export function useAuth() {
-  const { data: user, isLoading, error } = useQuery<User>({
+  const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
   });
@@ -18,7 +10,6 @@ export function useAuth() {
     user,
     isLoading,
     isAuthenticated: !!user,
-    isPaidMember: user?.isMember || false,
-    error
+    isPaidMember: user?.membershipLevel !== 'free',
   };
 }
