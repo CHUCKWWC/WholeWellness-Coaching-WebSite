@@ -1244,6 +1244,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Beta Testing Routes
+  
+  // Get beta testing statistics
+  app.get("/api/beta-test/stats", async (req, res) => {
+    try {
+      // Sample beta testing statistics
+      const stats = {
+        totalTesters: 47,
+        sessionsCompleted: 128,
+        averageRating: "4.3",
+        feedbackCount: 89
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Register beta tester
+  app.post("/api/beta-test/register", async (req, res) => {
+    try {
+      const { name, email, experience, goals } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ message: "Name and email are required" });
+      }
+      
+      // In production, this would store in a beta testers database
+      const betaTester = {
+        id: `beta-${Date.now()}`,
+        name,
+        email,
+        experience: experience || "Not specified",
+        goals: goals || "General testing",
+        registeredAt: new Date().toISOString(),
+        sessionsCompleted: 0
+      };
+      
+      res.json({
+        success: true,
+        message: "Beta tester registered successfully",
+        tester: betaTester
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to register beta tester" });
+    }
+  });
+
+  // Start beta testing session
+  app.post("/api/beta-test/start-session", async (req, res) => {
+    try {
+      const { sessionId, userInfo } = req.body;
+      
+      if (!sessionId || !userInfo) {
+        return res.status(400).json({ message: "Session ID and user info are required" });
+      }
+      
+      // Log session start for analytics
+      const sessionData = {
+        id: `session-${Date.now()}`,
+        sessionType: sessionId,
+        testerName: userInfo.name,
+        testerEmail: userInfo.email,
+        startTime: new Date().toISOString(),
+        status: "active"
+      };
+      
+      res.json({
+        success: true,
+        message: "Beta testing session started",
+        session: sessionData
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start session" });
+    }
+  });
+
+  // Submit beta testing feedback
+  app.post("/api/beta-test/feedback", async (req, res) => {
+    try {
+      const {
+        sessionId,
+        rating,
+        experience,
+        usability,
+        effectiveness,
+        wouldRecommend,
+        additionalComments,
+        technicalIssues,
+        suggestions
+      } = req.body;
+      
+      if (!sessionId || rating === undefined || !experience || !additionalComments) {
+        return res.status(400).json({ 
+          message: "Session ID, rating, experience, and additional comments are required" 
+        });
+      }
+      
+      // Store feedback in database
+      const feedback = {
+        id: `feedback-${Date.now()}`,
+        sessionId,
+        rating: Math.max(1, Math.min(5, rating)),
+        experience,
+        usability: Math.max(1, Math.min(5, usability)),
+        effectiveness: Math.max(1, Math.min(5, effectiveness)),
+        wouldRecommend: Boolean(wouldRecommend),
+        additionalComments,
+        technicalIssues: technicalIssues || "",
+        suggestions: suggestions || "",
+        submittedAt: new Date().toISOString()
+      };
+      
+      res.json({
+        success: true,
+        message: "Feedback submitted successfully",
+        feedback: feedback
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit feedback" });
+    }
+  });
+
+  // Get beta testing results dashboard data
+  app.get("/api/beta-test/results", async (req, res) => {
+    try {
+      // Sample aggregated results
+      const results = {
+        overview: {
+          totalSessions: 128,
+          completionRate: 85.2,
+          averageRating: 4.3,
+          recommendationRate: 89.5
+        },
+        sessionBreakdown: {
+          "nutritionist": { sessions: 32, avgRating: 4.5 },
+          "fitness-trainer": { sessions: 28, avgRating: 4.2 },
+          "behavior-coach": { sessions: 25, avgRating: 4.4 },
+          "wellness-coordinator": { sessions: 18, avgRating: 4.1 },
+          "accountability-partner": { sessions: 15, avgRating: 4.6 },
+          "meal-prep-assistant": { sessions: 10, avgRating: 4.0 }
+        },
+        commonFeedback: {
+          positives: [
+            "Intuitive and easy to use interface",
+            "Helpful and relevant AI responses",
+            "Good variety of coaching specialties",
+            "Effective personalization features"
+          ],
+          improvements: [
+            "Response time could be faster",
+            "More detailed exercise demonstrations needed",
+            "Better integration between different AI coaches",
+            "Additional customization options"
+          ],
+          technicalIssues: [
+            "Occasional loading delays",
+            "Session timeout issues",
+            "Mobile compatibility concerns"
+          ]
+        }
+      };
+      
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get all coaches (for admin/directory)
   app.get("/api/coaches", async (req, res) => {
     try {

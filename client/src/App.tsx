@@ -16,6 +16,7 @@ import Contact from "@/pages/Contact";
 import Booking from "@/pages/Booking";
 import Members from "@/pages/Members";
 import WeightLossIntake from "@/pages/WeightLossIntake";
+import BetaTestPortal from "@/pages/BetaTestPortal";
 import Impact from "@/pages/Impact";
 import Admin from "@/pages/Admin";
 import CMS from "@/pages/CMS";
@@ -42,6 +43,7 @@ function Router() {
           <Route path="/booking" component={Booking} />
           <Route path="/members" component={Members} />
           <Route path="/weight-loss-intake" component={WeightLossIntake} />
+          <Route path="/beta-test/:sessionId?" component={BetaTestPortal} />
           <Route path="/impact" component={Impact} />
           <Route path="/admin" component={Admin} />
           <Route path="/cms" component={CMS} />

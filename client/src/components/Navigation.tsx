@@ -86,6 +86,11 @@ export default function Navigation() {
                   {item.label}
                 </Link>
               ))}
+              <Link href="/beta-test">
+                <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 mr-2">
+                  🧪 Beta Test AI Coach
+                </Button>
+              </Link>
               {isAuthenticated ? (
                 <>
                   <Link href="/donate">
