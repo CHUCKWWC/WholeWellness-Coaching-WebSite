@@ -54,15 +54,15 @@ export default function CMS() {
   const [editingSetting, setEditingSetting] = useState<any>(null);
 
   // Queries
-  const { data: pages = [], isLoading: pagesLoading } = useQuery({
+  const { data: pages = [], isLoading: pagesLoading } = useQuery<any[]>({
     queryKey: ["/api/cms/pages"],
   });
 
-  const { data: media = [], isLoading: mediaLoading } = useQuery({
+  const { data: media = [], isLoading: mediaLoading } = useQuery<any[]>({
     queryKey: ["/api/cms/media"],
   });
 
-  const { data: settings = [], isLoading: settingsLoading } = useQuery({
+  const { data: settings = [], isLoading: settingsLoading } = useQuery<any[]>({
     queryKey: ["/api/cms/settings"],
   });
 

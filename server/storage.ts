@@ -108,6 +108,81 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   constructor() {
     this.seedData();
+    this.createCMSTables();
+  }
+
+  private async createCMSTables() {
+    try {
+      // Create CMS tables if they don't exist
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS content_pages (
+          id SERIAL PRIMARY KEY,
+          title VARCHAR(255) NOT NULL,
+          slug VARCHAR(255) UNIQUE NOT NULL,
+          content TEXT,
+          meta_title VARCHAR(255),
+          meta_description TEXT,
+          page_type VARCHAR(50) DEFAULT 'page',
+          is_published BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS content_blocks (
+          id SERIAL PRIMARY KEY,
+          page_id INTEGER REFERENCES content_pages(id) ON DELETE CASCADE,
+          block_type VARCHAR(50) NOT NULL,
+          content TEXT,
+          "order" INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS media_library (
+          id SERIAL PRIMARY KEY,
+          file_name VARCHAR(255) NOT NULL,
+          url TEXT NOT NULL,
+          alt_text VARCHAR(255),
+          category VARCHAR(50) DEFAULT 'image',
+          file_size INTEGER,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS navigation_menus (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          label VARCHAR(255) NOT NULL,
+          url VARCHAR(255) NOT NULL,
+          parent_id INTEGER REFERENCES navigation_menus(id) ON DELETE SET NULL,
+          "order" INTEGER DEFAULT 0,
+          is_external BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          menu_location VARCHAR(50),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS site_settings (
+          key VARCHAR(255) PRIMARY KEY,
+          value TEXT NOT NULL,
+          category VARCHAR(100) DEFAULT 'general',
+          description TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      console.log("CMS tables created successfully");
+    } catch (error) {
+      console.log("CMS tables already exist or error creating:", error);
+    }
   }
 
   private async seedData() {
