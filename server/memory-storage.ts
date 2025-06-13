@@ -1,14 +1,10 @@
-import { db } from "./db";
-import { 
-  users, bookings, testimonials, resources, contacts, weightLossIntakes,
-  contentPages, contentBlocks, mediaLibrary, navigationMenus, siteSettings,
-  type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
-  type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
-  type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
-  type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting
-} from "@shared/schema";
-import { eq, desc, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import type { 
+  User, Booking, Testimonial, Resource, Contact, WeightLossIntake,
+  InsertUser, InsertBooking, InsertTestimonial, InsertResource, InsertContact, InsertWeightLossIntake,
+  ContentPage, ContentBlock, MediaItem, NavigationMenu, SiteSetting,
+  InsertContentPage, InsertContentBlock, InsertMediaItem, InsertNavigationMenu, InsertSiteSetting
+} from "@shared/schema";
 
 export interface IStorage {
   // Users
@@ -174,6 +170,7 @@ export class MemoryStorage implements IStorage {
       }
     ];
   }
+
   // Users
   async getUser(id: string): Promise<User | undefined> {
     return this.users.find(u => u.id === id);
@@ -196,310 +193,321 @@ export class MemoryStorage implements IStorage {
 
   // Bookings
   async getBooking(id: number): Promise<Booking | undefined> {
-    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
-    return booking || undefined;
+    return this.bookings.find(b => b.id === id);
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
+    return this.bookings;
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const [booking] = await db
-      .insert(bookings)
-      .values(insertBooking)
-      .returning();
+    const booking: Booking = {
+      ...insertBooking,
+      id: this.bookings.length + 1,
+      createdAt: new Date()
+    };
+    this.bookings.push(booking);
     return booking;
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
-    const [booking] = await db
-      .update(bookings)
-      .set({ status })
-      .where(eq(bookings.id, id))
-      .returning();
-    return booking || undefined;
+    const booking = this.bookings.find(b => b.id === id);
+    if (booking) {
+      booking.status = status;
+    }
+    return booking;
   }
 
   // Testimonials
   async getTestimonial(id: number): Promise<Testimonial | undefined> {
-    const [testimonial] = await db.select().from(testimonials).where(eq(testimonials.id, id));
-    return testimonial || undefined;
+    return this.testimonials.find(t => t.id === id);
   }
 
   async getApprovedTestimonials(): Promise<Testimonial[]> {
-    return await db.select().from(testimonials)
-      .where(eq(testimonials.isApproved, true))
-      .orderBy(desc(testimonials.createdAt));
+    return this.testimonials.filter(t => t.isApproved);
   }
 
   async getAllTestimonials(): Promise<Testimonial[]> {
-    return await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
+    return this.testimonials;
   }
 
   async createTestimonial(insertTestimonial: InsertTestimonial): Promise<Testimonial> {
-    const [testimonial] = await db
-      .insert(testimonials)
-      .values(insertTestimonial)
-      .returning();
+    const testimonial: Testimonial = {
+      ...insertTestimonial,
+      id: this.testimonials.length + 1,
+      createdAt: new Date()
+    };
+    this.testimonials.push(testimonial);
     return testimonial;
   }
 
   // Resources
   async getResource(id: number): Promise<Resource | undefined> {
-    const [resource] = await db.select().from(resources).where(eq(resources.id, id));
-    return resource || undefined;
+    return this.resources.find(r => r.id === id);
   }
 
   async getResourcesByType(type: string): Promise<Resource[]> {
-    return await db.select().from(resources)
-      .where(eq(resources.type, type))
-      .orderBy(desc(resources.createdAt));
+    return this.resources.filter(r => r.type === type);
   }
 
   async getResourcesByCategory(category: string): Promise<Resource[]> {
-    return await db.select().from(resources)
-      .where(eq(resources.category, category))
-      .orderBy(desc(resources.createdAt));
+    return this.resources.filter(r => r.category === category);
   }
 
   async getAllResources(): Promise<Resource[]> {
-    return await db.select().from(resources).orderBy(desc(resources.createdAt));
+    return this.resources;
   }
 
   async createResource(insertResource: InsertResource): Promise<Resource> {
-    const [resource] = await db
-      .insert(resources)
-      .values(insertResource)
-      .returning();
+    const resource: Resource = {
+      ...insertResource,
+      id: this.resources.length + 1,
+      createdAt: new Date()
+    };
+    this.resources.push(resource);
     return resource;
   }
 
   // Contacts
   async getContact(id: number): Promise<Contact | undefined> {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
-    return contact || undefined;
+    return this.contacts.find(c => c.id === id);
   }
 
   async getAllContacts(): Promise<Contact[]> {
-    return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
+    return this.contacts;
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
-    const [contact] = await db
-      .insert(contacts)
-      .values(insertContact)
-      .returning();
+    const contact: Contact = {
+      ...insertContact,
+      id: this.contacts.length + 1,
+      createdAt: new Date()
+    };
+    this.contacts.push(contact);
     return contact;
   }
 
   // Weight Loss Intakes
   async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
-    const [intake] = await db.select().from(weightLossIntakes).where(eq(weightLossIntakes.id, id));
-    return intake || undefined;
+    return this.weightLossIntakes.find(w => w.id === id);
   }
 
   async getAllWeightLossIntakes(): Promise<WeightLossIntake[]> {
-    return await db.select().from(weightLossIntakes).orderBy(desc(weightLossIntakes.createdAt));
+    return this.weightLossIntakes;
   }
 
   async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
-    const [intake] = await db
-      .insert(weightLossIntakes)
-      .values(insertIntake)
-      .returning();
+    const intake: WeightLossIntake = {
+      ...insertIntake,
+      id: this.weightLossIntakes.length + 1,
+      createdAt: new Date()
+    };
+    this.weightLossIntakes.push(intake);
     return intake;
   }
 
   // CMS - Content Pages
   async getContentPage(id: number): Promise<ContentPage | undefined> {
-    const [page] = await db.select().from(contentPages).where(eq(contentPages.id, id));
-    return page || undefined;
+    return this.contentPages.find(p => p.id === id);
   }
 
   async getContentPageBySlug(slug: string): Promise<ContentPage | undefined> {
-    const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug));
-    return page || undefined;
+    return this.contentPages.find(p => p.slug === slug);
   }
 
   async getAllContentPages(): Promise<ContentPage[]> {
-    return await db.select().from(contentPages).orderBy(desc(contentPages.createdAt));
+    return this.contentPages;
   }
 
   async getPublishedContentPages(): Promise<ContentPage[]> {
-    return await db.select().from(contentPages)
-      .where(eq(contentPages.isPublished, true))
-      .orderBy(desc(contentPages.createdAt));
+    return this.contentPages.filter(p => p.isPublished);
   }
 
   async createContentPage(insertPage: InsertContentPage): Promise<ContentPage> {
-    const [page] = await db
-      .insert(contentPages)
-      .values(insertPage)
-      .returning();
+    const page: ContentPage = {
+      ...insertPage,
+      id: this.contentPages.length + 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.contentPages.push(page);
     return page;
   }
 
   async updateContentPage(id: number, pageUpdate: Partial<InsertContentPage>): Promise<ContentPage | undefined> {
-    const [page] = await db
-      .update(contentPages)
-      .set(pageUpdate)
-      .where(eq(contentPages.id, id))
-      .returning();
-    return page || undefined;
+    const page = this.contentPages.find(p => p.id === id);
+    if (page) {
+      Object.assign(page, pageUpdate, { updatedAt: new Date() });
+    }
+    return page;
   }
 
   async deleteContentPage(id: number): Promise<boolean> {
-    const result = await db.delete(contentPages).where(eq(contentPages.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const index = this.contentPages.findIndex(p => p.id === id);
+    if (index !== -1) {
+      this.contentPages.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   // CMS - Content Blocks
   async getContentBlock(id: number): Promise<ContentBlock | undefined> {
-    const [block] = await db.select().from(contentBlocks).where(eq(contentBlocks.id, id));
-    return block || undefined;
+    return this.contentBlocks.find(b => b.id === id);
   }
 
   async getContentBlocksByPageId(pageId: number): Promise<ContentBlock[]> {
-    return await db.select().from(contentBlocks)
-      .where(eq(contentBlocks.pageId, pageId))
-      .orderBy(asc(contentBlocks.order));
+    return this.contentBlocks.filter(b => b.pageId === pageId);
   }
 
   async createContentBlock(insertBlock: InsertContentBlock): Promise<ContentBlock> {
-    const [block] = await db
-      .insert(contentBlocks)
-      .values(insertBlock)
-      .returning();
+    const block: ContentBlock = {
+      ...insertBlock,
+      id: this.contentBlocks.length + 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.contentBlocks.push(block);
     return block;
   }
 
   async updateContentBlock(id: number, blockUpdate: Partial<InsertContentBlock>): Promise<ContentBlock | undefined> {
-    const [block] = await db
-      .update(contentBlocks)
-      .set(blockUpdate)
-      .where(eq(contentBlocks.id, id))
-      .returning();
-    return block || undefined;
+    const block = this.contentBlocks.find(b => b.id === id);
+    if (block) {
+      Object.assign(block, blockUpdate, { updatedAt: new Date() });
+    }
+    return block;
   }
 
   async deleteContentBlock(id: number): Promise<boolean> {
-    const result = await db.delete(contentBlocks).where(eq(contentBlocks.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const index = this.contentBlocks.findIndex(b => b.id === id);
+    if (index !== -1) {
+      this.contentBlocks.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   // CMS - Media Library
   async getMediaItem(id: number): Promise<MediaItem | undefined> {
-    const [media] = await db.select().from(mediaLibrary).where(eq(mediaLibrary.id, id));
-    return media || undefined;
+    return this.mediaItems.find(m => m.id === id);
   }
 
   async getAllMediaItems(): Promise<MediaItem[]> {
-    return await db.select().from(mediaLibrary).orderBy(desc(mediaLibrary.createdAt));
+    return this.mediaItems;
   }
 
   async getMediaByCategory(category: string): Promise<MediaItem[]> {
-    return await db.select().from(mediaLibrary)
-      .where(eq(mediaLibrary.category, category))
-      .orderBy(desc(mediaLibrary.createdAt));
+    return this.mediaItems.filter(m => m.category === category);
   }
 
   async createMediaItem(insertMedia: InsertMediaItem): Promise<MediaItem> {
-    const [media] = await db
-      .insert(mediaLibrary)
-      .values(insertMedia)
-      .returning();
+    const media: MediaItem = {
+      ...insertMedia,
+      id: this.mediaItems.length + 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.mediaItems.push(media);
     return media;
   }
 
   async updateMediaItem(id: number, mediaUpdate: Partial<InsertMediaItem>): Promise<MediaItem | undefined> {
-    const [media] = await db
-      .update(mediaLibrary)
-      .set(mediaUpdate)
-      .where(eq(mediaLibrary.id, id))
-      .returning();
-    return media || undefined;
+    const media = this.mediaItems.find(m => m.id === id);
+    if (media) {
+      Object.assign(media, mediaUpdate, { updatedAt: new Date() });
+    }
+    return media;
   }
 
   async deleteMediaItem(id: number): Promise<boolean> {
-    const result = await db.delete(mediaLibrary).where(eq(mediaLibrary.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const index = this.mediaItems.findIndex(m => m.id === id);
+    if (index !== -1) {
+      this.mediaItems.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   // CMS - Navigation
   async getNavigationMenu(id: number): Promise<NavigationMenu | undefined> {
-    const [menu] = await db.select().from(navigationMenus).where(eq(navigationMenus.id, id));
-    return menu || undefined;
+    return this.navigationMenus.find(n => n.id === id);
   }
 
   async getNavigationByLocation(location: string): Promise<NavigationMenu[]> {
-    return await db.select().from(navigationMenus)
-      .where(eq(navigationMenus.menuLocation, location))
-      .orderBy(asc(navigationMenus.order));
+    return this.navigationMenus.filter(n => n.menuLocation === location);
   }
 
   async getAllNavigationMenus(): Promise<NavigationMenu[]> {
-    return await db.select().from(navigationMenus).orderBy(asc(navigationMenus.order));
+    return this.navigationMenus;
   }
 
   async createNavigationMenu(insertMenu: InsertNavigationMenu): Promise<NavigationMenu> {
-    const [menu] = await db
-      .insert(navigationMenus)
-      .values(insertMenu)
-      .returning();
+    const menu: NavigationMenu = {
+      ...insertMenu,
+      id: this.navigationMenus.length + 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.navigationMenus.push(menu);
     return menu;
   }
 
   async updateNavigationMenu(id: number, menuUpdate: Partial<InsertNavigationMenu>): Promise<NavigationMenu | undefined> {
-    const [menu] = await db
-      .update(navigationMenus)
-      .set(menuUpdate)
-      .where(eq(navigationMenus.id, id))
-      .returning();
-    return menu || undefined;
+    const menu = this.navigationMenus.find(n => n.id === id);
+    if (menu) {
+      Object.assign(menu, menuUpdate, { updatedAt: new Date() });
+    }
+    return menu;
   }
 
   async deleteNavigationMenu(id: number): Promise<boolean> {
-    const result = await db.delete(navigationMenus).where(eq(navigationMenus.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const index = this.navigationMenus.findIndex(n => n.id === id);
+    if (index !== -1) {
+      this.navigationMenus.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   // CMS - Site Settings
   async getSiteSetting(key: string): Promise<SiteSetting | undefined> {
-    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
-    return setting || undefined;
+    return this.siteSettings.find(s => s.key === key);
   }
 
   async getAllSiteSettings(): Promise<SiteSetting[]> {
-    return await db.select().from(siteSettings).orderBy(asc(siteSettings.category));
+    return this.siteSettings;
   }
 
   async getSiteSettingsByCategory(category: string): Promise<SiteSetting[]> {
-    return await db.select().from(siteSettings)
-      .where(eq(siteSettings.category, category))
-      .orderBy(asc(siteSettings.key));
+    return this.siteSettings.filter(s => s.category === category);
   }
 
   async createSiteSetting(insertSetting: InsertSiteSetting): Promise<SiteSetting> {
-    const [setting] = await db
-      .insert(siteSettings)
-      .values(insertSetting)
-      .returning();
+    const setting: SiteSetting = {
+      ...insertSetting,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.siteSettings.push(setting);
     return setting;
   }
 
   async updateSiteSetting(key: string, settingUpdate: Partial<InsertSiteSetting>): Promise<SiteSetting | undefined> {
-    const [setting] = await db
-      .update(siteSettings)
-      .set(settingUpdate)
-      .where(eq(siteSettings.key, key))
-      .returning();
-    return setting || undefined;
+    const setting = this.siteSettings.find(s => s.key === key);
+    if (setting) {
+      Object.assign(setting, settingUpdate, { updatedAt: new Date() });
+    }
+    return setting;
   }
 
   async deleteSiteSetting(key: string): Promise<boolean> {
-    const result = await db.delete(siteSettings).where(eq(siteSettings.key, key));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const index = this.siteSettings.findIndex(s => s.key === key);
+    if (index !== -1) {
+      this.siteSettings.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 }
 
