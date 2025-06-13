@@ -3,8 +3,16 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBookingSchema, insertContactSchema, insertTestimonialSchema, insertWeightLossIntakeSchema } from "@shared/schema";
 import { z } from "zod";
+import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Initialize Wix Integration
+  const wixConfig = getWixConfig();
+  const wixIntegration = new WixIntegration(wixConfig);
+  
+  // Setup Wix webhooks
+  setupWixWebhooks(app, wixIntegration);
   
   // Bookings
   app.post("/api/bookings", async (req, res) => {
@@ -118,6 +126,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // For demo purposes, return null (no user logged in)
     // In production, this would check session/token authentication
     res.json(null);
+  });
+
+  // Wix integration endpoints
+  app.get("/api/wix/sync/users", async (req, res) => {
+    try {
+      await wixIntegration.syncUsers();
+      res.json({ success: true, message: "Users synchronized from Wix" });
+    } catch (error) {
+      console.error("Error syncing users:", error);
+      res.status(500).json({ error: "Failed to sync users" });
+    }
+  });
+
+  app.get("/api/wix/sync/services", async (req, res) => {
+    try {
+      await wixIntegration.syncServices();
+      res.json({ success: true, message: "Services synchronized from Wix" });
+    } catch (error) {
+      console.error("Error syncing services:", error);
+      res.status(500).json({ error: "Failed to sync services" });
+    }
+  });
+
+  app.get("/api/wix/services", async (req, res) => {
+    try {
+      const services = await wixIntegration.getServices();
+      res.json(services);
+    } catch (error) {
+      console.error("Error fetching Wix services:", error);
+      res.status(500).json({ error: "Failed to fetch services" });
+    }
   });
 
   const httpServer = createServer(app);
