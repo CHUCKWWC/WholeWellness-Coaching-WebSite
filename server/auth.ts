@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { Request, Response, NextFunction } from 'express';
-import { storage } from './storage';
+import { donationStorage } from './donation-storage';
 
 export interface AuthenticatedRequest extends Request {
   user?: any;
@@ -19,7 +19,7 @@ export async function createSession(userId: string): Promise<string> {
   const sessionToken = uuidv4();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
   
-  await storage.createSession({
+  await donationStorage.createSession({
     id: uuidv4(),
     userId,
     token: sessionToken,
@@ -32,15 +32,15 @@ export async function createSession(userId: string): Promise<string> {
 export async function validateSession(token: string): Promise<any | null> {
   if (!token) return null;
   
-  const session = await storage.getSessionByToken(token);
+  const session = await donationStorage.getSessionByToken(token);
   if (!session || session.expiresAt < new Date()) {
     if (session) {
-      await storage.deleteSession(session.id);
+      await donationStorage.deleteSession(session.id);
     }
     return null;
   }
   
-  const user = await storage.getUserById(session.userId);
+  const user = await donationStorage.getUserById(session.userId);
   return user;
 }
 

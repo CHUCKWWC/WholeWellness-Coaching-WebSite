@@ -27,8 +27,10 @@ import {
   calculateRewardPoints,
   type AuthenticatedRequest 
 } from "./auth";
+import { donationStorage } from "./donation-storage";
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -49,17 +51,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = registerSchema.parse(req.body);
       
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
+      const existingUser = await donationStorage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: 'Email already registered' });
       }
       
       // Hash password and create user
       const passwordHash = await hashPassword(userData.password);
-      const user = await storage.createUser({
+      const user = await donationStorage.createUser({
         ...userData,
         passwordHash,
-        id: require('uuid').v4(),
+        id: uuidv4(),
         membershipLevel: 'free',
         donationTotal: '0',
         rewardPoints: 0,
@@ -91,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
-      const user = await storage.getUserByEmail(email);
+      const user = await donationStorage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
@@ -102,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update last login
-      await storage.updateUser(user.id, { lastLogin: new Date() });
+      await donationStorage.updateUser(user.id, { lastLogin: new Date() });
       
       // Create session
       const sessionToken = await createSession(user.id);
@@ -152,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Donation Routes
   app.get('/api/donations/presets', async (req, res) => {
     try {
-      const presets = await storage.getDonationPresets();
+      const presets = await donationStorage.getDonationPresets();
       res.json(presets);
     } catch (error) {
       console.error('Error fetching donation presets:', error);
@@ -162,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/campaigns/active', async (req, res) => {
     try {
-      const campaigns = await storage.getActiveCampaigns();
+      const campaigns = await donationStorage.getActiveCampaigns();
       res.json(campaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
@@ -187,13 +189,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: `${user.firstName} ${user.lastName}`,
         });
         stripeCustomerId = customer.id;
-        await storage.updateUser(user.id, { stripeCustomerId });
+        await donationStorage.updateUser(user.id, { stripeCustomerId });
       }
 
       // Create donation record
-      const donation = await storage.createDonation({
+      const donation = await donationStorage.createDonation({
         ...donationData,
-        id: require('uuid').v4(),
+        id: uuidv4(),
         userId: user.id,
         status: 'pending',
       });
@@ -206,9 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           product_data: {
             name: 'Monthly Donation to Whole Wellness Coaching',
           },
-          unit_amount: Math.round(donationData.amount * 100),
+          unit_amount: Math.round(parseFloat(donationData.amount) * 100),
           recurring: {
-            interval: 'month',
+            interval: 'month' as const,
           },
         };
 
@@ -240,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               product_data: {
                 name: 'Donation to Whole Wellness Coaching',
               },
-              unit_amount: Math.round(donationData.amount * 100),
+              unit_amount: Math.round(parseFloat(donationData.amount) * 100),
             },
             quantity: 1,
           }],
@@ -265,9 +267,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/member/dashboard', requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user;
-      const donations = await storage.getDonationsByUserId(user.id);
-      const impactMetrics = await storage.getImpactMetricsByUserId(user.id);
-      const memberBenefits = await storage.getMemberBenefitsByLevel(user.membershipLevel);
+      const donations = await donationStorage.getDonationsByUserId(user.id);
+      const impactMetrics = await donationStorage.getImpactMetricsByUserId(user.id);
+      const memberBenefits = await donationStorage.getMemberBenefitsByLevel(user.membershipLevel);
       
       // Calculate next milestone
       const currentTotal = parseFloat(user.donationTotal || '0');
@@ -316,13 +318,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/user/impact', requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user;
-      const metrics = await storage.getImpactMetricsByUserId(user.id);
+      const metrics = await donationStorage.getImpactMetricsByUserId(user.id);
       
       res.json({
-        livesImpacted: metrics.find(m => m.metric === 'lives_impacted')?.value || 0,
+        livesImpacted: metrics.find((m: any) => m.metric === 'lives_impacted')?.value || 0,
         totalDonated: user.donationTotal || 0,
         rewardPoints: user.rewardPoints || 0,
-        sessionsSupported: metrics.find(m => m.metric === 'sessions_supported')?.value || 0,
+        sessionsSupported: metrics.find((m: any) => m.metric === 'sessions_supported')?.value || 0,
       });
     } catch (error) {
       console.error('Impact metrics error:', error);
@@ -350,10 +352,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Deduct points and create transaction
       const newPoints = user.rewardPoints - reward.points;
-      await storage.updateUser(user.id, { rewardPoints: newPoints });
+      await donationStorage.updateUser(user.id, { rewardPoints: newPoints });
       
-      await storage.createRewardTransaction({
-        id: require('uuid').v4(),
+      await donationStorage.createRewardTransaction({
+        id: uuidv4(),
         userId: user.id,
         points: -reward.points,
         type: 'redeemed',
@@ -382,17 +384,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { donationId, userId } = session.metadata;
         
         // Update donation status
-        await storage.updateDonation(donationId, {
+        await donationStorage.updateDonation(donationId, {
           status: 'completed',
           stripePaymentIntentId: session.payment_intent,
           processedAt: new Date(),
         });
         
         // Calculate and award points
-        const donation = await storage.getDonationById(donationId);
+        const donation = await donationStorage.getDonationById(donationId);
         if (donation) {
-          const user = await storage.getUserById(userId);
-          const isRecurring = user.donationTotal > 0;
+          const user = await donationStorage.getUserById(userId);
+          const isRecurring = parseFloat(user.donationTotal || '0') > 0;
           const points = calculateRewardPoints(
             parseFloat(donation.amount),
             donation.donationType,
@@ -404,15 +406,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const newPoints = user.rewardPoints + points;
           const newLevel = calculateMembershipLevel(newTotal);
           
-          await storage.updateUser(userId, {
+          await donationStorage.updateUser(userId, {
             donationTotal: newTotal.toString(),
             rewardPoints: newPoints,
             membershipLevel: newLevel,
           });
           
           // Create reward transaction
-          await storage.createRewardTransaction({
-            id: require('uuid').v4(),
+          await donationStorage.createRewardTransaction({
+            id: uuidv4(),
             userId,
             points,
             type: 'earned',
@@ -422,7 +424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           // Update impact metrics
-          await storage.updateImpactMetrics(userId, donation);
+          await donationStorage.updateImpactMetrics(userId, donation);
         }
       }
       
