@@ -8,6 +8,7 @@ import {
   type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting
 } from "@shared/schema";
 import { eq, desc, asc } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
   // Users
@@ -100,7 +101,10 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values({
+        ...insertUser,
+        id: randomUUID()
+      })
       .returning();
     return user;
   }

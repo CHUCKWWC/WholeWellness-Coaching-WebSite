@@ -1,21 +1,20 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema, insertContactSchema, insertTestimonialSchema, insertWeightLossIntakeSchema } from "@shared/schema";
 import { 
-  insertContentPageSchema, 
-  insertContentBlockSchema, 
-  insertMediaSchema, 
-  insertNavigationSchema, 
-  insertSiteSettingSchema 
-} from "@shared/cms-schema";
-import { 
-  loginSchema, 
+  insertBookingSchema, 
+  insertContactSchema, 
+  insertTestimonialSchema, 
+  insertWeightLossIntakeSchema,
+  insertContentPageSchema,
+  insertContentBlockSchema,
+  insertMediaSchema,
+  insertNavigationSchema,
+  insertSiteSettingSchema,
+  loginSchema,
   registerSchema,
   insertDonationSchema,
-  insertCampaignSchema 
-} from "@shared/donation-schema";
-import {
+  insertCampaignSchema,
   insertCoachSchema,
   insertCoachCredentialSchema,
   insertCoachBankingSchema,
@@ -24,7 +23,7 @@ import {
   insertCoachSessionNotesSchema,
   insertCoachMessageTemplateSchema,
   insertCoachClientCommunicationSchema
-} from "@shared/coach-schema";
+} from "@shared/schema";
 import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
