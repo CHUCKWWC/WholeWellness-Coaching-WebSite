@@ -244,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         volunteersActive: 12,
         newMembersThisMonth: Math.floor(uniqueClients * 0.3),
         sessionsThisWeek: Math.floor(completedSessions * 0.15),
-        goalsAchieved: allIntakes.filter(i => i.weightLossGoal).length,
+        goalsAchieved: allIntakes.filter(i => i.goalWeight).length,
         upcomingEvents: 8
       };
 
@@ -292,13 +292,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       
-      const recentBookings = allBookings.filter(b => new Date(b.createdAt) >= thisMonth);
-      const weeklyBookings = allBookings.filter(b => new Date(b.createdAt) >= thisWeek);
+      const recentBookings = allBookings.filter(b => b.createdAt && new Date(b.createdAt) >= thisMonth);
+      const weeklyBookings = allBookings.filter(b => b.createdAt && new Date(b.createdAt) >= thisWeek);
       
       const stats = {
         newMembersThisMonth: recentBookings.length,
         sessionsThisWeek: weeklyBookings.filter(b => b.status === 'confirmed').length,
-        goalsAchieved: allIntakes.filter(i => i.primaryGoal === 'Lose Weight').length,
+        goalsAchieved: allIntakes.filter(i => i.goalWeight && parseFloat(i.goalWeight) > 0).length,
         upcomingEvents: Math.floor(allBookings.filter(b => b.status === 'pending').length / 2)
       };
 
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const programs = [
         {
           name: "Individual Coaching",
-          activeClients: allBookings.filter(b => b.service === 'individual').length || Math.floor(allBookings.length * 0.7),
+          activeClients: allBookings.filter(b => b.coachingArea === 'individual').length || Math.floor(allBookings.length * 0.7),
           completionRate: 78
         },
         {
