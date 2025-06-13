@@ -2,12 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import Hero from "@/components/Hero";
 import TestimonialCard from "@/components/TestimonialCard";
 import BookingForm from "@/components/BookingForm";
+import AuthForm from "@/components/AuthForm";
+import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import type { Testimonial } from "@shared/schema";
 
 export default function Home() {
+  const { user, isAuthenticated } = useAuth();
   const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],
   });
