@@ -85,14 +85,16 @@ export default function About() {
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold text-secondary mb-6">Our Mission</h3>
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  Wholewellness Coaching is dedicated to providing high-quality coaching services 
-                  to underserved individuals, especially women who have survived domestic violence, 
-                  those who are newly widowed or divorced, and anyone else seeking transformative support.
+                  We see a future where high-quality life coaching is not a privilege but a right, where technology bridges gaps and 
+                  brings expert guidance to those who need it most. Our vision is of a global community where self-discovery and 
+                  continuous improvement are celebrated, where individuals from all walks of life can find the coaching they need to 
+                  thrive in relationships, stay anchored during a divorce, find love and passion at any age, business & careers, health, 
+                  and personal development.
                 </p>
                 <p className="text-gray-700 leading-relaxed">
-                  Our mission is to make coaching accessible to those who may not otherwise have access, 
-                  offering affordable services for those who can pay and providing free or discounted 
-                  services to individuals with financial constraints.
+                  Our mission is to empower disadvantaged individuals to unlock their full potential and achieve transformative growth, 
+                  provide a supportive and innovative coaching platform that fosters personal development, cultivates resilience, and 
+                  promotes holistic well-being. Our mission is to make high-quality life coaching accessible to all.
                 </p>
               </CardContent>
             </Card>

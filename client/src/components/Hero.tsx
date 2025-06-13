@@ -12,7 +12,9 @@ export default function Hero() {
               <span className="text-primary">Accessible Coaching</span>
             </h1>
             <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-              Wholewellness Coaching is dedicated to providing high-quality coaching services to underserved individuals, especially women who have survived domestic violence, those who are newly widowed or divorced, and anyone seeking transformative support.
+              "Coaching for Everyone: Affordable, Accessible, Empowering." 
+              <br />
+              A supportive path to personal development for those who need it most.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/booking">
