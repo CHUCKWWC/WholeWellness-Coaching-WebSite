@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import AICoachingSession from "@/components/AICoachingSession";
+import BetaChatbot from "@/components/BetaChatbot";
 import { 
   Brain,
   Heart,
@@ -615,11 +615,9 @@ export default function BetaTestPortal() {
                   </p>
                 </div>
                 
-                <AICoachingSession 
-                  sessionType={selectedSession!} 
-                  onComplete={handleCompleteSession}
-                  betaMode={true}
-                />
+                <div className="min-h-[600px] rounded-lg border">
+                  <BetaChatbot onComplete={handleCompleteSession} />
+                </div>
               </CardContent>
             </Card>
           </motion.div>
