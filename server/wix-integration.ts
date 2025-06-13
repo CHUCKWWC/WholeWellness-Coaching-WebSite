@@ -1,10 +1,12 @@
 import type { Express } from "express";
+import { createClient, OAuthStrategy } from '@wix/sdk';
+import { items } from '@wix/data';
+import { bookings, services } from '@wix/bookings';
+import { products } from '@wix/stores';
 
 // Wix API configuration
 interface WixConfig {
-  siteId: string;
-  apiKey: string;
-  baseUrl: string;
+  clientId: string;
 }
 
 // Wix data types

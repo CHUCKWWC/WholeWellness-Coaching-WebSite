@@ -44,6 +44,7 @@
     "@tanstack/react-query": "^5.60.5",
     "@types/memoizee": "^0.4.12",
     "@wix/bookings": "^1.0.906",
+    "@wix/data": "^1.0.242",
     "@wix/pricing-plans": "^1.0.188",
     "@wix/sdk": "^1.15.23",
     "@wix/stores": "^1.0.468",
