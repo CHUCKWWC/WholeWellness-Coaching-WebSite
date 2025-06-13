@@ -1,12 +1,17 @@
 import OpenAI from "openai";
+import { CoachingTemplates } from "./coaching-templates";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('Missing required OpenAI API key: OPENAI_API_KEY');
+let openai: OpenAI | null = null;
+
+if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')) {
+  try {
+    openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY 
+    });
+  } catch (error) {
+    console.warn('OpenAI initialization failed, using evidence-based templates');
+  }
 }
-
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
 
 export interface CoachingProfile {
   name: string;
@@ -57,6 +62,12 @@ export class AICoaching {
   private model = "gpt-4o";
 
   async generatePersonalizedMealPlan(profile: CoachingProfile): Promise<MealPlan[]> {
+    if (!openai) {
+      // Use evidence-based template system
+      const plan = CoachingTemplates.generatePersonalizedPlan(profile);
+      return plan.mealPlan;
+    }
+
     const restrictions = profile.dietaryRestrictions.length > 0 
       ? `with dietary restrictions: ${profile.dietaryRestrictions.join(', ')}` 
       : '';
@@ -110,7 +121,9 @@ export class AICoaching {
       return result.weeklyPlan || [];
     } catch (error) {
       console.error('Error generating meal plan:', error);
-      throw new Error('Failed to generate personalized meal plan');
+      // Fallback to evidence-based templates
+      const plan = CoachingTemplates.generatePersonalizedPlan(profile);
+      return plan.mealPlan;
     }
   }
 
@@ -151,6 +164,11 @@ export class AICoaching {
       ]
     }`;
 
+    if (!openai) {
+      const plan = CoachingTemplates.generatePersonalizedPlan(profile);
+      return plan.workoutPlan;
+    }
+
     try {
       const response = await openai.chat.completions.create({
         model: this.model,
@@ -172,7 +190,8 @@ export class AICoaching {
       return result.weeklyPlan || [];
     } catch (error) {
       console.error('Error generating workout plan:', error);
-      throw new Error('Failed to generate personalized workout plan');
+      const plan = CoachingTemplates.generatePersonalizedPlan(profile);
+      return plan.workoutPlan;
     }
   }
 
@@ -187,6 +206,11 @@ export class AICoaching {
     - ${progressContext}
     
     Create an encouraging, supportive message that acknowledges their efforts and provides motivation to continue. Keep it personal, authentic, and empowering. Focus on progress, not perfection.`;
+
+    if (!openai) {
+      const plan = CoachingTemplates.generatePersonalizedPlan(profile);
+      return plan.motivation;
+    }
 
     try {
       const response = await openai.chat.completions.create({
@@ -207,7 +231,8 @@ export class AICoaching {
       return response.choices[0].message.content || "Keep going! Every step forward is progress worth celebrating.";
     } catch (error) {
       console.error('Error generating motivational message:', error);
-      return "You're doing amazing! Remember, every healthy choice you make is an investment in your future self.";
+      const plan = CoachingTemplates.generatePersonalizedPlan(profile);
+      return plan.motivation;
     }
   }
 
