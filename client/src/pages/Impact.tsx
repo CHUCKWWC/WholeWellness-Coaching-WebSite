@@ -5,6 +5,9 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CommunityImpactDashboard from "@/components/CommunityImpactDashboard";
+import MemberEngagementSystem from "@/components/MemberEngagementSystem";
+import ImpactVisualization from "@/components/ImpactVisualization";
 import { 
   Heart, 
   Users, 
@@ -15,7 +18,9 @@ import {
   MapPin,
   Clock,
   DollarSign,
-  Star
+  Star,
+  Activity,
+  BarChart3
 } from "lucide-react";
 
 interface ImpactMetrics {

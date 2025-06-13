@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Hero from "@/components/Hero";
 import TestimonialCard from "@/components/TestimonialCard";
 import BookingForm from "@/components/BookingForm";
 import AuthForm from "@/components/AuthForm";
+import OnboardingWelcome from "@/components/OnboardingWelcome";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,22 @@ import type { Testimonial } from "@shared/schema";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Show onboarding for new users or first-time visitors
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [isAuthenticated, user]);
+
+  const completeOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('hasSeenOnboarding', 'true');
+  };
   const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],
   });
@@ -223,6 +241,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Onboarding Welcome */}
+      <OnboardingWelcome 
+        isOpen={showOnboarding}
+        onComplete={completeOnboarding}
+        userType={user ? 'new' : 'new'}
+      />
     </div>
   );
 }
