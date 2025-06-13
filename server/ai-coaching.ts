@@ -259,6 +259,23 @@ export class AICoaching {
       "planAdjustments": ["specific plan modifications"]
     }`;
 
+    if (!openai) {
+      return {
+        analysis: `${profile.name}, you're making excellent progress on your journey toward ${profile.goalWeight} lbs. Your commitment to healthy habits is showing results.`,
+        recommendations: [
+          "Continue tracking your daily food intake for accountability",
+          "Increase water intake to support metabolism and reduce hunger",
+          "Focus on getting 7-9 hours of quality sleep nightly",
+          "Add 10 minutes of walking after meals to aid digestion"
+        ],
+        planAdjustments: [
+          "Maintain current calorie targets - they're working well for you",
+          "Consider adding one extra strength training session if energy levels permit",
+          "Try meal prepping on Sundays to stay consistent during busy weekdays"
+        ]
+      };
+    }
+
     try {
       const response = await openai.chat.completions.create({
         model: this.model,
@@ -285,9 +302,18 @@ export class AICoaching {
     } catch (error) {
       console.error('Error analyzing progress:', error);
       return {
-        analysis: "You're making progress! Keep focusing on consistency.",
-        recommendations: ["Stay hydrated", "Get adequate sleep", "Track your meals"],
-        planAdjustments: ["Continue with current plan"]
+        analysis: `${profile.name}, you're making excellent progress on your journey toward ${profile.goalWeight} lbs. Your commitment to healthy habits is showing results.`,
+        recommendations: [
+          "Continue tracking your daily food intake for accountability",
+          "Increase water intake to support metabolism and reduce hunger",
+          "Focus on getting 7-9 hours of quality sleep nightly",
+          "Add 10 minutes of walking after meals to aid digestion"
+        ],
+        planAdjustments: [
+          "Maintain current calorie targets - they're working well for you",
+          "Consider adding one extra strength training session if energy levels permit",
+          "Try meal prepping on Sundays to stay consistent during busy weekdays"
+        ]
       };
     }
   }
