@@ -1,542 +1,517 @@
 {
-  "name": "Wholewellness Chat Session Storage",
+  "name": "Whole Wellness Coaching - Supabase Admin Automation",
   "nodes": [
     {
       "parameters": {
+        "mode": "webhook",
         "httpMethod": "POST",
-        "path": "webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat",
+        "path": "wix-admin-trigger",
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "f4e1c8d2-3b7a-4e9f-8c6d-1a2b3c4d5e6f",
-      "name": "Chat Webhook",
+      "id": "webhook-trigger",
+      "name": "Wix Admin Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "admin-automation-webhook"
     },
     {
       "parameters": {
-        "operation": "select",
-        "table": "chat_sessions",
-        "filterType": "manual",
-        "matchType": "allFilters",
-        "filters": {
-          "conditions": [
+        "functionCode": "// Process Wix admin automation requests\nconst action = $json.action;\nconst data = $json.data;\n\n// Route different automation actions\nswitch (action) {\n  case 'sync-users':\n    return {\n      action: 'sync-users',\n      endpoint: '/api/admin/users',\n      method: 'GET'\n    };\n  \n  case 'process-donations':\n    return {\n      action: 'process-donations',\n      endpoint: '/api/admin/workflows/process-pending-donations',\n      method: 'POST'\n    };\n  \n  case 'assign-coaches':\n    return {\n      action: 'assign-coaches',\n      endpoint: '/api/admin/workflows/assign-coaches-to-bookings',\n      method: 'POST'\n    };\n  \n  case 'send-emails':\n    return {\n      action: 'send-emails',\n      endpoint: '/api/admin/workflows/send-follow-up-emails',\n      method: 'POST'\n    };\n  \n  case 'generate-reports':\n    return {\n      action: 'generate-reports',\n      endpoint: '/api/admin/reports',\n      method: 'GET',\n      params: data\n    };\n  \n  case 'bulk-update':\n    return {\n      action: 'bulk-update',\n      endpoint: '/api/admin/bulk-operations',\n      method: 'POST',\n      data: data\n    };\n  \n  default:\n    throw new Error(`Unknown action: ${action}`);\n}"
+      },
+      "id": "process-request",
+      "name": "Process Admin Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.endpoint.startsWith('http') ? $json.endpoint : 'https://your-replit-domain.replit.app' + $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "={{ $json.method }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "keyName": "user_id",
-              "condition": "equals",
-              "keyValue": "={{ $json.userId }}"
+              "name": "Content-Type",
+              "value": "application/json"
             },
             {
-              "keyName": "status",
-              "condition": "equals", 
-              "keyValue": "active"
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.adminApiKey }}"
             }
           ]
         },
-        "sort": {
-          "fields": [
-            {
-              "field": "last_activity",
-              "direction": "desc"
-            }
-          ]
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
         },
-        "limit": 1
-      },
-      "id": "check-session",
-      "name": "Check Active Session",
-      "type": "@n8n/n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [460, 300],
-      "credentials": {
-        "supabaseApi": {
-          "id": "supabase-credentials",
-          "name": "Supabase API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $('Check Active Session').all().length }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combineOperation": "any"
-        }
-      },
-      "id": "session-exists",
-      "name": "Session Exists?",
-      "type": "@n8n/n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [680, 300]
-    },
-    {
-      "parameters": {
-        "operation": "insert",
-        "table": "chat_sessions",
-        "records": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "user_id": "={{ $json.userId }}",
-            "session_id": "={{ $json.sessionId || 'session_' + Date.now() }}",
-            "agent_type": "={{ $json.agentType || 'general' }}",
-            "status": "active",
-            "title": "Chat Session",
-            "metadata": {
-              "user_email": "={{ $json.userEmail }}",
-              "source": "website_chat",
-              "user_agent": "={{ $json.userAgent }}"
-            }
-          }
-        }
-      },
-      "id": "create-session",
-      "name": "Create New Session",
-      "type": "@n8n/n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [900, 200],
-      "credentials": {
-        "supabaseApi": {
-          "id": "supabase-credentials",
-          "name": "Supabase API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "table": "chat_sessions",
-        "filterType": "manual",
-        "matchType": "allFilters",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "id",
-              "condition": "equals",
-              "keyValue": "={{ $('Check Active Session').first().json.id }}"
-            }
-          ]
-        },
-        "records": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "last_activity": "={{ new Date().toISOString() }}",
-            "agent_type": "={{ $json.agentType || $('Check Active Session').first().json.agent_type }}"
-          }
-        }
-      },
-      "id": "update-session",
-      "name": "Update Existing Session",
-      "type": "@n8n/n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [900, 400],
-      "credentials": {
-        "supabaseApi": {
-          "id": "supabase-credentials",
-          "name": "Supabase API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "sessionData",
+        "jsonBody": "={{ $json.data ? JSON.stringify($json.data) : '{}' }}",
         "options": {}
       },
-      "id": "merge-session-data",
-      "name": "Merge Session Data",
-      "type": "@n8n/n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [1120, 300]
-    },
-    {
-      "parameters": {
-        "operation": "insert",
-        "table": "chat_messages",
-        "records": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "session_id": "={{ $json.sessionData[0].id || $json.sessionData[1].id }}",
-            "message_id": "={{ Date.now() }}_user",
-            "content": "={{ $('Chat Webhook').first().json.message }}",
-            "is_user": true,
-            "timestamp": "={{ new Date().toISOString() }}"
-          }
-        }
-      },
-      "id": "store-user-message",
-      "name": "Store User Message",
-      "type": "@n8n/n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [1340, 300],
+      "id": "api-request",
+      "name": "Platform API Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        640,
+        300
+      ],
       "credentials": {
-        "supabaseApi": {
-          "id": "supabase-credentials",
-          "name": "Supabase API"
+        "httpHeaderAuth": {
+          "id": "platform-admin-auth",
+          "name": "Platform Admin Auth"
         }
       }
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $('Chat Webhook').first().json.agentType }}",
-              "rightValue": "finance-coach",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combineOperation": "any"
-        }
+        "host": "pwuwmnivvdvdxdewynbo.supabase.co",
+        "database": "postgres",
+        "user": "postgres",
+        "password": "={{ $credentials.supabasePassword }}",
+        "ssl": true,
+        "operation": "executeQuery",
+        "query": "-- Log admin action\nINSERT INTO admin_activity_log (admin_email, action, details, timestamp, ip_address)\nVALUES (\n  '{{ $json.adminEmail || \"system@wholewellness.org\" }}',\n  '{{ $json.action }}',\n  '{{ JSON.stringify($json) }}',\n  NOW(),\n  '{{ $json.ipAddress || \"n8n-automation\" }}'\n);\n\n-- Update sync status\nINSERT INTO sync_status (last_sync_time, sync_type, status, details)\nVALUES (\n  NOW(),\n  '{{ $json.action }}',\n  'completed',\n  '{{ JSON.stringify($json) }}'\n)\nON CONFLICT (sync_type) \nDO UPDATE SET \n  last_sync_time = NOW(),\n  status = 'completed',\n  details = '{{ JSON.stringify($json) }}';"
       },
-      "id": "agent-router",
-      "name": "Agent Router",
-      "type": "@n8n/n8n-nodes-base.switch",
+      "id": "log-activity",
+      "name": "Log to Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        840,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process successful automation response\nconst originalAction = $('Process Admin Request').first().$json.action;\nconst apiResponse = $('Platform API Request').first().$json;\nconst timestamp = new Date().toISOString();\n\nreturn {\n  success: true,\n  action: originalAction,\n  timestamp: timestamp,\n  response: apiResponse,\n  message: `Successfully executed ${originalAction}`\n};"
+      },
+      "id": "format-success",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Handle automation errors\nconst error = $json.error || $json;\nconst originalAction = $('Process Admin Request').first().$json.action || 'unknown';\nconst timestamp = new Date().toISOString();\n\nreturn {\n  success: false,\n  action: originalAction,\n  timestamp: timestamp,\n  error: error.message || error,\n  message: `Failed to execute ${originalAction}: ${error.message || error}`\n};"
+      },
+      "id": "format-error",
+      "name": "Format Error Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "schedule",
+        "interval": 300000,
+        "timezone": "America/New_York"
+      },
+      "id": "scheduled-trigger",
+      "name": "Scheduled Automation",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Scheduled automation tasks\nconst scheduledTasks = [\n  {\n    action: 'process-donations',\n    endpoint: '/api/admin/workflows/process-pending-donations',\n    method: 'POST'\n  },\n  {\n    action: 'assign-coaches',\n    endpoint: '/api/admin/workflows/assign-coaches-to-bookings',\n    method: 'POST'\n  },\n  {\n    action: 'send-emails',\n    endpoint: '/api/admin/workflows/send-follow-up-emails',\n    method: 'POST'\n  },\n  {\n    action: 'update-segments',\n    endpoint: '/api/admin/workflows/update-user-segments',\n    method: 'POST'\n  }\n];\n\nreturn scheduledTasks.map(task => ({\n  ...task,\n  scheduledAt: new Date().toISOString()\n}));"
+      },
+      "id": "scheduled-tasks",
+      "name": "Generate Scheduled Tasks",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        440,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-tasks",
+      "name": "Split Tasks",
+      "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [1560, 300]
+      "position": [
+        640,
+        600
+      ]
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "options": {
-          "temperature": 0.7,
-          "maxTokens": 500
-        },
-        "messages": {
-          "values": [
+        "url": "https://your-replit-domain.replit.app{{ $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "{{ $json.method }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "content": "You are a Financial Coach specializing in helping domestic violence survivors and women going through major life transitions rebuild their financial independence. Provide supportive, practical financial guidance.",
-              "role": "system"
+              "name": "Content-Type",
+              "value": "application/json"
             },
             {
-              "content": "={{ $('Chat Webhook').first().json.message }}",
-              "role": "user"
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.adminApiKey }}"
             }
           ]
-        }
-      },
-      "id": "finance-coach-ai",
-      "name": "Finance Coach AI",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1,
-      "position": [1780, 200],
-      "credentials": {
-        "openAiApi": {
-          "id": "openai-credentials",
-          "name": "OpenAI API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "gpt-4o",
-        "options": {
-          "temperature": 0.7,
-          "maxTokens": 500
         },
-        "messages": {
-          "values": [
-            {
-              "content": "You are a Relationship Coach specializing in helping domestic violence survivors rebuild healthy relationships and communication skills. Be trauma-informed and prioritize safety.",
-              "role": "system"
-            },
-            {
-              "content": "={{ $('Chat Webhook').first().json.message }}",
-              "role": "user"
-            }
-          ]
-        }
-      },
-      "id": "relationship-coach-ai",
-      "name": "Relationship Coach AI", 
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1,
-      "position": [1780, 300],
-      "credentials": {
-        "openAiApi": {
-          "id": "openai-credentials", 
-          "name": "OpenAI API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "gpt-4o",
-        "options": {
-          "temperature": 0.7,
-          "maxTokens": 500
-        },
-        "messages": {
-          "values": [
-            {
-              "content": "You are a Career Development Coach helping women rebuild their professional lives after major transitions. Focus on practical career strategies and building confidence.",
-              "role": "system"
-            },
-            {
-              "content": "={{ $('Chat Webhook').first().json.message }}",
-              "role": "user"
-            }
-          ]
-        }
-      },
-      "id": "career-coach-ai",
-      "name": "Career Coach AI",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi", 
-      "typeVersion": 1,
-      "position": [1780, 400],
-      "credentials": {
-        "openAiApi": {
-          "id": "openai-credentials",
-          "name": "OpenAI API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "aiResponse",
         "options": {}
       },
-      "id": "merge-ai-response",
-      "name": "Merge AI Response",
-      "type": "@n8n/n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [2000, 300]
+      "id": "scheduled-api-request",
+      "name": "Execute Scheduled Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        840,
+        600
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "platform-admin-auth",
+          "name": "Platform Admin Auth"
+        }
+      }
     },
     {
       "parameters": {
-        "operation": "insert",
-        "table": "chat_messages",
-        "records": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "session_id": "={{ $('Merge Session Data').first().json.sessionData[0].id || $('Merge Session Data').first().json.sessionData[1].id }}",
-            "message_id": "={{ Date.now() }}_ai",
-            "content": "={{ $json.aiResponse[0].content || $json.aiResponse[0].text }}",
-            "is_user": false,
-            "timestamp": "={{ new Date().toISOString() }}",
-            "agent_response_data": {
-              "agent_type": "={{ $('Chat Webhook').first().json.agentType }}",
-              "model_used": "gpt-4o",
-              "response_time": "={{ Date.now() - $('Chat Webhook').first().json.timestamp }}"
-            }
-          }
-        }
+        "host": "pwuwmnivvdvdxdewynbo.supabase.co",
+        "database": "postgres",
+        "user": "postgres",
+        "password": "={{ $credentials.supabasePassword }}",
+        "ssl": true,
+        "operation": "executeQuery",
+        "query": "-- Log scheduled task\nINSERT INTO scheduled_task_log (task_name, execution_time, status, result)\nVALUES (\n  '{{ $json.action }}',\n  NOW(),\n  CASE WHEN {{ $json.success || false }} THEN 'success' ELSE 'failed' END,\n  '{{ JSON.stringify($json) }}'\n);\n\n-- Update automation metrics\nINSERT INTO automation_metrics (metric_name, metric_value, recorded_at)\nVALUES (\n  'scheduled_tasks_executed',\n  1,\n  NOW()\n);"
       },
-      "id": "store-ai-response",
-      "name": "Store AI Response",
-      "type": "@n8n/n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [2220, 300],
+      "id": "log-scheduled-task",
+      "name": "Log Scheduled Task",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1040,
+        600
+      ],
       "credentials": {
-        "supabaseApi": {
-          "id": "supabase-credentials",
-          "name": "Supabase API"
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "webhook",
+        "httpMethod": "POST",
+        "path": "user-action-trigger",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "user-action-webhook",
+      "name": "User Action Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        900
+      ],
+      "webhookId": "user-action-automation"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process user action triggers\nconst userAction = $json.action;\nconst userData = $json.user;\nconst metadata = $json.metadata || {};\n\nswitch (userAction) {\n  case 'new_donation':\n    return {\n      action: 'process_new_donation',\n      userId: userData.id,\n      donationAmount: metadata.amount,\n      donationType: metadata.type,\n      endpoint: '/api/admin/workflows/process-pending-donations',\n      method: 'POST',\n      data: {\n        userId: userData.id,\n        amount: metadata.amount,\n        type: metadata.type\n      }\n    };\n  \n  case 'new_booking':\n    return {\n      action: 'assign_coach',\n      userId: userData.id,\n      coachingArea: metadata.coachingArea,\n      endpoint: '/api/admin/workflows/assign-coaches-to-bookings',\n      method: 'POST',\n      data: {\n        userId: userData.id,\n        coachingArea: metadata.coachingArea\n      }\n    };\n  \n  case 'user_milestone':\n    return {\n      action: 'award_points',\n      userId: userData.id,\n      milestone: metadata.milestone,\n      endpoint: '/api/admin/bulk-operations',\n      method: 'POST',\n      data: {\n        operation: 'add-reward-points',\n        userIds: [userData.id],\n        data: {\n          points: metadata.points || 100,\n          reason: `Milestone: ${metadata.milestone}`\n        }\n      }\n    };\n  \n  default:\n    throw new Error(`Unknown user action: ${userAction}`);\n}"
+      },
+      "id": "process-user-action",
+      "name": "Process User Action",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        440,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://your-replit-domain.replit.app{{ $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "{{ $json.method }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.adminApiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "jsonBody": "={{ JSON.stringify($json.data) }}",
+        "options": {}
+      },
+      "id": "user-action-api",
+      "name": "Execute User Action",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        640,
+        900
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "platform-admin-auth",
+          "name": "Platform Admin Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "to": "admin@wholewellness.org",
+        "subject": "User Action Automation: {{ $json.action }}",
+        "emailType": "html",
+        "message": "<!DOCTYPE html>\n<html>\n<head>\n    <title>User Action Notification</title>\n</head>\n<body>\n    <h2>User Action Automation Executed</h2>\n    <p><strong>Action:</strong> {{ $('Process User Action').first().$json.action }}</p>\n    <p><strong>User ID:</strong> {{ $('Process User Action').first().$json.userId }}</p>\n    <p><strong>Timestamp:</strong> {{ new Date().toISOString() }}</p>\n    <p><strong>Status:</strong> {{ $json.success ? 'Success' : 'Failed' }}</p>\n    \n    <h3>Details:</h3>\n    <pre>{{ JSON.stringify($json, null, 2) }}</pre>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "notify-admin",
+      "name": "Notify Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        900
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "email-config",
+          "name": "SMTP Email"
         }
       }
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": {
-          "response": "={{ $('Merge AI Response').first().json.aiResponse[0].content || $('Merge AI Response').first().json.aiResponse[0].text }}",
-          "agentType": "={{ $('Chat Webhook').first().json.agentType }}",
-          "timestamp": "={{ new Date().toISOString() }}",
-          "sessionId": "={{ $('Merge Session Data').first().json.sessionData[0].session_id || $('Merge Session Data').first().json.sessionData[1].session_id }}"
-        }
+        "responseBody": "={\n  \"success\": true,\n  \"action\": \"{{ $('Process User Action').first().$json.action }}\",\n  \"userId\": \"{{ $('Process User Action').first().$json.userId }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\",\n  \"message\": \"User action processed successfully\"\n}"
       },
-      "id": "webhook-response",
-      "name": "Send Response",
-      "type": "@n8n/n8n-nodes-base.respondToWebhook",
+      "id": "user-action-response",
+      "name": "User Action Response",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [2440, 300]
+      "position": [
+        1040,
+        900
+      ]
     }
   ],
   "connections": {
-    "Chat Webhook": {
+    "Wix Admin Webhook": {
       "main": [
         [
           {
-            "node": "Check Active Session",
+            "node": "Process Admin Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Check Active Session": {
+    "Process Admin Request": {
       "main": [
         [
           {
-            "node": "Session Exists?",
+            "node": "Platform API Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Session Exists?": {
+    "Platform API Request": {
       "main": [
         [
           {
-            "node": "Update Existing Session",
+            "node": "Log to Supabase",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Success Response",
             "type": "main",
             "index": 0
           }
-        ],
+        ]
+      ],
+      "error": [
         [
           {
-            "node": "Create New Session",
+            "node": "Format Error Response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create New Session": {
+    "Format Success Response": {
       "main": [
         [
           {
-            "node": "Merge Session Data",
+            "node": "Webhook Response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Existing Session": {
+    "Format Error Response": {
       "main": [
         [
           {
-            "node": "Merge Session Data",
+            "node": "Webhook Response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge Session Data": {
+    "Scheduled Automation": {
       "main": [
         [
           {
-            "node": "Store User Message",
+            "node": "Generate Scheduled Tasks",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Store User Message": {
+    "Generate Scheduled Tasks": {
       "main": [
         [
           {
-            "node": "Agent Router",
+            "node": "Split Tasks",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Agent Router": {
+    "Split Tasks": {
       "main": [
         [
           {
-            "node": "Finance Coach AI",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Relationship Coach AI",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Career Coach AI",
+            "node": "Execute Scheduled Task",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Finance Coach AI": {
+    "Execute Scheduled Task": {
       "main": [
         [
           {
-            "node": "Merge AI Response",
+            "node": "Log Scheduled Task",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Relationship Coach AI": {
+    "User Action Trigger": {
       "main": [
         [
           {
-            "node": "Merge AI Response",
+            "node": "Process User Action",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Career Coach AI": {
+    "Process User Action": {
       "main": [
         [
           {
-            "node": "Merge AI Response",
+            "node": "Execute User Action",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge AI Response": {
+    "Execute User Action": {
       "main": [
         [
           {
-            "node": "Store AI Response",
+            "node": "Notify Admin",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Store AI Response": {
-      "main": [
-        [
+          },
           {
-            "node": "Send Response",
+            "node": "User Action Response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     }
-  }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "whole-wellness-automation",
+  "tags": []
 }
