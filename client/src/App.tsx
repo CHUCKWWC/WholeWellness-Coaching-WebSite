@@ -18,6 +18,8 @@ import WeightLossIntake from "@/pages/WeightLossIntake";
 import Impact from "@/pages/Impact";
 import Admin from "@/pages/Admin";
 import CMS from "@/pages/CMS";
+import Donate from "@/pages/Donate";
+import MemberPortal from "@/pages/MemberPortal";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import NotFound from "@/pages/not-found";
@@ -40,6 +42,8 @@ function Router() {
           <Route path="/impact" component={Impact} />
           <Route path="/admin" component={Admin} />
           <Route path="/cms" component={CMS} />
+          <Route path="/donate" component={Donate} />
+          <Route path="/member-portal" component={MemberPortal} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route component={NotFound} />

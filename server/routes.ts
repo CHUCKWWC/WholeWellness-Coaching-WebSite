@@ -9,10 +9,429 @@ import {
   insertNavigationSchema, 
   insertSiteSettingSchema 
 } from "@shared/cms-schema";
+import { 
+  loginSchema, 
+  registerSchema,
+  insertDonationSchema,
+  insertCampaignSchema 
+} from "@shared/donation-schema";
 import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
+import { 
+  hashPassword, 
+  verifyPassword, 
+  createSession, 
+  requireAuth, 
+  optionalAuth,
+  calculateMembershipLevel,
+  calculateRewardPoints,
+  type AuthenticatedRequest 
+} from "./auth";
+import cookieParser from 'cookie-parser';
+import Stripe from 'stripe';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Add cookie parser middleware
+  app.use(cookieParser());
+  
+  // Initialize Stripe (if key exists)
+  let stripe: Stripe | null = null;
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+    });
+  }
+  
+  // Authentication Routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already registered' });
+      }
+      
+      // Hash password and create user
+      const passwordHash = await hashPassword(userData.password);
+      const user = await storage.createUser({
+        ...userData,
+        passwordHash,
+        id: require('uuid').v4(),
+        membershipLevel: 'free',
+        donationTotal: '0',
+        rewardPoints: 0,
+      });
+      
+      // Create session
+      const sessionToken = await createSession(user.id);
+      res.cookie('session_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      
+      res.json({ 
+        id: user.id, 
+        email: user.email, 
+        firstName: user.firstName,
+        lastName: user.lastName,
+        membershipLevel: user.membershipLevel,
+        rewardPoints: user.rewardPoints 
+      });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      res.status(400).json({ message: error.message || 'Registration failed' });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = loginSchema.parse(req.body);
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      
+      const isValidPassword = await verifyPassword(password, user.passwordHash);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      
+      // Update last login
+      await storage.updateUser(user.id, { lastLogin: new Date() });
+      
+      // Create session
+      const sessionToken = await createSession(user.id);
+      res.cookie('session_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        membershipLevel: user.membershipLevel,
+        rewardPoints: user.rewardPoints,
+        donationTotal: user.donationTotal
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      res.status(400).json({ message: error.message || 'Login failed' });
+    }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('session_token');
+    res.json({ message: 'Logged out successfully' });
+  });
+
+  app.get('/api/auth/user', optionalAuth as any, async (req: AuthenticatedRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    res.json({
+      id: req.user.id,
+      email: req.user.email,
+      firstName: req.user.firstName,
+      lastName: req.user.lastName,
+      membershipLevel: req.user.membershipLevel,
+      rewardPoints: req.user.rewardPoints,
+      donationTotal: req.user.donationTotal,
+      profileImageUrl: req.user.profileImageUrl
+    });
+  });
+
+  // Donation Routes
+  app.get('/api/donations/presets', async (req, res) => {
+    try {
+      const presets = await storage.getDonationPresets();
+      res.json(presets);
+    } catch (error) {
+      console.error('Error fetching donation presets:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/campaigns/active', async (req, res) => {
+    try {
+      const campaigns = await storage.getActiveCampaigns();
+      res.json(campaigns);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/donations/create', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!stripe) {
+        return res.status(500).json({ message: 'Payment processing not configured' });
+      }
+
+      const donationData = insertDonationSchema.parse(req.body);
+      const user = req.user;
+      
+      // Create Stripe customer if needed
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+
+      // Create donation record
+      const donation = await storage.createDonation({
+        ...donationData,
+        id: require('uuid').v4(),
+        userId: user.id,
+        status: 'pending',
+      });
+
+      // Create Stripe checkout session or payment intent
+      if (donationData.donationType === 'monthly') {
+        // Create subscription
+        const priceData = {
+          currency: 'usd',
+          product_data: {
+            name: 'Monthly Donation to Whole Wellness Coaching',
+          },
+          unit_amount: Math.round(donationData.amount * 100),
+          recurring: {
+            interval: 'month',
+          },
+        };
+
+        const session = await stripe.checkout.sessions.create({
+          customer: stripeCustomerId,
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: priceData,
+            quantity: 1,
+          }],
+          mode: 'subscription',
+          success_url: `${req.headers.origin}/member-portal?success=true`,
+          cancel_url: `${req.headers.origin}/donate?canceled=true`,
+          metadata: {
+            donationId: donation.id,
+            userId: user.id,
+          },
+        });
+
+        res.json({ checkoutUrl: session.url });
+      } else {
+        // One-time payment
+        const session = await stripe.checkout.sessions.create({
+          customer: stripeCustomerId,
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Donation to Whole Wellness Coaching',
+              },
+              unit_amount: Math.round(donationData.amount * 100),
+            },
+            quantity: 1,
+          }],
+          mode: 'payment',
+          success_url: `${req.headers.origin}/member-portal?success=true`,
+          cancel_url: `${req.headers.origin}/donate?canceled=true`,
+          metadata: {
+            donationId: donation.id,
+            userId: user.id,
+          },
+        });
+
+        res.json({ checkoutUrl: session.url });
+      }
+    } catch (error: any) {
+      console.error('Donation creation error:', error);
+      res.status(400).json({ message: error.message || 'Failed to create donation' });
+    }
+  });
+
+  // Member Dashboard Routes
+  app.get('/api/member/dashboard', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const donations = await storage.getDonationsByUserId(user.id);
+      const impactMetrics = await storage.getImpactMetricsByUserId(user.id);
+      const memberBenefits = await storage.getMemberBenefitsByLevel(user.membershipLevel);
+      
+      // Calculate next milestone
+      const currentTotal = parseFloat(user.donationTotal || '0');
+      let nextMilestone = null;
+      if (currentTotal < 100) {
+        nextMilestone = {
+          title: 'Supporter Milestone',
+          description: 'Unlock exclusive member benefits',
+          targetAmount: 100,
+          currentAmount: currentTotal,
+          reward: 'Supporter badge and 2x point multiplier'
+        };
+      } else if (currentTotal < 500) {
+        nextMilestone = {
+          title: 'Champion Milestone', 
+          description: 'Access to premium resources',
+          targetAmount: 500,
+          currentAmount: currentTotal,
+          reward: 'Champion badge and exclusive content'
+        };
+      } else if (currentTotal < 1000) {
+        nextMilestone = {
+          title: 'Guardian Milestone',
+          description: 'VIP access and recognition',
+          targetAmount: 1000,
+          currentAmount: currentTotal,
+          reward: 'Guardian badge and VIP events'
+        };
+      }
+
+      res.json({
+        totalDonated: currentTotal,
+        rewardPoints: user.rewardPoints,
+        membershipLevel: user.membershipLevel,
+        donationHistory: donations,
+        impactMetrics,
+        nextMilestone,
+        memberBenefits,
+      });
+    } catch (error) {
+      console.error('Dashboard error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/user/impact', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const metrics = await storage.getImpactMetricsByUserId(user.id);
+      
+      res.json({
+        livesImpacted: metrics.find(m => m.metric === 'lives_impacted')?.value || 0,
+        totalDonated: user.donationTotal || 0,
+        rewardPoints: user.rewardPoints || 0,
+        sessionsSupported: metrics.find(m => m.metric === 'sessions_supported')?.value || 0,
+      });
+    } catch (error) {
+      console.error('Impact metrics error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/member/redeem-points', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { rewardId } = req.body;
+      const user = req.user;
+      
+      // Mock reward system - in production this would be more sophisticated
+      const rewards = {
+        '1': { points: 500, title: 'Exclusive Coaching Session' },
+        '2': { points: 250, title: 'Digital Wellness Kit' },
+        '3': { points: 750, title: 'Member T-Shirt' },
+        '4': { points: 300, title: 'Virtual Event Access' },
+      };
+      
+      const reward = rewards[rewardId as keyof typeof rewards];
+      if (!reward || user.rewardPoints < reward.points) {
+        return res.status(400).json({ message: 'Insufficient points or invalid reward' });
+      }
+      
+      // Deduct points and create transaction
+      const newPoints = user.rewardPoints - reward.points;
+      await storage.updateUser(user.id, { rewardPoints: newPoints });
+      
+      await storage.createRewardTransaction({
+        id: require('uuid').v4(),
+        userId: user.id,
+        points: -reward.points,
+        type: 'redeemed',
+        reason: 'reward_redemption',
+        description: `Redeemed: ${reward.title}`,
+      });
+      
+      res.json({ message: 'Reward redeemed successfully', remainingPoints: newPoints });
+    } catch (error) {
+      console.error('Reward redemption error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Stripe webhook handler
+  app.post('/api/stripe/webhook', async (req, res) => {
+    if (!stripe) {
+      return res.status(400).json({ message: 'Stripe not configured' });
+    }
+
+    try {
+      const event = req.body;
+      
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const { donationId, userId } = session.metadata;
+        
+        // Update donation status
+        await storage.updateDonation(donationId, {
+          status: 'completed',
+          stripePaymentIntentId: session.payment_intent,
+          processedAt: new Date(),
+        });
+        
+        // Calculate and award points
+        const donation = await storage.getDonationById(donationId);
+        if (donation) {
+          const user = await storage.getUserById(userId);
+          const isRecurring = user.donationTotal > 0;
+          const points = calculateRewardPoints(
+            parseFloat(donation.amount),
+            donation.donationType,
+            isRecurring
+          );
+          
+          // Update user totals and points
+          const newTotal = parseFloat(user.donationTotal || '0') + parseFloat(donation.amount);
+          const newPoints = user.rewardPoints + points;
+          const newLevel = calculateMembershipLevel(newTotal);
+          
+          await storage.updateUser(userId, {
+            donationTotal: newTotal.toString(),
+            rewardPoints: newPoints,
+            membershipLevel: newLevel,
+          });
+          
+          // Create reward transaction
+          await storage.createRewardTransaction({
+            id: require('uuid').v4(),
+            userId,
+            points,
+            type: 'earned',
+            reason: 'donation',
+            donationId,
+            description: `Points earned from ${donation.donationType} donation`,
+          });
+          
+          // Update impact metrics
+          await storage.updateImpactMetrics(userId, donation);
+        }
+      }
+      
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Webhook error:', error);
+      res.status(400).json({ message: 'Webhook error' });
+    }
+  });
   
   // Initialize Wix Integration
   const wixConfig = getWixConfig();
