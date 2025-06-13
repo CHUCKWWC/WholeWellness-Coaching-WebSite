@@ -119,14 +119,23 @@ By continuing to use our Services, you acknowledge that you have read, understoo
             </div>
             <CardDescription className="text-xs">
               Scroll to the bottom to continue
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="ml-2 h-auto p-0 text-xs text-blue-600 underline"
+                onClick={() => setHasRead(true)}
+              >
+                Skip for testing
+              </Button>
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea 
-              className="h-64 w-full rounded border p-4"
+            <div 
+              className="h-64 w-full rounded border p-4 overflow-y-auto"
               onScroll={(e) => {
                 const target = e.currentTarget;
-                if (target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
+                const scrollPercentage = (target.scrollTop + target.clientHeight) / target.scrollHeight;
+                if (scrollPercentage >= 0.95) {
                   handleScrollEnd();
                 }
               }}
@@ -134,23 +143,25 @@ By continuing to use our Services, you acknowledge that you have read, understoo
               <div className="text-sm leading-relaxed whitespace-pre-line">
                 {disclaimer.content}
               </div>
-            </ScrollArea>
+            </div>
           </CardContent>
         </Card>
 
         <div className="space-y-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-start space-x-3">
             <Checkbox 
               id="acknowledgment" 
               checked={acknowledged}
               onCheckedChange={(checked) => setAcknowledged(checked === true)}
               disabled={!hasRead}
+              className="mt-1"
             />
             <label 
               htmlFor="acknowledgment" 
-              className={`text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+              className={`text-sm leading-relaxed cursor-pointer ${
                 !hasRead ? 'text-gray-400' : 'text-gray-900'
               }`}
+              onClick={() => !hasRead ? null : setAcknowledged(!acknowledged)}
             >
               I have read, understood, and agree to the medical disclaimer above. 
               I acknowledge that I will consult with my healthcare provider as appropriate.
@@ -168,7 +179,7 @@ By continuing to use our Services, you acknowledge that you have read, understoo
             <Button 
               onClick={onAccept}
               disabled={!canProceed}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               I Agree & Continue
             </Button>
