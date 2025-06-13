@@ -10,6 +10,7 @@ const navigationItems = [
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
+  { href: "/impact", label: "Impact" },
   { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
 ];
