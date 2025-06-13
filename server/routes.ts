@@ -113,6 +113,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auth routes for member verification
+  app.get("/api/auth/user", async (req, res) => {
+    // For demo purposes, return null (no user logged in)
+    // In production, this would check session/token authentication
+    res.json(null);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

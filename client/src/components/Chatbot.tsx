@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, X, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Maximize2, Lock } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: string;
@@ -19,6 +20,7 @@ interface ChatbotProps {
 export default function Chatbot({ 
   webhookUrl = "https://wholewellness-coaching.app.n8n.cloud/webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat" 
 }: ChatbotProps) {
+  const { isAuthenticated, isPaidMember, isLoading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -120,6 +122,68 @@ export default function Chatbot({
     "What supplements do you recommend?"
   ];
 
+  // Don't show chatbot if auth is loading
+  if (authLoading) {
+    return null;
+  }
+
+  // Show member-only access button for non-members
+  if (!isAuthenticated || !isPaidMember) {
+    if (!isOpen) {
+      return (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-4 right-4 h-14 w-14 rounded-full bg-gray-600 hover:bg-gray-700 shadow-lg z-50"
+          size="icon"
+        >
+          <Lock className="h-6 w-6 text-white" />
+        </Button>
+      );
+    }
+
+    return (
+      <Card className="fixed bottom-4 right-4 z-50 shadow-xl border-2 w-96 h-80">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gray-600 text-white rounded-t-lg">
+          <CardTitle className="text-lg font-semibold">
+            AI Life Coach - Members Only
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+            className="h-8 w-8 text-white hover:bg-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
+          <Lock className="h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
+          <p className="text-gray-600 mb-4">
+            The AI Life Coach is available exclusively to our paid members. 
+            Upgrade your membership to access personalized coaching guidance.
+          </p>
+          <div className="space-y-2 w-full">
+            <Button 
+              onClick={() => window.location.href = '/members'}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {isAuthenticated ? 'Upgrade Membership' : 'Login / Sign Up'}
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/booking'}
+              variant="outline"
+              className="w-full"
+            >
+              Book Live Coach Session
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Regular chatbot for paid members
   if (!isOpen) {
     return (
       <Button
