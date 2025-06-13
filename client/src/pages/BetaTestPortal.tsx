@@ -591,6 +591,7 @@ export default function BetaTestPortal() {
                 <AICoachingSession 
                   sessionType={selectedSession!} 
                   onComplete={handleCompleteSession}
+                  betaMode={true}
                 />
               </CardContent>
             </Card>

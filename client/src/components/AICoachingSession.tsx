@@ -46,6 +46,7 @@ interface CoachingProfile {
 interface AICoachingSessionProps {
   sessionType: string;
   onComplete: () => void;
+  betaMode?: boolean;
 }
 
 const dietaryOptions = [
@@ -68,7 +69,7 @@ const workoutOptions = [
   "Dancing", "Home Workouts", "Gym Classes", "Outdoor Activities"
 ];
 
-export default function AICoachingSession({ sessionType, onComplete }: AICoachingSessionProps) {
+export default function AICoachingSession({ sessionType, onComplete, betaMode = false }: AICoachingSessionProps) {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [profile, setProfile] = useState<Partial<CoachingProfile>>({
