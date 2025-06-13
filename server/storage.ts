@@ -5,7 +5,24 @@ import {
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import {
+  contentPages,
+  contentBlocks,
+  mediaLibrary,
+  navigationMenus,
+  siteSettings,
+  type ContentPage,
+  type ContentBlock,
+  type MediaItem,
+  type NavigationMenu,
+  type SiteSetting,
+  type InsertContentPage,
+  type InsertContentBlock,
+  type InsertMediaItem,
+  type InsertNavigationMenu,
+  type InsertSiteSetting,
+} from "@shared/cms-schema";
+import { eq, desc, asc } from "drizzle-orm";
 
 const client = postgres(process.env.DATABASE_URL!, {
   ssl: { rejectUnauthorized: false }
@@ -47,6 +64,45 @@ export interface IStorage {
   getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined>;
   getAllWeightLossIntakes(): Promise<WeightLossIntake[]>;
   createWeightLossIntake(intake: InsertWeightLossIntake): Promise<WeightLossIntake>;
+  
+  // CMS - Content Pages
+  getContentPage(id: number): Promise<ContentPage | undefined>;
+  getContentPageBySlug(slug: string): Promise<ContentPage | undefined>;
+  getAllContentPages(): Promise<ContentPage[]>;
+  getPublishedContentPages(): Promise<ContentPage[]>;
+  createContentPage(page: InsertContentPage): Promise<ContentPage>;
+  updateContentPage(id: number, page: Partial<InsertContentPage>): Promise<ContentPage | undefined>;
+  deleteContentPage(id: number): Promise<boolean>;
+  
+  // CMS - Content Blocks
+  getContentBlock(id: number): Promise<ContentBlock | undefined>;
+  getContentBlocksByPageId(pageId: number): Promise<ContentBlock[]>;
+  createContentBlock(block: InsertContentBlock): Promise<ContentBlock>;
+  updateContentBlock(id: number, block: Partial<InsertContentBlock>): Promise<ContentBlock | undefined>;
+  deleteContentBlock(id: number): Promise<boolean>;
+  
+  // CMS - Media Library
+  getMediaItem(id: number): Promise<MediaItem | undefined>;
+  getAllMediaItems(): Promise<MediaItem[]>;
+  getMediaByCategory(category: string): Promise<MediaItem[]>;
+  createMediaItem(media: InsertMediaItem): Promise<MediaItem>;
+  updateMediaItem(id: number, media: Partial<InsertMediaItem>): Promise<MediaItem | undefined>;
+  deleteMediaItem(id: number): Promise<boolean>;
+  
+  // CMS - Navigation
+  getNavigationMenu(id: number): Promise<NavigationMenu | undefined>;
+  getNavigationByLocation(location: string): Promise<NavigationMenu[]>;
+  getAllNavigationMenus(): Promise<NavigationMenu[]>;
+  createNavigationMenu(menu: InsertNavigationMenu): Promise<NavigationMenu>;
+  updateNavigationMenu(id: number, menu: Partial<InsertNavigationMenu>): Promise<NavigationMenu | undefined>;
+  deleteNavigationMenu(id: number): Promise<boolean>;
+  
+  // CMS - Site Settings
+  getSiteSetting(key: string): Promise<SiteSetting | undefined>;
+  getSiteSettingsByCategory(category: string): Promise<SiteSetting[]>;
+  getAllSiteSettings(): Promise<SiteSetting[]>;
+  createOrUpdateSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  deleteSiteSetting(key: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -250,6 +306,174 @@ export class DatabaseStorage implements IStorage {
   async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
     const result = await db.insert(weightLossIntakes).values(insertIntake).returning();
     return result[0];
+  }
+
+  // CMS - Content Pages
+  async getContentPage(id: number): Promise<ContentPage | undefined> {
+    const [page] = await db.select().from(contentPages).where(eq(contentPages.id, id));
+    return page;
+  }
+
+  async getContentPageBySlug(slug: string): Promise<ContentPage | undefined> {
+    const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug));
+    return page;
+  }
+
+  async getAllContentPages(): Promise<ContentPage[]> {
+    return await db.select().from(contentPages).orderBy(desc(contentPages.updatedAt));
+  }
+
+  async getPublishedContentPages(): Promise<ContentPage[]> {
+    return await db.select().from(contentPages).where(eq(contentPages.isPublished, true)).orderBy(desc(contentPages.updatedAt));
+  }
+
+  async createContentPage(insertPage: InsertContentPage): Promise<ContentPage> {
+    const [page] = await db.insert(contentPages).values(insertPage).returning();
+    return page;
+  }
+
+  async updateContentPage(id: number, updatePage: Partial<InsertContentPage>): Promise<ContentPage | undefined> {
+    const [page] = await db.update(contentPages)
+      .set({ ...updatePage, updatedAt: new Date() })
+      .where(eq(contentPages.id, id))
+      .returning();
+    return page;
+  }
+
+  async deleteContentPage(id: number): Promise<boolean> {
+    const result = await db.delete(contentPages).where(eq(contentPages.id, id));
+    return result.rowCount > 0;
+  }
+
+  // CMS - Content Blocks
+  async getContentBlock(id: number): Promise<ContentBlock | undefined> {
+    const [block] = await db.select().from(contentBlocks).where(eq(contentBlocks.id, id));
+    return block;
+  }
+
+  async getContentBlocksByPageId(pageId: number): Promise<ContentBlock[]> {
+    return await db.select().from(contentBlocks)
+      .where(eq(contentBlocks.pageId, pageId))
+      .orderBy(asc(contentBlocks.order));
+  }
+
+  async createContentBlock(insertBlock: InsertContentBlock): Promise<ContentBlock> {
+    const [block] = await db.insert(contentBlocks).values(insertBlock).returning();
+    return block;
+  }
+
+  async updateContentBlock(id: number, updateBlock: Partial<InsertContentBlock>): Promise<ContentBlock | undefined> {
+    const [block] = await db.update(contentBlocks)
+      .set({ ...updateBlock, updatedAt: new Date() })
+      .where(eq(contentBlocks.id, id))
+      .returning();
+    return block;
+  }
+
+  async deleteContentBlock(id: number): Promise<boolean> {
+    const result = await db.delete(contentBlocks).where(eq(contentBlocks.id, id));
+    return result.rowCount > 0;
+  }
+
+  // CMS - Media Library
+  async getMediaItem(id: number): Promise<MediaItem | undefined> {
+    const [media] = await db.select().from(mediaLibrary).where(eq(mediaLibrary.id, id));
+    return media;
+  }
+
+  async getAllMediaItems(): Promise<MediaItem[]> {
+    return await db.select().from(mediaLibrary).orderBy(desc(mediaLibrary.createdAt));
+  }
+
+  async getMediaByCategory(category: string): Promise<MediaItem[]> {
+    return await db.select().from(mediaLibrary)
+      .where(eq(mediaLibrary.category, category))
+      .orderBy(desc(mediaLibrary.createdAt));
+  }
+
+  async createMediaItem(insertMedia: InsertMediaItem): Promise<MediaItem> {
+    const [media] = await db.insert(mediaLibrary).values(insertMedia).returning();
+    return media;
+  }
+
+  async updateMediaItem(id: number, updateMedia: Partial<InsertMediaItem>): Promise<MediaItem | undefined> {
+    const [media] = await db.update(mediaLibrary)
+      .set(updateMedia)
+      .where(eq(mediaLibrary.id, id))
+      .returning();
+    return media;
+  }
+
+  async deleteMediaItem(id: number): Promise<boolean> {
+    const result = await db.delete(mediaLibrary).where(eq(mediaLibrary.id, id));
+    return result.rowCount > 0;
+  }
+
+  // CMS - Navigation
+  async getNavigationMenu(id: number): Promise<NavigationMenu | undefined> {
+    const [menu] = await db.select().from(navigationMenus).where(eq(navigationMenus.id, id));
+    return menu;
+  }
+
+  async getNavigationByLocation(location: string): Promise<NavigationMenu[]> {
+    return await db.select().from(navigationMenus)
+      .where(eq(navigationMenus.menuLocation, location))
+      .orderBy(asc(navigationMenus.order));
+  }
+
+  async getAllNavigationMenus(): Promise<NavigationMenu[]> {
+    return await db.select().from(navigationMenus).orderBy(asc(navigationMenus.order));
+  }
+
+  async createNavigationMenu(insertMenu: InsertNavigationMenu): Promise<NavigationMenu> {
+    const [menu] = await db.insert(navigationMenus).values(insertMenu).returning();
+    return menu;
+  }
+
+  async updateNavigationMenu(id: number, updateMenu: Partial<InsertNavigationMenu>): Promise<NavigationMenu | undefined> {
+    const [menu] = await db.update(navigationMenus)
+      .set(updateMenu)
+      .where(eq(navigationMenus.id, id))
+      .returning();
+    return menu;
+  }
+
+  async deleteNavigationMenu(id: number): Promise<boolean> {
+    const result = await db.delete(navigationMenus).where(eq(navigationMenus.id, id));
+    return result.rowCount > 0;
+  }
+
+  // CMS - Site Settings
+  async getSiteSetting(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting;
+  }
+
+  async getSiteSettingsByCategory(category: string): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings).where(eq(siteSettings.category, category));
+  }
+
+  async getAllSiteSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings);
+  }
+
+  async createOrUpdateSiteSetting(insertSetting: InsertSiteSetting): Promise<SiteSetting> {
+    const [setting] = await db.insert(siteSettings)
+      .values(insertSetting)
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: {
+          value: insertSetting.value,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return setting;
+  }
+
+  async deleteSiteSetting(key: string): Promise<boolean> {
+    const result = await db.delete(siteSettings).where(eq(siteSettings.key, key));
+    return result.rowCount > 0;
   }
 }
 

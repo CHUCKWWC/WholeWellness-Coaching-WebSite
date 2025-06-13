@@ -2,6 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBookingSchema, insertContactSchema, insertTestimonialSchema, insertWeightLossIntakeSchema } from "@shared/schema";
+import { 
+  insertContentPageSchema, 
+  insertContentBlockSchema, 
+  insertMediaSchema, 
+  insertNavigationSchema, 
+  insertSiteSettingSchema 
+} from "@shared/cms-schema";
 import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 
@@ -336,6 +343,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching program stats:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // CMS API Routes
+  
+  // Content Pages
+  app.get("/api/cms/pages", async (req, res) => {
+    try {
+      const pages = await storage.getAllContentPages();
+      res.json(pages);
+    } catch (error) {
+      console.error("Error fetching content pages:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/cms/pages/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const page = await storage.getContentPage(id);
+      if (!page) {
+        return res.status(404).json({ message: "Page not found" });
+      }
+      res.json(page);
+    } catch (error) {
+      console.error("Error fetching content page:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/cms/pages", async (req, res) => {
+    try {
+      const pageData = insertContentPageSchema.parse(req.body);
+      const page = await storage.createContentPage(pageData);
+      res.json(page);
+    } catch (error: any) {
+      console.error("Error creating content page:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ message: "Invalid page data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  app.put("/api/cms/pages/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const pageData = insertContentPageSchema.partial().parse(req.body);
+      const page = await storage.updateContentPage(id, pageData);
+      if (!page) {
+        return res.status(404).json({ message: "Page not found" });
+      }
+      res.json(page);
+    } catch (error: any) {
+      console.error("Error updating content page:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ message: "Invalid page data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  app.delete("/api/cms/pages/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteContentPage(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Page not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting content page:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Media Library
+  app.get("/api/cms/media", async (req, res) => {
+    try {
+      const media = await storage.getAllMediaItems();
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching media items:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/cms/media", async (req, res) => {
+    try {
+      const mediaData = insertMediaSchema.parse(req.body);
+      const media = await storage.createMediaItem(mediaData);
+      res.json(media);
+    } catch (error: any) {
+      console.error("Error creating media item:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ message: "Invalid media data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  // Site Settings
+  app.get("/api/cms/settings", async (req, res) => {
+    try {
+      const settings = await storage.getAllSiteSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/cms/settings/:key", async (req, res) => {
+    try {
+      const key = req.params.key;
+      const settingData = { ...req.body, key };
+      const setting = await storage.createOrUpdateSiteSetting(settingData);
+      res.json(setting);
+    } catch (error) {
+      console.error("Error updating site setting:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Navigation
+  app.get("/api/cms/navigation", async (req, res) => {
+    try {
+      const navigation = await storage.getAllNavigationMenus();
+      res.json(navigation);
+    } catch (error) {
+      console.error("Error fetching navigation:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/cms/navigation", async (req, res) => {
+    try {
+      const navData = insertNavigationSchema.parse(req.body);
+      const navigation = await storage.createNavigationMenu(navData);
+      res.json(navigation);
+    } catch (error: any) {
+      console.error("Error creating navigation item:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ message: "Invalid navigation data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
     }
   });
 
