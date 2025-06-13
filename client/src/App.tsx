@@ -15,6 +15,7 @@ import Contact from "@/pages/Contact";
 import Booking from "@/pages/Booking";
 import Members from "@/pages/Members";
 import WeightLossIntake from "@/pages/WeightLossIntake";
+import Admin from "@/pages/Admin";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import NotFound from "@/pages/not-found";
@@ -34,6 +35,7 @@ function Router() {
           <Route path="/booking" component={Booking} />
           <Route path="/members" component={Members} />
           <Route path="/weight-loss-intake" component={WeightLossIntake} />
+          <Route path="/admin" component={Admin} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route component={NotFound} />

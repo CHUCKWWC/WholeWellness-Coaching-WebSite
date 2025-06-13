@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Users, DollarSign, Calendar, Settings, Sync, ExternalLink } from "lucide-react";
+import { Users, DollarSign, Calendar, Settings, RefreshCw, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface WixService {
@@ -164,7 +164,7 @@ export default function Admin() {
                 disabled={syncLoading}
                 variant="outline"
               >
-                <Sync className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Sync from Wix
               </Button>
             </CardHeader>
@@ -214,7 +214,7 @@ export default function Admin() {
                 disabled={syncLoading}
                 variant="outline"
               >
-                <Sync className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Sync from Wix
               </Button>
             </CardHeader>
