@@ -509,6 +509,16 @@ export class MemoryStorage implements IStorage {
     }
     return false;
   }
+
+  // Helper method for upsert operations
+  async createOrUpdateSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting> {
+    const existing = await this.getSiteSetting(setting.key);
+    if (existing) {
+      return await this.updateSiteSetting(setting.key, setting) || existing;
+    } else {
+      return await this.createSiteSetting(setting);
+    }
+  }
 }
 
 export const storage = new MemoryStorage();
