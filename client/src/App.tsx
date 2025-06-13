@@ -10,6 +10,7 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Services from "@/pages/Services";
 import Programs from "@/pages/Programs";
+import AICoaching from "@/pages/AICoaching";
 import Resources from "@/pages/Resources";
 import Contact from "@/pages/Contact";
 import Booking from "@/pages/Booking";
@@ -34,6 +35,7 @@ function Router() {
           <Route path="/about" component={About} />
           <Route path="/services" component={Services} />
           <Route path="/programs" component={Programs} />
+          <Route path="/ai-coaching" component={AICoaching} />
           <Route path="/resources" component={Resources} />
           <Route path="/contact" component={Contact} />
           <Route path="/booking" component={Booking} />
