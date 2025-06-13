@@ -1,13 +1,9 @@
-import { db } from "./db";
 import { 
-  users, bookings, testimonials, resources, contacts, weightLossIntakes,
-  contentPages, contentBlocks, mediaLibrary, navigationMenus, siteSettings,
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
   type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
   type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting
 } from "@shared/schema";
-import { eq, desc, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -196,162 +192,171 @@ export class MemoryStorage implements IStorage {
 
   // Bookings
   async getBooking(id: number): Promise<Booking | undefined> {
-    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
-    return booking || undefined;
+    return this.bookings.find(b => b.id === id);
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
+    return [...this.bookings].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const [booking] = await db
-      .insert(bookings)
-      .values(insertBooking)
-      .returning();
+    const booking: Booking = {
+      ...insertBooking,
+      id: this.bookings.length + 1,
+      createdAt: new Date()
+    };
+    this.bookings.push(booking);
     return booking;
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
-    const [booking] = await db
-      .update(bookings)
-      .set({ status })
-      .where(eq(bookings.id, id))
-      .returning();
-    return booking || undefined;
+    const booking = this.bookings.find(b => b.id === id);
+    if (booking) {
+      booking.status = status;
+    }
+    return booking;
   }
 
   // Testimonials
   async getTestimonial(id: number): Promise<Testimonial | undefined> {
-    const [testimonial] = await db.select().from(testimonials).where(eq(testimonials.id, id));
-    return testimonial || undefined;
+    return this.testimonials.find(t => t.id === id);
   }
 
   async getApprovedTestimonials(): Promise<Testimonial[]> {
-    return await db.select().from(testimonials)
-      .where(eq(testimonials.isApproved, true))
-      .orderBy(desc(testimonials.createdAt));
+    return this.testimonials
+      .filter(t => t.isApproved)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async getAllTestimonials(): Promise<Testimonial[]> {
-    return await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
+    return [...this.testimonials].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createTestimonial(insertTestimonial: InsertTestimonial): Promise<Testimonial> {
-    const [testimonial] = await db
-      .insert(testimonials)
-      .values(insertTestimonial)
-      .returning();
+    const testimonial: Testimonial = {
+      ...insertTestimonial,
+      id: this.testimonials.length + 1,
+      isApproved: false,
+      createdAt: new Date()
+    };
+    this.testimonials.push(testimonial);
     return testimonial;
   }
 
   // Resources
   async getResource(id: number): Promise<Resource | undefined> {
-    const [resource] = await db.select().from(resources).where(eq(resources.id, id));
-    return resource || undefined;
+    return this.resources.find(r => r.id === id);
   }
 
   async getResourcesByType(type: string): Promise<Resource[]> {
-    return await db.select().from(resources)
-      .where(eq(resources.type, type))
-      .orderBy(desc(resources.createdAt));
+    return this.resources
+      .filter(r => r.type === type)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async getResourcesByCategory(category: string): Promise<Resource[]> {
-    return await db.select().from(resources)
-      .where(eq(resources.category, category))
-      .orderBy(desc(resources.createdAt));
+    return this.resources
+      .filter(r => r.category === category)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async getAllResources(): Promise<Resource[]> {
-    return await db.select().from(resources).orderBy(desc(resources.createdAt));
+    return [...this.resources].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createResource(insertResource: InsertResource): Promise<Resource> {
-    const [resource] = await db
-      .insert(resources)
-      .values(insertResource)
-      .returning();
+    const resource: Resource = {
+      ...insertResource,
+      id: this.resources.length + 1,
+      createdAt: new Date()
+    };
+    this.resources.push(resource);
     return resource;
   }
 
   // Contacts
   async getContact(id: number): Promise<Contact | undefined> {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
-    return contact || undefined;
+    return this.contacts.find(c => c.id === id);
   }
 
   async getAllContacts(): Promise<Contact[]> {
-    return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
+    return [...this.contacts].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
-    const [contact] = await db
-      .insert(contacts)
-      .values(insertContact)
-      .returning();
+    const contact: Contact = {
+      ...insertContact,
+      id: this.contacts.length + 1,
+      createdAt: new Date()
+    };
+    this.contacts.push(contact);
     return contact;
   }
 
   // Weight Loss Intakes
   async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
-    const [intake] = await db.select().from(weightLossIntakes).where(eq(weightLossIntakes.id, id));
-    return intake || undefined;
+    return this.weightLossIntakes.find(w => w.id === id);
   }
 
   async getAllWeightLossIntakes(): Promise<WeightLossIntake[]> {
-    return await db.select().from(weightLossIntakes).orderBy(desc(weightLossIntakes.createdAt));
+    return [...this.weightLossIntakes].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
-    const [intake] = await db
-      .insert(weightLossIntakes)
-      .values(insertIntake)
-      .returning();
+    const intake: WeightLossIntake = {
+      ...insertIntake,
+      id: this.weightLossIntakes.length + 1,
+      createdAt: new Date()
+    };
+    this.weightLossIntakes.push(intake);
     return intake;
   }
 
   // CMS - Content Pages
   async getContentPage(id: number): Promise<ContentPage | undefined> {
-    const [page] = await db.select().from(contentPages).where(eq(contentPages.id, id));
-    return page || undefined;
+    return this.contentPages.find(p => p.id === id);
   }
 
   async getContentPageBySlug(slug: string): Promise<ContentPage | undefined> {
-    const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug));
-    return page || undefined;
+    return this.contentPages.find(p => p.slug === slug);
   }
 
   async getAllContentPages(): Promise<ContentPage[]> {
-    return await db.select().from(contentPages).orderBy(desc(contentPages.createdAt));
+    return [...this.contentPages].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async getPublishedContentPages(): Promise<ContentPage[]> {
-    return await db.select().from(contentPages)
-      .where(eq(contentPages.isPublished, true))
-      .orderBy(desc(contentPages.createdAt));
+    return this.contentPages
+      .filter(p => p.isPublished)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createContentPage(insertPage: InsertContentPage): Promise<ContentPage> {
-    const [page] = await db
-      .insert(contentPages)
-      .values(insertPage)
-      .returning();
+    const page: ContentPage = {
+      ...insertPage,
+      id: this.contentPages.length + 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.contentPages.push(page);
     return page;
   }
 
   async updateContentPage(id: number, pageUpdate: Partial<InsertContentPage>): Promise<ContentPage | undefined> {
-    const [page] = await db
-      .update(contentPages)
-      .set(pageUpdate)
-      .where(eq(contentPages.id, id))
-      .returning();
-    return page || undefined;
+    const page = this.contentPages.find(p => p.id === id);
+    if (page) {
+      Object.assign(page, pageUpdate, { updatedAt: new Date() });
+    }
+    return page;
   }
 
   async deleteContentPage(id: number): Promise<boolean> {
-    const result = await db.delete(contentPages).where(eq(contentPages.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const index = this.contentPages.findIndex(p => p.id === id);
+    if (index > -1) {
+      this.contentPages.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
   // CMS - Content Blocks
