@@ -481,13 +481,22 @@ export default function BetaTestPortal() {
                     />
                   </div>
                 </div>
+                <div className="flex justify-center mt-6">
+                  <Button 
+                    onClick={() => registerMutation.mutate(betaUser)}
+                    disabled={!betaUser.name || !betaUser.email || registerMutation.isPending}
+                    size="lg"
+                  >
+                    {registerMutation.isPending ? "Registering..." : "Complete Registration"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         )}
 
         {/* Session Selection */}
-        {!sessionStarted && !sessionCompleted && (
+        {registrationCompleted && !sessionStarted && !sessionCompleted && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
