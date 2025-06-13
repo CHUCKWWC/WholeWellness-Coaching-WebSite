@@ -129,6 +129,7 @@ export default function BetaTestPortal() {
   });
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionCompleted, setSessionCompleted] = useState(false);
+  const [registrationCompleted, setRegistrationCompleted] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -139,40 +140,58 @@ export default function BetaTestPortal() {
     retry: false,
   });
 
-  // Register beta tester
+  // Register beta tester (local storage only)
   const registerMutation = useMutation({
     mutationFn: async (userData: typeof betaUser) => {
-      return await apiRequest("POST", "/api/beta-test/register", userData);
+      const betaSession = {
+        ...userData,
+        registeredAt: new Date().toISOString(),
+        betaTesterId: `beta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+      localStorage.setItem('betaSession', JSON.stringify(betaSession));
+      return { success: true };
     },
     onSuccess: () => {
+      setRegistrationCompleted(true);
       toast({
         title: "Welcome to Beta Testing!",
-        description: "You're now registered. Choose a session to test.",
+        description: "You can now test our AI coaching system without site registration.",
       });
     },
   });
 
-  // Start AI session
+  // Start AI session (local storage only)
   const startSessionMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      return await apiRequest("POST", "/api/beta-test/start-session", {
-        sessionId,
-        userInfo: betaUser
-      });
+      const existingSession = localStorage.getItem('betaSession');
+      if (existingSession) {
+        const session = JSON.parse(existingSession);
+        session.currentSessionId = sessionId;
+        session.sessionStartedAt = new Date().toISOString();
+        localStorage.setItem('betaSession', JSON.stringify(session));
+      }
+      return { success: true };
     },
     onSuccess: () => {
       setSessionStarted(true);
       toast({
         title: "Session Started",
-        description: "Your AI coaching session is now active. The system is tracking your experience.",
+        description: "Your AI coaching session is now active.",
       });
     },
   });
 
-  // Submit feedback
+  // Submit feedback (local storage only)
   const feedbackMutation = useMutation({
     mutationFn: async (feedbackData: BetaFeedback) => {
-      return await apiRequest("POST", "/api/beta-test/feedback", feedbackData);
+      const existingSession = localStorage.getItem('betaSession');
+      if (existingSession) {
+        const session = JSON.parse(existingSession);
+        session.feedback = feedbackData;
+        session.completedAt = new Date().toISOString();
+        localStorage.setItem('betaSession', JSON.stringify(session));
+      }
+      return { success: true };
     },
     onSuccess: () => {
       setShowFeedback(false);
@@ -181,7 +200,6 @@ export default function BetaTestPortal() {
         title: "Feedback Submitted",
         description: "Thank you for your valuable feedback! You can test another session or review results.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/beta-test/stats'] });
     },
   });
 
@@ -417,7 +435,7 @@ export default function BetaTestPortal() {
         </motion.div>
 
         {/* Registration Form */}
-        {!sessionStarted && !sessionCompleted && (
+        {!registrationCompleted && !sessionStarted && !sessionCompleted && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
