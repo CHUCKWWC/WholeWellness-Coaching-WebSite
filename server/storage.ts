@@ -7,7 +7,9 @@ import {
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-const client = postgres(process.env.DATABASE_URL!);
+const client = postgres(process.env.DATABASE_URL!, {
+  ssl: { rejectUnauthorized: false }
+});
 const db = drizzle(client);
 
 export interface IStorage {
