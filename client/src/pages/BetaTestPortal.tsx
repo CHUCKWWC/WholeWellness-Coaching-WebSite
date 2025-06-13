@@ -52,72 +52,61 @@ interface BetaFeedback {
   suggestions: string;
 }
 
-const weightLossSessions: AISession[] = [
+const aiCoachingSessions: AISession[] = [
   {
-    id: "nutritionist",
-    title: "AI Nutritionist",
-    description: "Personalized meal planning, nutritional guidance, and dietary assessment with real-time feedback",
-    category: "Nutrition",
-    duration: "15-30 min",
+    id: "finance",
+    title: "AI Finance Coach",
+    description: "Expert financial guidance for budgeting, saving, debt management, and investment planning",
+    category: "Finance",
+    duration: "15-25 min",
     difficulty: "Beginner",
-    icon: <Heart className="h-6 w-6" />,
-    features: ["Meal Planning", "Calorie Tracking", "Macro Analysis", "Food Recommendations"],
-    testingFocus: ["Meal plan accuracy", "Dietary restriction handling", "Recipe suggestions"]
+    icon: <Brain className="h-6 w-6 text-green-600" />,
+    features: ["Budget Creation", "Debt Strategies", "Savings Plans", "Investment Guidance"],
+    testingFocus: ["Financial advice accuracy", "Budget practicality", "Goal-setting effectiveness"]
   },
   {
-    id: "fitness-trainer",
-    title: "AI Fitness Trainer",
-    description: "Customized workout plans, exercise demonstrations, and progress tracking for weight loss",
-    category: "Fitness",
-    duration: "20-45 min",
+    id: "relationship",
+    title: "AI Relationship Coach",
+    description: "Communication skills, conflict resolution, and emotional support for healthier relationships",
+    category: "Relationships",
+    duration: "20-30 min",
     difficulty: "Intermediate",
-    icon: <Target className="h-6 w-6" />,
-    features: ["Workout Plans", "Exercise Demos", "Progress Tracking", "Form Correction"],
-    testingFocus: ["Exercise variety", "Difficulty progression", "Form feedback accuracy"]
+    icon: <Heart className="h-6 w-6 text-red-600" />,
+    features: ["Communication Skills", "Conflict Resolution", "Emotional Support", "Relationship Building"],
+    testingFocus: ["Empathy in responses", "Practical relationship advice", "Emotional intelligence"]
   },
   {
-    id: "behavior-coach",
-    title: "AI Behavior Coach",
-    description: "Habit formation, motivation support, and psychological strategies for sustainable weight loss",
-    category: "Psychology",
-    duration: "25-40 min",
+    id: "career",
+    title: "AI Career Coach",
+    description: "Professional development, job search strategies, and career advancement planning",
+    category: "Career",
+    duration: "18-28 min",
     difficulty: "Intermediate",
-    icon: <Brain className="h-6 w-6" />,
-    features: ["Habit Tracking", "Motivation Support", "Goal Setting", "Mindfulness Techniques"],
-    testingFocus: ["Motivational responses", "Habit formation strategies", "Emotional support quality"]
+    icon: <Target className="h-6 w-6 text-blue-600" />,
+    features: ["Resume Guidance", "Interview Prep", "Skill Development", "Career Planning"],
+    testingFocus: ["Professional advice quality", "Industry relevance", "Goal achievement planning"]
   },
   {
-    id: "wellness-coordinator",
-    title: "AI Wellness Coordinator",
-    description: "Holistic health approach combining nutrition, fitness, sleep, and stress management",
-    category: "Holistic Wellness",
-    duration: "30-50 min",
-    difficulty: "Advanced",
-    icon: <Users className="h-6 w-6" />,
-    features: ["Integrated Planning", "Sleep Optimization", "Stress Management", "Health Monitoring"],
-    testingFocus: ["Integration quality", "Comprehensive advice", "Personalization depth"]
-  },
-  {
-    id: "accountability-partner",
-    title: "AI Accountability Partner",
-    description: "Daily check-ins, progress monitoring, and supportive accountability for weight loss goals",
-    category: "Support",
-    duration: "10-20 min",
+    id: "health",
+    title: "AI Health Coach",
+    description: "Wellness, nutrition, fitness, and healthy lifestyle guidance for overall well-being",
+    category: "Health & Wellness",
+    duration: "15-25 min",
     difficulty: "Beginner",
-    icon: <CheckCircle className="h-6 w-6" />,
-    features: ["Daily Check-ins", "Progress Reports", "Goal Reminders", "Celebration Moments"],
-    testingFocus: ["Check-in effectiveness", "Progress tracking accuracy", "Motivational impact"]
+    icon: <Award className="h-6 w-6 text-purple-600" />,
+    features: ["Nutrition Planning", "Fitness Routines", "Wellness Tracking", "Healthy Habits"],
+    testingFocus: ["Health advice safety", "Personalization accuracy", "Sustainable recommendations"]
   },
   {
-    id: "meal-prep-assistant",
-    title: "AI Meal Prep Assistant",
-    description: "Weekly meal preparation guidance, shopping lists, and batch cooking strategies",
-    category: "Meal Prep",
-    duration: "20-35 min",
-    difficulty: "Intermediate",
-    icon: <Calendar className="h-6 w-6" />,
-    features: ["Prep Planning", "Shopping Lists", "Batch Cooking", "Storage Tips"],
-    testingFocus: ["Prep efficiency", "Shopping list accuracy", "Time management tips"]
+    id: "general",
+    title: "AI General Coach",
+    description: "Comprehensive life coaching, personal development, and general guidance for all life areas",
+    category: "General Life Coaching",
+    duration: "20-30 min",
+    difficulty: "Beginner",
+    icon: <Users className="h-6 w-6 text-teal-600" />,
+    features: ["Goal Setting", "Life Planning", "Personal Growth", "General Guidance"],
+    testingFocus: ["Versatility in topics", "Adaptive responses", "Comprehensive support"]
   }
 ];
 
@@ -241,7 +230,7 @@ export default function BetaTestPortal() {
     });
   };
 
-  const selectedSessionData = weightLossSessions.find(s => s.id === selectedSession);
+  const selectedSessionData = aiCoachingSessions.find(s => s.id === selectedSession);
 
   if (showFeedback && selectedSessionData) {
     return (
@@ -466,9 +455,9 @@ export default function BetaTestPortal() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Weight Loss Goals</Label>
+                    <Label>Areas of Interest</Label>
                     <Input
-                      placeholder="Brief description of your goals"
+                      placeholder="Finance, Relationships, Career, Health, General Life Coaching"
                       value={betaUser.goals}
                       onChange={(e) => setBetaUser({...betaUser, goals: e.target.value})}
                     />
@@ -486,9 +475,9 @@ export default function BetaTestPortal() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose an AI Coaching Session to Test</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose an AI Coach to Test</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {weightLossSessions.map((session) => (
+              {aiCoachingSessions.map((session) => (
                 <motion.div
                   key={session.id}
                   whileHover={{ scale: 1.02 }}
@@ -603,33 +592,6 @@ export default function BetaTestPortal() {
                   sessionType={selectedSession!} 
                   onComplete={handleCompleteSession}
                 />
-
-                <div className="text-center space-y-4">
-                  <div className="text-6xl">🤖</div>
-                  <h3 className="text-2xl font-bold">AI Coaching Session Simulation</h3>
-                  <p className="text-gray-600 max-w-2xl mx-auto">
-                    In a real implementation, this would connect to the AI coaching system. 
-                    For beta testing, please imagine you're interacting with the {selectedSessionData.title} 
-                    and consider how the features would work.
-                  </p>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium mb-2">Test these aspects:</h4>
-                    <ul className="text-sm text-left space-y-1">
-                      {selectedSessionData.testingFocus.map((focus, idx) => (
-                        <li key={idx}>• {focus}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Button 
-                    onClick={handleCompleteSession}
-                    size="lg"
-                    className="mt-6"
-                  >
-                    Complete Session & Provide Feedback
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </motion.div>
