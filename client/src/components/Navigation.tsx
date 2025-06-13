@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AuthForm from "@/components/AuthForm";
+import Logo from "@/components/Logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,7 +66,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
-              <h1 className="text-xl font-bold text-primary">Wholewellness Coaching</h1>
+              <Logo className="h-8 w-8" showText={true} />
             </Link>
           </div>
 

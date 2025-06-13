@@ -115,6 +115,43 @@ export default function About() {
         </div>
       </section>
 
+      {/* Founders */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center text-secondary mb-12">
+            Our Founders
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="text-center">
+              <div className="w-32 h-32 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
+                <span className="text-white text-2xl font-bold">CS</span>
+              </div>
+              <h3 className="text-xl font-semibold text-secondary mb-2">Dr. Charlene Inman Smith</h3>
+              <p className="text-primary font-medium mb-4">Executive Director & Co-Founder</p>
+              <p className="text-gray-700 leading-relaxed">
+                Dr. Charlene Smith is a dating coach with thirty-six years of experience, living in San Antonio, Texas. 
+                At sixty-seven, she produced and hosted a streaming series, "Set It off Senior Style." She specializes in 
+                coaching senior clients on safely dating and relationships, and has been interviewed on FOX and ABC while 
+                conducting workshops on senior dating.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
+                <span className="text-white text-2xl font-bold">DL</span>
+              </div>
+              <h3 className="text-xl font-semibold text-secondary mb-2">Dasha Lazaryuk</h3>
+              <p className="text-primary font-medium mb-4">Program Director & Co-Founder</p>
+              <p className="text-gray-700 leading-relaxed">
+                Dasha is a Divorce & Resource (Time, Money, Energy) Coach specializing in helping women reclaim their 
+                power amidst a divorce and build their dream life post-divorce. Her goal is to create a support system 
+                for women undergoing such a profound transformation. Drawing from her own experience during the hardest 
+                time of her life, she provides the guidance she wished she had during her journey.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Our Approach */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
