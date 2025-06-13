@@ -32,8 +32,17 @@ import {
   Plus,
   Edit,
   Send,
-  BarChart3
+  BarChart3,
+  Brain,
+  Smartphone,
+  GraduationCap,
+  UsersIcon as GroupIcon
 } from "lucide-react";
+import VideoSession from '@/components/VideoSession';
+import GroupSessionManager from '@/components/GroupSessionManager';
+import AIInsightsDashboard from '@/components/AIInsightsDashboard';
+import ProfessionalDevelopment from '@/components/ProfessionalDevelopment';
+import MobileCoachApp from '@/components/MobileCoachApp';
 import { motion } from "framer-motion";
 
 interface CoachProfile {
@@ -279,13 +288,17 @@ export default function CoachDashboard() {
 
         {/* Main Dashboard */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="clients">Clients</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="video">Video</TabsTrigger>
+            <TabsTrigger value="groups">Groups</TabsTrigger>
+            <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="development">Development</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -750,6 +763,35 @@ export default function CoachDashboard() {
                 </Card>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="video" className="space-y-6">
+            <VideoSession 
+              sessionId="demo-session"
+              coachId={coachProfile.id}
+              clientId="demo-client"
+              sessionType="individual"
+              isCoach={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="groups" className="space-y-6">
+            <GroupSessionManager 
+              coachId={coachProfile.id}
+              isCoach={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="ai-insights" className="space-y-6">
+            <AIInsightsDashboard 
+              coachId={coachProfile.id}
+            />
+          </TabsContent>
+
+          <TabsContent value="development" className="space-y-6">
+            <ProfessionalDevelopment 
+              coachId={coachProfile.id}
+            />
           </TabsContent>
         </Tabs>
       </div>
