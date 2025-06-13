@@ -1069,6 +1069,181 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Google Meet Integration Routes
+  
+  // Check Google Meet connection status
+  app.get("/api/coaches/google-meet-status/:coachId", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      
+      // Check if coach has Google Meet integration enabled
+      const hasGoogleMeetAccess = coach.googleMeetEnabled || false;
+      
+      res.json({ 
+        connected: hasGoogleMeetAccess,
+        lastSync: coach.googleMeetLastSync || null
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Connect Google Meet for coach
+  app.post("/api/coaches/:coachId/connect-google-meet", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      
+      // Simulate Google OAuth flow - in production this would handle real OAuth
+      const updatedCoach = await coachStorage.updateCoach(coach.id, {
+        googleMeetEnabled: true,
+        googleMeetLastSync: new Date().toISOString()
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Google Meet connected successfully",
+        coach: updatedCoach
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to connect Google Meet" });
+    }
+  });
+
+  // Get Google Meet sessions for coach
+  app.get("/api/coaches/google-meet-sessions/:coachId", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      
+      // Sample Google Meet sessions - in production this would fetch from Google Calendar API
+      const sampleSessions = [
+        {
+          id: "gm-session-1",
+          meetingId: "abc-defg-hij",
+          meetingUrl: "https://meet.google.com/abc-defg-hij",
+          clientId: "client-1",
+          clientName: "Sarah Johnson",
+          scheduledTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+          duration: 60,
+          status: "scheduled",
+          sessionType: "individual",
+          description: "Weekly check-in and goal setting",
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "gm-session-2",
+          meetingId: "xyz-uvwx-ijk",
+          meetingUrl: "https://meet.google.com/xyz-uvwx-ijk",
+          clientId: "client-2",
+          clientName: "Maria Rodriguez",
+          scheduledTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+          duration: 45,
+          status: "scheduled",
+          sessionType: "consultation",
+          description: "Initial assessment and treatment planning",
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      res.json(sampleSessions);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create new Google Meet session
+  app.post("/api/coaches/:coachId/google-meet-sessions", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const { clientId, scheduledTime, duration, sessionType, description } = req.body;
+      
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      
+      // Get client information
+      const clients = await coachStorage.getCoachClients(coach.id);
+      const client = clients.find(c => c.id.toString() === clientId);
+      
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Generate unique meeting ID and URL
+      const meetingId = Math.random().toString(36).substring(2, 15);
+      const meetingUrl = `https://meet.google.com/${meetingId}`;
+      
+      const newSession = {
+        id: `gm-session-${Date.now()}`,
+        meetingId,
+        meetingUrl,
+        clientId,
+        clientName: `${client.firstName} ${client.lastName}`,
+        scheduledTime,
+        duration: parseInt(duration),
+        status: "scheduled",
+        sessionType,
+        description: description || "",
+        createdAt: new Date().toISOString()
+      };
+      
+      // In production, this would create the meeting via Google Calendar API
+      // and store the session in the database
+      
+      res.json(newSession);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create Google Meet session" });
+    }
+  });
+
+  // Update Google Meet session status
+  app.patch("/api/coaches/google-meet-sessions/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { status } = req.body;
+      
+      // In production, this would update the session in the database
+      res.json({ 
+        success: true, 
+        message: `Session ${sessionId} status updated to ${status}` 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update session status" });
+    }
+  });
+
+  // Get coach clients for Google Meet scheduling
+  app.get("/api/coaches/clients/:coachId", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      
+      const clients = await coachStorage.getCoachClients(coach.id);
+      res.json(clients);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get all coaches (for admin/directory)
   app.get("/api/coaches", async (req, res) => {
     try {

@@ -43,6 +43,7 @@ import GroupSessionManager from '@/components/GroupSessionManager';
 import AIInsightsDashboard from '@/components/AIInsightsDashboard';
 import ProfessionalDevelopment from '@/components/ProfessionalDevelopment';
 import MobileCoachApp from '@/components/MobileCoachApp';
+import GoogleMeetIntegration from '@/components/GoogleMeetIntegration';
 import { motion } from "framer-motion";
 
 interface CoachProfile {
@@ -288,7 +289,7 @@ export default function CoachDashboard() {
 
         {/* Main Dashboard */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="clients">Clients</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
@@ -296,6 +297,7 @@ export default function CoachDashboard() {
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="video">Video</TabsTrigger>
+            <TabsTrigger value="google-meet">Google Meet</TabsTrigger>
             <TabsTrigger value="groups">Groups</TabsTrigger>
             <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
             <TabsTrigger value="development">Development</TabsTrigger>
@@ -771,6 +773,13 @@ export default function CoachDashboard() {
               coachId={coachProfile.id}
               clientId="demo-client"
               sessionType="individual"
+              isCoach={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="google-meet" className="space-y-6">
+            <GoogleMeetIntegration 
+              coachId={coachProfile.id}
               isCoach={true}
             />
           </TabsContent>
