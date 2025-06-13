@@ -15,8 +15,19 @@ import {
   insertDonationSchema,
   insertCampaignSchema 
 } from "@shared/donation-schema";
+import {
+  insertCoachSchema,
+  insertCoachCredentialSchema,
+  insertCoachBankingSchema,
+  insertCoachAvailabilitySchema,
+  insertCoachClientSchema,
+  insertCoachSessionNotesSchema,
+  insertCoachMessageTemplateSchema,
+  insertCoachClientCommunicationSchema
+} from "@shared/coach-schema";
 import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
+import { coachStorage } from "./coach-storage";
 import { 
   hashPassword, 
   verifyPassword, 
@@ -914,6 +925,181 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Internal server error" });
       }
+    }
+  });
+
+  // Coach Management Routes
+  
+  // Get coach profile
+  app.get("/api/coach/profile", requireAuth as any, async (req: any, res) => {
+    try {
+      const coach = await coachStorage.getCoachByUserId(req.user.id);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      res.json(coach);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create or update coach profile
+  app.post("/api/coach/profile", requireAuth as any, async (req: any, res) => {
+    try {
+      const coachData = insertCoachSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      
+      const existingCoach = await coachStorage.getCoachByUserId(req.user.id);
+      if (existingCoach) {
+        const updatedCoach = await coachStorage.updateCoach(existingCoach.id, coachData);
+        res.json(updatedCoach);
+      } else {
+        const newCoach = await coachStorage.createCoach(coachData);
+        res.json(newCoach);
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid coach data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  // Get coach credentials
+  app.get("/api/coach/credentials", requireAuth as any, async (req: any, res) => {
+    try {
+      const coach = await coachStorage.getCoachByUserId(req.user.id);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      const credentials = await coachStorage.getCoachCredentials(coach.id);
+      res.json(credentials);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Add coach credential
+  app.post("/api/coach/credentials", requireAuth as any, async (req: any, res) => {
+    try {
+      const coach = await coachStorage.getCoachByUserId(req.user.id);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+
+      const credentialData = insertCoachCredentialSchema.parse({
+        ...req.body,
+        coachId: coach.id
+      });
+      
+      const credential = await coachStorage.createCoachCredential(credentialData);
+      res.json(credential);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid credential data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  // Get coach banking info
+  app.get("/api/coach/banking", requireAuth as any, async (req: any, res) => {
+    try {
+      const coach = await coachStorage.getCoachByUserId(req.user.id);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      const banking = await coachStorage.getCoachBanking(coach.id);
+      if (banking) {
+        const safeBanking = {
+          ...banking,
+          accountNumber: banking.accountNumber ? "****" + banking.accountNumber.slice(-4) : null
+        };
+        res.json(safeBanking);
+      } else {
+        res.json(null);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Add/update coach banking info
+  app.post("/api/coach/banking", requireAuth as any, async (req: any, res) => {
+    try {
+      const coach = await coachStorage.getCoachByUserId(req.user.id);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+
+      const bankingData = insertCoachBankingSchema.parse({
+        ...req.body,
+        coachId: coach.id
+      });
+      
+      const banking = await coachStorage.createOrUpdateCoachBanking(bankingData);
+      res.json(banking);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid banking data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  // Get coach availability
+  app.get("/api/coach/availability", requireAuth as any, async (req: any, res) => {
+    try {
+      const coach = await coachStorage.getCoachByUserId(req.user.id);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      const availability = await coachStorage.getCoachAvailability(coach.id);
+      res.json(availability);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get all coaches (for admin/directory)
+  app.get("/api/coaches", async (req, res) => {
+    try {
+      const { specialty, status } = req.query;
+      let coaches;
+      
+      if (specialty) {
+        coaches = await coachStorage.getCoachesBySpecialty(specialty as string);
+      } else {
+        coaches = status === 'active' 
+          ? await coachStorage.getActiveCoaches()
+          : await coachStorage.getAllCoaches();
+      }
+      
+      const publicCoaches = coaches.map(coach => ({
+        id: coach.id,
+        coachId: coach.coachId,
+        firstName: coach.firstName,
+        lastName: coach.lastName,
+        bio: coach.bio,
+        specialties: coach.specialties,
+        experience: coach.experience,
+        isVerified: coach.isVerified,
+        hourlyRate: coach.hourlyRate,
+        languages: coach.languages,
+        profileImage: coach.profileImage
+      }));
+      
+      res.json(publicCoaches);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
