@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import AICoachingSession from "@/components/AICoachingSession";
 import { 
   Brain,
   Heart,
@@ -584,19 +585,24 @@ export default function BetaTestPortal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5" />
-                  {selectedSessionData.title} - Active Session
+                  {selectedSessionData.title} - Real AI Implementation
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-green-800 font-medium">Session Active - Usage Tracking Enabled</span>
+                    <span className="text-green-800 font-medium">Live AI Coaching System - Powered by OpenAI</span>
                   </div>
                   <p className="text-green-700 text-sm mt-2">
-                    Your interaction data is being recorded for analysis. Test all features and take notes on your experience.
+                    You're now testing the real AI coaching implementation with actual personalized responses.
                   </p>
                 </div>
+                
+                <AICoachingSession 
+                  sessionType={selectedSession!} 
+                  onComplete={handleCompleteSession}
+                />
 
                 <div className="text-center space-y-4">
                   <div className="text-6xl">🤖</div>

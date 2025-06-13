@@ -276,7 +276,7 @@ export default function AICoachingSession({ sessionType, onComplete }: AICoachin
               id="height"
               value={profile.height || ""}
               onChange={(e) => updateProfile("height", e.target.value)}
-              placeholder="e.g., 5'6\" or 168cm"
+              placeholder="e.g., 5 feet 6 inches or 168cm"
             />
           </div>
           <div>
