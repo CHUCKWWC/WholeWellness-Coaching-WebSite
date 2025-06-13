@@ -1,0 +1,542 @@
+{
+  "name": "Chat Session Storage Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Chat Webhook",
+      "type": "@n8n/n8n-nodes-langchain.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "chat_sessions",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "equals",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "status",
+              "condition": "equals", 
+              "keyValue": "active"
+            }
+          ]
+        },
+        "sort": {
+          "fields": [
+            {
+              "field": "last_activity",
+              "direction": "desc"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "check-session",
+      "name": "Check Active Session",
+      "type": "@n8n/n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Check Active Session').all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combineOperation": "any"
+        }
+      },
+      "id": "session-exists",
+      "name": "Session Exists?",
+      "type": "@n8n/n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "chat_sessions",
+        "records": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $json.userId }}",
+            "session_id": "={{ $json.sessionId || 'session_' + Date.now() }}",
+            "agent_type": "={{ $json.agentType || 'general' }}",
+            "status": "active",
+            "title": "Chat Session",
+            "metadata": {
+              "user_email": "={{ $json.userEmail }}",
+              "source": "website_chat",
+              "user_agent": "={{ $json.userAgent }}"
+            }
+          }
+        }
+      },
+      "id": "create-session",
+      "name": "Create New Session",
+      "type": "@n8n/n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "chat_sessions",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "equals",
+              "keyValue": "={{ $('Check Active Session').first().json.id }}"
+            }
+          ]
+        },
+        "records": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "last_activity": "={{ new Date().toISOString() }}",
+            "agent_type": "={{ $json.agentType || $('Check Active Session').first().json.agent_type }}"
+          }
+        }
+      },
+      "id": "update-session",
+      "name": "Update Existing Session",
+      "type": "@n8n/n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 400],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "sessionData",
+        "options": {}
+      },
+      "id": "merge-session-data",
+      "name": "Merge Session Data",
+      "type": "@n8n/n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "chat_messages",
+        "records": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $json.sessionData[0].id || $json.sessionData[1].id }}",
+            "message_id": "={{ Date.now() }}_user",
+            "content": "={{ $('Chat Webhook').first().json.message }}",
+            "is_user": true,
+            "timestamp": "={{ new Date().toISOString() }}"
+          }
+        }
+      },
+      "id": "store-user-message",
+      "name": "Store User Message",
+      "type": "@n8n/n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Chat Webhook').first().json.agentType }}",
+              "rightValue": "finance-coach",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combineOperation": "any"
+        }
+      },
+      "id": "agent-router",
+      "name": "Agent Router",
+      "type": "@n8n/n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a Financial Coach specializing in helping domestic violence survivors and women going through major life transitions rebuild their financial independence. Provide supportive, practical financial guidance.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $('Chat Webhook').first().json.message }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "finance-coach-ai",
+      "name": "Finance Coach AI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [1780, 200],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-credentials",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a Relationship Coach specializing in helping domestic violence survivors rebuild healthy relationships and communication skills. Be trauma-informed and prioritize safety.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $('Chat Webhook').first().json.message }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "relationship-coach-ai",
+      "name": "Relationship Coach AI", 
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-credentials", 
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a Career Development Coach helping women rebuild their professional lives after major transitions. Focus on practical career strategies and building confidence.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $('Chat Webhook').first().json.message }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "career-coach-ai",
+      "name": "Career Coach AI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi", 
+      "typeVersion": 1,
+      "position": [1780, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-credentials",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "aiResponse",
+        "options": {}
+      },
+      "id": "merge-ai-response",
+      "name": "Merge AI Response",
+      "type": "@n8n/n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "chat_messages",
+        "records": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('Merge Session Data').first().json.sessionData[0].id || $('Merge Session Data').first().json.sessionData[1].id }}",
+            "message_id": "={{ Date.now() }}_ai",
+            "content": "={{ $json.aiResponse[0].content || $json.aiResponse[0].text }}",
+            "is_user": false,
+            "timestamp": "={{ new Date().toISOString() }}",
+            "agent_response_data": {
+              "agent_type": "={{ $('Chat Webhook').first().json.agentType }}",
+              "model_used": "gpt-4o",
+              "response_time": "={{ Date.now() - $('Chat Webhook').first().json.timestamp }}"
+            }
+          }
+        }
+      },
+      "id": "store-ai-response",
+      "name": "Store AI Response",
+      "type": "@n8n/n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2220, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "response": "={{ $('Merge AI Response').first().json.aiResponse[0].content || $('Merge AI Response').first().json.aiResponse[0].text }}",
+          "agentType": "={{ $('Chat Webhook').first().json.agentType }}",
+          "timestamp": "={{ new Date().toISOString() }}",
+          "sessionId": "={{ $('Merge Session Data').first().json.sessionData[0].session_id || $('Merge Session Data').first().json.sessionData[1].session_id }}"
+        }
+      },
+      "id": "webhook-response",
+      "name": "Send Response",
+      "type": "@n8n/n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2440, 300]
+    }
+  ],
+  "connections": {
+    "Chat Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Active Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Active Session": {
+      "main": [
+        [
+          {
+            "node": "Session Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session Exists?": {
+      "main": [
+        [
+          {
+            "node": "Update Existing Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Session": {
+      "main": [
+        [
+          {
+            "node": "Merge Session Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Existing Session": {
+      "main": [
+        [
+          {
+            "node": "Merge Session Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Session Data": {
+      "main": [
+        [
+          {
+            "node": "Store User Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store User Message": {
+      "main": [
+        [
+          {
+            "node": "Agent Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Router": {
+      "main": [
+        [
+          {
+            "node": "Finance Coach AI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Relationship Coach AI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Career Coach AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finance Coach AI": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relationship Coach AI": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Career Coach AI": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Response": {
+      "main": [
+        [
+          {
+            "node": "Store AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store AI Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

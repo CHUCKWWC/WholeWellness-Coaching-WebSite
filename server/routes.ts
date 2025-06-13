@@ -1498,6 +1498,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat Session Management Routes
+  app.get('/api/chat/sessions/:userId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { userId } = req.params;
+      
+      if (req.user.id !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // In production, this would query Supabase using the functions we created
+      // For now, return empty array as sessions are stored in N8N/Supabase
+      const sessions: any[] = [];
+      
+      res.json(sessions);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      res.status(500).json({ message: 'Failed to fetch sessions' });
+    }
+  });
+
+  app.get('/api/chat/messages/:sessionId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      // In production, this would query Supabase for session messages
+      // For now, return empty array as messages are stored in N8N/Supabase
+      const messages: any[] = [];
+      
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      res.status(500).json({ message: 'Failed to fetch messages' });
+    }
+  });
+
   app.post("/api/ai-coaching/analyze-progress", async (req, res) => {
     try {
       const { profile, progressData } = req.body;

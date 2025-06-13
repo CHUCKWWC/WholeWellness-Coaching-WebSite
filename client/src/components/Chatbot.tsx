@@ -3,14 +3,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, X, Minimize2, Maximize2, Lock } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Maximize2, Lock, History } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
+}
+
+interface ChatSession {
+  id: string;
+  session_id: string;
+  agent_type: string;
+  title: string;
+  started_at: string;
+  last_activity: string;
+  message_count: number;
 }
 
 interface ChatbotProps {
@@ -20,9 +31,11 @@ interface ChatbotProps {
 export default function Chatbot({ 
   webhookUrl = "https://wholewellness-coaching.app.n8n.cloud/webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat" 
 }: ChatbotProps) {
-  const { isAuthenticated, isPaidMember, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isPaidMember, isLoading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
+  const [showSessionHistory, setShowSessionHistory] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -35,6 +48,20 @@ export default function Chatbot({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user's chat sessions
+  const { data: chatSessions } = useQuery<ChatSession[]>({
+    queryKey: ['/api/chat/sessions', user?.id],
+    enabled: isAuthenticated && !!user?.id,
+    retry: false,
+  });
+
+  // Load session messages when currentSessionId changes
+  const { data: sessionMessages } = useQuery<Message[]>({
+    queryKey: ['/api/chat/messages', currentSessionId],
+    enabled: !!currentSessionId,
+    retry: false,
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,6 +86,11 @@ export default function Chatbot({
     setIsLoading(true);
 
     try {
+      // Generate session ID if not already set
+      if (!currentSessionId) {
+        setCurrentSessionId(`session_${user?.id}_${Date.now()}`);
+      }
+
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -66,10 +98,14 @@ export default function Chatbot({
         },
         body: JSON.stringify({
           message: text,
-          conversation_id: `session_${Date.now()}`,
+          userId: user?.id,
+          userEmail: user?.email,
+          sessionId: currentSessionId || `session_${user?.id}_${Date.now()}`,
+          agentType: 'general',
+          timestamp: new Date().toISOString(),
           user_data: {
             source: 'wholewellness-coaching.org',
-            timestamp: new Date().toISOString(),
+            membershipLevel: user?.membershipLevel,
             intake_form_url: 'https://wholewellness-coaching.org/weight-loss-intake'
           }
         })
@@ -89,6 +125,11 @@ export default function Chatbot({
       };
 
       setMessages(prev => [...prev, botMessage]);
+      
+      // Update current session ID from response if provided
+      if (data.sessionId && data.sessionId !== currentSessionId) {
+        setCurrentSessionId(data.sessionId);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
