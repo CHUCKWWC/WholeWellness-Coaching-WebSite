@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import MedicalDisclaimer from "@/components/MedicalDisclaimer";
 import CoachingTools from "@/components/CoachingTools";
+import CoachingResources from "@/components/CoachingResources";
 
 interface Message {
   id: string;
@@ -392,6 +393,14 @@ export default function AICoachingChat({ selectedAgent, onAgentChange }: AICoach
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Coaching Tools and Resources */}
+        {currentAgent && disclaimerAccepted && (
+          <>
+            <CoachingTools agentType={currentAgent.id} />
+            <CoachingResources agentType={currentAgent.id} />
+          </>
         )}
       </div>
 
