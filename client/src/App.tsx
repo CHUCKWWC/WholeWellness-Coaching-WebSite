@@ -17,6 +17,7 @@ import Members from "@/pages/Members";
 import WeightLossIntake from "@/pages/WeightLossIntake";
 import Impact from "@/pages/Impact";
 import Admin from "@/pages/Admin";
+import CMS from "@/pages/CMS";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import NotFound from "@/pages/not-found";
@@ -38,6 +39,7 @@ function Router() {
           <Route path="/weight-loss-intake" component={WeightLossIntake} />
           <Route path="/impact" component={Impact} />
           <Route path="/admin" component={Admin} />
+          <Route path="/cms" component={CMS} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route component={NotFound} />
