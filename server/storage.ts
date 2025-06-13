@@ -1,38 +1,17 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { db } from "./db";
 import { 
   users, bookings, testimonials, resources, contacts, weightLossIntakes,
+  contentPages, contentBlocks, mediaLibrary, navigationMenus, siteSettings,
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
-  type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake
+  type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
+  type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
+  type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting
 } from "@shared/schema";
-import {
-  contentPages,
-  contentBlocks,
-  mediaLibrary,
-  navigationMenus,
-  siteSettings,
-  type ContentPage,
-  type ContentBlock,
-  type MediaItem,
-  type NavigationMenu,
-  type SiteSetting,
-  type InsertContentPage,
-  type InsertContentBlock,
-  type InsertMediaItem,
-  type InsertNavigationMenu,
-  type InsertSiteSetting,
-} from "@shared/cms-schema";
 import { eq, desc, asc } from "drizzle-orm";
-
-const client = postgres(process.env.DATABASE_URL!, {
-  ssl: { rejectUnauthorized: false }
-});
-const db = drizzle(client);
 
 export interface IStorage {
   // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
@@ -99,331 +78,197 @@ export interface IStorage {
   
   // CMS - Site Settings
   getSiteSetting(key: string): Promise<SiteSetting | undefined>;
-  getSiteSettingsByCategory(category: string): Promise<SiteSetting[]>;
   getAllSiteSettings(): Promise<SiteSetting[]>;
-  createOrUpdateSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  getSiteSettingsByCategory(category: string): Promise<SiteSetting[]>;
+  createSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  updateSiteSetting(key: string, setting: Partial<InsertSiteSetting>): Promise<SiteSetting | undefined>;
   deleteSiteSetting(key: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
-  constructor() {
-    this.seedData();
-    this.createCMSTables();
-  }
-
-  private async createCMSTables() {
-    try {
-      // Create CMS tables if they don't exist
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS content_pages (
-          id SERIAL PRIMARY KEY,
-          title VARCHAR(255) NOT NULL,
-          slug VARCHAR(255) UNIQUE NOT NULL,
-          content TEXT,
-          meta_title VARCHAR(255),
-          meta_description TEXT,
-          page_type VARCHAR(50) DEFAULT 'page',
-          is_published BOOLEAN DEFAULT false,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS content_blocks (
-          id SERIAL PRIMARY KEY,
-          page_id INTEGER REFERENCES content_pages(id) ON DELETE CASCADE,
-          block_type VARCHAR(50) NOT NULL,
-          content TEXT,
-          "order" INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS media_library (
-          id SERIAL PRIMARY KEY,
-          file_name VARCHAR(255) NOT NULL,
-          url TEXT NOT NULL,
-          alt_text VARCHAR(255),
-          category VARCHAR(50) DEFAULT 'image',
-          file_size INTEGER,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS navigation_menus (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          label VARCHAR(255) NOT NULL,
-          url VARCHAR(255) NOT NULL,
-          parent_id INTEGER REFERENCES navigation_menus(id) ON DELETE SET NULL,
-          "order" INTEGER DEFAULT 0,
-          is_external BOOLEAN DEFAULT false,
-          is_active BOOLEAN DEFAULT true,
-          menu_location VARCHAR(50),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS site_settings (
-          key VARCHAR(255) PRIMARY KEY,
-          value TEXT NOT NULL,
-          category VARCHAR(100) DEFAULT 'general',
-          description TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      console.log("CMS tables created successfully");
-    } catch (error) {
-      console.log("CMS tables already exist or error creating:", error);
-    }
-  }
-
-  private async seedData() {
-    try {
-      // Check if data already exists
-      const existingTestimonials = await db.select().from(testimonials).limit(1);
-      if (existingTestimonials.length > 0) return;
-
-      // Seed testimonials
-      await db.insert(testimonials).values([
-        {
-          name: "Sarah M.",
-          initial: "S",
-          category: "Domestic Violence Survivor",
-          content: "Finding Whole Wellness Coaching changed my life. After leaving an abusive relationship, I didn't know where to start. My coach helped me rebuild my confidence and create a safety plan. Now I'm living independently with my children and feel stronger than ever.",
-          rating: 5,
-          isApproved: true
-        },
-        {
-          name: "Jennifer L.",
-          initial: "J",
-          category: "Recently Divorced",
-          content: "The divorce support program gave me hope when I felt lost. My coach understood exactly what I was going through and helped me navigate the emotional and practical challenges. I've rediscovered who I am and I'm excited about my future.",
-          rating: 5,
-          isApproved: true
-        },
-        {
-          name: "Maria R.",
-          initial: "M",
-          category: "Career Transition",
-          content: "After being out of the workforce for 15 years, I thought it was impossible to find meaningful work. The career development coaching helped me identify my skills and land a job I love. The sliding scale pricing made it accessible when money was tight.",
-          rating: 5,
-          isApproved: true
-        }
-      ]);
-
-      // Seed resources
-      await db.insert(resources).values([
-        {
-          title: "Safety Planning Guide",
-          type: "guide",
-          category: "Safety",
-          content: "Comprehensive guide for creating a personalized safety plan for domestic violence survivors.",
-          url: "/resources/safety-planning",
-          isFree: true
-        },
-        {
-          title: "Divorce Recovery Workbook", 
-          type: "workbook",
-          category: "Healing",
-          content: "Step-by-step workbook to help process emotions and plan for life after divorce.",
-          url: "/resources/divorce-workbook",
-          isFree: false
-        },
-        {
-          title: "Career Assessment Tool",
-          type: "assessment", 
-          category: "Career",
-          content: "Interactive tool to identify skills, interests, and potential career paths.",
-          url: "/resources/career-assessment",
-          isFree: true
-        },
-        {
-          title: "Financial Independence Planner",
-          type: "planner",
-          category: "Financial",
-          content: "Tools and worksheets for creating financial stability and independence.",
-          url: "/resources/financial-planner",
-          isFree: false
-        },
-        {
-          title: "Healing Journey Podcast",
-          type: "podcast",
-          category: "Support",
-          content: "Weekly podcast featuring expert interviews and real stories of women who have successfully navigated widowhood and divorce.",
-          url: "/resources/healing-podcast",
-          isFree: true
-        }
-      ]);
-    } catch (error) {
-      console.log("Seed data already exists or tables not ready");
-    }
-  }
-
   // Users
-  async getUser(id: number): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    return result[0];
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
-    return result[0];
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(insertUser).returning();
-    return result[0];
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
   }
 
   // Bookings
   async getBooking(id: number): Promise<Booking | undefined> {
-    const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
-    return result[0];
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking || undefined;
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return await db.select().from(bookings);
+    return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const result = await db.insert(bookings).values(insertBooking).returning();
-    return result[0];
+    const [booking] = await db
+      .insert(bookings)
+      .values(insertBooking)
+      .returning();
+    return booking;
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
-    const result = await db.update(bookings)
+    const [booking] = await db
+      .update(bookings)
       .set({ status })
       .where(eq(bookings.id, id))
       .returning();
-    return result[0];
+    return booking || undefined;
   }
 
   // Testimonials
   async getTestimonial(id: number): Promise<Testimonial | undefined> {
-    const result = await db.select().from(testimonials).where(eq(testimonials.id, id)).limit(1);
-    return result[0];
+    const [testimonial] = await db.select().from(testimonials).where(eq(testimonials.id, id));
+    return testimonial || undefined;
   }
 
   async getApprovedTestimonials(): Promise<Testimonial[]> {
-    return await db.select().from(testimonials).where(eq(testimonials.isApproved, true));
+    return await db.select().from(testimonials)
+      .where(eq(testimonials.isApproved, true))
+      .orderBy(desc(testimonials.createdAt));
   }
 
   async getAllTestimonials(): Promise<Testimonial[]> {
-    return await db.select().from(testimonials);
+    return await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
   }
 
   async createTestimonial(insertTestimonial: InsertTestimonial): Promise<Testimonial> {
-    const result = await db.insert(testimonials).values(insertTestimonial).returning();
-    return result[0];
+    const [testimonial] = await db
+      .insert(testimonials)
+      .values(insertTestimonial)
+      .returning();
+    return testimonial;
   }
 
   // Resources
   async getResource(id: number): Promise<Resource | undefined> {
-    const result = await db.select().from(resources).where(eq(resources.id, id)).limit(1);
-    return result[0];
+    const [resource] = await db.select().from(resources).where(eq(resources.id, id));
+    return resource || undefined;
   }
 
   async getResourcesByType(type: string): Promise<Resource[]> {
-    return await db.select().from(resources).where(eq(resources.type, type));
+    return await db.select().from(resources)
+      .where(eq(resources.type, type))
+      .orderBy(desc(resources.createdAt));
   }
 
   async getResourcesByCategory(category: string): Promise<Resource[]> {
-    return await db.select().from(resources).where(eq(resources.category, category));
+    return await db.select().from(resources)
+      .where(eq(resources.category, category))
+      .orderBy(desc(resources.createdAt));
   }
 
   async getAllResources(): Promise<Resource[]> {
-    return await db.select().from(resources);
+    return await db.select().from(resources).orderBy(desc(resources.createdAt));
   }
 
   async createResource(insertResource: InsertResource): Promise<Resource> {
-    const result = await db.insert(resources).values(insertResource).returning();
-    return result[0];
+    const [resource] = await db
+      .insert(resources)
+      .values(insertResource)
+      .returning();
+    return resource;
   }
 
   // Contacts
   async getContact(id: number): Promise<Contact | undefined> {
-    const result = await db.select().from(contacts).where(eq(contacts.id, id)).limit(1);
-    return result[0];
+    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
+    return contact || undefined;
   }
 
   async getAllContacts(): Promise<Contact[]> {
-    return await db.select().from(contacts);
+    return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
-    const result = await db.insert(contacts).values(insertContact).returning();
-    return result[0];
+    const [contact] = await db
+      .insert(contacts)
+      .values(insertContact)
+      .returning();
+    return contact;
   }
 
   // Weight Loss Intakes
   async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
-    const result = await db.select().from(weightLossIntakes).where(eq(weightLossIntakes.id, id)).limit(1);
-    return result[0];
+    const [intake] = await db.select().from(weightLossIntakes).where(eq(weightLossIntakes.id, id));
+    return intake || undefined;
   }
 
   async getAllWeightLossIntakes(): Promise<WeightLossIntake[]> {
-    return await db.select().from(weightLossIntakes);
+    return await db.select().from(weightLossIntakes).orderBy(desc(weightLossIntakes.createdAt));
   }
 
   async createWeightLossIntake(insertIntake: InsertWeightLossIntake): Promise<WeightLossIntake> {
-    const result = await db.insert(weightLossIntakes).values(insertIntake).returning();
-    return result[0];
+    const [intake] = await db
+      .insert(weightLossIntakes)
+      .values(insertIntake)
+      .returning();
+    return intake;
   }
 
   // CMS - Content Pages
   async getContentPage(id: number): Promise<ContentPage | undefined> {
     const [page] = await db.select().from(contentPages).where(eq(contentPages.id, id));
-    return page;
+    return page || undefined;
   }
 
   async getContentPageBySlug(slug: string): Promise<ContentPage | undefined> {
     const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug));
-    return page;
+    return page || undefined;
   }
 
   async getAllContentPages(): Promise<ContentPage[]> {
-    return await db.select().from(contentPages).orderBy(desc(contentPages.updatedAt));
+    return await db.select().from(contentPages).orderBy(desc(contentPages.createdAt));
   }
 
   async getPublishedContentPages(): Promise<ContentPage[]> {
-    return await db.select().from(contentPages).where(eq(contentPages.isPublished, true)).orderBy(desc(contentPages.updatedAt));
+    return await db.select().from(contentPages)
+      .where(eq(contentPages.isPublished, true))
+      .orderBy(desc(contentPages.createdAt));
   }
 
   async createContentPage(insertPage: InsertContentPage): Promise<ContentPage> {
-    const [page] = await db.insert(contentPages).values(insertPage).returning();
-    return page;
-  }
-
-  async updateContentPage(id: number, updatePage: Partial<InsertContentPage>): Promise<ContentPage | undefined> {
-    const [page] = await db.update(contentPages)
-      .set({ ...updatePage, updatedAt: new Date() })
-      .where(eq(contentPages.id, id))
+    const [page] = await db
+      .insert(contentPages)
+      .values(insertPage)
       .returning();
     return page;
   }
 
+  async updateContentPage(id: number, pageUpdate: Partial<InsertContentPage>): Promise<ContentPage | undefined> {
+    const [page] = await db
+      .update(contentPages)
+      .set(pageUpdate)
+      .where(eq(contentPages.id, id))
+      .returning();
+    return page || undefined;
+  }
+
   async deleteContentPage(id: number): Promise<boolean> {
     const result = await db.delete(contentPages).where(eq(contentPages.id, id));
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   // CMS - Content Blocks
   async getContentBlock(id: number): Promise<ContentBlock | undefined> {
     const [block] = await db.select().from(contentBlocks).where(eq(contentBlocks.id, id));
-    return block;
+    return block || undefined;
   }
 
   async getContentBlocksByPageId(pageId: number): Promise<ContentBlock[]> {
@@ -433,27 +278,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createContentBlock(insertBlock: InsertContentBlock): Promise<ContentBlock> {
-    const [block] = await db.insert(contentBlocks).values(insertBlock).returning();
-    return block;
-  }
-
-  async updateContentBlock(id: number, updateBlock: Partial<InsertContentBlock>): Promise<ContentBlock | undefined> {
-    const [block] = await db.update(contentBlocks)
-      .set({ ...updateBlock, updatedAt: new Date() })
-      .where(eq(contentBlocks.id, id))
+    const [block] = await db
+      .insert(contentBlocks)
+      .values(insertBlock)
       .returning();
     return block;
   }
 
+  async updateContentBlock(id: number, blockUpdate: Partial<InsertContentBlock>): Promise<ContentBlock | undefined> {
+    const [block] = await db
+      .update(contentBlocks)
+      .set(blockUpdate)
+      .where(eq(contentBlocks.id, id))
+      .returning();
+    return block || undefined;
+  }
+
   async deleteContentBlock(id: number): Promise<boolean> {
     const result = await db.delete(contentBlocks).where(eq(contentBlocks.id, id));
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   // CMS - Media Library
   async getMediaItem(id: number): Promise<MediaItem | undefined> {
     const [media] = await db.select().from(mediaLibrary).where(eq(mediaLibrary.id, id));
-    return media;
+    return media || undefined;
   }
 
   async getAllMediaItems(): Promise<MediaItem[]> {
@@ -467,27 +316,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMediaItem(insertMedia: InsertMediaItem): Promise<MediaItem> {
-    const [media] = await db.insert(mediaLibrary).values(insertMedia).returning();
-    return media;
-  }
-
-  async updateMediaItem(id: number, updateMedia: Partial<InsertMediaItem>): Promise<MediaItem | undefined> {
-    const [media] = await db.update(mediaLibrary)
-      .set(updateMedia)
-      .where(eq(mediaLibrary.id, id))
+    const [media] = await db
+      .insert(mediaLibrary)
+      .values(insertMedia)
       .returning();
     return media;
   }
 
+  async updateMediaItem(id: number, mediaUpdate: Partial<InsertMediaItem>): Promise<MediaItem | undefined> {
+    const [media] = await db
+      .update(mediaLibrary)
+      .set(mediaUpdate)
+      .where(eq(mediaLibrary.id, id))
+      .returning();
+    return media || undefined;
+  }
+
   async deleteMediaItem(id: number): Promise<boolean> {
     const result = await db.delete(mediaLibrary).where(eq(mediaLibrary.id, id));
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   // CMS - Navigation
   async getNavigationMenu(id: number): Promise<NavigationMenu | undefined> {
     const [menu] = await db.select().from(navigationMenus).where(eq(navigationMenus.id, id));
-    return menu;
+    return menu || undefined;
   }
 
   async getNavigationByLocation(location: string): Promise<NavigationMenu[]> {
@@ -501,54 +354,63 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNavigationMenu(insertMenu: InsertNavigationMenu): Promise<NavigationMenu> {
-    const [menu] = await db.insert(navigationMenus).values(insertMenu).returning();
-    return menu;
-  }
-
-  async updateNavigationMenu(id: number, updateMenu: Partial<InsertNavigationMenu>): Promise<NavigationMenu | undefined> {
-    const [menu] = await db.update(navigationMenus)
-      .set(updateMenu)
-      .where(eq(navigationMenus.id, id))
+    const [menu] = await db
+      .insert(navigationMenus)
+      .values(insertMenu)
       .returning();
     return menu;
   }
 
+  async updateNavigationMenu(id: number, menuUpdate: Partial<InsertNavigationMenu>): Promise<NavigationMenu | undefined> {
+    const [menu] = await db
+      .update(navigationMenus)
+      .set(menuUpdate)
+      .where(eq(navigationMenus.id, id))
+      .returning();
+    return menu || undefined;
+  }
+
   async deleteNavigationMenu(id: number): Promise<boolean> {
     const result = await db.delete(navigationMenus).where(eq(navigationMenus.id, id));
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   // CMS - Site Settings
   async getSiteSetting(key: string): Promise<SiteSetting | undefined> {
     const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
-    return setting;
-  }
-
-  async getSiteSettingsByCategory(category: string): Promise<SiteSetting[]> {
-    return await db.select().from(siteSettings).where(eq(siteSettings.category, category));
+    return setting || undefined;
   }
 
   async getAllSiteSettings(): Promise<SiteSetting[]> {
-    return await db.select().from(siteSettings);
+    return await db.select().from(siteSettings).orderBy(asc(siteSettings.category));
   }
 
-  async createOrUpdateSiteSetting(insertSetting: InsertSiteSetting): Promise<SiteSetting> {
-    const [setting] = await db.insert(siteSettings)
+  async getSiteSettingsByCategory(category: string): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings)
+      .where(eq(siteSettings.category, category))
+      .orderBy(asc(siteSettings.key));
+  }
+
+  async createSiteSetting(insertSetting: InsertSiteSetting): Promise<SiteSetting> {
+    const [setting] = await db
+      .insert(siteSettings)
       .values(insertSetting)
-      .onConflictDoUpdate({
-        target: siteSettings.key,
-        set: {
-          value: insertSetting.value,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
     return setting;
   }
 
+  async updateSiteSetting(key: string, settingUpdate: Partial<InsertSiteSetting>): Promise<SiteSetting | undefined> {
+    const [setting] = await db
+      .update(siteSettings)
+      .set(settingUpdate)
+      .where(eq(siteSettings.key, key))
+      .returning();
+    return setting || undefined;
+  }
+
   async deleteSiteSetting(key: string): Promise<boolean> {
     const result = await db.delete(siteSettings).where(eq(siteSettings.key, key));
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }
 
