@@ -102,8 +102,8 @@ export default function Home() {
             </div>
             <div className="order-1 lg:order-2">
               <img 
-                src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
-                alt="Wellness and support community" 
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" 
+                alt="Diverse women in supportive coaching environment" 
                 className="rounded-2xl shadow-lg w-full h-auto" 
               />
             </div>
