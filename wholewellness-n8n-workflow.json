@@ -1,5 +1,6 @@
 {
   "name": "Wholewellness Chat Session Storage",
+  "active": false,
   "nodes": [
     {
       "parameters": {
@@ -12,7 +13,8 @@
       "name": "Chat Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [240, 300]
+      "position": [240, 300],
+      "webhookId": "54619a3e-0c22-4288-a126-47dbf7a934dd"
     },
     {
       "parameters": {
@@ -29,7 +31,7 @@
             },
             {
               "keyName": "status",
-              "condition": "equals", 
+              "condition": "equals",
               "keyValue": "active"
             }
           ]
@@ -44,9 +46,9 @@
         },
         "limit": 1
       },
-      "id": "check-session",
+      "id": "a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6",
       "name": "Check Active Session",
-      "type": "@n8n/n8n-nodes-base.supabase",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [460, 300],
       "credentials": {
@@ -77,9 +79,9 @@
           "combineOperation": "any"
         }
       },
-      "id": "session-exists",
+      "id": "b2c3d4e5-6f7g-8h9i-0j1k-l2m3n4o5p6q7",
       "name": "Session Exists?",
-      "type": "@n8n/n8n-nodes-base.if",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [680, 300]
     },
@@ -91,21 +93,22 @@
           "mappingMode": "defineBelow",
           "value": {
             "user_id": "={{ $json.userId }}",
-            "session_id": "={{ $json.sessionId || 'session_' + Date.now() }}",
+            "session_id": "={{ $json.sessionId || 'session_' + $json.userId + '_' + Date.now() }}",
             "agent_type": "={{ $json.agentType || 'general' }}",
             "status": "active",
-            "title": "Chat Session",
+            "title": "AI Coaching Session",
             "metadata": {
               "user_email": "={{ $json.userEmail }}",
               "source": "website_chat",
-              "user_agent": "={{ $json.userAgent }}"
+              "membershipLevel": "={{ $json.user_data.membershipLevel }}",
+              "intake_form_url": "={{ $json.user_data.intake_form_url }}"
             }
           }
         }
       },
-      "id": "create-session",
+      "id": "c3d4e5f6-7g8h-9i0j-1k2l-m3n4o5p6q7r8",
       "name": "Create New Session",
-      "type": "@n8n/n8n-nodes-base.supabase",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [900, 200],
       "credentials": {
@@ -138,9 +141,9 @@
           }
         }
       },
-      "id": "update-session",
+      "id": "d4e5f6g7-8h9i-0j1k-2l3m-n4o5p6q7r8s9",
       "name": "Update Existing Session",
-      "type": "@n8n/n8n-nodes-base.supabase",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [900, 400],
       "credentials": {
@@ -156,9 +159,9 @@
         "destinationFieldName": "sessionData",
         "options": {}
       },
-      "id": "merge-session-data",
+      "id": "e5f6g7h8-9i0j-1k2l-3m4n-o5p6q7r8s9t0",
       "name": "Merge Session Data",
-      "type": "@n8n/n8n-nodes-base.aggregate",
+      "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [1120, 300]
     },
@@ -177,9 +180,9 @@
           }
         }
       },
-      "id": "store-user-message",
+      "id": "f6g7h8i9-0j1k-2l3m-4n5o-p6q7r8s9t0u1",
       "name": "Store User Message",
-      "type": "@n8n/n8n-nodes-base.supabase",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [1340, 300],
       "credentials": {
@@ -205,14 +208,38 @@
                 "type": "string",
                 "operation": "equals"
               }
+            },
+            {
+              "leftValue": "={{ $('Chat Webhook').first().json.agentType }}",
+              "rightValue": "relationship-coach",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $('Chat Webhook').first().json.agentType }}",
+              "rightValue": "career-coach",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $('Chat Webhook').first().json.agentType }}",
+              "rightValue": "health-coach",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ],
           "combineOperation": "any"
         }
       },
-      "id": "agent-router",
+      "id": "g7h8i9j0-1k2l-3m4n-5o6p-q7r8s9t0u1v2",
       "name": "Agent Router",
-      "type": "@n8n/n8n-nodes-base.switch",
+      "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
       "position": [1560, 300]
     },
@@ -226,19 +253,51 @@
         "messages": {
           "values": [
             {
-              "content": "You are a Financial Coach specializing in helping domestic violence survivors and women going through major life transitions rebuild their financial independence. Provide supportive, practical financial guidance.",
+              "content": "You are a Financial Coach specializing in helping domestic violence survivors and women going through major life transitions rebuild their financial independence. Your expertise includes budgeting, debt management, building credit, emergency savings, and creating sustainable financial plans. Always be supportive, trauma-informed, and provide practical, actionable advice. Focus on safety, independence, and empowerment through financial literacy.",
               "role": "system"
             },
             {
-              "content": "={{ $('Chat Webhook').first().json.message }}",
+              "content": "User Context: {{ $('Chat Webhook').first().json.user_data.membershipLevel ? 'Membership Level: ' + $('Chat Webhook').first().json.user_data.membershipLevel : 'Free member' }}\n\nUser Message: {{ $('Chat Webhook').first().json.message }}",
               "role": "user"
             }
           ]
         }
       },
-      "id": "finance-coach-ai",
+      "id": "h8i9j0k1-2l3m-4n5o-6p7q-r8s9t0u1v2w3",
       "name": "Finance Coach AI",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1780, 100],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-credentials",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a Relationship Coach specializing in helping domestic violence survivors rebuild healthy relationships and develop strong communication skills. You understand trauma-informed care, attachment styles, boundary setting, and safety planning. Your approach is compassionate, empowering, and always prioritizes the user's safety and emotional well-being. Help users develop healthy relationship patterns, recognize red flags, and build supportive social networks.",
+              "role": "system"
+            },
+            {
+              "content": "User Context: {{ $('Chat Webhook').first().json.user_data.membershipLevel ? 'Membership Level: ' + $('Chat Webhook').first().json.user_data.membershipLevel : 'Free member' }}\n\nUser Message: {{ $('Chat Webhook').first().json.message }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "i9j0k1l2-3m4n-5o6p-7q8r-s9t0u1v2w3x4",
+      "name": "Relationship Coach AI",
+      "type": "n8n-nodes-base.openAi",
       "typeVersion": 1,
       "position": [1780, 200],
       "credentials": {
@@ -258,24 +317,24 @@
         "messages": {
           "values": [
             {
-              "content": "You are a Relationship Coach specializing in helping domestic violence survivors rebuild healthy relationships and communication skills. Be trauma-informed and prioritize safety.",
+              "content": "You are a Career Development Coach helping women rebuild their professional lives after major transitions such as leaving abusive relationships, divorce, or widowhood. You specialize in career transitions, skill assessment, resume building, interview preparation, professional networking, and workplace confidence. Your approach is empowering, practical, and focused on building both skills and confidence. Help users identify their strengths, overcome employment gaps, and create sustainable career paths.",
               "role": "system"
             },
             {
-              "content": "={{ $('Chat Webhook').first().json.message }}",
+              "content": "User Context: {{ $('Chat Webhook').first().json.user_data.membershipLevel ? 'Membership Level: ' + $('Chat Webhook').first().json.user_data.membershipLevel : 'Free member' }}\n\nUser Message: {{ $('Chat Webhook').first().json.message }}",
               "role": "user"
             }
           ]
         }
       },
-      "id": "relationship-coach-ai",
-      "name": "Relationship Coach AI", 
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "id": "j0k1l2m3-4n5o-6p7q-8r9s-t0u1v2w3x4y5",
+      "name": "Career Coach AI",
+      "type": "n8n-nodes-base.openAi",
       "typeVersion": 1,
       "position": [1780, 300],
       "credentials": {
         "openAiApi": {
-          "id": "openai-credentials", 
+          "id": "openai-credentials",
           "name": "OpenAI API"
         }
       }
@@ -290,21 +349,53 @@
         "messages": {
           "values": [
             {
-              "content": "You are a Career Development Coach helping women rebuild their professional lives after major transitions. Focus on practical career strategies and building confidence.",
+              "content": "You are a Health & Wellness Coach specializing in helping women rebuild their physical and mental health after trauma and major life transitions. You understand the connection between trauma and health, stress management, nutrition basics, gentle fitness approaches, and mental health support. Your approach is holistic, trauma-informed, and focuses on sustainable, gentle progress. Help users develop healthy coping mechanisms, establish self-care routines, and rebuild their relationship with their body and health.",
               "role": "system"
             },
             {
-              "content": "={{ $('Chat Webhook').first().json.message }}",
+              "content": "User Context: {{ $('Chat Webhook').first().json.user_data.membershipLevel ? 'Membership Level: ' + $('Chat Webhook').first().json.user_data.membershipLevel : 'Free member' }}\n\nUser Message: {{ $('Chat Webhook').first().json.message }}",
               "role": "user"
             }
           ]
         }
       },
-      "id": "career-coach-ai",
-      "name": "Career Coach AI",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi", 
+      "id": "k1l2m3n4-5o6p-7q8r-9s0t-u1v2w3x4y5z6",
+      "name": "Health Coach AI",
+      "type": "n8n-nodes-base.openAi",
       "typeVersion": 1,
       "position": [1780, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-credentials",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 500
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a General Life Coach for Whole Wellness Coaching, specializing in supporting domestic violence survivors and women going through major life transitions. You provide compassionate, trauma-informed guidance across all areas of life including personal growth, goal setting, life transitions, building confidence, and creating new routines. Your approach is holistic, empowering, and focuses on helping users rebuild their lives with intention and self-compassion. Always prioritize safety and emotional well-being.",
+              "role": "system"
+            },
+            {
+              "content": "User Context: {{ $('Chat Webhook').first().json.user_data.membershipLevel ? 'Membership Level: ' + $('Chat Webhook').first().json.user_data.membershipLevel : 'Free member' }}\n\nUser Message: {{ $('Chat Webhook').first().json.message }}",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "l2m3n4o5-6p7q-8r9s-0t1u-v2w3x4y5z6a7",
+      "name": "General Coach AI",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1780, 500],
       "credentials": {
         "openAiApi": {
           "id": "openai-credentials",
@@ -318,9 +409,9 @@
         "destinationFieldName": "aiResponse",
         "options": {}
       },
-      "id": "merge-ai-response",
+      "id": "m3n4o5p6-7q8r-9s0t-1u2v-w3x4y5z6a7b8",
       "name": "Merge AI Response",
-      "type": "@n8n/n8n-nodes-base.aggregate",
+      "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [2000, 300]
     },
@@ -333,20 +424,21 @@
           "value": {
             "session_id": "={{ $('Merge Session Data').first().json.sessionData[0].id || $('Merge Session Data').first().json.sessionData[1].id }}",
             "message_id": "={{ Date.now() }}_ai",
-            "content": "={{ $json.aiResponse[0].content || $json.aiResponse[0].text }}",
+            "content": "={{ $json.aiResponse[0].choices[0].message.content || $json.aiResponse[0].text }}",
             "is_user": false,
             "timestamp": "={{ new Date().toISOString() }}",
             "agent_response_data": {
-              "agent_type": "={{ $('Chat Webhook').first().json.agentType }}",
+              "agent_type": "={{ $('Chat Webhook').first().json.agentType || 'general' }}",
               "model_used": "gpt-4o",
-              "response_time": "={{ Date.now() - $('Chat Webhook').first().json.timestamp }}"
+              "response_time_ms": "={{ Date.now() - new Date($('Chat Webhook').first().json.timestamp).getTime() }}",
+              "user_membership": "={{ $('Chat Webhook').first().json.user_data.membershipLevel }}"
             }
           }
         }
       },
-      "id": "store-ai-response",
+      "id": "n4o5p6q7-8r9s-0t1u-2v3w-x4y5z6a7b8c9",
       "name": "Store AI Response",
-      "type": "@n8n/n8n-nodes-base.supabase",
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [2220, 300],
       "credentials": {
@@ -360,15 +452,17 @@
       "parameters": {
         "respondWith": "json",
         "responseBody": {
-          "response": "={{ $('Merge AI Response').first().json.aiResponse[0].content || $('Merge AI Response').first().json.aiResponse[0].text }}",
-          "agentType": "={{ $('Chat Webhook').first().json.agentType }}",
+          "response": "={{ $('Merge AI Response').first().json.aiResponse[0].choices[0].message.content || $('Merge AI Response').first().json.aiResponse[0].text }}",
+          "agentType": "={{ $('Chat Webhook').first().json.agentType || 'general' }}",
           "timestamp": "={{ new Date().toISOString() }}",
-          "sessionId": "={{ $('Merge Session Data').first().json.sessionData[0].session_id || $('Merge Session Data').first().json.sessionData[1].session_id }}"
+          "sessionId": "={{ $('Merge Session Data').first().json.sessionData[0].session_id || $('Merge Session Data').first().json.sessionData[1].session_id }}",
+          "success": true,
+          "messageStored": true
         }
       },
-      "id": "webhook-response",
+      "id": "o5p6q7r8-9s0t-1u2v-3w4x-y5z6a7b8c9d0",
       "name": "Send Response",
-      "type": "@n8n/n8n-nodes-base.respondToWebhook",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [2440, 300]
     }
@@ -480,6 +574,20 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Health Coach AI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "General Coach AI",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -516,6 +624,28 @@
         ]
       ]
     },
+    "Health Coach AI": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General Coach AI": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Merge AI Response": {
       "main": [
         [
@@ -538,5 +668,22 @@
         ]
       ]
     }
-  }
+  },
+  "createdAt": "2025-01-13T21:48:00.000Z",
+  "id": "wholewellness-chat-workflow",
+  "settings": {
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-13T21:48:00.000Z",
+      "updatedAt": "2025-01-13T21:48:00.000Z",
+      "id": "coaching-tag",
+      "name": "AI Coaching"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-13T21:48:00.000Z",
+  "versionId": "1"
 }
