@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, MessageCircle, Shield, Clock, Users, Zap } from "lucide-react";
 import AICoachingChat from "@/components/AICoachingChat";
+import CoachingTools from "@/components/CoachingTools";
 
 export default function AICoaching() {
   const [showChat, setShowChat] = useState(false);

@@ -8,6 +8,7 @@ import { Send, Bot, User, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import MedicalDisclaimer from "@/components/MedicalDisclaimer";
+import CoachingTools from "@/components/CoachingTools";
 
 interface Message {
   id: string;
