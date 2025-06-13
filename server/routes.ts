@@ -42,6 +42,7 @@ import { donationStorage } from "./donation-storage";
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
+import { aiCoaching, type CoachingProfile } from "./ai-coaching";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1445,6 +1446,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(publicCoaches);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // AI Coaching Routes for Beta Testing
+  app.post("/api/ai-coaching/generate-meal-plan", async (req, res) => {
+    try {
+      const profile: CoachingProfile = req.body;
+      
+      if (!profile.name || !profile.age || !profile.currentWeight || !profile.goalWeight) {
+        return res.status(400).json({ message: "Profile information is incomplete" });
+      }
+      
+      const mealPlan = await aiCoaching.generatePersonalizedMealPlan(profile);
+      res.json({ success: true, mealPlan });
+    } catch (error: any) {
+      console.error('Error generating meal plan:', error);
+      res.status(500).json({ message: error.message || "Failed to generate meal plan" });
+    }
+  });
+
+  app.post("/api/ai-coaching/generate-workout-plan", async (req, res) => {
+    try {
+      const profile: CoachingProfile = req.body;
+      
+      if (!profile.name || !profile.age || !profile.currentWeight || !profile.goalWeight) {
+        return res.status(400).json({ message: "Profile information is incomplete" });
+      }
+      
+      const workoutPlan = await aiCoaching.generatePersonalizedWorkoutPlan(profile);
+      res.json({ success: true, workoutPlan });
+    } catch (error: any) {
+      console.error('Error generating workout plan:', error);
+      res.status(500).json({ message: error.message || "Failed to generate workout plan" });
+    }
+  });
+
+  app.post("/api/ai-coaching/motivational-message", async (req, res) => {
+    try {
+      const { profile, progressData } = req.body;
+      
+      if (!profile || !profile.name) {
+        return res.status(400).json({ message: "Profile information is required" });
+      }
+      
+      const message = await aiCoaching.generateMotivationalMessage(profile, progressData);
+      res.json({ success: true, message });
+    } catch (error: any) {
+      console.error('Error generating motivational message:', error);
+      res.status(500).json({ message: error.message || "Failed to generate message" });
+    }
+  });
+
+  app.post("/api/ai-coaching/analyze-progress", async (req, res) => {
+    try {
+      const { profile, progressData } = req.body;
+      
+      if (!profile || !progressData) {
+        return res.status(400).json({ message: "Profile and progress data are required" });
+      }
+      
+      const analysis = await aiCoaching.analyzeProgressAndAdjustPlan(profile, progressData);
+      res.json({ success: true, analysis });
+    } catch (error: any) {
+      console.error('Error analyzing progress:', error);
+      res.status(500).json({ message: error.message || "Failed to analyze progress" });
+    }
+  });
+
+  app.post("/api/ai-coaching/nutrition-tips", async (req, res) => {
+    try {
+      const profile: CoachingProfile = req.body;
+      
+      if (!profile.name) {
+        return res.status(400).json({ message: "Profile information is required" });
+      }
+      
+      const tips = await aiCoaching.generateNutritionTips(profile);
+      res.json({ success: true, tips });
+    } catch (error: any) {
+      console.error('Error generating nutrition tips:', error);
+      res.status(500).json({ message: error.message || "Failed to generate tips" });
     }
   });
 
