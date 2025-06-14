@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AuthForm from "@/components/AuthForm";
 import Logo from "@/components/Logo";
+import AdminAccess from "@/components/AdminAccess";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,6 +95,7 @@ export default function Navigation() {
               </Link>
               {isAuthenticated ? (
                 <div className="flex items-center space-x-3 ml-4">
+                  <AdminAccess />
                   <Link href="/donate">
                     <Button variant="outline" className="whitespace-nowrap">
                       Donate
