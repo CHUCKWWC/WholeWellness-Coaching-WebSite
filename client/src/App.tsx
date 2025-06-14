@@ -23,6 +23,8 @@ import CMS from "@/pages/CMS";
 import Donate from "@/pages/Donate";
 import MemberPortal from "@/pages/MemberPortal";
 import CoachDashboard from "@/pages/CoachDashboard";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import NotFound from "@/pages/not-found";
@@ -50,6 +52,8 @@ function Router() {
           <Route path="/donate" component={Donate} />
           <Route path="/member-portal" component={MemberPortal} />
           <Route path="/coach-dashboard" component={CoachDashboard} />
+          <Route path="/admin-login" component={AdminLogin} />
+          <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route component={NotFound} />

@@ -796,6 +796,192 @@ export class SupabaseClientStorage implements IStorage {
     console.log('createOrUpdateSiteSetting not yet implemented for Supabase client');
     throw new Error('Not implemented');
   }
+
+  // Admin Authentication Methods
+  async createAdminSession(session: InsertAdminSession): Promise<AdminSession> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_sessions')
+        .insert(session)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating admin session:', error);
+        throw new Error('Failed to create admin session');
+      }
+      
+      return data as AdminSession;
+    } catch (error) {
+      console.error('Error creating admin session:', error);
+      throw new Error('Failed to create admin session');
+    }
+  }
+
+  async getAdminSessionByToken(token: string): Promise<AdminSession | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_sessions')
+        .select('*')
+        .eq('session_token', token)
+        .eq('is_active', true)
+        .single();
+      
+      if (error) {
+        return undefined;
+      }
+      
+      return data as AdminSession;
+    } catch (error) {
+      console.error('Error getting admin session by token:', error);
+      return undefined;
+    }
+  }
+
+  async updateAdminSession(id: number, updates: Partial<AdminSession>): Promise<AdminSession | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_sessions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating admin session:', error);
+        return undefined;
+      }
+      
+      return data as AdminSession;
+    } catch (error) {
+      console.error('Error updating admin session:', error);
+      return undefined;
+    }
+  }
+
+  async getActiveAdminSessions(): Promise<AdminSession[]> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_sessions')
+        .select('*')
+        .eq('is_active', true)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting active admin sessions:', error);
+        return [];
+      }
+      
+      return data as AdminSession[];
+    } catch (error) {
+      console.error('Error getting active admin sessions:', error);
+      return [];
+    }
+  }
+
+  async createAdminActivityLog(log: InsertAdminActivityLog): Promise<AdminActivityLog> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_activity_log')
+        .insert(log)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating admin activity log:', error);
+        throw new Error('Failed to create admin activity log');
+      }
+      
+      return data as AdminActivityLog;
+    } catch (error) {
+      console.error('Error creating admin activity log:', error);
+      throw new Error('Failed to create admin activity log');
+    }
+  }
+
+  async getAdminActivityLogs(): Promise<AdminActivityLog[]> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_activity_log')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(1000);
+      
+      if (error) {
+        console.error('Error getting admin activity logs:', error);
+        return [];
+      }
+      
+      return data as AdminActivityLog[];
+    } catch (error) {
+      console.error('Error getting admin activity logs:', error);
+      return [];
+    }
+  }
+
+  // Additional User Methods
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting all users:', error);
+        return [];
+      }
+      
+      return data as User[];
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating user:', error);
+        return undefined;
+      }
+      
+      return data as User;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
+
+  async getAllDonations(): Promise<Donation[]> {
+    try {
+      const { data, error } = await supabase
+        .from('donations')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting all donations:', error);
+        return [];
+      }
+      
+      return data as Donation[];
+    } catch (error) {
+      console.error('Error getting all donations:', error);
+      return [];
+    }
+  }
 }
 
 export const storage = new SupabaseClientStorage();

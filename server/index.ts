@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import adminRoutes from "./admin-routes.js";
+import adminDashboardRoutes from "./admin-dashboard-routes.js";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use((req, res, next) => {
   
   // Register admin routes
   app.use('/api/admin', adminRoutes);
+  app.use('/api/admin', adminDashboardRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
