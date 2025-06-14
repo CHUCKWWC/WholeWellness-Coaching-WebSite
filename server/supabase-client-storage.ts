@@ -4,7 +4,9 @@ import type {
   User, Booking, Testimonial, Resource, Contact, WeightLossIntake,
   InsertUser, InsertBooking, InsertTestimonial, InsertResource, InsertContact, InsertWeightLossIntake,
   ContentPage, ContentBlock, MediaItem, NavigationMenu, SiteSetting,
-  InsertContentPage, InsertContentBlock, InsertMediaItem, InsertNavigationMenu, InsertSiteSetting
+  InsertContentPage, InsertContentBlock, InsertMediaItem, InsertNavigationMenu, InsertSiteSetting,
+  AdminSession, AdminActivityLog, InsertAdminSession, InsertAdminActivityLog,
+  Donation
 } from "@shared/schema";
 
 export interface IStorage {
@@ -82,6 +84,19 @@ export interface IStorage {
   updateSiteSetting(key: string, setting: Partial<InsertSiteSetting>): Promise<SiteSetting | undefined>;
   deleteSiteSetting(key: string): Promise<boolean>;
   createOrUpdateSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+
+  // Admin Authentication
+  createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
+  getAdminSessionByToken(token: string): Promise<AdminSession | undefined>;
+  updateAdminSession(id: number, updates: Partial<AdminSession>): Promise<AdminSession | undefined>;
+  getActiveAdminSessions(): Promise<AdminSession[]>;
+  createAdminActivityLog(log: InsertAdminActivityLog): Promise<AdminActivityLog>;
+  getAdminActivityLogs(): Promise<AdminActivityLog[]>;
+  
+  // Additional user methods
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  getAllDonations(): Promise<Donation[]>;
 }
 
 export class SupabaseClientStorage implements IStorage {

@@ -25,11 +25,47 @@ export const users = pgTable("users", {
   rewardPoints: integer("reward_points").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
   profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
+  permissions: jsonb("permissions"), // JSON array of permission strings
   isActive: boolean("is_active").default(true),
   joinDate: timestamp("join_date").defaultNow(),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Admin sessions for secure dashboard access
+export const adminSessions = pgTable("admin_sessions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  sessionToken: varchar("session_token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Admin activity log
+export const adminActivityLog = pgTable("admin_activity_log", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  action: varchar("action").notNull(),
+  resource: varchar("resource"), // user, donation, booking, etc.
+  resourceId: varchar("resource_id"),
+  details: jsonb("details"),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Role permissions definition
+export const rolePermissions = pgTable("role_permissions", {
+  id: serial("id").primaryKey(),
+  role: varchar("role").notNull(),
+  permission: varchar("permission").notNull(),
+  resource: varchar("resource"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const bookings = pgTable("bookings", {
@@ -672,3 +708,36 @@ export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
 
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
+
+// Admin types
+export type AdminSession = typeof adminSessions.$inferSelect;
+export type InsertAdminSession = typeof adminSessions.$inferInsert;
+export type AdminActivityLog = typeof adminActivityLog.$inferSelect;
+export type InsertAdminActivityLog = typeof adminActivityLog.$inferInsert;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = typeof rolePermissions.$inferInsert;
+
+// Admin schemas
+export const insertAdminSessionSchema = createInsertSchema(adminSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAdminActivityLogSchema = createInsertSchema(adminActivityLog).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Admin login schema
+export const adminLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+export type AdminLoginData = z.infer<typeof adminLoginSchema>;
