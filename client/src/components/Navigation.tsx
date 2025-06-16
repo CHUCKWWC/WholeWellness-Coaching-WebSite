@@ -49,13 +49,13 @@ export default function Navigation() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Logged out successfully",
-        description: "See you next time!",
+        description: "You have been logged out of your account.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Logout failed",
-        description: "Please try again",
+        description: "There was an error logging you out. Please try again.",
         variant: "destructive",
       });
     },
@@ -64,22 +64,23 @@ export default function Navigation() {
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link href="/">
               <Logo className="h-8 w-8" showText={true} />
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-6">
+          {/* Desktop Navigation - Center */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <div className="flex items-center space-x-8">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap",
+                    "px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     location === item.href
                       ? "text-primary"
                       : "text-gray-600 hover:text-primary"
@@ -88,79 +89,83 @@ export default function Navigation() {
                   {item.label}
                 </Link>
               ))}
-              <Link href="/beta-test">
-                <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 ml-4 whitespace-nowrap">
-                  🧪 Beta Test AI Coach
-                </Button>
-              </Link>
-              {isAuthenticated ? (
-                <div className="flex items-center space-x-3 ml-4">
-                  <AdminAccess />
-                  <Link href="/donate">
-                    <Button variant="outline" className="whitespace-nowrap">
-                      Donate
-                    </Button>
-                  </Link>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                        <User className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {user?.firstName} {user?.lastName}
-                          </p>
-                          <p className="text-xs leading-none text-muted-foreground">
-                            {user?.email}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/member-portal" className="w-full">
-                          Member Portal
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/booking" className="w-full">
-                          Book Session
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => logoutMutation.mutate()}
-                        disabled={logoutMutation.isPending}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-3 ml-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="mr-2">
-                        Sign In
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <AuthForm />
-                    </DialogContent>
-                  </Dialog>
-                  <Link href="/booking">
-                    <Button className="bg-primary text-white hover:bg-secondary">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
+          </div>
+
+          {/* Desktop Actions - Right */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Link href="/beta-test">
+              <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 whitespace-nowrap">
+                🧪 Beta Test AI Coach
+              </Button>
+            </Link>
+            {isAuthenticated ? (
+              <>
+                <AdminAccess />
+                <Link href="/donate">
+                  <Button variant="outline" className="whitespace-nowrap">
+                    Donate
+                  </Button>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <User className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/member-portal" className="w-full">
+                        Member Portal
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/booking" className="w-full">
+                        Book Session
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-600"
+                      onClick={() => logoutMutation.mutate()}
+                      disabled={logoutMutation.isPending}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      Sign In
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <AuthForm />
+                  </DialogContent>
+                </Dialog>
+                <Link href="/booking">
+                  <Button className="bg-primary text-white hover:bg-secondary">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Navigation */}
@@ -177,22 +182,74 @@ export default function Navigation() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setIsOpen(false)}
                       className={cn(
-                        "block px-3 py-2 rounded-md text-base font-medium transition-colors",
+                        "block px-3 py-2 rounded-md text-base font-medium",
                         location === item.href
-                          ? "text-primary bg-warm"
-                          : "text-gray-600 hover:text-primary hover:bg-warm"
+                          ? "text-primary"
+                          : "text-gray-600 hover:text-primary"
                       )}
+                      onClick={() => setIsOpen(false)}
                     >
                       {item.label}
                     </Link>
                   ))}
-                  <Link href="/booking" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full bg-primary text-white hover:bg-secondary">
-                      Get Started
-                    </Button>
-                  </Link>
+                  <div className="pt-4 space-y-3">
+                    <Link href="/beta-test" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" className="w-full bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                        🧪 Beta Test AI Coach
+                      </Button>
+                    </Link>
+                    {isAuthenticated ? (
+                      <>
+                        <AdminAccess />
+                        <Link href="/donate" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full">
+                            Donate
+                          </Button>
+                        </Link>
+                        <Link href="/member-portal" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">
+                            Member Portal
+                          </Button>
+                        </Link>
+                        <Link href="/booking" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">
+                            Book Session
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-red-600"
+                          onClick={() => {
+                            logoutMutation.mutate();
+                            setIsOpen(false);
+                          }}
+                          disabled={logoutMutation.isPending}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Log out
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="w-full">
+                              Sign In
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <AuthForm />
+                          </DialogContent>
+                        </Dialog>
+                        <Link href="/booking" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full bg-primary text-white hover:bg-secondary">
+                            Get Started
+                          </Button>
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
