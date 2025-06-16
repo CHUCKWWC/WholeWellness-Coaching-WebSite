@@ -94,11 +94,11 @@ export default function Navigation() {
 
           {/* Desktop Actions - Right */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link href="/beta-test">
+            <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 whitespace-nowrap">
                 🧪 Beta Test AI Coach
               </Button>
-            </Link>
+            </a>
             {isAuthenticated ? (
               <>
                 <AdminAccess />
@@ -194,11 +194,11 @@ export default function Navigation() {
                     </Link>
                   ))}
                   <div className="pt-4 space-y-3">
-                    <Link href="/beta-test" onClick={() => setIsOpen(false)}>
+                    <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" className="w-full bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
                         🧪 Beta Test AI Coach
                       </Button>
-                    </Link>
+                    </a>
                     {isAuthenticated ? (
                       <>
                         <AdminAccess />
