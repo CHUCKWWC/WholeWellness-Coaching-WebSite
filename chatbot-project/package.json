@@ -1,24 +1,30 @@
 {
   "name": "wholewellness-chatbot",
   "version": "1.0.0",
-  "description": "WholeWellness AI Chatbot - Standalone application sharing database with main website",
-  "main": "server.js",
-  "type": "module",
+  "description": "WholeWellness AI Coaching Chatbot",
+  "main": "simple-chatbot.js",
   "scripts": {
-    "dev": "node --watch server.js",
-    "start": "node server.js",
-    "build": "echo 'No build step required for this simple chatbot'"
+    "start": "node simple-chatbot.js",
+    "dev": "node simple-chatbot.js"
   },
-  "keywords": ["chatbot", "ai", "wellness", "coaching"],
-  "author": "WholeWellness Coaching",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "@supabase/supabase-js": "^2.38.0",
-    "openai": "^4.20.1",
-    "ws": "^8.14.2",
-    "uuid": "^9.0.1"
-  }
+    "openai": "^4.20.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "chatbot",
+    "wellness",
+    "coaching",
+    "ai",
+    "openai",
+    "supabase"
+  ],
+  "author": "WholeWellness Coaching",
+  "license": "MIT"
 }
