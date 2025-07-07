@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import type { Testimonial } from "@shared/schema";
+import diverseWomanImg from "@assets/wwc_ (4)_1751919370276.jpg";
+import curlyHairWomanImg from "@assets/wwc_ (2)_1751919370270.jpg";
+import diversityIconsImg from "@assets/wwc_ (2)_1751919370272.webp";
+import teamHandsImg from "@assets/wwc_ (9)_1751919370287.jpg";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -74,8 +78,8 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div>
               <img 
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
-                alt="Diverse women empowerment meeting" 
+                src={diverseWomanImg} 
+                alt="Professional African American woman in leadership coaching session" 
                 className="rounded-2xl shadow-lg w-full h-auto" 
               />
             </div>
@@ -102,8 +106,45 @@ export default function Home() {
             </div>
             <div className="order-1 lg:order-2">
               <img 
-                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" 
-                alt="Diverse women in supportive coaching environment" 
+                src={curlyHairWomanImg} 
+                alt="Diverse woman with curly hair in supportive coaching environment" 
+                className="rounded-2xl shadow-lg w-full h-auto" 
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Diversity & Inclusion */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-secondary mb-6">
+                Diversity & Inclusion at Our Core
+              </h2>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                We celebrate and embrace the beautiful diversity of our community. Our coaching services are designed to meet the unique needs of individuals from all backgrounds, cultures, and life experiences.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-gray-700">Culturally sensitive coaching approaches</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-gray-700">Multilingual support available</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-gray-700">Safe space for all identities and experiences</span>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <img 
+                src={diversityIconsImg} 
+                alt="Colorful diverse figures representing our inclusive community" 
                 className="rounded-2xl shadow-lg w-full h-auto" 
               />
             </div>
@@ -192,11 +233,25 @@ export default function Home() {
       {/* Get Involved */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-secondary mb-4">Get Involved</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Join our mission to make life coaching accessible to everyone. Every contribution helps transform lives.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-secondary mb-6">Get Involved</h2>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                Join our mission to make life coaching accessible to everyone. Every contribution helps transform lives and build stronger communities together.
+              </p>
+              <img 
+                src={teamHandsImg} 
+                alt="Diverse team joining hands in collaboration and unity" 
+                className="rounded-2xl shadow-lg w-full h-auto" 
+              />
+            </div>
+            <div>
+              <div className="text-center">
+                <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+                  Together, we can create lasting change and empower individuals from all walks of life to achieve their goals.
+                </p>
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
