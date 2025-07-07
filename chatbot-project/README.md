@@ -1,14 +1,15 @@
-# WholeWellness AI Coaching Chatbot
+# WholeWellness Weight Loss Chatbot
 
-A standalone AI wellness coaching chatbot that provides personalized nutrition, fitness, and mental health guidance.
+A standalone AI weight loss coaching chatbot that provides personalized meal planning, weight loss guidance, and sustainable lifestyle coaching using OpenAI Assistant API.
 
 ## Features
 
-- **AI-Powered Coaching**: Uses OpenAI GPT-4 for intelligent wellness advice
-- **Real-time Chat**: Instant messaging with typing indicators
+- **AI-Powered Weight Loss Coaching**: Uses OpenAI Assistant API with custom weight loss coach (asst_tgbv3k3i8RHdB3jzFGab9AFR)
+- **Real-time Chat**: Instant messaging with typing indicators and thread management
 - **Database Integration**: Shares Supabase database with main WholeWellness platform
 - **Responsive Design**: Works on desktop and mobile devices
-- **Session Management**: Maintains conversation history
+- **Session Management**: Maintains conversation history and OpenAI thread continuity
+- **Personalized Meal Planning**: Custom meal plans based on user preferences and goals
 
 ## Tech Stack
 

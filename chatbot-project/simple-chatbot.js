@@ -1,161 +1,218 @@
-import http from 'http';
-import url from 'url';
-import fs from 'fs';
-import path from 'path';
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const OpenAI = require('openai');
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-const PORT = 3001;
+const app = express();
+const PORT = process.env.PORT || 3001;
 
-// Simple AI coaching responses for demonstration
-const coachingResponses = {
-  nutrition: [
-    "Focus on whole foods like vegetables, fruits, lean proteins, and whole grains. What specific nutrition goals are you working on?",
-    "Try meal prepping with colorful vegetables and balanced macros. Would you like specific meal ideas?",
-    "Sustainable nutrition changes work better than extreme diets. What's one small change you could make this week?"
-  ],
-  fitness: [
-    "Start with activities you enjoy - even 10 minutes of movement counts. What type of exercise interests you?",
-    "Consistency beats intensity when starting a fitness routine. How many days per week can you commit to movement?",
-    "Mix cardio, strength, and flexibility work for balanced fitness. What's your current activity level?"
-  ],
-  mental: [
-    "Mental health is just as important as physical health. Practice mindfulness and get quality sleep.",
-    "Stress management techniques like deep breathing or meditation can be very helpful. What stressors are you dealing with?",
-    "Building resilience takes time and practice. Focus on one self-care activity today. What brings you joy?"
-  ],
-  general: [
-    "I'm here to support your wellness journey! Whether it's nutrition, fitness, or mental health, small steps lead to big changes.",
-    "Wellness is personal - what works for others might not work for you. What aspect of health would you like to focus on?",
-    "Remember to be patient with yourself. Progress isn't always linear. How can I help you today?"
-  ]
-};
+// OpenAI setup with your Weight Loss Assistant
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-function getCoachingResponse(message) {
-  const msg = message.toLowerCase();
-  
-  if (msg.includes('nutrition') || msg.includes('food') || msg.includes('eat') || msg.includes('diet')) {
-    return coachingResponses.nutrition[Math.floor(Math.random() * coachingResponses.nutrition.length)];
-  } else if (msg.includes('exercise') || msg.includes('fitness') || msg.includes('workout') || msg.includes('gym')) {
-    return coachingResponses.fitness[Math.floor(Math.random() * coachingResponses.fitness.length)];
-  } else if (msg.includes('stress') || msg.includes('mental') || msg.includes('anxiety') || msg.includes('mood')) {
-    return coachingResponses.mental[Math.floor(Math.random() * coachingResponses.mental.length)];
-  } else {
-    return coachingResponses.general[Math.floor(Math.random() * coachingResponses.general.length)];
+const WEIGHT_LOSS_ASSISTANT_ID = 'asst_tgbv3k3i8RHdB3jzFGab9AFR';
+
+// Supabase setup
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// Store active threads per session
+const activeThreads = new Map();
+
+// AI Coaching Functions using Weight Loss Assistant
+async function getCoachingResponse(message, sessionId) {
+  try {
+    let threadId = activeThreads.get(sessionId);
+    
+    // Create new thread if none exists
+    if (!threadId) {
+      const thread = await openai.beta.threads.create();
+      threadId = thread.id;
+      activeThreads.set(sessionId, threadId);
+    }
+
+    // Add user message to thread
+    await openai.beta.threads.messages.create(threadId, {
+      role: 'user',
+      content: message
+    });
+
+    // Run the weight loss assistant
+    const run = await openai.beta.threads.runs.create(threadId, {
+      assistant_id: WEIGHT_LOSS_ASSISTANT_ID,
+      additional_instructions: 'Focus on weight loss coaching, meal planning, and sustainable lifestyle changes.'
+    });
+
+    // Wait for completion
+    let runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
+    
+    while (runStatus.status !== 'completed') {
+      if (runStatus.status === 'failed' || runStatus.status === 'expired') {
+        console.error('Assistant run failed:', runStatus.last_error);
+        throw new Error(`Assistant run failed: ${runStatus.status}`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
+    }
+
+    // Get the assistant's response
+    const messages = await openai.beta.threads.messages.list(threadId);
+    const assistantMessage = messages.data.find(msg => msg.role === 'assistant');
+    
+    return assistantMessage.content[0].text.value;
+  } catch (error) {
+    console.error('OpenAI Assistant API error:', error);
+    
+    // Fallback response for weight loss coaching
+    return "I'm your weight loss coach! I can help you create meal plans, track your progress, and develop sustainable habits. What's your current weight loss goal?";
   }
 }
 
-const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
-  
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    return;
-  }
-  
-  // Serve static files
-  if (pathname === '/' || pathname === '/index.html') {
-    fs.readFile(path.join(process.cwd(), 'public', 'index.html'), (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end('File not found');
-        return;
-      }
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(data);
-    });
-    return;
-  }
-  
-  // Health check
-  if (pathname === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      status: 'healthy',
-      service: 'WholeWellness Chatbot',
-      timestamp: new Date().toISOString(),
-      database: 'Shares Supabase database with main website',
-      port: PORT
-    }));
-    return;
-  }
-  
-  // Chat API endpoints
-  if (pathname === '/api/chat/start' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => body += chunk.toString());
-    req.on('end', () => {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        sessionId,
-        message: 'Chat session started successfully',
-        welcomeMessage: 'Hello! I\'m your AI wellness coach. How can I help you on your wellness journey today?',
-        databaseNote: 'This chatbot shares the same Supabase database as the main WholeWellness website'
-      }));
-    });
-    return;
-  }
-  
-  if (pathname === '/api/chat/message' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => body += chunk.toString());
-    req.on('end', () => {
-      try {
-        const { sessionId, message } = JSON.parse(body);
-        
-        if (!sessionId || !message) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Session ID and message are required' }));
-          return;
-        }
-        
-        const aiResponse = getCoachingResponse(message);
-        
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          response: aiResponse,
-          messageId: `msg_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          note: 'Demo responses - Connect OpenAI API for full AI functionality'
-        }));
-        
-      } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Failed to process message' }));
-      }
-    });
-    return;
-  }
-  
-  // Database integration info
-  if (pathname === '/api/database/info') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      database: 'Shared WholeWellness Supabase Database',
-      url: 'https://pwuwmnivvdvdxdewynbo.supabase.co',
-      sharedWith: 'Main website at http://localhost:5000',
-      tables: ['users', 'donations', 'testimonials', 'bookings', 'chat_sessions', 'chat_messages'],
-      integration: 'Both applications can read and write to the same database',
-      deployment: 'Can be deployed separately while maintaining data consistency'
-    }));
-    return;
-  }
-  
-  // 404 for other routes
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'Route not found' }));
+// Routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-server.listen(PORT, () => {
-  console.log(`🤖 WholeWellness Chatbot running on http://localhost:${PORT}`);
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'WholeWellness Weight Loss Chatbot',
+    timestamp: new Date().toISOString(),
+    database: 'Shares Supabase database with main website',
+    assistant: 'OpenAI Assistant: ' + WEIGHT_LOSS_ASSISTANT_ID,
+    port: PORT
+  });
+});
+
+// Database info endpoint
+app.get('/api/database/info', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('count')
+      .limit(1);
+    
+    res.json({
+      database: 'Supabase PostgreSQL',
+      sharing: 'Shares database with main WholeWellness website',
+      tables: ['users', 'testimonials', 'donations', 'chat_sessions', 'chat_messages'],
+      connection: error ? 'Error connecting' : 'Connected',
+      note: 'This chatbot connects to the same database as the main website for user data consistency'
+    });
+  } catch (err) {
+    res.json({
+      database: 'Supabase PostgreSQL',
+      sharing: 'Shares database with main WholeWellness website',
+      connection: 'Error connecting',
+      error: err.message
+    });
+  }
+});
+
+// Start chat session
+app.post('/api/chat/start', async (req, res) => {
+  try {
+    const { userId, userEmail } = req.body;
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Save session to database
+    const { error } = await supabase
+      .from('chat_sessions')
+      .insert({
+        session_id: sessionId,
+        user_id: userId || 'anonymous',
+        user_email: userEmail,
+        started_at: new Date().toISOString(),
+        status: 'active'
+      });
+    
+    if (error) {
+      console.error('Database error:', error);
+    }
+    
+    res.json({
+      sessionId,
+      message: 'Chat session started successfully',
+      welcomeMessage: 'Hello! I\'m your AI weight loss coach. I can help you create personalized meal plans, track your progress, and develop sustainable weight loss habits. What\'s your current weight loss goal?',
+      databaseNote: 'This chatbot shares the same Supabase database as the main WholeWellness website'
+    });
+  } catch (error) {
+    console.error('Error starting chat session:', error);
+    res.status(500).json({ error: 'Failed to start chat session' });
+  }
+});
+
+// Send message to AI coach
+app.post('/api/chat/message', async (req, res) => {
+  try {
+    const { sessionId, message, userId } = req.body;
+    
+    if (!sessionId || !message) {
+      return res.status(400).json({ error: 'Session ID and message are required' });
+    }
+    
+    // Save user message to database
+    const { error: saveError } = await supabase
+      .from('chat_messages')
+      .insert({
+        session_id: sessionId,
+        user_id: userId || 'anonymous',
+        message,
+        sender: 'user',
+        timestamp: new Date().toISOString()
+      });
+    
+    if (saveError) {
+      console.error('Error saving user message:', saveError);
+    }
+    
+    // Get AI response using Weight Loss Assistant
+    const aiResponse = await getCoachingResponse(message, sessionId);
+    
+    // Save AI response to database
+    const { error: saveAiError } = await supabase
+      .from('chat_messages')
+      .insert({
+        session_id: sessionId,
+        user_id: userId || 'anonymous',
+        message: aiResponse,
+        sender: 'assistant',
+        timestamp: new Date().toISOString()
+      });
+    
+    if (saveAiError) {
+      console.error('Error saving AI response:', saveAiError);
+    }
+    
+    res.json({
+      sessionId,
+      message: 'Message sent successfully',
+      response: aiResponse,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error processing message:', error);
+    res.status(500).json({ error: 'Failed to process message' });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🤖 WholeWellness Weight Loss Chatbot running on http://localhost:${PORT}`);
   console.log(`🔗 Shares database with main website at http://localhost:5000`);
+  console.log(`🎯 Using OpenAI Assistant: ${WEIGHT_LOSS_ASSISTANT_ID}`);
   console.log(`📋 Available endpoints:`);
   console.log(`   - Web Interface: http://localhost:${PORT}`);
   console.log(`   - Health Check: http://localhost:${PORT}/health`);
