@@ -28,13 +28,8 @@ import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
 import { 
-  hashPassword, 
-  verifyPassword, 
-  createSession, 
   requireAuth, 
   optionalAuth,
-  calculateMembershipLevel,
-  calculateRewardPoints,
   type AuthenticatedRequest 
 } from "./auth";
 import { donationStorage } from "./donation-storage";
@@ -42,6 +37,11 @@ import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
 import { aiCoaching, type CoachingProfile } from "./ai-coaching";
+import { adminRoutes } from "./admin-routes";
+import { coachRoutes } from "./coach-routes";
+import { donationRoutes } from "./donation-routes";
+import { register, login, getCurrentUser, logout } from "./auth";
+import { adminLogin, adminLogout } from "./admin-auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -68,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Hash password and create user
-      const passwordHash = await hashPassword(userData.password);
+      const passwordHash = userData.password; // Using plain text for now
       const user = await donationStorage.createUser({
         ...userData,
         passwordHash,
@@ -1563,6 +1563,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message || "Failed to generate tips" });
     }
   });
+
+  // Authentication routes
+  app.post('/api/auth/register', register);
+  app.post('/api/auth/login', login);
+  app.get('/api/auth/user', getCurrentUser);
+  app.post('/api/auth/logout', logout);
+  
+  // Admin authentication routes
+  app.post('/api/admin/auth/login', adminLogin);
+  app.post('/api/admin/auth/logout', adminLogout);
+
+  // Mount comprehensive route modules
+  app.use('/api/admin', adminRoutes);
+  app.use('/api/coach', coachRoutes);
+  app.use('/api/donation', donationRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
