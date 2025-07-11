@@ -218,6 +218,56 @@ export default function Home() {
         </div>
       </section>
 
+      {/* AI Coaching Quick Access */}
+      <section className="py-16 bg-secondary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Try Our AI Coaches</h2>
+            <p className="text-lg text-white/90 max-w-3xl mx-auto">
+              Get instant coaching support 24/7 with our specialized AI coaches. Start your journey today.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="text-4xl mb-4">🏃‍♀️</div>
+                <h3 className="text-2xl font-bold mb-2">Weight Loss Coach</h3>
+                <p className="text-white/90 mb-6">AI-powered weight loss coaching with personalized meal plans and fitness guidance</p>
+                <Button 
+                  className="bg-white text-secondary hover:bg-gray-100 transition-colors w-full"
+                  onClick={() => window.open('https://wholewellness-coaching.org/wwcchatbot#wwcchatbot', '_blank')}
+                >
+                  Start Weight Loss Journey
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="text-4xl mb-4">💕</div>
+                <h3 className="text-2xl font-bold mb-2">Relationship Coach</h3>
+                <p className="text-white/90 mb-6">Expert relationship guidance for building stronger, healthier connections</p>
+                <Button 
+                  className="bg-white text-secondary hover:bg-gray-100 transition-colors w-full"
+                  onClick={() => window.open('https://whole-wellness-coachingorg-relationship-charleswatson6.replit.app/', '_blank')}
+                >
+                  Improve Relationships
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/ai-coaching">
+              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-secondary transition-colors">
+                View All AI Coaching Options
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Booking Section */}
       <section className="py-16 bg-warm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

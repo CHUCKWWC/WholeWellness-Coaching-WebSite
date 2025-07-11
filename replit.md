@@ -136,6 +136,11 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Updated Hero section with professional diverse team collaboration image
   - Enhanced mission section with authentic photos of diverse women
   - Added community collaboration imagery emphasizing unity and teamwork
+- July 11, 2025. Integrated relationship coaching AI coach
+  - Added Charles the Relationship Coach (https://whole-wellness-coachingorg-relationship-charleswatson6.replit.app/)
+  - Created specialized AI coaches section with both weight loss and relationship coaching
+  - Enhanced AI Coaching page with dedicated coach profiles and specialties
+  - Added quick access AI coaching section to homepage for immediate user engagement
 
 ## User Preferences
 

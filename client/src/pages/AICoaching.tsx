@@ -42,6 +42,27 @@ export default function AICoaching() {
     }
   ];
 
+  const aiCoaches = [
+    {
+      name: "Weight Loss Coach",
+      description: "AI-powered weight loss coaching with personalized meal plans, fitness routines, and motivation",
+      color: "bg-emerald-100 text-emerald-800",
+      url: "https://wholewellness-coaching.org/wwcchatbot#wwcchatbot",
+      specialties: ["Meal Planning", "Fitness Guidance", "Nutrition Education", "Motivation Support"],
+      avatar: "🏃‍♀️",
+      coach: "Maya - Weight Loss Specialist"
+    },
+    {
+      name: "Relationship Coach",
+      description: "Expert relationship guidance for building stronger, healthier connections with others",
+      color: "bg-pink-100 text-pink-800",
+      url: "https://whole-wellness-coachingorg-relationship-charleswatson6.replit.app/",
+      specialties: ["Communication Skills", "Conflict Resolution", "Trust Building", "Intimacy Enhancement"],
+      avatar: "💕",
+      coach: "Charles - Relationship Specialist"
+    }
+  ];
+
   const coachingAreas = [
     {
       name: "Financial Wellness",
@@ -49,19 +70,9 @@ export default function AICoaching() {
       color: "bg-green-100 text-green-800"
     },
     {
-      name: "Relationships",
-      description: "Communication skills, conflict resolution, boundary setting, and building healthy connections",
-      color: "bg-pink-100 text-pink-800"
-    },
-    {
       name: "Career Development",
       description: "Job search strategies, professional growth, career transitions, and workplace confidence",
       color: "bg-blue-100 text-blue-800"
-    },
-    {
-      name: "Health & Wellness",
-      description: "Nutrition guidance, exercise motivation, stress management, and healthy lifestyle habits",
-      color: "bg-emerald-100 text-emerald-800"
     },
     {
       name: "Mindset & Mental Health",
@@ -131,8 +142,61 @@ export default function AICoaching() {
         </div>
       </section>
 
+      {/* Specialized AI Coaches Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Meet Our Specialized AI Coaches
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Start your personalized coaching journey with our expert AI coaches, each trained in specific areas to help you achieve your goals.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            {aiCoaches.map((coach, index) => (
+              <Card key={index} className="hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-4xl">{coach.avatar}</div>
+                    <div>
+                      <CardTitle className="text-2xl text-gray-900">{coach.name}</CardTitle>
+                      <p className="text-primary font-medium">{coach.coach}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-gray-700 mb-4 text-base">
+                    {coach.description}
+                  </CardDescription>
+                  
+                  <div className="mb-6">
+                    <p className="font-semibold text-gray-900 mb-2">Specialties:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {coach.specialties.map((specialty, idx) => (
+                        <Badge key={idx} variant="secondary" className={coach.color}>
+                          {specialty}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-primary hover:bg-secondary text-white transition-colors"
+                    onClick={() => window.open(coach.url, '_blank')}
+                  >
+                    Start Coaching with {coach.name.split(' ')[0]}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section className="py-16">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
