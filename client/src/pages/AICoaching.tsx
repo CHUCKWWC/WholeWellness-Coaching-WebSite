@@ -50,7 +50,7 @@ export default function AICoaching() {
       url: "https://wholewellness-coaching.org/wwcchatbot#wwcchatbot",
       specialties: ["Meal Planning", "Fitness Guidance", "Nutrition Education", "Motivation Support"],
       avatar: "🏃‍♀️",
-      coach: "Maya - Weight Loss Specialist"
+      coach: "Dasha - weight loss specialist"
     },
     {
       name: "Relationship Coach",
