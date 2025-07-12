@@ -160,6 +160,8 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Integrated onboarding system with user registration and authentication
   - Added password reset and email verification pages
   - Extended database schema with onboarding and token management tables
+  - Created SQL schema file (supabase-onboarding-schema.sql) for manual database setup
+  - Password reset functionality requires manual database table creation due to RLS policies
 
 ## User Preferences
 

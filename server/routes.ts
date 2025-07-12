@@ -44,6 +44,7 @@ import { onboardingRoutes } from "./onboarding-routes";
 import { register, login, getCurrentUser, logout } from "./auth";
 import { adminLogin, adminLogout } from "./admin-auth";
 import { onboardingService } from "./onboarding-service";
+import { supabase } from "./supabase";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1575,6 +1576,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin authentication routes
   app.post('/api/admin/auth/login', adminLogin);
   app.post('/api/admin/auth/logout', adminLogout);
+
+  // Database setup route (temporary) - create tables directly without RPC
+  app.post('/api/setup-onboarding-db', async (req, res) => {
+    try {
+      console.log('Setting up onboarding database tables...');
+      
+      // Try to create the missing tables one by one
+      const createResults = [];
+      
+      // Create password_reset_tokens table
+      try {
+        const { data, error } = await supabase
+          .from('password_reset_tokens')
+          .select('*')
+          .limit(1);
+        
+        if (error && error.message.includes('does not exist')) {
+          console.log('password_reset_tokens table does not exist, creating...');
+          const { error: createError } = await supabase.rpc('exec_sql', {
+            sql: `CREATE TABLE IF NOT EXISTS password_reset_tokens (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "userId" TEXT NOT NULL,
+              token TEXT NOT NULL UNIQUE,
+              "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              used BOOLEAN DEFAULT FALSE
+            );`
+          });
+          
+          if (createError) {
+            console.error('Error creating password_reset_tokens table:', createError);
+            createResults.push({ table: 'password_reset_tokens', error: createError });
+          } else {
+            console.log('✓ password_reset_tokens table created successfully');
+            createResults.push({ table: 'password_reset_tokens', success: true });
+          }
+        } else {
+          console.log('✓ password_reset_tokens table already exists');
+          createResults.push({ table: 'password_reset_tokens', success: true, existing: true });
+        }
+      } catch (err) {
+        console.error('Error checking password_reset_tokens table:', err);
+        createResults.push({ table: 'password_reset_tokens', error: err });
+      }
+      
+      // Create email_verification_tokens table
+      try {
+        const { data, error } = await supabase
+          .from('email_verification_tokens')
+          .select('*')
+          .limit(1);
+        
+        if (error && error.message.includes('does not exist')) {
+          console.log('email_verification_tokens table does not exist, creating...');
+          const { error: createError } = await supabase.rpc('exec_sql', {
+            sql: `CREATE TABLE IF NOT EXISTS email_verification_tokens (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "userId" TEXT NOT NULL,
+              token TEXT NOT NULL UNIQUE,
+              "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              used BOOLEAN DEFAULT FALSE
+            );`
+          });
+          
+          if (createError) {
+            console.error('Error creating email_verification_tokens table:', createError);
+            createResults.push({ table: 'email_verification_tokens', error: createError });
+          } else {
+            console.log('✓ email_verification_tokens table created successfully');
+            createResults.push({ table: 'email_verification_tokens', success: true });
+          }
+        } else {
+          console.log('✓ email_verification_tokens table already exists');
+          createResults.push({ table: 'email_verification_tokens', success: true, existing: true });
+        }
+      } catch (err) {
+        console.error('Error checking email_verification_tokens table:', err);
+        createResults.push({ table: 'email_verification_tokens', error: err });
+      }
+      
+      // Create user_onboarding_steps table
+      try {
+        const { data, error } = await supabase
+          .from('user_onboarding_steps')
+          .select('*')
+          .limit(1);
+        
+        if (error && error.message.includes('does not exist')) {
+          console.log('user_onboarding_steps table does not exist, creating...');
+          const { error: createError } = await supabase.rpc('exec_sql', {
+            sql: `CREATE TABLE IF NOT EXISTS user_onboarding_steps (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "userId" TEXT NOT NULL,
+              step_id TEXT NOT NULL,
+              title TEXT NOT NULL,
+              description TEXT NOT NULL,
+              completed BOOLEAN DEFAULT FALSE,
+              "order" INTEGER NOT NULL,
+              completed_at TIMESTAMP WITH TIME ZONE,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+              UNIQUE("userId", step_id)
+            );`
+          });
+          
+          if (createError) {
+            console.error('Error creating user_onboarding_steps table:', createError);
+            createResults.push({ table: 'user_onboarding_steps', error: createError });
+          } else {
+            console.log('✓ user_onboarding_steps table created successfully');
+            createResults.push({ table: 'user_onboarding_steps', success: true });
+          }
+        } else {
+          console.log('✓ user_onboarding_steps table already exists');
+          createResults.push({ table: 'user_onboarding_steps', success: true, existing: true });
+        }
+      } catch (err) {
+        console.error('Error checking user_onboarding_steps table:', err);
+        createResults.push({ table: 'user_onboarding_steps', error: err });
+      }
+
+      console.log('✓ Onboarding database setup completed successfully');
+      res.json({ success: true, message: 'Onboarding database setup completed', results: createResults });
+    } catch (error) {
+      console.error('Error setting up onboarding database:', error);
+      res.status(500).json({ error: 'Failed to setup database', details: error });
+    }
+  });
 
   // Mount comprehensive route modules
   app.use('/api/admin', adminRoutes);

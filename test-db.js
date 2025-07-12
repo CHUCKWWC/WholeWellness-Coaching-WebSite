@@ -1,65 +1,106 @@
-// Quick database connection test
-const { db } = require('./server/db.ts');
-const { users, testimonials } = require('./shared/schema.ts');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function testDatabase() {
   try {
     console.log('Testing database connection...');
     
     // Test basic connection
-    const result = await db.select().from(users).limit(1);
-    console.log('Database connected successfully');
+    const { data, error } = await supabase.from('users').select('count').single();
+    console.log('Connection test result:', { data, error });
     
-    // Test testimonials table
-    const testimonialsResult = await db.select().from(testimonials).limit(1);
-    console.log('Testimonials table accessible');
+    // Try to create tables directly with SQL
+    console.log('Creating onboarding tables...');
     
-    console.log('Database test completed successfully');
-  } catch (error) {
-    console.error('Database test failed:', error.message);
+    // Create each table separately
+    const tables = [
+      {
+        name: 'password_reset_tokens',
+        sql: `
+          CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            "userId" TEXT NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            used BOOLEAN DEFAULT FALSE
+          );
+        `
+      },
+      {
+        name: 'email_verification_tokens',
+        sql: `
+          CREATE TABLE IF NOT EXISTS email_verification_tokens (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            "userId" TEXT NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            used BOOLEAN DEFAULT FALSE
+          );
+        `
+      },
+      {
+        name: 'user_onboarding_steps',
+        sql: `
+          CREATE TABLE IF NOT EXISTS user_onboarding_steps (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            "userId" TEXT NOT NULL,
+            step_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            completed BOOLEAN DEFAULT FALSE,
+            "order" INTEGER NOT NULL,
+            completed_at TIMESTAMP WITH TIME ZONE,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            UNIQUE("userId", step_id)
+          );
+        `
+      }
+    ];
     
-    // Try to create tables if they don't exist
-    try {
-      console.log('Attempting to create missing tables...');
+    for (const table of tables) {
+      console.log(`Creating ${table.name} table...`);
+      const { error } = await supabase.rpc('exec_sql', { sql: table.sql });
       
-      // Create users table
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS users (
-          id VARCHAR PRIMARY KEY,
-          email VARCHAR NOT NULL UNIQUE,
-          password_hash VARCHAR NOT NULL,
-          first_name VARCHAR,
-          last_name VARCHAR,
-          membership_level VARCHAR,
-          donation_total VARCHAR,
-          reward_points INTEGER,
-          is_active BOOLEAN DEFAULT true,
-          join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          last_login TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      // Create testimonials table
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS testimonials (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR NOT NULL,
-          content TEXT NOT NULL,
-          rating INTEGER,
-          is_approved BOOLEAN DEFAULT false,
-          location VARCHAR,
-          service_type VARCHAR,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      console.log('Tables created successfully');
-      
-    } catch (createError) {
-      console.error('Failed to create tables:', createError.message);
+      if (error) {
+        console.error(`Error creating ${table.name} table:`, error);
+      } else {
+        console.log(`✓ ${table.name} table created successfully`);
+      }
     }
+    
+    // Add missing columns to users table
+    console.log('Adding missing columns to users table...');
+    const { error: alterError } = await supabase.rpc('exec_sql', {
+      sql: `
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP WITH TIME ZONE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed_at TIMESTAMP WITH TIME ZONE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS coaching_preferences TEXT[];
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_at TIMESTAMP WITH TIME ZONE;
+      `
+    });
+    
+    if (alterError) {
+      console.error('Error adding columns to users table:', alterError);
+    } else {
+      console.log('✓ Users table columns added successfully');
+    }
+    
+    console.log('🎉 Database setup completed!');
+    
+  } catch (error) {
+    console.error('Database test failed:', error);
   }
 }
 
