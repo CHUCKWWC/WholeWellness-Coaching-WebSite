@@ -29,6 +29,9 @@ import DonationPortal from "@/pages/DonationPortal";
 import CoachPortal from "@/pages/CoachPortal";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import OnboardingWizard from "@/pages/OnboardingWizard";
+import PasswordReset from "@/pages/PasswordReset";
+import EmailVerification from "@/pages/EmailVerification";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -60,6 +63,9 @@ function Router() {
           <Route path="/coach-portal" component={CoachPortal} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
+          <Route path="/onboarding" component={OnboardingWizard} />
+          <Route path="/reset-password" component={PasswordReset} />
+          <Route path="/verify-email" component={EmailVerification} />
           <Route component={NotFound} />
         </Switch>
       </main>

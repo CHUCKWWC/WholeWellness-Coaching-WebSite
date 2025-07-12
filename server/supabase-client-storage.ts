@@ -202,6 +202,21 @@ export interface IStorage {
   redeemRewardPoints(userId: string, rewardId: string, pointsCost: number): Promise<any>;
   updateDonationSubscription(userId: string, subscriptionId: string, data: any): Promise<any>;
   updateUserMembershipLevel(userId: string): Promise<void>;
+
+  // Onboarding & Account Management Methods
+  createUserOnboardingSteps(userId: string, steps: any[]): Promise<void>;
+  getUserOnboardingSteps(userId: string): Promise<any[]>;
+  updateOnboardingStep(userId: string, stepId: string, updates: any): Promise<void>;
+  markUserOnboardingComplete(userId: string): Promise<void>;
+  updateUserCoachingPreferences(userId: string, preferences: string[]): Promise<void>;
+  createEmailVerificationToken(userId: string, token: string): Promise<void>;
+  getEmailVerificationToken(token: string): Promise<any>;
+  deleteEmailVerificationToken(token: string): Promise<void>;
+  markEmailAsVerified(userId: string): Promise<void>;
+  createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void>;
+  getPasswordResetToken(token: string): Promise<any>;
+  deletePasswordResetToken(token: string): Promise<void>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
 }
 
 export class SupabaseClientStorage implements IStorage {
@@ -1570,6 +1585,184 @@ export class SupabaseClientStorage implements IStorage {
   async redeemRewardPoints(userId: string, rewardId: string, pointsCost: number): Promise<any> { return {}; }
   async updateDonationSubscription(userId: string, subscriptionId: string, data: any): Promise<any> { return data; }
   async updateUserMembershipLevel(userId: string): Promise<void> { }
+
+  // Onboarding & Account Management Implementation
+  async createUserOnboardingSteps(userId: string, steps: any[]): Promise<void> {
+    try {
+      const stepsWithUserId = steps.map(step => ({ ...step, userId }));
+      await supabase.from('user_onboarding_steps').insert(stepsWithUserId);
+    } catch (error) {
+      console.error('Error creating onboarding steps:', error);
+    }
+  }
+
+  async getUserOnboardingSteps(userId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_onboarding_steps')
+        .select('*')
+        .eq('userId', userId)
+        .order('order', { ascending: true });
+      
+      if (error) {
+        console.error('Error getting onboarding steps:', error);
+        return [];
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Error getting onboarding steps:', error);
+      return [];
+    }
+  }
+
+  async updateOnboardingStep(userId: string, stepId: string, updates: any): Promise<void> {
+    try {
+      await supabase
+        .from('user_onboarding_steps')
+        .update(updates)
+        .eq('userId', userId)
+        .eq('id', stepId);
+    } catch (error) {
+      console.error('Error updating onboarding step:', error);
+    }
+  }
+
+  async markUserOnboardingComplete(userId: string): Promise<void> {
+    try {
+      await supabase
+        .from('users')
+        .update({ onboarding_completed: true, onboarding_completed_at: new Date().toISOString() })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Error marking onboarding complete:', error);
+    }
+  }
+
+  async updateUserCoachingPreferences(userId: string, preferences: string[]): Promise<void> {
+    try {
+      await supabase
+        .from('users')
+        .update({ coaching_preferences: preferences })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Error updating coaching preferences:', error);
+    }
+  }
+
+  async createEmailVerificationToken(userId: string, token: string): Promise<void> {
+    try {
+      await supabase
+        .from('email_verification_tokens')
+        .insert({
+          userId,
+          token,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+        });
+    } catch (error) {
+      console.error('Error creating email verification token:', error);
+    }
+  }
+
+  async getEmailVerificationToken(token: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('email_verification_tokens')
+        .select('*')
+        .eq('token', token)
+        .gte('expiresAt', new Date().toISOString())
+        .single();
+      
+      if (error) {
+        console.error('Error getting email verification token:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting email verification token:', error);
+      return null;
+    }
+  }
+
+  async deleteEmailVerificationToken(token: string): Promise<void> {
+    try {
+      await supabase
+        .from('email_verification_tokens')
+        .delete()
+        .eq('token', token);
+    } catch (error) {
+      console.error('Error deleting email verification token:', error);
+    }
+  }
+
+  async markEmailAsVerified(userId: string): Promise<void> {
+    try {
+      await supabase
+        .from('users')
+        .update({ email_verified: true, email_verified_at: new Date().toISOString() })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Error marking email as verified:', error);
+    }
+  }
+
+  async createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+    try {
+      await supabase
+        .from('password_reset_tokens')
+        .insert({
+          userId,
+          token,
+          expiresAt: expiresAt.toISOString()
+        });
+    } catch (error) {
+      console.error('Error creating password reset token:', error);
+    }
+  }
+
+  async getPasswordResetToken(token: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('password_reset_tokens')
+        .select('*')
+        .eq('token', token)
+        .gte('expiresAt', new Date().toISOString())
+        .single();
+      
+      if (error) {
+        console.error('Error getting password reset token:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting password reset token:', error);
+      return null;
+    }
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    try {
+      await supabase
+        .from('password_reset_tokens')
+        .delete()
+        .eq('token', token);
+    } catch (error) {
+      console.error('Error deleting password reset token:', error);
+    }
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    try {
+      await supabase
+        .from('users')
+        .update({ passwordHash: hashedPassword, password_reset_at: new Date().toISOString() })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Error updating user password:', error);
+    }
+  }
 }
 
 export const storage = new SupabaseClientStorage();

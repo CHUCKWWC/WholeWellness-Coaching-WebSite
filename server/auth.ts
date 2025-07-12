@@ -3,6 +3,7 @@ import { storage } from "./supabase-client-storage";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { z } from "zod";
+import { onboardingService } from "./onboarding-service";
 
 // User interface for authenticated requests
 export interface AuthenticatedUser {
@@ -99,6 +100,9 @@ export class AuthService {
     };
 
     const user = await storage.createUser(userData);
+
+    // Initialize onboarding for new user
+    await onboardingService.initializeUserOnboarding(user.id, user.email, user.firstName || firstName);
 
     return {
       id: user.id,

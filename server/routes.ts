@@ -40,8 +40,10 @@ import { aiCoaching, type CoachingProfile } from "./ai-coaching";
 import { adminRoutes } from "./admin-routes";
 import { coachRoutes } from "./coach-routes";
 import { donationRoutes } from "./donation-routes";
+import { onboardingRoutes } from "./onboarding-routes";
 import { register, login, getCurrentUser, logout } from "./auth";
 import { adminLogin, adminLogout } from "./admin-auth";
+import { onboardingService } from "./onboarding-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1578,6 +1580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/admin', adminRoutes);
   app.use('/api/coach', coachRoutes);
   app.use('/api/donation', donationRoutes);
+  app.use('/api/onboarding', onboardingRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

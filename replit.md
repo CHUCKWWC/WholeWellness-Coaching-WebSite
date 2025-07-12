@@ -54,6 +54,8 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
 
 ### 5. Member Portal
 - **User Registration**: Secure account creation with email verification
+- **Automated Onboarding**: Guided welcome process with progress tracking
+- **Specialty Selection**: Personalized coaching recommendations based on user needs
 - **Session Booking**: Direct booking system with coach selection
 - **Progress Tracking**: Personal wellness journey tracking
 - **Resource Library**: Educational content and tools
@@ -149,6 +151,15 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Created comprehensive donation processing system with Stripe integration
   - Extended Supabase storage client with all required database operations
   - Updated weight loss coach name from "Maya - Weight Loss Specialist" to "Dasha - weight loss specialist"
+- July 12, 2025. User onboarding and account management system implemented
+  - Created automated welcome email system with personalized messages
+  - Implemented secure password reset flows with expiring tokens
+  - Added email verification system with automated token management
+  - Built comprehensive onboarding wizard with progress tracking
+  - Created specialty coaching selection process with guided questionnaire
+  - Integrated onboarding system with user registration and authentication
+  - Added password reset and email verification pages
+  - Extended database schema with onboarding and token management tables
 
 ## User Preferences
 

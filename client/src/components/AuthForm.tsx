@@ -84,11 +84,15 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     onSuccess: (data) => {
       toast({
         title: "Welcome to Whole Wellness Coaching!",
-        description: "Your account has been created successfully.",
+        description: "Your account has been created successfully. Please check your email for verification.",
       });
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      onSuccess?.();
+      
+      // Redirect to onboarding after successful registration
+      setTimeout(() => {
+        window.location.href = '/onboarding';
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -168,6 +172,15 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 >
                   {loginMutation.isPending ? "Signing in..." : "Sign In"}
                 </Button>
+                
+                <div className="text-center">
+                  <a 
+                    href="/reset-password" 
+                    className="text-sm text-primary hover:text-primary/80 underline"
+                  >
+                    Forgot your password?
+                  </a>
+                </div>
               </form>
             </Form>
           </TabsContent>
