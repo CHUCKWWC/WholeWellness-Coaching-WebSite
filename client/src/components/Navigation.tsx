@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Menu, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,13 +23,15 @@ import {
 
 const navigationItems = [
   { href: "/", label: "Home" },
+  { href: "/ai-coaching", label: "AI Coaching" },
+  { href: "/resources", label: "Resources" },
+];
+
+const dropdownItems = [
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
-  { href: "/ai-coaching", label: "AI Coaching" },
-  { href: "/donate", label: "Donate" },
   { href: "/impact", label: "Impact" },
-  { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -90,16 +92,30 @@ export default function Navigation() {
                   {item.label}
                 </Link>
               ))}
+              
+              {/* More Menu Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary">
+                    More
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-48">
+                  {dropdownItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link href={item.href} className="w-full cursor-pointer">
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           {/* Desktop Actions - Right */}
           <div className="hidden md:flex items-center space-x-3">
-            <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 whitespace-nowrap">
-                🧪 Beta Test AI Coach
-              </Button>
-            </a>
             {isAuthenticated ? (
               <>
                 <AdminAccess />
@@ -135,6 +151,11 @@ export default function Navigation() {
                       <Link href="/booking" className="w-full">
                         Book Session
                       </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer" className="w-full">
+                        🧪 Beta Test AI Coach
+                      </a>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -194,12 +215,28 @@ export default function Navigation() {
                       {item.label}
                     </Link>
                   ))}
+                  
+                  {/* Mobile Dropdown Items */}
+                  <div className="border-t pt-4">
+                    <div className="text-sm font-medium text-gray-500 mb-2">More</div>
+                    {dropdownItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block px-3 py-2 rounded-md text-base font-medium",
+                          location === item.href
+                            ? "text-primary"
+                            : "text-gray-600 hover:text-primary"
+                        )}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                  
                   <div className="pt-4 space-y-3">
-                    <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)}>
-                      <Button variant="outline" className="w-full bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-                        🧪 Beta Test AI Coach
-                      </Button>
-                    </a>
                     {isAuthenticated ? (
                       <>
                         <AdminAccess />
