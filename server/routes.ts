@@ -1821,5 +1821,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/onboarding', onboardingRoutes);
 
   const httpServer = createServer(app);
+  // Mental Wellness Resource Hub Routes
+  app.get("/api/mental-wellness/resources", async (req, res) => {
+    try {
+      const { category, audience, type, emergency } = req.query;
+      const resources = await storage.getMentalWellnessResources({
+        category: category as string,
+        targetAudience: audience as string,
+        resourceType: type as string,
+        isEmergency: emergency === 'true'
+      });
+      res.json(resources);
+    } catch (error) {
+      console.error("Error fetching mental wellness resources:", error);
+      res.status(500).json({ error: "Failed to fetch resources" });
+    }
+  });
+
+  app.get("/api/mental-wellness/emergency-contacts", async (req, res) => {
+    try {
+      const { specialty, location } = req.query;
+      const contacts = await storage.getEmergencyContacts({
+        specialty: specialty as string,
+        location: location as string
+      });
+      res.json(contacts);
+    } catch (error) {
+      console.error("Error fetching emergency contacts:", error);
+      res.status(500).json({ error: "Failed to fetch emergency contacts" });
+    }
+  });
+
+  app.post("/api/mental-wellness/assessment", async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const sessionId = req.sessionID;
+      const assessmentData = req.body;
+      
+      const assessment = await storage.createWellnessAssessment({
+        userId,
+        sessionId,
+        assessmentType: assessmentData.type,
+        responses: assessmentData.responses,
+        score: assessmentData.score,
+        riskLevel: assessmentData.riskLevel,
+        recommendedResources: assessmentData.recommendedResources,
+        followUpRequired: assessmentData.followUpRequired
+      });
+      
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error creating wellness assessment:", error);
+      res.status(500).json({ error: "Failed to create assessment" });
+    }
+  });
+
+  app.get("/api/mental-wellness/recommendations", async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const sessionId = req.sessionID;
+      const { category, assessment } = req.query;
+      
+      const recommendations = await storage.getPersonalizedRecommendations({
+        userId,
+        sessionId,
+        category: category as string,
+        assessmentType: assessment as string
+      });
+      
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      res.status(500).json({ error: "Failed to fetch recommendations" });
+    }
+  });
+
+  app.post("/api/mental-wellness/track-usage", async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const sessionId = req.sessionID;
+      const { resourceId, duration, wasHelpful, feedback, followUpAction } = req.body;
+      
+      const analytics = await storage.trackResourceUsage({
+        resourceId,
+        userId,
+        sessionId,
+        accessDuration: duration,
+        wasHelpful,
+        feedback,
+        followUpAction,
+        userAgent: req.headers['user-agent'],
+        referrer: req.headers.referer,
+        deviceType: req.headers['user-agent']?.includes('Mobile') ? 'mobile' : 'desktop'
+      });
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error tracking resource usage:", error);
+      res.status(500).json({ error: "Failed to track usage" });
+    }
+  });
+
+  app.get("/api/mental-wellness/quick-access", async (req, res) => {
+    try {
+      const quickAccess = await storage.getQuickAccessResources();
+      res.json(quickAccess);
+    } catch (error) {
+      console.error("Error fetching quick access resources:", error);
+      res.status(500).json({ error: "Failed to fetch quick access resources" });
+    }
+  });
+
   return httpServer;
 }

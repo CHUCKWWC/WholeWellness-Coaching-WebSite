@@ -6,7 +6,10 @@ import type {
   ContentPage, ContentBlock, MediaItem, NavigationMenu, SiteSetting,
   InsertContentPage, InsertContentBlock, InsertMediaItem, InsertNavigationMenu, InsertSiteSetting,
   AdminSession, AdminActivityLog, InsertAdminSession, InsertAdminActivityLog,
-  Donation
+  Donation, MentalWellnessResource, InsertMentalWellnessResource,
+  EmergencyContact, InsertEmergencyContact, WellnessAssessment, InsertWellnessAssessment,
+  PersonalizedRecommendation, InsertPersonalizedRecommendation,
+  ResourceUsageAnalytics, InsertResourceUsageAnalytics
 } from "@shared/schema";
 
 export interface IStorage {
@@ -140,6 +143,47 @@ export interface IStorage {
   // User Authentication Extended
   getUserById(id: string): Promise<any>;
   updateUserLastLogin(userId: string): Promise<void>;
+
+  // Mental Wellness Resource Hub
+  getMentalWellnessResources(filters?: {
+    category?: string;
+    targetAudience?: string;
+    resourceType?: string;
+    isEmergency?: boolean;
+  }): Promise<MentalWellnessResource[]>;
+  getMentalWellnessResource(id: number): Promise<MentalWellnessResource | undefined>;
+  createMentalWellnessResource(resource: InsertMentalWellnessResource): Promise<MentalWellnessResource>;
+  updateMentalWellnessResource(id: number, updates: Partial<InsertMentalWellnessResource>): Promise<MentalWellnessResource | undefined>;
+  incrementResourceUsage(id: number): Promise<void>;
+
+  getEmergencyContacts(filters?: {
+    specialty?: string;
+    location?: string;
+  }): Promise<EmergencyContact[]>;
+  getEmergencyContact(id: number): Promise<EmergencyContact | undefined>;
+  createEmergencyContact(contact: InsertEmergencyContact): Promise<EmergencyContact>;
+
+  createWellnessAssessment(assessment: InsertWellnessAssessment): Promise<WellnessAssessment>;
+  getWellnessAssessment(id: number): Promise<WellnessAssessment | undefined>;
+  getUserWellnessAssessments(userId: string): Promise<WellnessAssessment[]>;
+
+  getPersonalizedRecommendations(filters: {
+    userId?: string;
+    sessionId?: string;
+    category?: string;
+    assessmentType?: string;
+  }): Promise<PersonalizedRecommendation[]>;
+  createPersonalizedRecommendation(recommendation: InsertPersonalizedRecommendation): Promise<PersonalizedRecommendation>;
+
+  trackResourceUsage(usage: InsertResourceUsageAnalytics): Promise<ResourceUsageAnalytics>;
+  getResourceUsageAnalytics(resourceId: number): Promise<ResourceUsageAnalytics[]>;
+
+  getQuickAccessResources(): Promise<{
+    emergency: EmergencyContact[];
+    crisis: MentalWellnessResource[];
+    popular: MentalWellnessResource[];
+    featured: MentalWellnessResource[];
+  }>;
 
   // Coach Portal Methods
   getCoachProfile(userId: string): Promise<any>;
@@ -1836,6 +1880,385 @@ export class SupabaseClientStorage implements IStorage {
         .eq('id', userId);
     } catch (error) {
       console.error('Error updating user password:', error);
+    }
+  }
+
+  // Mental Wellness Resource Hub Implementation
+  async getMentalWellnessResources(filters?: {
+    category?: string;
+    targetAudience?: string;
+    resourceType?: string;
+    isEmergency?: boolean;
+  }): Promise<MentalWellnessResource[]> {
+    try {
+      let query = supabase
+        .from('mental_wellness_resources')
+        .select('*')
+        .eq('is_active', true);
+
+      if (filters?.category) {
+        query = query.eq('category', filters.category);
+      }
+      if (filters?.targetAudience) {
+        query = query.eq('target_audience', filters.targetAudience);
+      }
+      if (filters?.resourceType) {
+        query = query.eq('resource_type', filters.resourceType);
+      }
+      if (filters?.isEmergency !== undefined) {
+        query = query.eq('is_emergency', filters.isEmergency);
+      }
+
+      const { data, error } = await query.order('is_featured', { ascending: false }).order('rating', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting mental wellness resources:', error);
+        return [];
+      }
+      
+      return data as MentalWellnessResource[];
+    } catch (error) {
+      console.error('Error getting mental wellness resources:', error);
+      return [];
+    }
+  }
+
+  async getMentalWellnessResource(id: number): Promise<MentalWellnessResource | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('mental_wellness_resources')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error getting mental wellness resource:', error);
+        return undefined;
+      }
+      
+      return data as MentalWellnessResource;
+    } catch (error) {
+      console.error('Error getting mental wellness resource:', error);
+      return undefined;
+    }
+  }
+
+  async createMentalWellnessResource(resource: InsertMentalWellnessResource): Promise<MentalWellnessResource> {
+    try {
+      const { data, error } = await supabase
+        .from('mental_wellness_resources')
+        .insert(resource)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating mental wellness resource:', error);
+        throw error;
+      }
+      
+      return data as MentalWellnessResource;
+    } catch (error) {
+      console.error('Error creating mental wellness resource:', error);
+      throw error;
+    }
+  }
+
+  async updateMentalWellnessResource(id: number, updates: Partial<InsertMentalWellnessResource>): Promise<MentalWellnessResource | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('mental_wellness_resources')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating mental wellness resource:', error);
+        return undefined;
+      }
+      
+      return data as MentalWellnessResource;
+    } catch (error) {
+      console.error('Error updating mental wellness resource:', error);
+      return undefined;
+    }
+  }
+
+  async incrementResourceUsage(id: number): Promise<void> {
+    try {
+      await supabase.rpc('increment_resource_usage', { resource_id: id });
+    } catch (error) {
+      console.error('Error incrementing resource usage:', error);
+    }
+  }
+
+  async getEmergencyContacts(filters?: {
+    specialty?: string;
+    location?: string;
+  }): Promise<EmergencyContact[]> {
+    try {
+      let query = supabase
+        .from('emergency_contacts')
+        .select('*')
+        .eq('is_active', true);
+
+      if (filters?.specialty) {
+        query = query.eq('specialty', filters.specialty);
+      }
+      if (filters?.location) {
+        query = query.or(`state.eq.${filters.location},city.eq.${filters.location},is_national.eq.true`);
+      }
+
+      const { data, error } = await query.order('sort_order').order('name');
+      
+      if (error) {
+        console.error('Error getting emergency contacts:', error);
+        return [];
+      }
+      
+      return data as EmergencyContact[];
+    } catch (error) {
+      console.error('Error getting emergency contacts:', error);
+      return [];
+    }
+  }
+
+  async getEmergencyContact(id: number): Promise<EmergencyContact | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('emergency_contacts')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error getting emergency contact:', error);
+        return undefined;
+      }
+      
+      return data as EmergencyContact;
+    } catch (error) {
+      console.error('Error getting emergency contact:', error);
+      return undefined;
+    }
+  }
+
+  async createEmergencyContact(contact: InsertEmergencyContact): Promise<EmergencyContact> {
+    try {
+      const { data, error } = await supabase
+        .from('emergency_contacts')
+        .insert(contact)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating emergency contact:', error);
+        throw error;
+      }
+      
+      return data as EmergencyContact;
+    } catch (error) {
+      console.error('Error creating emergency contact:', error);
+      throw error;
+    }
+  }
+
+  async createWellnessAssessment(assessment: InsertWellnessAssessment): Promise<WellnessAssessment> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_assessments')
+        .insert(assessment)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating wellness assessment:', error);
+        throw error;
+      }
+      
+      return data as WellnessAssessment;
+    } catch (error) {
+      console.error('Error creating wellness assessment:', error);
+      throw error;
+    }
+  }
+
+  async getWellnessAssessment(id: number): Promise<WellnessAssessment | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_assessments')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error getting wellness assessment:', error);
+        return undefined;
+      }
+      
+      return data as WellnessAssessment;
+    } catch (error) {
+      console.error('Error getting wellness assessment:', error);
+      return undefined;
+    }
+  }
+
+  async getUserWellnessAssessments(userId: string): Promise<WellnessAssessment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_assessments')
+        .select('*')
+        .eq('user_id', userId)
+        .order('completed_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting user wellness assessments:', error);
+        return [];
+      }
+      
+      return data as WellnessAssessment[];
+    } catch (error) {
+      console.error('Error getting user wellness assessments:', error);
+      return [];
+    }
+  }
+
+  async getPersonalizedRecommendations(filters: {
+    userId?: string;
+    sessionId?: string;
+    category?: string;
+    assessmentType?: string;
+  }): Promise<PersonalizedRecommendation[]> {
+    try {
+      let query = supabase
+        .from('personalized_recommendations')
+        .select(`
+          *,
+          mental_wellness_resources (*)
+        `)
+        .gte('expires_at', new Date().toISOString());
+
+      if (filters.userId) {
+        query = query.eq('user_id', filters.userId);
+      }
+      if (filters.sessionId) {
+        query = query.eq('session_id', filters.sessionId);
+      }
+
+      const { data, error } = await query
+        .order('recommendation_score', { ascending: false })
+        .limit(10);
+      
+      if (error) {
+        console.error('Error getting personalized recommendations:', error);
+        return [];
+      }
+      
+      return data as PersonalizedRecommendation[];
+    } catch (error) {
+      console.error('Error getting personalized recommendations:', error);
+      return [];
+    }
+  }
+
+  async createPersonalizedRecommendation(recommendation: InsertPersonalizedRecommendation): Promise<PersonalizedRecommendation> {
+    try {
+      const { data, error } = await supabase
+        .from('personalized_recommendations')
+        .insert(recommendation)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating personalized recommendation:', error);
+        throw error;
+      }
+      
+      return data as PersonalizedRecommendation;
+    } catch (error) {
+      console.error('Error creating personalized recommendation:', error);
+      throw error;
+    }
+  }
+
+  async trackResourceUsage(usage: InsertResourceUsageAnalytics): Promise<ResourceUsageAnalytics> {
+    try {
+      const { data, error } = await supabase
+        .from('resource_usage_analytics')
+        .insert(usage)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error tracking resource usage:', error);
+        throw error;
+      }
+      
+      // Increment usage count for the resource
+      await this.incrementResourceUsage(usage.resourceId);
+      
+      return data as ResourceUsageAnalytics;
+    } catch (error) {
+      console.error('Error tracking resource usage:', error);
+      throw error;
+    }
+  }
+
+  async getResourceUsageAnalytics(resourceId: number): Promise<ResourceUsageAnalytics[]> {
+    try {
+      const { data, error } = await supabase
+        .from('resource_usage_analytics')
+        .select('*')
+        .eq('resource_id', resourceId)
+        .order('accessed_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting resource usage analytics:', error);
+        return [];
+      }
+      
+      return data as ResourceUsageAnalytics[];
+    } catch (error) {
+      console.error('Error getting resource usage analytics:', error);
+      return [];
+    }
+  }
+
+  async getQuickAccessResources(): Promise<{
+    emergency: EmergencyContact[];
+    crisis: MentalWellnessResource[];
+    popular: MentalWellnessResource[];
+    featured: MentalWellnessResource[];
+  }> {
+    try {
+      const [emergency, crisis, popular, featured] = await Promise.all([
+        this.getEmergencyContacts(),
+        this.getMentalWellnessResources({ category: 'crisis' }),
+        supabase
+          .from('mental_wellness_resources')
+          .select('*')
+          .eq('is_active', true)
+          .order('usage_count', { ascending: false })
+          .limit(6)
+          .then(({ data }) => data as MentalWellnessResource[] || []),
+        this.getMentalWellnessResources({ isEmergency: false })
+          .then(resources => resources.filter(r => r.isFeatured).slice(0, 6))
+      ]);
+
+      return {
+        emergency: emergency.slice(0, 3),
+        crisis: crisis.slice(0, 4),
+        popular: popular.slice(0, 6),
+        featured: featured.slice(0, 6)
+      };
+    } catch (error) {
+      console.error('Error getting quick access resources:', error);
+      return {
+        emergency: [],
+        crisis: [],
+        popular: [],
+        featured: []
+      };
     }
   }
 }

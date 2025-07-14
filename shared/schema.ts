@@ -369,6 +369,97 @@ export const coachMetrics = pgTable("coach_metrics", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Mental Wellness Resource Hub
+export const mentalWellnessResources = pgTable("mental_wellness_resources", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  category: varchar("category").notNull(), // crisis, anxiety, depression, mindfulness, stress, trauma, relationship, self-care
+  resourceType: varchar("resource_type").notNull(), // hotline, website, app, article, video, exercise, meditation
+  url: text("url"),
+  phoneNumber: varchar("phone_number"),
+  isEmergency: boolean("is_emergency").default(false),
+  availability: varchar("availability"), // 24/7, business-hours, weekdays, etc
+  languages: jsonb("languages").$type<string[]>().default(['English']),
+  costInfo: varchar("cost_info"), // free, paid, insurance, sliding-scale
+  targetAudience: varchar("target_audience"), // general, teens, adults, seniors, lgbtq, women, veterans
+  rating: decimal("rating", { precision: 3, scale: 2 }),
+  usageCount: integer("usage_count").default(0),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  isActive: boolean("is_active").default(true),
+  isFeatured: boolean("is_featured").default(false),
+  verificationStatus: varchar("verification_status").default("verified"), // verified, pending, outdated
+  lastVerified: timestamp("last_verified").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const resourceUsageAnalytics = pgTable("resource_usage_analytics", {
+  id: serial("id").primaryKey(),
+  resourceId: integer("resource_id").references(() => mentalWellnessResources.id).notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // for anonymous users
+  accessedAt: timestamp("accessed_at").defaultNow(),
+  userAgent: text("user_agent"),
+  referrer: text("referrer"),
+  deviceType: varchar("device_type"), // mobile, desktop, tablet
+  accessDuration: integer("access_duration"), // seconds
+  wasHelpful: boolean("was_helpful"),
+  feedback: text("feedback"),
+  followUpAction: varchar("follow_up_action"), // contacted, bookmarked, shared, none
+});
+
+export const emergencyContacts = pgTable("emergency_contacts", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  organization: varchar("organization"),
+  phoneNumber: varchar("phone_number").notNull(),
+  textSupport: varchar("text_support"), // text number if available
+  description: text("description").notNull(),
+  availability: varchar("availability").notNull(),
+  languages: jsonb("languages").$type<string[]>().default(['English']),
+  specialty: varchar("specialty"), // suicide, domestic-violence, crisis, mental-health
+  isNational: boolean("is_national").default(true),
+  country: varchar("country").default("US"),
+  state: varchar("state"),
+  city: varchar("city"),
+  website: text("website"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  lastVerified: timestamp("last_verified").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const wellnessAssessments = pgTable("wellness_assessments", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // for anonymous users
+  assessmentType: varchar("assessment_type").notNull(), // mood, anxiety, depression, stress, crisis-risk
+  responses: jsonb("responses").$type<Record<string, any>>().notNull(),
+  score: integer("score"),
+  riskLevel: varchar("risk_level"), // low, medium, high, crisis
+  recommendedResources: jsonb("recommended_resources").$type<number[]>().default([]),
+  followUpRequired: boolean("follow_up_required").default(false),
+  followUpDate: timestamp("follow_up_date"),
+  completedAt: timestamp("completed_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const personalizedRecommendations = pgTable("personalized_recommendations", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // for anonymous users
+  resourceId: integer("resource_id").references(() => mentalWellnessResources.id).notNull(),
+  recommendationScore: decimal("recommendation_score", { precision: 5, scale: 2 }),
+  reasons: jsonb("reasons").$type<string[]>().default([]),
+  algorithmVersion: varchar("algorithm_version").default("v1.0"),
+  wasAccessed: boolean("was_accessed").default(false),
+  wasHelpful: boolean("was_helpful"),
+  feedback: text("feedback"),
+  generatedAt: timestamp("generated_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
 // CMS system tables
 export const contentPages = pgTable("content_pages", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -653,6 +744,35 @@ export const registerSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
 });
 
+// Mental Wellness Resource Hub Schemas
+export const insertMentalWellnessResourceSchema = createInsertSchema(mentalWellnessResources).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertResourceUsageAnalyticsSchema = createInsertSchema(resourceUsageAnalytics).omit({
+  id: true,
+  accessedAt: true,
+});
+
+export const insertEmergencyContactSchema = createInsertSchema(emergencyContacts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWellnessAssessmentSchema = createInsertSchema(wellnessAssessments).omit({
+  id: true,
+  completedAt: true,
+  createdAt: true,
+});
+
+export const insertPersonalizedRecommendationSchema = createInsertSchema(personalizedRecommendations).omit({
+  id: true,
+  generatedAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -697,6 +817,22 @@ export type CoachMetrics = typeof coachMetrics.$inferSelect;
 
 export type ContentPage = typeof contentPages.$inferSelect;
 export type InsertContentPage = z.infer<typeof insertContentPageSchema>;
+
+// Mental Wellness Resource Hub Types
+export type MentalWellnessResource = typeof mentalWellnessResources.$inferSelect;
+export type InsertMentalWellnessResource = z.infer<typeof insertMentalWellnessResourceSchema>;
+
+export type ResourceUsageAnalytics = typeof resourceUsageAnalytics.$inferSelect;
+export type InsertResourceUsageAnalytics = z.infer<typeof insertResourceUsageAnalyticsSchema>;
+
+export type EmergencyContact = typeof emergencyContacts.$inferSelect;
+export type InsertEmergencyContact = z.infer<typeof insertEmergencyContactSchema>;
+
+export type WellnessAssessment = typeof wellnessAssessments.$inferSelect;
+export type InsertWellnessAssessment = z.infer<typeof insertWellnessAssessmentSchema>;
+
+export type PersonalizedRecommendation = typeof personalizedRecommendations.$inferSelect;
+export type InsertPersonalizedRecommendation = z.infer<typeof insertPersonalizedRecommendationSchema>;
 export type ContentBlock = typeof contentBlocks.$inferSelect;
 export type InsertContentBlock = z.infer<typeof insertContentBlockSchema>;
 export type MediaItem = typeof mediaLibrary.$inferSelect;

@@ -24,6 +24,7 @@ import {
 const navigationItems = [
   { href: "/", label: "Home" },
   { href: "/ai-coaching", label: "AI Coaching" },
+  { href: "/mental-wellness", label: "Mental Wellness" },
   { href: "/resources", label: "Resources" },
 ];
 
