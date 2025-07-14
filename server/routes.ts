@@ -41,10 +41,11 @@ import { adminRoutes } from "./admin-routes";
 import { coachRoutes } from "./coach-routes";
 import { donationRoutes } from "./donation-routes";
 import { onboardingRoutes } from "./onboarding-routes";
-import { register, login, getCurrentUser, logout } from "./auth";
+import { requireAuth, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 import { adminLogin, adminLogout } from "./admin-auth";
 import { onboardingService } from "./onboarding-service";
 import { supabase } from "./supabase";
+import bcrypt from 'bcrypt';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -58,6 +59,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       apiVersion: '2023-10-16',
     });
   }
+
+  // Session management functions
+  async function createSession(userId: string): Promise<string> {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    const token = AuthService.generateToken({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role || 'user',
+      membershipLevel: user.membershipLevel || 'free',
+      isActive: user.isActive !== false
+    });
+    
+    return token;
+  }
+
+  async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+    return AuthService.comparePassword(password, hashedPassword);
+  }
+
+  async function hashPassword(password: string): Promise<string> {
+    return AuthService.hashPassword(password);
+  }
   
   // Authentication Routes
   app.post('/api/auth/register', async (req, res) => {
@@ -65,14 +94,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = registerSchema.parse(req.body);
       
       // Check if user already exists
-      const existingUser = await donationStorage.getUserByEmail(userData.email);
+      const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: 'Email already registered' });
       }
       
       // Hash password and create user
-      const passwordHash = userData.password; // Using plain text for now
-      const user = await donationStorage.createUser({
+      const passwordHash = await hashPassword(userData.password);
+      const user = await storage.createUser({
         ...userData,
         passwordHash,
         id: uuidv4(),
@@ -107,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
-      const user = await donationStorage.getUserByEmail(email);
+      const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
@@ -146,6 +175,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/logout', (req, res) => {
     res.clearCookie('session_token');
     res.json({ message: 'Logged out successfully' });
+  });
+
+  // Password reset routes
+  app.post('/api/auth/request-reset', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if user exists for security
+        return res.json({ message: 'If an account exists with this email, you will receive a password reset link.' });
+      }
+
+      // Generate reset token
+      const resetToken = uuidv4();
+      const expiresAt = new Date(Date.now() + 3600000); // 1 hour from now
+
+      try {
+        await storage.createPasswordResetToken(user.id, resetToken, expiresAt);
+        
+        // TODO: Send email with reset link
+        // For now, just return success (in production, integrate with email service)
+        console.log(`Password reset token for ${email}: ${resetToken}`);
+        
+        res.json({ 
+          message: 'If an account exists with this email, you will receive a password reset link.',
+          // Remove this in production - only for testing
+          resetToken: resetToken
+        });
+      } catch (tokenError) {
+        console.error('Error creating password reset token:', tokenError);
+        res.json({ message: 'If an account exists with this email, you will receive a password reset link.' });
+      }
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: 'Token and new password are required' });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters' });
+      }
+
+      try {
+        const resetToken = await storage.getPasswordResetToken(token);
+        if (!resetToken) {
+          return res.status(400).json({ message: 'Invalid or expired reset token' });
+        }
+
+        // Check if token is expired
+        if (new Date() > new Date(resetToken.expiresAt)) {
+          await storage.deletePasswordResetToken(token);
+          return res.status(400).json({ message: 'Reset token has expired' });
+        }
+
+        // Hash new password and update user
+        const hashedPassword = await hashPassword(newPassword);
+        await storage.updateUserPassword(resetToken.userId, hashedPassword);
+
+        // Delete used token
+        await storage.deletePasswordResetToken(token);
+
+        res.json({ message: 'Password has been reset successfully' });
+      } catch (tokenError) {
+        console.error('Error processing password reset:', tokenError);
+        res.status(400).json({ message: 'Invalid or expired reset token' });
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   });
 
   app.get('/api/auth/user', optionalAuth as any, async (req: AuthenticatedRequest, res) => {
@@ -1567,11 +1679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Authentication routes
-  app.post('/api/auth/register', register);
-  app.post('/api/auth/login', login);
-  app.get('/api/auth/user', getCurrentUser);
-  app.post('/api/auth/logout', logout);
+  // Authentication routes (already defined above)
   
   // Admin authentication routes
   app.post('/api/admin/auth/login', adminLogin);
