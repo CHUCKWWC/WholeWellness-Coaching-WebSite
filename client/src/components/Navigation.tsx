@@ -25,6 +25,7 @@ const navigationItems = [
   { href: "/", label: "Home" },
   { href: "/ai-coaching", label: "AI Coaching" },
   { href: "/mental-wellness", label: "Mental Wellness" },
+  { href: "/personalized-recommendations", label: "Personal Recommendations" },
   { href: "/resources", label: "Resources" },
 ];
 

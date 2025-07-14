@@ -46,6 +46,7 @@ import { adminLogin, adminLogout } from "./admin-auth";
 import { onboardingService } from "./onboarding-service";
 import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
+import { recommendationEngine, type UserProfile, type RecommendationContext } from './recommendation-engine';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1929,6 +1930,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching quick access resources:", error);
       res.status(500).json({ error: "Failed to fetch quick access resources" });
+    }
+  });
+
+  // Personalized Wellness Recommendation Engine Routes
+  app.post('/api/recommendations/generate', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const { userProfile, context } = req.body;
+      
+      // Build user profile from authenticated user data
+      const fullUserProfile: UserProfile = {
+        userId: user.id,
+        demographics: userProfile?.demographics || {},
+        preferences: userProfile?.preferences || {},
+        mentalHealthProfile: userProfile?.mentalHealthProfile || {},
+        behaviorPatterns: userProfile?.behaviorPatterns || {}
+      };
+      
+      // Generate personalized recommendations
+      const recommendations = await recommendationEngine.generateRecommendations(
+        fullUserProfile,
+        context as RecommendationContext
+      );
+      
+      res.json({ recommendations });
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ error: 'Failed to generate recommendations' });
+    }
+  });
+
+  app.post('/api/recommendations/track', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const { recommendationId, action } = req.body;
+      
+      await recommendationEngine.trackRecommendationUsage(
+        user.id,
+        recommendationId,
+        action
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error tracking recommendation usage:', error);
+      res.status(500).json({ error: 'Failed to track recommendation usage' });
+    }
+  });
+
+  app.get('/api/recommendations/history', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const { limit = 20, offset = 0 } = req.query;
+      
+      const { data: recommendations, error } = await supabase
+        .from('personalized_recommendations')
+        .select(`
+          *,
+          mental_wellness_resources (
+            id,
+            title,
+            description,
+            category,
+            resource_type
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('generated_at', { ascending: false })
+        .range(Number(offset), Number(offset) + Number(limit) - 1);
+      
+      if (error) {
+        console.error('Error fetching recommendation history:', error);
+        return res.status(500).json({ error: 'Failed to fetch recommendation history' });
+      }
+      
+      res.json({ recommendations: recommendations || [] });
+    } catch (error) {
+      console.error('Error fetching recommendation history:', error);
+      res.status(500).json({ error: 'Failed to fetch recommendation history' });
+    }
+  });
+
+  app.post('/api/recommendations/feedback', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const { recommendationId, feedback, wasHelpful } = req.body;
+      
+      const { error } = await supabase
+        .from('personalized_recommendations')
+        .update({
+          feedback,
+          was_helpful: wasHelpful,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', recommendationId)
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Error updating recommendation feedback:', error);
+        return res.status(500).json({ error: 'Failed to update feedback' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating recommendation feedback:', error);
+      res.status(500).json({ error: 'Failed to update feedback' });
+    }
+  });
+
+  app.get('/api/recommendations/analytics', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      
+      // Get user's recommendation analytics
+      const { data: analytics, error } = await supabase
+        .from('personalized_recommendations')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Error fetching recommendation analytics:', error);
+        return res.status(500).json({ error: 'Failed to fetch analytics' });
+      }
+      
+      const totalRecommendations = analytics?.length || 0;
+      const accessedRecommendations = analytics?.filter(r => r.was_accessed).length || 0;
+      const helpfulRecommendations = analytics?.filter(r => r.was_helpful === true).length || 0;
+      const notHelpfulRecommendations = analytics?.filter(r => r.was_helpful === false).length || 0;
+      
+      const stats = {
+        totalRecommendations,
+        accessedRecommendations,
+        helpfulRecommendations,
+        notHelpfulRecommendations,
+        accessRate: totalRecommendations > 0 ? (accessedRecommendations / totalRecommendations) * 100 : 0,
+        helpfulnessRate: (helpfulRecommendations + notHelpfulRecommendations) > 0 
+          ? (helpfulRecommendations / (helpfulRecommendations + notHelpfulRecommendations)) * 100 
+          : 0
+      };
+      
+      res.json({ analytics: stats });
+    } catch (error) {
+      console.error('Error fetching recommendation analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics' });
     }
   });
 

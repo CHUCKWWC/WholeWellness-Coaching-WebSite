@@ -36,6 +36,7 @@ import PasswordReset from "@/pages/PasswordReset";
 import EmailVerification from "@/pages/EmailVerification";
 import HelpDemo from "@/pages/HelpDemo";
 import MentalWellnessHub from "@/pages/MentalWellnessHub";
+import PersonalizedRecommendations from "@/pages/PersonalizedRecommendations";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -72,6 +73,7 @@ function Router() {
           <Route path="/verify-email" component={EmailVerification} />
           <Route path="/help-demo" component={HelpDemo} />
           <Route path="/mental-wellness" component={MentalWellnessHub} />
+          <Route path="/personalized-recommendations" component={PersonalizedRecommendations} />
           <Route component={NotFound} />
         </Switch>
       </main>
