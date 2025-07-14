@@ -7,6 +7,8 @@ import { CheckCircle, Circle, ArrowRight, Mail, User, Brain, BookOpen } from 'lu
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { ContextualHelpTrigger } from '@/components/HelpSystem';
+import HelpBubble from '@/components/HelpBubble';
 
 interface OnboardingStep {
   id: string;
@@ -195,9 +197,18 @@ export default function OnboardingWizard() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Welcome to Whole Wellness Coaching
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              Welcome to Whole Wellness Coaching
+            </h1>
+            <HelpBubble
+              context="registration-welcome"
+              trigger="auto"
+              delay={3000}
+              position="bottom"
+              className="inline-block"
+            />
+          </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Let's personalize your wellness journey. Complete these steps to get the most out of our platform.
           </p>
@@ -267,7 +278,15 @@ export default function OnboardingWizard() {
 
                     {/* Coaching Specialties Selection */}
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-4">Select Your Areas of Interest:</h4>
+                      <div className="flex items-center gap-2 mb-4">
+                        <h4 className="font-semibold text-gray-900">Select Your Areas of Interest:</h4>
+                        <HelpBubble
+                          context="coaching-selection"
+                          trigger="hover"
+                          position="right"
+                          className="inline-block"
+                        />
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {specialties.map((specialty: CoachingSpecialty) => (
                           <Card 

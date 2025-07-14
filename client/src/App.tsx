@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
+import HelpSystem from "@/components/HelpSystem";
+import EmpatheticHelpProvider from "@/components/EmpatheticHelpProvider";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Services from "@/pages/Services";
@@ -32,6 +34,7 @@ import Terms from "@/pages/Terms";
 import OnboardingWizard from "@/pages/OnboardingWizard";
 import PasswordReset from "@/pages/PasswordReset";
 import EmailVerification from "@/pages/EmailVerification";
+import HelpDemo from "@/pages/HelpDemo";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -66,11 +69,13 @@ function Router() {
           <Route path="/onboarding" component={OnboardingWizard} />
           <Route path="/reset-password" component={PasswordReset} />
           <Route path="/verify-email" component={EmailVerification} />
+          <Route path="/help-demo" component={HelpDemo} />
           <Route component={NotFound} />
         </Switch>
       </main>
       <Footer />
       <Chatbot />
+      <HelpSystem />
     </div>
   );
 }
@@ -79,8 +84,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <EmpatheticHelpProvider>
+          <Router />
+          <Toaster />
+        </EmpatheticHelpProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

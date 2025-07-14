@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Brain, MessageCircle, Shield, Clock, Users, Zap } from "lucide-react";
 import AICoachingChat from "@/components/AICoachingChat";
 import CoachingTools from "@/components/CoachingTools";
+import HelpBubble from "@/components/HelpBubble";
+import { WithEmpatheticHelp } from "@/components/EmpatheticHelpProvider";
 
 export default function AICoaching() {
   const [showChat, setShowChat] = useState(false);
@@ -115,9 +117,18 @@ export default function AICoaching() {
               <Brain className="h-12 w-12" />
             </div>
           </div>
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-            AI Coaching Services
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <h1 className="text-4xl lg:text-6xl font-bold">
+              AI Coaching Services
+            </h1>
+            <HelpBubble
+              context="coaching-selection"
+              trigger="auto"
+              delay={2000}
+              position="bottom"
+              className="inline-block"
+            />
+          </div>
           <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
             Access personalized coaching support 24/7 with our specialized AI coaches. 
             Get instant guidance for your personal growth journey in areas that matter most to you.

@@ -162,6 +162,16 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Extended database schema with onboarding and token management tables
   - Created SQL schema file (supabase-onboarding-schema.sql) for manual database setup
   - Password reset functionality requires manual database table creation due to RLS policies
+- July 14, 2025. Contextual help system with empathetic AI guidance implemented
+  - Created comprehensive help bubble system with 8 different empathetic contexts
+  - Implemented smart help triggers based on user behavior and page context
+  - Added context-aware help provider with localStorage-based dismissal tracking
+  - Built empathetic help guidance for registration, donation, coaching selection, and difficult moments
+  - Integrated auto-triggered help bubbles with configurable delays and positioning
+  - Added help system to onboarding wizard, donation page, and AI coaching page
+  - Created interactive help demo page at /help-demo showcasing all features
+  - Implemented user behavior tracking for intelligent help timing
+  - Added 24-hour cooldown periods and dismissal state management
 
 ## User Preferences
 

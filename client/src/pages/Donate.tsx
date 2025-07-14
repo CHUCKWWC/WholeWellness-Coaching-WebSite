@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Heart, Star, Gift, Zap, Users, Target, Sparkles, Award } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { ContextualHelpTrigger } from '@/components/HelpSystem';
+import HelpBubble from '@/components/HelpBubble';
 
 interface DonationPreset {
   id: string;
@@ -179,7 +181,19 @@ export default function Donate() {
 
       {/* Hero Section */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">Make a Difference Today</h1>
+        <div className="flex items-center justify-center gap-2">
+          <h1 className="text-4xl font-bold">Make a Difference Today</h1>
+          <ContextualHelpTrigger context="donation-first-time" trigger="click" position="bottom">
+            <div className="opacity-80 hover:opacity-100 transition-opacity">
+              <HelpBubble
+                context="donation-first-time"
+                trigger="click"
+                position="bottom"
+                className="inline-block"
+              />
+            </div>
+          </ContextualHelpTrigger>
+        </div>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Your donation helps us provide life-changing coaching services to those who need it most.
           Every contribution creates lasting impact in someone's life.
