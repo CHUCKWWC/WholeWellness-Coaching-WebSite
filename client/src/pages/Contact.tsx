@@ -71,6 +71,12 @@ export default function Contact() {
 
   const contactInfo = [
     {
+      icon: <MapPin className="w-6 h-6" />,
+      title: "Visit Us",
+      content: "12370 Potranco Rd, Suite 207 PMB 1209, San Antonio, TX 78253-4260",
+      action: "Get Directions"
+    },
+    {
       icon: <Mail className="w-6 h-6" />,
       title: "Email Us",
       content: "info@wholewellness-coaching.org",
