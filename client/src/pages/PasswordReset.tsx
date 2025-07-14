@@ -10,6 +10,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import HelpBubble from '@/components/HelpBubble';
 
 const passwordResetRequestSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -37,10 +38,7 @@ export default function PasswordReset() {
   // Request password reset mutation
   const requestResetMutation = useMutation({
     mutationFn: async (email: string) => {
-      return apiRequest('/api/onboarding/password-reset-request', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      });
+      return apiRequest('POST', '/api/onboarding/password-reset-request', { email });
     },
     onSuccess: () => {
       setSuccess(true);
@@ -61,10 +59,7 @@ export default function PasswordReset() {
   // Reset password mutation
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: { token: string; newPassword: string }) => {
-      return apiRequest('/api/onboarding/password-reset', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/onboarding/password-reset', data);
     },
     onSuccess: () => {
       setSuccess(true);
@@ -147,6 +142,13 @@ export default function PasswordReset() {
             <CardTitle className="flex items-center space-x-2">
               {token ? <Lock className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
               <span>{token ? 'Set New Password' : 'Password Reset'}</span>
+              <HelpBubble
+                context="difficult-moment"
+                trigger="auto"
+                delay={2000}
+                position="right"
+                className="inline-block"
+              />
             </CardTitle>
             <CardDescription>
               {token 
