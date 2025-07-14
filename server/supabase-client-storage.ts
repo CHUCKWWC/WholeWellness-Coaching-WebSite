@@ -235,7 +235,26 @@ export class SupabaseClientStorage implements IStorage {
         return undefined;
       }
       
-      return data as User;
+      // Map snake_case response to camelCase
+      return {
+        id: data.id,
+        email: data.email,
+        passwordHash: data.password_hash,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        membershipLevel: data.membership_level,
+        donationTotal: data.donation_total,
+        rewardPoints: data.reward_points,
+        stripeCustomerId: data.stripe_customer_id,
+        profileImageUrl: data.profile_image_url,
+        role: data.role,
+        permissions: data.permissions,
+        isActive: data.is_active,
+        joinDate: data.join_date,
+        lastLogin: data.last_login,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as User;
     } catch (error) {
       console.error('Error getting user:', error);
       return undefined;
@@ -255,7 +274,26 @@ export class SupabaseClientStorage implements IStorage {
         return undefined;
       }
       
-      return data as User;
+      // Map snake_case response to camelCase
+      return {
+        id: data.id,
+        email: data.email,
+        passwordHash: data.password_hash,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        membershipLevel: data.membership_level,
+        donationTotal: data.donation_total,
+        rewardPoints: data.reward_points,
+        stripeCustomerId: data.stripe_customer_id,
+        profileImageUrl: data.profile_image_url,
+        role: data.role,
+        permissions: data.permissions,
+        isActive: data.is_active,
+        joinDate: data.join_date,
+        lastLogin: data.last_login,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as User;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return undefined;
@@ -264,12 +302,30 @@ export class SupabaseClientStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
+      // Map camelCase fields to snake_case for database
+      const dbUser = {
+        id: randomUUID(),
+        email: insertUser.email,
+        password_hash: insertUser.passwordHash,
+        first_name: insertUser.firstName,
+        last_name: insertUser.lastName,
+        membership_level: insertUser.membershipLevel || 'free',
+        donation_total: insertUser.donationTotal || 0,
+        reward_points: insertUser.rewardPoints || 0,
+        stripe_customer_id: insertUser.stripeCustomerId || null,
+        profile_image_url: insertUser.profileImageUrl || null,
+        role: insertUser.role || 'user',
+        permissions: insertUser.permissions || null,
+        is_active: insertUser.isActive !== undefined ? insertUser.isActive : true,
+        join_date: new Date(),
+        last_login: insertUser.lastLogin || null,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
       const { data, error } = await supabase
         .from('users')
-        .insert({
-          ...insertUser,
-          id: randomUUID()
-        })
+        .insert(dbUser)
         .select()
         .single();
       
@@ -278,7 +334,26 @@ export class SupabaseClientStorage implements IStorage {
         throw error;
       }
       
-      return data as User;
+      // Map snake_case response back to camelCase
+      return {
+        id: data.id,
+        email: data.email,
+        passwordHash: data.password_hash,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        membershipLevel: data.membership_level,
+        donationTotal: data.donation_total,
+        rewardPoints: data.reward_points,
+        stripeCustomerId: data.stripe_customer_id,
+        profileImageUrl: data.profile_image_url,
+        role: data.role,
+        permissions: data.permissions,
+        isActive: data.is_active,
+        joinDate: data.join_date,
+        lastLogin: data.last_login,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as User;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;

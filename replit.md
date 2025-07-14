@@ -172,6 +172,13 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Created interactive help demo page at /help-demo showcasing all features
   - Implemented user behavior tracking for intelligent help timing
   - Added 24-hour cooldown periods and dismissal state management
+- July 14, 2025. Database schema and user registration fixes implemented
+  - Fixed password reset functionality - corrected apiRequest parameter ordering in frontend
+  - Added proper field mapping between camelCase (code) and snake_case (database) in SupabaseClientStorage
+  - Created fix-users-table.sql script to add missing database columns
+  - Updated createUser, getUser, and getUserByEmail methods with proper field mapping
+  - **CRITICAL ISSUE: User registration blocked due to missing database columns**
+  - **SOLUTION: Run fix-users-table.sql or supabase-complete-schema.sql in Supabase SQL Editor**
 
 ## User Preferences
 
