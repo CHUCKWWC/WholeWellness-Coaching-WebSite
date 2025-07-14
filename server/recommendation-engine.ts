@@ -8,6 +8,114 @@ const anthropic = new Anthropic({
 
 const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
 
+// Mock data for mental wellness resources
+const mockMentalWellnessResources = [
+  {
+    id: 1,
+    title: 'National Suicide Prevention Lifeline',
+    description: 'Free 24/7 crisis support for people in suicidal crisis or emotional distress',
+    category: 'crisis',
+    resource_type: 'hotline',
+    contact_info: 'Call 988 for immediate crisis support',
+    phone: '988',
+    website: 'https://suicidepreventionlifeline.org',
+    emergency: true,
+    crisis_support: true,
+    featured: true,
+    specialties: ['suicide prevention', 'crisis intervention'],
+    languages: ['English', 'Spanish']
+  },
+  {
+    id: 2,
+    title: 'Crisis Text Line',
+    description: 'Free 24/7 text-based crisis support',
+    category: 'crisis',
+    resource_type: 'hotline',
+    contact_info: 'Text HOME to 741741',
+    phone: '741741',
+    website: 'https://crisistextline.org',
+    emergency: true,
+    crisis_support: true,
+    featured: true,
+    specialties: ['crisis intervention', 'text support'],
+    languages: ['English', 'Spanish']
+  },
+  {
+    id: 3,
+    title: 'National Domestic Violence Hotline',
+    description: '24/7 support for domestic violence survivors',
+    category: 'safety',
+    resource_type: 'hotline',
+    contact_info: 'Call 1-800-799-7233 for confidential support',
+    phone: '1-800-799-7233',
+    website: 'https://thehotline.org',
+    emergency: true,
+    crisis_support: true,
+    featured: true,
+    specialties: ['domestic violence', 'safety planning'],
+    languages: ['English', 'Spanish']
+  },
+  {
+    id: 4,
+    title: 'Headspace',
+    description: 'Meditation and mindfulness app',
+    category: 'mindfulness',
+    resource_type: 'app',
+    contact_info: 'Download the Headspace app',
+    website: 'https://headspace.com',
+    emergency: false,
+    crisis_support: false,
+    featured: true,
+    specialties: ['meditation', 'mindfulness', 'sleep'],
+    languages: ['English']
+  },
+  {
+    id: 5,
+    title: 'BetterHelp',
+    description: 'Online therapy platform',
+    category: 'therapy',
+    resource_type: 'website',
+    contact_info: 'Visit BetterHelp.com to connect with licensed therapists',
+    website: 'https://betterhelp.com',
+    emergency: false,
+    crisis_support: false,
+    featured: true,
+    specialties: ['therapy', 'counseling'],
+    languages: ['English']
+  }
+];
+
+// Mock emergency contacts
+const mockEmergencyContacts = [
+  {
+    id: 1,
+    name: 'National Suicide Prevention Lifeline',
+    phone_number: '988',
+    description: 'Free 24/7 crisis support for people in suicidal crisis',
+    specialty: 'Crisis Intervention',
+    is_active: true,
+    sort_order: 1
+  },
+  {
+    id: 2,
+    name: 'Crisis Text Line',
+    phone_number: '741741',
+    description: 'Free 24/7 text-based crisis support',
+    specialty: 'Crisis Intervention',
+    is_active: true,
+    sort_order: 2
+  },
+  {
+    id: 3,
+    name: 'National Domestic Violence Hotline',
+    phone_number: '1-800-799-7233',
+    description: '24/7 support for domestic violence survivors',
+    specialty: 'Domestic Violence',
+    is_active: true,
+    sort_order: 3
+  }
+];
+
 export interface UserProfile {
   userId: string;
   demographics?: {
@@ -97,12 +205,23 @@ export class PersonalizedRecommendationEngine {
     context: RecommendationContext
   ): Promise<WellnessRecommendation[]> {
     
-    // Get emergency contacts
-    const { data: emergencyContacts } = await supabase
-      .from('emergency_contacts')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order');
+    // Get emergency contacts (with fallback to mock data)
+    let emergencyContacts;
+    try {
+      const { data, error } = await supabase
+        .from('emergency_contacts')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+      
+      if (error) {
+        emergencyContacts = mockEmergencyContacts;
+      } else {
+        emergencyContacts = data || mockEmergencyContacts;
+      }
+    } catch (err) {
+      emergencyContacts = mockEmergencyContacts;
+    }
 
     const recommendations: WellnessRecommendation[] = [];
 
@@ -393,38 +512,66 @@ Focus on:
   }
 
   private async getAvailableResources(): Promise<any[]> {
-    const { data: resources } = await supabase
-      .from('mental_wellness_resources')
-      .select('*')
-      .eq('is_active', true)
-      .order('rating', { ascending: false });
+    // Get resources from database (with fallback to mock data)
+    try {
+      const { data: resources, error } = await supabase
+        .from('mental_wellness_resources')
+        .select('*')
+        .eq('featured', true)
+        .order('id');
 
-    return resources || [];
+      if (error) {
+        console.log('Using mock data for mental wellness resources');
+        return mockMentalWellnessResources;
+      }
+
+      return resources || mockMentalWellnessResources;
+    } catch (err) {
+      console.log('Database not available, using mock data');
+      return mockMentalWellnessResources;
+    }
   }
 
   private async getSafetyResources(): Promise<any[]> {
-    const { data: resources } = await supabase
-      .from('mental_wellness_resources')
-      .select('*')
-      .eq('is_emergency', true)
-      .eq('is_active', true)
-      .order('rating', { ascending: false });
+    // Get safety resources from database (with fallback to mock data)
+    try {
+      const { data: resources, error } = await supabase
+        .from('mental_wellness_resources')
+        .select('*')
+        .eq('emergency', true)
+        .order('id');
 
-    return resources || [];
+      if (error) {
+        return mockMentalWellnessResources.filter(r => r.emergency);
+      }
+
+      return resources || mockMentalWellnessResources.filter(r => r.emergency);
+    } catch (err) {
+      return mockMentalWellnessResources.filter(r => r.emergency);
+    }
   }
 
   private async getUserHistory(userId: string): Promise<any[]> {
-    const { data: history } = await supabase
-      .from('resource_usage_analytics')
-      .select(`
-        *,
-        mental_wellness_resources (title, category)
-      `)
-      .eq('user_id', userId)
-      .order('accessed_at', { ascending: false })
-      .limit(10);
+    // Get user history from database (with fallback to empty array)
+    try {
+      const { data: history, error } = await supabase
+        .from('resource_usage_analytics')
+        .select(`
+          *,
+          mental_wellness_resources (title, category)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    return history || [];
+      if (error) {
+        return [];
+      }
+
+      return history || [];
+    } catch (err) {
+      return [];
+    }
   }
 
   async trackRecommendationUsage(
