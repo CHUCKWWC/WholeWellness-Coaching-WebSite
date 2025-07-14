@@ -1,156 +1,109 @@
--- Mental Wellness Hub Database Deployment Script
--- Run this in your Supabase SQL Editor to deploy the mental wellness tables
+-- Mental Wellness Resources Database Schema
+-- Execute this in your Supabase SQL Editor to create the required tables
 
--- 1. Create Mental Wellness Resources Table
+-- Create mental wellness resources table
 CREATE TABLE IF NOT EXISTS mental_wellness_resources (
   id SERIAL PRIMARY KEY,
-  title VARCHAR NOT NULL,
-  description TEXT NOT NULL,
-  category VARCHAR NOT NULL,
-  resource_type VARCHAR NOT NULL,
-  url TEXT,
-  phone_number VARCHAR,
-  is_emergency BOOLEAN DEFAULT FALSE,
-  availability VARCHAR,
-  languages JSONB DEFAULT '["English"]',
-  cost_info VARCHAR,
-  target_audience VARCHAR,
-  rating DECIMAL(3,2),
-  usage_count INTEGER DEFAULT 0,
-  tags JSONB DEFAULT '[]',
-  is_active BOOLEAN DEFAULT TRUE,
-  is_featured BOOLEAN DEFAULT FALSE,
-  verification_status VARCHAR DEFAULT 'verified',
-  last_verified TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  category VARCHAR(100),
+  resource_type VARCHAR(50),
+  contact_info TEXT,
+  phone VARCHAR(20),
+  website VARCHAR(255),
+  email VARCHAR(255),
+  address TEXT,
+  hours TEXT,
+  specialties TEXT[],
+  languages TEXT[],
+  emergency BOOLEAN DEFAULT FALSE,
+  crisis_support BOOLEAN DEFAULT FALSE,
+  featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Create Emergency Contacts Table
+-- Create emergency contacts table
 CREATE TABLE IF NOT EXISTS emergency_contacts (
   id SERIAL PRIMARY KEY,
-  name VARCHAR NOT NULL,
-  organization VARCHAR,
-  phone_number VARCHAR NOT NULL,
-  text_support VARCHAR,
-  description TEXT NOT NULL,
-  availability VARCHAR NOT NULL,
-  languages JSONB DEFAULT '["English"]',
-  specialty VARCHAR,
-  is_national BOOLEAN DEFAULT TRUE,
-  country VARCHAR DEFAULT 'US',
-  state VARCHAR,
-  city VARCHAR,
-  website TEXT,
-  sort_order INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE,
-  last_verified TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  description TEXT,
+  specialty VARCHAR(100),
+  location VARCHAR(255),
+  available_24_7 BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Create Wellness Assessments Table
-CREATE TABLE IF NOT EXISTS wellness_assessments (
-  id SERIAL PRIMARY KEY,
-  user_id VARCHAR REFERENCES users(id),
-  session_id VARCHAR,
-  assessment_type VARCHAR NOT NULL,
-  responses JSONB NOT NULL,
-  score INTEGER,
-  risk_level VARCHAR,
-  recommended_resources JSONB DEFAULT '[]',
-  follow_up_required BOOLEAN DEFAULT FALSE,
-  follow_up_date TIMESTAMP WITH TIME ZONE,
-  completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 4. Create Personalized Recommendations Table
+-- Create personalized recommendations table
 CREATE TABLE IF NOT EXISTS personalized_recommendations (
-  id SERIAL PRIMARY KEY,
-  user_id VARCHAR REFERENCES users(id),
-  session_id VARCHAR,
-  resource_id INTEGER REFERENCES mental_wellness_resources(id) NOT NULL,
-  recommendation_score DECIMAL(5,2),
-  reasons JSONB DEFAULT '[]',
-  algorithm_version VARCHAR DEFAULT 'v1.0',
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(255) NOT NULL,
+  resource_id INTEGER REFERENCES mental_wellness_resources(id),
+  recommendation_type VARCHAR(50) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  reasoning TEXT,
+  priority INTEGER DEFAULT 1,
+  estimated_time INTEGER,
+  action_steps TEXT[],
+  follow_up_suggestions TEXT[],
+  personalized_score DECIMAL(3,2),
+  crisis_level BOOLEAN DEFAULT FALSE,
   was_accessed BOOLEAN DEFAULT FALSE,
   was_helpful BOOLEAN,
   feedback TEXT,
-  generated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  expires_at TIMESTAMP WITH TIME ZONE
+  generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  accessed_at TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Create Resource Usage Analytics Table
+-- Create resource usage analytics table
 CREATE TABLE IF NOT EXISTS resource_usage_analytics (
   id SERIAL PRIMARY KEY,
-  resource_id INTEGER REFERENCES mental_wellness_resources(id) NOT NULL,
-  user_id VARCHAR REFERENCES users(id),
-  session_id VARCHAR,
-  accessed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  user_agent TEXT,
-  referrer TEXT,
-  device_type VARCHAR,
+  resource_id INTEGER REFERENCES mental_wellness_resources(id),
+  user_id VARCHAR(255),
+  session_id VARCHAR(255),
   access_duration INTEGER,
   was_helpful BOOLEAN,
   feedback TEXT,
-  follow_up_action VARCHAR
+  follow_up_action VARCHAR(100),
+  user_agent TEXT,
+  referrer TEXT,
+  device_type VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. Create RPC Function to increment resource usage
-CREATE OR REPLACE FUNCTION increment_resource_usage(resource_id INTEGER)
-RETURNS void AS $$
-BEGIN
-  UPDATE mental_wellness_resources 
-  SET usage_count = usage_count + 1, updated_at = NOW()
-  WHERE id = resource_id;
-END;
-$$ LANGUAGE plpgsql;
+-- Insert sample mental wellness resources
+INSERT INTO mental_wellness_resources (title, description, category, resource_type, contact_info, phone, website, emergency, crisis_support, featured, specialties, languages) VALUES
+('National Suicide Prevention Lifeline', 'Free 24/7 crisis support for people in suicidal crisis or emotional distress', 'crisis', 'hotline', 'Call 988 for immediate crisis support', '988', 'https://suicidepreventionlifeline.org', TRUE, TRUE, TRUE, ARRAY['suicide prevention', 'crisis intervention'], ARRAY['English', 'Spanish']),
+('Crisis Text Line', 'Free 24/7 text-based crisis support', 'crisis', 'hotline', 'Text HOME to 741741', '741741', 'https://crisistextline.org', TRUE, TRUE, TRUE, ARRAY['crisis intervention', 'text support'], ARRAY['English', 'Spanish']),
+('National Domestic Violence Hotline', '24/7 support for domestic violence survivors', 'safety', 'hotline', 'Call 1-800-799-7233 for confidential support', '1-800-799-7233', 'https://thehotline.org', TRUE, TRUE, TRUE, ARRAY['domestic violence', 'safety planning'], ARRAY['English', 'Spanish']),
+('SAMHSA National Helpline', 'Free 24/7 treatment referral service for mental health and substance use disorders', 'treatment', 'hotline', 'Call 1-800-662-4357 for treatment referrals', '1-800-662-4357', 'https://samhsa.gov', FALSE, FALSE, TRUE, ARRAY['treatment referral', 'substance abuse'], ARRAY['English', 'Spanish']),
+('Headspace', 'Meditation and mindfulness app', 'mindfulness', 'app', 'Download the Headspace app', NULL, 'https://headspace.com', FALSE, FALSE, TRUE, ARRAY['meditation', 'mindfulness', 'sleep'], ARRAY['English']),
+('Calm', 'Sleep stories, meditation, and relaxation app', 'mindfulness', 'app', 'Download the Calm app', NULL, 'https://calm.com', FALSE, FALSE, TRUE, ARRAY['meditation', 'sleep', 'relaxation'], ARRAY['English']),
+('BetterHelp', 'Online therapy platform', 'therapy', 'website', 'Visit BetterHelp.com to connect with licensed therapists', NULL, 'https://betterhelp.com', FALSE, FALSE, TRUE, ARRAY['therapy', 'counseling'], ARRAY['English']),
+('Psychology Today', 'Find therapists and mental health professionals', 'therapy', 'website', 'Search for therapists in your area', NULL, 'https://psychologytoday.com', FALSE, FALSE, TRUE, ARRAY['therapy', 'counseling'], ARRAY['English']),
+('NAMI', 'National Alliance on Mental Illness support and resources', 'support', 'website', 'Visit NAMI.org for mental health resources', NULL, 'https://nami.org', FALSE, FALSE, TRUE, ARRAY['mental health education', 'support groups'], ARRAY['English']),
+('MindShift', 'Anxiety and mood tracking app', 'anxiety', 'app', 'Download the MindShift app', NULL, 'https://mindshift.com', FALSE, FALSE, FALSE, ARRAY['anxiety management', 'mood tracking'], ARRAY['English']);
 
--- 7. Enable Row Level Security
-ALTER TABLE mental_wellness_resources ENABLE ROW LEVEL SECURITY;
-ALTER TABLE emergency_contacts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE wellness_assessments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE personalized_recommendations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE resource_usage_analytics ENABLE ROW LEVEL SECURITY;
+-- Insert sample emergency contacts
+INSERT INTO emergency_contacts (name, phone, description, specialty, location, available_24_7) VALUES
+('National Suicide Prevention Lifeline', '988', 'Free 24/7 crisis support for people in suicidal crisis', 'Crisis Intervention', 'United States', TRUE),
+('Crisis Text Line', '741741', 'Free 24/7 text-based crisis support', 'Crisis Intervention', 'United States', TRUE),
+('National Domestic Violence Hotline', '1-800-799-7233', '24/7 support for domestic violence survivors', 'Domestic Violence', 'United States', TRUE),
+('SAMHSA National Helpline', '1-800-662-4357', 'Treatment referral service for mental health and substance use', 'Treatment Referral', 'United States', TRUE),
+('National Child Abuse Hotline', '1-800-4-A-CHILD', '24/7 crisis counseling for child abuse', 'Child Abuse', 'United States', TRUE),
+('Trans Lifeline', '877-565-8860', 'Crisis support for transgender people', 'LGBTQ+ Support', 'United States', TRUE),
+('RAINN National Sexual Assault Hotline', '1-800-656-4673', '24/7 support for sexual assault survivors', 'Sexual Assault', 'United States', TRUE),
+('Veterans Crisis Line', '1-800-273-8255', '24/7 crisis support for veterans', 'Veterans Support', 'United States', TRUE);
 
--- 8. Create RLS Policies
-CREATE POLICY IF NOT EXISTS "Mental wellness resources are publicly viewable" ON mental_wellness_resources
-  FOR SELECT USING (is_active = true);
-
-CREATE POLICY IF NOT EXISTS "Emergency contacts are publicly viewable" ON emergency_contacts
-  FOR SELECT USING (is_active = true);
-
-CREATE POLICY IF NOT EXISTS "Users can access their own wellness assessments" ON wellness_assessments
-  FOR ALL USING (auth.uid()::text = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can access their own personalized recommendations" ON personalized_recommendations
-  FOR ALL USING (auth.uid()::text = user_id);
-
-CREATE POLICY IF NOT EXISTS "Users can access their own resource usage analytics" ON resource_usage_analytics
-  FOR ALL USING (auth.uid()::text = user_id);
-
--- 9. Insert Sample Mental Wellness Resources
-INSERT INTO mental_wellness_resources (title, description, category, resource_type, phone_number, is_emergency, availability, languages, cost_info, target_audience, rating, tags, is_featured) VALUES
-  ('National Suicide Prevention Lifeline', 'Free and confidential emotional support to people in suicidal crisis or emotional distress 24/7.', 'crisis', 'hotline', '988', true, '24/7', '["English", "Spanish"]', 'free', 'general', 4.8, '["suicide", "crisis", "support"]', true),
-  ('Crisis Text Line', 'Text-based mental health crisis support service available 24/7.', 'crisis', 'hotline', '741741', true, '24/7', '["English", "Spanish"]', 'free', 'general', 4.7, '["crisis", "text", "support"]', true),
-  ('SAMHSA National Helpline', 'Treatment referral and information service for individuals and families facing mental health and substance use disorders.', 'crisis', 'hotline', '1-800-662-4357', false, '24/7', '["English", "Spanish"]', 'free', 'general', 4.6, '["mental health", "substance abuse", "treatment"]', true),
-  ('Anxiety and Depression Association of America', 'Comprehensive resource for anxiety and depression information, self-help tools, and professional support.', 'anxiety', 'website', NULL, false, '24/7', '["English"]', 'free', 'general', 4.5, '["anxiety", "depression", "self-help"]', true),
-  ('National Alliance on Mental Illness (NAMI)', 'Education, support, and advocacy for individuals and families affected by mental illness.', 'depression', 'website', NULL, false, '24/7', '["English", "Spanish"]', 'free', 'general', 4.7, '["depression", "support", "advocacy"]', true),
-  ('National Domestic Violence Hotline', 'Confidential support for domestic violence survivors and their loved ones.', 'relationship', 'hotline', '1-800-799-7233', true, '24/7', '["English", "Spanish"]', 'free', 'women', 4.9, '["domestic violence", "safety", "support"]', true),
-  ('Mindfulness-Based Stress Reduction (MBSR)', 'Evidence-based program for reducing stress and improving well-being through mindfulness meditation.', 'stress', 'program', NULL, false, 'Varies by location', '["English"]', 'varies', 'general', 4.4, '["mindfulness", "stress", "meditation"]', false),
-  ('BetterHelp Online Therapy', 'Professional online therapy and counseling with licensed therapists.', 'therapy', 'website', NULL, false, '24/7', '["English", "Spanish"]', 'paid', 'general', 4.3, '["therapy", "counseling", "online"]', true),
-  ('Talkspace Therapy', 'Online therapy platform connecting you with licensed therapists via text, voice, and video.', 'therapy', 'website', NULL, false, '24/7', '["English"]', 'paid', 'general', 4.2, '["therapy", "online", "text"]', false),
-  ('Headspace Meditation App', 'Guided meditation and mindfulness app with programs for stress, sleep, and focus.', 'mindfulness', 'app', NULL, false, '24/7', '["English", "Spanish", "French"]', 'freemium', 'general', 4.5, '["meditation", "mindfulness", "app"]', true)
-ON CONFLICT DO NOTHING;
-
--- 10. Insert Sample Emergency Contacts
-INSERT INTO emergency_contacts (name, organization, phone_number, text_support, description, availability, languages, specialty, is_national, sort_order) VALUES
-  ('National Suicide Prevention Lifeline', 'National Suicide Prevention Lifeline', '988', NULL, 'Free and confidential emotional support to people in suicidal crisis or emotional distress 24/7.', '24/7', '["English", "Spanish"]', 'suicide', true, 1),
-  ('Crisis Text Line', 'Crisis Text Line', '741741', 'Text HOME to 741741', 'Free, 24/7 crisis support via text message.', '24/7', '["English", "Spanish"]', 'crisis', true, 2),
-  ('National Domestic Violence Hotline', 'National Domestic Violence Hotline', '1-800-799-7233', NULL, 'Confidential support for domestic violence survivors and their loved ones.', '24/7', '["English", "Spanish"]', 'domestic-violence', true, 3),
-  ('SAMHSA National Helpline', 'SAMHSA', '1-800-662-4357', NULL, 'Treatment referral and information service for individuals and families facing mental health and substance use disorders.', '24/7', '["English", "Spanish"]', 'mental-health', true, 4),
-  ('National Sexual Assault Hotline', 'RAINN', '1-800-656-4673', NULL, 'Free, confidential support for survivors of sexual violence and their loved ones.', '24/7', '["English", "Spanish"]', 'sexual-assault', true, 5)
-ON CONFLICT DO NOTHING;
-
--- Success message
-SELECT 'Mental wellness hub database tables deployed successfully!' AS message;
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_mental_wellness_resources_category ON mental_wellness_resources(category);
+CREATE INDEX IF NOT EXISTS idx_mental_wellness_resources_emergency ON mental_wellness_resources(emergency);
+CREATE INDEX IF NOT EXISTS idx_mental_wellness_resources_featured ON mental_wellness_resources(featured);
+CREATE INDEX IF NOT EXISTS idx_personalized_recommendations_user_id ON personalized_recommendations(user_id);
+CREATE INDEX IF NOT EXISTS idx_personalized_recommendations_generated_at ON personalized_recommendations(generated_at);
+CREATE INDEX IF NOT EXISTS idx_resource_usage_analytics_user_id ON resource_usage_analytics(user_id);
+CREATE INDEX IF NOT EXISTS idx_resource_usage_analytics_resource_id ON resource_usage_analytics(resource_id);
