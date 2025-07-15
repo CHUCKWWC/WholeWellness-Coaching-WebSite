@@ -536,7 +536,7 @@ export class CommunicationManager {
           to: [{ email: emailData.to }],
           subject: emailData.subject
         }],
-        from: { email: 'hello@wholewellness.org' },
+        from: { email: 'hello@wholewellness-coaching.org' },
         content: [{
           type: 'text/html',
           value: await this.renderEmailTemplate(emailData.template, emailData.data)

@@ -30,7 +30,7 @@ export class EmailService {
     
     try {
       await this.transporter.sendMail({
-        from: process.env.FROM_EMAIL || 'welcome@wholewellnesscoaching.org',
+        from: process.env.FROM_EMAIL || 'welcome@wholewellness-coaching.org',
         to: userEmail,
         subject: template.subject,
         html: template.html,
@@ -50,7 +50,7 @@ export class EmailService {
     
     try {
       await this.transporter.sendMail({
-        from: process.env.FROM_EMAIL || 'noreply@wholewellnesscoaching.org',
+        from: process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org',
         to: userEmail,
         subject: template.subject,
         html: template.html,
@@ -70,7 +70,7 @@ export class EmailService {
     
     try {
       await this.transporter.sendMail({
-        from: process.env.FROM_EMAIL || 'verify@wholewellnesscoaching.org',
+        from: process.env.FROM_EMAIL || 'verify@wholewellness-coaching.org',
         to: userEmail,
         subject: template.subject,
         html: template.html,
@@ -124,7 +124,7 @@ export class EmailService {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.BASE_URL || 'https://wholewellnesscoaching.org'}/ai-coaching" 
+            <a href="${process.env.BASE_URL || 'https://wholewellness-coaching.org'}/ai-coaching" 
                style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
               Start Your Journey
             </a>
@@ -139,7 +139,7 @@ export class EmailService {
         <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px;">
           <p style="color: #666; margin: 0; font-size: 12px;">
             Whole Wellness Coaching | Supporting women on their journey to wellness<br>
-            <a href="${process.env.BASE_URL || 'https://wholewellnesscoaching.org'}" style="color: #667eea;">wholewellnesscoaching.org</a>
+            <a href="${process.env.BASE_URL || 'https://wholewellness-coaching.org'}" style="color: #667eea;">wholewellness-coaching.org</a>
           </p>
         </div>
       </div>
@@ -157,7 +157,7 @@ export class EmailService {
       • Explore Resources - Access our library of wellness tools and guides
       • Join Our Community - Connect with other women on similar journeys
       
-      Visit: ${process.env.BASE_URL || 'https://wholewellnesscoaching.org'}/ai-coaching
+      Visit: ${process.env.BASE_URL || 'https://wholewellness-coaching.org'}/ai-coaching
       
       Remember: You are not alone. Our community is here to support you every step of the way.
       
@@ -171,7 +171,7 @@ export class EmailService {
   // Password reset email template
   private getPasswordResetEmailTemplate(resetToken: string): EmailTemplate {
     const subject = 'Reset Your Whole Wellness Coaching Password';
-    const resetUrl = `${process.env.BASE_URL || 'https://wholewellnesscoaching.org'}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.BASE_URL || 'https://wholewellness-coaching.org'}/reset-password?token=${resetToken}`;
     
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -230,7 +230,7 @@ export class EmailService {
   // Account verification email template
   private getVerificationEmailTemplate(verificationToken: string): EmailTemplate {
     const subject = 'Verify Your Whole Wellness Coaching Account';
-    const verifyUrl = `${process.env.BASE_URL || 'https://wholewellnesscoaching.org'}/verify-email?token=${verificationToken}`;
+    const verifyUrl = `${process.env.BASE_URL || 'https://wholewellness-coaching.org'}/verify-email?token=${verificationToken}`;
     
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

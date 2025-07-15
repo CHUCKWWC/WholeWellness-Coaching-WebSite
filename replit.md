@@ -188,6 +188,14 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Added "Personal Recommendations" section to main navigation
   - Created database schema for recommendations, mental wellness resources, and usage analytics
   - Added business information: 12370 Potranco Rd, Suite 207 PMB 1209, San Antonio, TX 78253-4260
+- July 14, 2025. Email system configuration updated with new domain format
+  - Updated all email addresses to use wholewellness-coaching.org domain format
+  - Welcome emails: welcome@wholewellness-coaching.org
+  - Password reset: noreply@wholewellness-coaching.org
+  - Account verification: verify@wholewellness-coaching.org
+  - Admin notifications: admin@wholewellness-coaching.org
+  - General support: hello@wholewellness-coaching.org
+  - Updated email templates and workflow configurations with new domain references
 
 ## User Preferences
 
