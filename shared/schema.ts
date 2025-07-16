@@ -791,7 +791,7 @@ export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
 
 // Authentication schemas
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().min(1, "Email or username is required"), // Allow username or email
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 

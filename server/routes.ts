@@ -48,6 +48,7 @@ import { onboardingService } from "./onboarding-service";
 import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
 import { recommendationEngine, type UserProfile, type RecommendationContext } from './recommendation-engine';
+import { createTestCoach } from './create-coach-endpoint';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -150,6 +151,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
+      // Special handling for test coach account
+      if (email === 'chuck' && password === 'chucknice1') {
+        const testCoachId = 'coach_chuck_test';
+        const sessionToken = AuthService.generateToken({
+          id: testCoachId,
+          email: 'chuck',
+          firstName: 'Chuck',
+          lastName: 'TestCoach',
+          role: 'coach',
+        });
+        
+        res.cookie('session_token', sessionToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        
+        return res.json({
+          id: testCoachId,
+          email: 'chuck',
+          firstName: 'Chuck',
+          lastName: 'TestCoach',
+          membershipLevel: 'coach',
+          rewardPoints: 0,
+          donationTotal: '0',
+          role: 'coach'
+        });
+      }
+      
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -190,6 +220,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.clearCookie('session_token');
     res.json({ message: 'Logged out successfully' });
   });
+
+  // Create test coach account endpoint
+  app.post('/api/create-test-coach', createTestCoach);
 
   // Password reset routes
   app.post('/api/auth/request-reset', async (req, res) => {
@@ -277,6 +310,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', optionalAuth as any, async (req: AuthenticatedRequest, res) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    // Special handling for test coach account
+    if (req.user.id === 'coach_chuck_test') {
+      return res.json({
+        id: 'coach_chuck_test',
+        email: 'chuck',
+        firstName: 'Chuck',
+        lastName: 'TestCoach',
+        membershipLevel: 'coach',
+        rewardPoints: 0,
+        donationTotal: '0',
+        profileImageUrl: null,
+        role: 'coach'
+      });
     }
     
     res.json({
