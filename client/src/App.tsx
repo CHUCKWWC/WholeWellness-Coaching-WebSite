@@ -38,6 +38,7 @@ import HelpDemo from "@/pages/HelpDemo";
 import MentalWellnessHub from "@/pages/MentalWellnessHub";
 import PersonalizedRecommendations from "@/pages/PersonalizedRecommendations";
 import DigitalOnboarding from "@/pages/DigitalOnboarding";
+import CoachOnboarding from "@/pages/CoachOnboarding";
 import Checkout from "@/pages/Checkout";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Subscribe from "@/pages/Subscribe";
@@ -80,6 +81,7 @@ function Router() {
           <Route path="/mental-wellness" component={MentalWellnessHub} />
           <Route path="/personalized-recommendations" component={PersonalizedRecommendations} />
           <Route path="/digital-onboarding" component={DigitalOnboarding} />
+          <Route path="/coach-onboarding" component={CoachOnboarding} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/payment-success" component={PaymentSuccess} />
           <Route path="/subscribe" component={Subscribe} />
