@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { randomBytes } from 'crypto';
 import { storage } from './supabase-client-storage';
+import { google } from 'googleapis';
 
 interface EmailTemplate {
   subject: string;
@@ -12,14 +13,48 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    // Configure email transporter (using SMTP)
-    this.transporter = nodemailer.createTransport({
+    // Configure email transporter with OAuth2 support
+    this.transporter = this.createEmailTransporter();
+  }
+
+  private createEmailTransporter(): nodemailer.Transporter {
+    // Try OAuth2 first if credentials are available
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      return this.createOAuthTransporter();
+    }
+    
+    // Fallback to SMTP with App Password
+    return nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+
+  private createOAuthTransporter(): nodemailer.Transporter {
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      'https://developers.google.com/oauthplayground'
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+    });
+
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: process.env.SMTP_USER,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        accessToken: process.env.GOOGLE_ACCESS_TOKEN,
       },
     });
   }
