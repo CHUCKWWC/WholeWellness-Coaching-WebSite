@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   donationTotal: decimal("donation_total").default("0"),
   rewardPoints: integer("reward_points").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
   permissions: jsonb("permissions"), // JSON array of permission strings

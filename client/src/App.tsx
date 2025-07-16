@@ -38,6 +38,10 @@ import HelpDemo from "@/pages/HelpDemo";
 import MentalWellnessHub from "@/pages/MentalWellnessHub";
 import PersonalizedRecommendations from "@/pages/PersonalizedRecommendations";
 import DigitalOnboarding from "@/pages/DigitalOnboarding";
+import Checkout from "@/pages/Checkout";
+import PaymentSuccess from "@/pages/PaymentSuccess";
+import Subscribe from "@/pages/Subscribe";
+import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -76,6 +80,10 @@ function Router() {
           <Route path="/mental-wellness" component={MentalWellnessHub} />
           <Route path="/personalized-recommendations" component={PersonalizedRecommendations} />
           <Route path="/digital-onboarding" component={DigitalOnboarding} />
+          <Route path="/checkout" component={Checkout} />
+          <Route path="/payment-success" component={PaymentSuccess} />
+          <Route path="/subscribe" component={Subscribe} />
+          <Route path="/subscription-success" component={SubscriptionSuccess} />
           <Route component={NotFound} />
         </Switch>
       </main>

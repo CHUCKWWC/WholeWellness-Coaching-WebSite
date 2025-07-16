@@ -27,6 +27,7 @@ const navigationItems = [
   { href: "/mental-wellness", label: "Mental Wellness" },
   { href: "/personalized-recommendations", label: "Personal Recommendations" },
   { href: "/digital-onboarding", label: "Get Started" },
+  { href: "/subscribe", label: "Subscribe" },
   { href: "/resources", label: "Resources" },
 ];
 

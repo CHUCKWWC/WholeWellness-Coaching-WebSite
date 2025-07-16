@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Gift, Heart, Star, Trophy, TrendingUp, Users, Zap, Award, Target } from "lucide-react";
+import { Calendar, Gift, Heart, Star, Trophy, TrendingUp, Users, Zap, Award, Target, CreditCard, RefreshCw, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { initiateSubscription, initiatePayment, pricingPlans } from "@/utils/paymentUtils";
 
 interface UserDashboardData {
   totalDonated: number;
@@ -177,8 +178,9 @@ export default function MemberPortal() {
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="impact">My Impact</TabsTrigger>
           <TabsTrigger value="rewards">Rewards</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
@@ -291,6 +293,159 @@ export default function MemberPortal() {
                     </Badge>
                   </motion.div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Subscription Tab */}
+        <TabsContent value="subscription" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5" />
+                Subscription & Payments
+              </CardTitle>
+              <CardDescription>
+                Manage your coaching subscriptions and payment methods
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Current Subscription Status */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium text-blue-900">Current Status</h3>
+                      <p className="text-sm text-blue-700">
+                        {user?.stripeSubscriptionId ? 'Active Subscription' : 'No active subscription'}
+                      </p>
+                    </div>
+                    <Badge variant={user?.stripeSubscriptionId ? "default" : "secondary"}>
+                      {user?.stripeSubscriptionId ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Subscription Plans */}
+                <div>
+                  <h3 className="font-medium mb-4">Available Coaching Plans</h3>
+                  <div className="grid gap-4">
+                    {pricingPlans.map((plan) => (
+                      <Card key={plan.id} className={`${plan.popular ? 'border-purple-300' : ''}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-medium">{plan.name}</h4>
+                                {plan.popular && (
+                                  <Badge className="bg-purple-100 text-purple-800">Popular</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mb-2">{plan.description}</p>
+                              <div className="text-2xl font-bold text-purple-600">
+                                {plan.displayPrice}
+                                <span className="text-sm font-normal text-gray-500">
+                                  /{plan.interval}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Button 
+                                onClick={() => initiateSubscription(plan.id)}
+                                className="bg-purple-600 hover:bg-purple-700"
+                              >
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Subscribe
+                              </Button>
+                              <Button 
+                                onClick={() => initiatePayment(plan.price, `One-time ${plan.name} session`)}
+                                variant="outline"
+                              >
+                                One-time Payment
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="mt-4 pt-4 border-t">
+                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                              {plan.features.slice(0, 4).map((feature, index) => (
+                                <div key={index} className="flex items-center gap-1">
+                                  <Star className="h-3 w-3 text-green-500" />
+                                  <span>{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <CreditCard className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                      <h4 className="font-medium mb-2">One-time Session</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Book a single coaching session
+                      </p>
+                      <Button 
+                        onClick={() => initiatePayment(9000, 'Single coaching session')}
+                        size="sm"
+                        className="w-full"
+                      >
+                        $90 - Book Now
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <RefreshCw className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                      <h4 className="font-medium mb-2">Monthly Plan</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Most popular recurring option
+                      </p>
+                      <Button 
+                        onClick={() => initiateSubscription('monthly')}
+                        size="sm"
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                      >
+                        $90/month
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <Crown className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
+                      <h4 className="font-medium mb-2">Weekly Plan</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Intensive support program
+                      </p>
+                      <Button 
+                        onClick={() => initiateSubscription('weekly')}
+                        size="sm"
+                        className="w-full bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        $80/week
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Payment Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Payment Information</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p>• All payments are processed securely through Stripe</p>
+                    <p>• Subscriptions can be cancelled anytime from this portal</p>
+                    <p>• You'll receive email confirmations for all transactions</p>
+                    <p>• Questions? Contact us at hello@wholewellnesscoaching.org</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

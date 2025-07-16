@@ -290,6 +290,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Payment Processing Routes
+  app.post('/api/create-payment-intent', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!stripe) {
+        return res.status(500).json({ message: 'Payment processing not configured' });
+      }
+
+      const { amount, currency = 'usd', description = 'Coaching Services' } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Invalid amount' });
+      }
+
+      const user = req.user;
+      
+      // Create or get Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+        });
+        stripeCustomerId = customer.id;
+        await donationStorage.updateUser(user.id, { stripeCustomerId });
+      }
+
+      // Create payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount, // Amount should already be in cents
+        currency,
+        customer: stripeCustomerId,
+        description,
+        metadata: {
+          userId: user.id,
+          userEmail: user.email,
+        },
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error('Error creating payment intent:', error);
+      res.status(500).json({ message: error.message || 'Failed to create payment intent' });
+    }
+  });
+
+  // If a paid subscription is required, use the endpoint below.
+  app.post('/api/get-or-create-subscription', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!stripe) {
+        return res.status(500).json({ message: 'Payment processing not configured' });
+      }
+
+      const user = req.user;
+      const { planId, planName, planPrice } = req.body;
+
+      // Check if user already has a subscription
+      if (user.stripeSubscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        
+        if (subscription.status === 'active') {
+          const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string);
+          res.json({
+            subscriptionId: subscription.id,
+            clientSecret: invoice.payment_intent?.client_secret,
+          });
+          return;
+        }
+      }
+      
+      if (!user.email) {
+        throw new Error('No user email on file');
+      }
+
+      // Create or get Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+        });
+        stripeCustomerId = customer.id;
+        await donationStorage.updateUser(user.id, { stripeCustomerId });
+      }
+
+      // Plan pricing mapping
+      const planPrices = {
+        weekly: 8000, // $80/week
+        biweekly: 16000, // $160/month (2 sessions)
+        monthly: 9000, // $90/month
+      };
+
+      const amount = planPrices[planId as keyof typeof planPrices] || planPrices.monthly;
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `${planName} - Whole Wellness Coaching`,
+            },
+            unit_amount: amount,
+            recurring: {
+              interval: planId === 'weekly' ? 'week' : 'month',
+            },
+          },
+        }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: {
+          save_default_payment_method: 'on_subscription',
+        },
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      // Update user with subscription info
+      await donationStorage.updateUser(user.id, {
+        stripeSubscriptionId: subscription.id
+      });
+  
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+      });
+    } catch (error: any) {
+      console.error('Subscription creation error:', error);
+      return res.status(400).json({ error: { message: error.message } });
+    }
+  });
+
   // Donation Routes
   app.get('/api/donations/presets', async (req, res) => {
     try {
