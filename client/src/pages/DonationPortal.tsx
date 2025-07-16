@@ -101,34 +101,34 @@ export default function DonationPortal() {
 
   // Fetch donation presets
   const { data: presets, isLoading: presetsLoading } = useQuery<DonationPreset[]>({
-    queryKey: ["/api/donation-presets"],
+    queryKey: ["/api/donation/donation-presets"],
   });
 
   // Fetch active campaigns
   const { data: campaigns, isLoading: campaignsLoading } = useQuery<Campaign[]>({
-    queryKey: ["/api/campaigns"],
+    queryKey: ["/api/donation/campaigns"],
   });
 
   // Fetch membership benefits
   const { data: benefits, isLoading: benefitsLoading } = useQuery<MembershipBenefit[]>({
-    queryKey: ["/api/membership-benefits"],
+    queryKey: ["/api/donation/membership-benefits"],
   });
 
   // Fetch user donations (if authenticated)
   const { data: userDonations, isLoading: donationsLoading } = useQuery<UserDonation[]>({
-    queryKey: ["/api/user/donations"],
+    queryKey: ["/api/donation/user/donations"],
     enabled: isAuthenticated,
   });
 
   // Fetch impact metrics
   const { data: impactMetrics, isLoading: impactLoading } = useQuery<ImpactMetric[]>({
-    queryKey: ["/api/impact-metrics"],
+    queryKey: ["/api/donation/impact-metrics"],
   });
 
   // Create donation mutation
   const createDonationMutation = useMutation({
     mutationFn: async (donationData: any) => {
-      const response = await apiRequest("POST", "/api/donations", donationData);
+      const response = await apiRequest("POST", "/api/donation/donations", donationData);
       return response.json();
     },
     onSuccess: (data) => {
@@ -355,12 +355,12 @@ export default function DonationPortal() {
                   {/* Campaign Selection */}
                   <div>
                     <Label className="text-base font-medium mb-3 block">Support a Campaign (Optional)</Label>
-                    <Select value={selectedCampaign || ""} onValueChange={setSelectedCampaign}>
+                    <Select value={selectedCampaign || "general"} onValueChange={setSelectedCampaign}>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose a campaign or general fund" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">General Fund</SelectItem>
+                        <SelectItem value="general">General Fund</SelectItem>
                         {campaigns?.map((campaign) => (
                           <SelectItem key={campaign.id} value={campaign.id}>
                             {campaign.title}
@@ -572,13 +572,17 @@ export default function DonationPortal() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {impactMetrics?.map((metric) => (
+                    {Array.isArray(impactMetrics) ? impactMetrics.map((metric) => (
                       <div key={metric.id} className="text-center">
                         <div className="text-3xl font-bold text-primary mb-2">{metric.value}</div>
                         <div className="text-sm font-medium text-gray-700">{metric.metric}</div>
                         <div className="text-xs text-gray-500 mt-1">{metric.description}</div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="col-span-full text-center py-8">
+                        <p className="text-gray-500">Impact metrics will be displayed here as data becomes available.</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
