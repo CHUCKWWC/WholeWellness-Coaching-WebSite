@@ -18,9 +18,9 @@ export default function Hero() {
               A supportive path to personal development for those who need it most.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/booking">
+              <Link href="/digital-onboarding">
                 <Button size="lg" className="bg-primary text-white hover:bg-secondary transition-colors shadow-lg">
-                  Book Free Consultation
+                  Get Started
                 </Button>
               </Link>
               <Link href="/about">

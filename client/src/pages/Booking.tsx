@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -185,19 +186,22 @@ export default function Booking() {
         </div>
       </section>
 
-      {/* Booking Form */}
+      {/* Get Started Section */}
       <section className="py-16 bg-warm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-secondary mb-4">
-              Schedule Your Free Consultation
+              Ready to Begin Your Journey?
             </h2>
-            <p className="text-lg text-gray-600">
-              Ready to get started? Fill out the form below and we'll contact you within 24 hours to schedule your session.
+            <p className="text-lg text-gray-600 mb-8">
+              Start with our comprehensive assessment to get matched with the perfect coach for your needs.
             </p>
+            <Link href="/digital-onboarding">
+              <Button size="lg" className="bg-primary text-white hover:bg-secondary transition-colors shadow-lg">
+                Get Started Now
+              </Button>
+            </Link>
           </div>
-
-          <BookingForm />
         </div>
       </section>
 

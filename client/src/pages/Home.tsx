@@ -268,15 +268,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Booking Section */}
+      {/* Get Started Section */}
       <section className="py-16 bg-warm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-secondary mb-4">Schedule Your Free Consultation</h2>
-            <p className="text-lg text-gray-600">Take the first step towards transformation. No commitment required.</p>
+            <h2 className="text-3xl lg:text-4xl font-bold text-secondary mb-4">Ready to Transform Your Life?</h2>
+            <p className="text-lg text-gray-600 mb-8">Begin your wellness journey with our comprehensive assessment and personalized coaching match.</p>
+            <Link href="/digital-onboarding">
+              <Button size="lg" className="bg-primary text-white hover:bg-secondary transition-colors shadow-lg">
+                Get Started Today
+              </Button>
+            </Link>
           </div>
-          
-          <BookingForm />
         </div>
       </section>
 

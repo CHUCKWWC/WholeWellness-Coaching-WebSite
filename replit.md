@@ -226,6 +226,7 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - **UPDATED**: Onboarding now follows BetterHelp/Talkspace model with upfront payment and personalized matching
   - **FIXED**: Corrected apiRequest parameter ordering in OnboardingContext (method comes first, then URL)
   - **ENHANCED**: Onboarding now works for non-authenticated users with local storage until account creation
+  - **UPDATED**: Replaced all "Book Free Consultation" buttons with "Get Started" buttons that link to digital onboarding
 
 ## User Preferences
 
