@@ -184,7 +184,7 @@ export default function Navigation() {
                     <AuthForm />
                   </DialogContent>
                 </Dialog>
-                <Link href="/booking">
+                <Link href="/digital-onboarding">
                   <Button className="bg-primary text-white hover:bg-secondary">
                     Get Started
                   </Button>

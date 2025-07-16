@@ -60,6 +60,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2023-10-16',
     });
+  } else {
+    console.warn('Stripe secret key not found. Payment features will be disabled.');
   }
 
   // Session management functions
@@ -103,14 +105,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Hash password and create user
       const passwordHash = await hashPassword(userData.password);
+      const { phone, onboardingData, ...createUserData } = req.body;
       const user = await storage.createUser({
-        ...userData,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
         passwordHash,
         id: uuidv4(),
         membershipLevel: 'free',
         donationTotal: '0',
         rewardPoints: 0,
+        phone: phone || null,
       });
+
+      // Save onboarding data if provided
+      if (onboardingData) {
+        await onboardingService.saveOnboardingData(user.id, onboardingData);
+      }
       
       // Create session
       const sessionToken = await createSession(user.id);
@@ -495,6 +506,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Reward redemption error:', error);
       res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Create subscription payment intent
+  app.post('/api/create-subscription', async (req, res) => {
+    if (!stripe) {
+      return res.status(400).json({ message: 'Stripe not configured' });
+    }
+
+    try {
+      const { userId, priceAmount, planId } = req.body;
+
+      if (!userId || !priceAmount || !planId) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      // Create or retrieve Stripe customer
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          metadata: {
+            userId: user.id,
+          },
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+
+      // Create payment intent for subscription
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: priceAmount,
+        currency: 'usd',
+        customer: stripeCustomerId,
+        setup_future_usage: 'off_session',
+        metadata: {
+          userId: user.id,
+          planId: planId,
+          type: 'subscription',
+        },
+      });
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        userId: user.id,
+      });
+    } catch (error: any) {
+      console.error('Subscription creation error:', error);
+      res.status(500).json({ message: error.message || 'Failed to create subscription' });
     }
   });
 

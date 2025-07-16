@@ -6,7 +6,12 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Lock, Shield, Info } from 'lucide-react';
+import { CreditCard, Lock, Shield, Info, CheckCircle, Loader2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 interface AccountPaymentStepProps {
   onValidChange: (isValid: boolean) => void;
@@ -36,17 +41,127 @@ const pricingPlans = [
   }
 ];
 
+// Load Stripe outside component
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY 
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+  : null;
+
+function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/onboarding-complete`,
+      },
+      redirect: 'if_required',
+    });
+
+    if (error) {
+      toast({
+        title: "Payment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={!stripe || isProcessing}
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          'Complete Registration & Payment'
+        )}
+      </Button>
+    </form>
+  );
+}
+
 export default function AccountPaymentStep({ onValidChange }: AccountPaymentStepProps) {
   const { data, updateData } = useOnboarding();
+  const { toast } = useToast();
   const [email, setEmail] = useState(data.email || '');
   const [phone, setPhone] = useState(data.phone || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState(data.firstName || '');
+  const [lastName, setLastName] = useState(data.lastName || '');
   const [selectedPlan, setSelectedPlan] = useState(data.selectedPlan || '');
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [billingName, setBillingName] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+
+  // Registration mutation
+  const registerMutation = useMutation({
+    mutationFn: async () => {
+      // First, create the user account
+      const registerResponse = await apiRequest("POST", "/api/auth/register", {
+        email,
+        password,
+        firstName,
+        lastName,
+        phone,
+        onboardingData: data
+      });
+
+      const user = await registerResponse.json();
+
+      // Then create payment intent for the selected plan
+      const planPrices = {
+        weekly: 32000, // $320/month (80*4)
+        biweekly: 16000, // $160/month
+        monthly: 9000, // $90/month
+      };
+
+      const paymentResponse = await apiRequest("POST", "/api/create-subscription", {
+        userId: user.id,
+        priceAmount: planPrices[selectedPlan as keyof typeof planPrices],
+        planId: selectedPlan,
+      });
+
+      return paymentResponse.json();
+    },
+    onSuccess: (data) => {
+      setClientSecret(data.clientSecret);
+      setIsRegistered(true);
+      updateData({ userId: data.userId });
+      toast({
+        title: "Account Created!",
+        description: "Please complete payment to finalize your registration.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Failed to create account",
+        variant: "destructive",
+      });
+    },
+  });
 
   useEffect(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,30 +169,54 @@ export default function AccountPaymentStep({ onValidChange }: AccountPaymentStep
                    phone.length === 10 &&
                    password.length >= 8 &&
                    password === confirmPassword &&
-                   selectedPlan !== '' &&
-                   cardNumber.length === 16 &&
-                   expiryDate.length === 5 &&
-                   cvv.length === 3 &&
-                   billingName.length >= 2;
-    onValidChange(isValid);
-  }, [email, phone, password, confirmPassword, selectedPlan, cardNumber, expiryDate, cvv, billingName, onValidChange]);
+                   firstName.length >= 1 &&
+                   lastName.length >= 1 &&
+                   selectedPlan !== '';
+    onValidChange(isValid && !isRegistered);
+  }, [email, phone, password, confirmPassword, firstName, lastName, selectedPlan, isRegistered, onValidChange]);
 
   useEffect(() => {
     updateData({
       email,
       phone,
+      firstName,
+      lastName,
       selectedPlan,
-      // Note: We don't store sensitive payment data in the onboarding context
     });
-  }, [email, phone, selectedPlan, updateData]);
+  }, [email, phone, firstName, lastName, selectedPlan, updateData]);
 
-  const formatExpiryDate = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
-    }
-    return cleaned;
+  const handlePaymentSuccess = () => {
+    toast({
+      title: "Payment Successful!",
+      description: "Your registration is complete. Check your email for confirmation.",
+    });
+    updateData({ isComplete: true });
+    onValidChange(false); // Disable next button since we're done
   };
+
+  if (isRegistered && clientSecret && stripePromise) {
+    return (
+      <div className="space-y-6">
+        <Alert className="border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            Account created successfully! Complete your payment to finalize registration.
+          </AlertDescription>
+        </Alert>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Complete Payment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <PaymentForm clientSecret={clientSecret} onSuccess={handlePaymentSuccess} />
+            </Elements>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -94,6 +233,27 @@ export default function AccountPaymentStep({ onValidChange }: AccountPaymentStep
           <CardTitle>Create Your Account</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name *</Label>
+              <Input
+                id="firstName"
+                placeholder="John"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name *</Label>
+              <Input
+                id="lastName"
+                placeholder="Doe"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="email">Email Address *</Label>
             <Input
@@ -183,77 +343,27 @@ export default function AccountPaymentStep({ onValidChange }: AccountPaymentStep
         </RadioGroup>
       </div>
 
-      {/* Payment Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payment Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert>
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
-              Your payment information is encrypted and processed securely through our PCI-compliant payment processor.
-            </AlertDescription>
-          </Alert>
-
-          <div>
-            <Label htmlFor="billing-name">Name on Card *</Label>
-            <Input
-              id="billing-name"
-              placeholder="John Doe"
-              value={billingName}
-              onChange={(e) => setBillingName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="card-number">Card Number *</Label>
-            <Input
-              id="card-number"
-              placeholder="1234 5678 9012 3456"
-              value={cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\s/g, '');
-                setCardNumber(value.slice(0, 16));
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="expiry">Expiry Date *</Label>
-              <Input
-                id="expiry"
-                placeholder="MM/YY"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                maxLength={5}
-              />
-            </div>
-            <div>
-              <Label htmlFor="cvv">CVV *</Label>
-              <Input
-                id="cvv"
-                placeholder="123"
-                value={cvv}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  setCvv(value.slice(0, 3));
-                }}
-                maxLength={3}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Submit Button */}
+      <Button 
+        onClick={() => registerMutation.mutate()}
+        disabled={registerMutation.isPending || !selectedPlan || password !== confirmPassword}
+        className="w-full"
+        size="lg"
+      >
+        {registerMutation.isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Creating Account...
+          </>
+        ) : (
+          'Create Account & Continue to Payment'
+        )}
+      </Button>
 
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>Important:</strong> Payment is required to reserve your coach and begin the matching process. You'll be matched within 24-48 hours after completing registration.
+          <strong>Important:</strong> After creating your account, you'll be redirected to our secure payment page to complete registration. You'll be matched with a coach within 24-48 hours.
         </AlertDescription>
       </Alert>
     </div>
