@@ -24,25 +24,32 @@ export class EmailService {
   }
 
   private async createEmailTransporter(): Promise<nodemailer.Transporter> {
-    // Try OAuth2 first if credentials are available
+    // Prioritize SMTP with App Password for reliability
+    if (process.env.SMTP_PASS) {
+      console.log('Using SMTP with App Password authentication');
+      return nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    }
+    
+    // Try OAuth2 if SMTP not available
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
       try {
+        console.log('Using OAuth2 authentication');
         return await this.createOAuthTransporter();
       } catch (error) {
-        console.warn('OAuth2 failed, falling back to SMTP:', error.message);
+        console.warn('OAuth2 failed:', error.message);
+        throw new Error('Email authentication failed. Please configure Gmail App Password or OAuth2 credentials.');
       }
     }
     
-    // Fallback to SMTP with App Password
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    throw new Error('No email authentication configured. Please set SMTP_PASS or OAuth2 credentials.');
   }
 
   private async createOAuthTransporter(): Promise<nodemailer.Transporter> {

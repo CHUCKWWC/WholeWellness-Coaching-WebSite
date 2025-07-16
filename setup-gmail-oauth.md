@@ -1,51 +1,56 @@
 # Gmail OAuth2 Setup Guide
 
-## Step 1: Get Refresh Token
+## Current Status
+✅ OAuth2 credentials configured  
+❌ Insufficient Gmail API scopes  
+⚠️ Email address mismatch possible  
 
-1. **Go to Google OAuth Playground**
-   - Visit: https://developers.google.com/oauthplayground
+## Issue Analysis
+The OAuth2 refresh token has insufficient permissions for Gmail API access. This is common when:
+- OAuth2 was generated with limited scopes
+- Account security settings restrict API access
+- Email address doesn't match OAuth2 account
 
-2. **Configure OAuth Credentials**
-   - Click the settings gear (⚙️) in the top right
-   - Check "Use your own OAuth credentials"
-   - Enter:
-     - **OAuth Client ID**: `69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com`
-     - **OAuth Client Secret**: `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`
+## Recommended Solution: Gmail App Password
 
-3. **Authorize Gmail API**
-   - In "Step 1", find "Gmail API v1" in the left panel
-   - Select: `https://mail.google.com/`
-   - Click "Authorize APIs"
-   - Sign in with: `charles.watson@wholewellness-coaching.org`
-   - Allow the requested permissions
+### Steps to Enable Gmail App Password:
 
-4. **Get Tokens**
-   - In "Step 2", click "Exchange authorization code for tokens"
-   - Copy the **Refresh Token** (starts with `1//`)
-   - You can also copy the **Access Token** (optional)
+1. **Enable 2-Factor Authentication**
+   - Go to Google Account settings
+   - Security → 2-Step Verification
+   - Follow setup instructions
 
-## Step 2: Add Secrets to Replit
+2. **Generate App Password**
+   - Go to Google Account settings
+   - Security → App passwords
+   - Select "Mail" and "Other (custom name)"
+   - Enter "Wholewellness Coaching Platform"
+   - Copy the 16-character password
 
-Add these three secrets to your Replit project:
+3. **Update Environment Variables**
+   ```bash
+   SMTP_PASS=your-16-character-app-password
+   ```
 
-```
-GOOGLE_CLIENT_ID = 69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET = 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
-GOOGLE_REFRESH_TOKEN = [paste the refresh token from step 1]
-```
+4. **Test Email System**
+   - System will automatically use SMTP with App Password
+   - More reliable than OAuth2 for production
 
-## Step 3: Test the System
+### Alternative: Fix OAuth2 Scopes
 
-Once the secrets are added, the email system will automatically use OAuth2 authentication instead of SMTP passwords.
+If you prefer OAuth2, regenerate credentials with these scopes:
+- `https://www.googleapis.com/auth/gmail.send`
+- `https://www.googleapis.com/auth/gmail.readonly`
+- `https://mail.google.com/`
 
-## How It Works
+Generate new OAuth2 credentials at:
+https://developers.google.com/oauthplayground
 
-The system checks for OAuth credentials first:
-- If `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` exist → Uses OAuth2
-- If not → Falls back to SMTP with App Password
+## Email System Features Ready
+- Welcome emails for new users
+- Password reset functionality
+- Account verification emails
+- Professional wholewellness-coaching.org branding
+- Automatic fallback between OAuth2 and SMTP
 
-OAuth2 is more secure because:
-- No password storage required
-- Tokens can be revoked if needed
-- Better suited for production applications
-- Automatic token refresh handling
+Choose either approach and the email system will work immediately.

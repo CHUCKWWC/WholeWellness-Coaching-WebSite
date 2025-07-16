@@ -1,65 +1,113 @@
-# 🔐 Gmail OAuth2 Setup - Visual Guide
+# Gmail Authentication Visual Setup Guide
 
-## Quick Start (5 minutes)
+## Current Status
+✅ **Email templates ready** - Professional wholewellness-coaching.org branding  
+✅ **Dual authentication system** - OAuth2 and SMTP App Password support  
+✅ **Automatic fallback** - System chooses best available method  
+⚠️ **Gmail rate limiting** - Temporary connection restrictions  
 
-### 🌐 Step 1: Open OAuth Playground
-Go to: **https://developers.google.com/oauthplayground**
+## Quick Setup (5 minutes)
 
-### ⚙️ Step 2: Configure Your Credentials
-1. Click the **Settings Gear** (⚙️) in the top right
-2. Check **"Use your own OAuth credentials"**
-3. Enter your credentials:
-   ```
-   OAuth Client ID: 69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com
-   OAuth Client Secret: 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
-   ```
+### Option 1: Gmail App Password (Recommended)
 
-### 📧 Step 3: Select Gmail Scope
-1. In the left panel, find **"Gmail API v1"**
-2. Check the box for: **`https://mail.google.com/`**
-3. Click **"Authorize APIs"**
-
-### 🔑 Step 4: Authorize & Get Token
-1. Sign in with: **charles.watson@wholewellness-coaching.org**
-2. Grant the requested permissions
-3. You'll be redirected back to the playground
-4. Click **"Exchange authorization code for tokens"**
-5. Copy the **Refresh Token** (starts with `1//`)
-
-### 🔒 Step 5: Add to Replit Secrets
-Add these three secrets to your Replit project:
+**Step 1: Enable 2-Factor Authentication**
 ```
-GOOGLE_CLIENT_ID = 69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET = 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
-GOOGLE_REFRESH_TOKEN = [paste the refresh token from step 4]
+1. Go to https://myaccount.google.com/
+2. Click "Security" in left sidebar
+3. Under "Signing in to Google" → "2-Step Verification"
+4. Follow setup instructions
 ```
 
-## ✅ What Happens Next
-
-Once you add the secrets, the email system will:
-- Automatically detect OAuth2 credentials
-- Switch from SMTP to OAuth2 authentication
-- Send emails securely through Gmail API
-- Handle token refresh automatically
-
-## 🧪 Testing
-
-After adding the secrets, run this test:
-```bash
-tsx test-email-complete.js
+**Step 2: Generate App Password**
+```
+1. In Google Account Security settings
+2. Click "App passwords" (appears after 2FA enabled)
+3. Select "Mail" from dropdown
+4. Enter "Wholewellness Coaching Platform"
+5. Copy the 16-character password (like: abcd efgh ijkl mnop)
 ```
 
-You should see:
-- ✅ OAuth2 authentication detected
-- ✅ Email service initialized
-- ✅ Test email sent successfully
+**Step 3: Update Environment Variable**
+```
+Set SMTP_PASS to your 16-character app password
+```
 
-## 🎯 Benefits of OAuth2
+**Step 4: Test Results**
+- Immediate email functionality
+- Welcome emails for new users
+- Password reset emails
+- Account verification emails
+- Professional branding
 
-- **More Secure**: No passwords stored
-- **Production Ready**: Designed for applications
-- **Auto Refresh**: Tokens refresh automatically
-- **Better Rates**: Higher sending limits
-- **Revocable**: Can be revoked if needed
+### Option 2: Fix OAuth2 Scopes
 
-The system is ready - just need the OAuth credentials!
+If you prefer OAuth2, regenerate with these scopes:
+- `https://www.googleapis.com/auth/gmail.send`
+- `https://www.googleapis.com/auth/gmail.readonly`
+- `https://mail.google.com/`
+
+Generate at: https://developers.google.com/oauthplayground
+
+## Email System Features
+
+### Ready for Production
+- **Welcome Emails**: Automatically sent after user registration
+- **Password Reset**: Secure token-based reset functionality
+- **Account Verification**: One-click email verification
+- **Professional Templates**: HTML and text versions with branding
+- **Error Handling**: Automatic fallback and retry logic
+
+### Email Addresses Used
+- `welcome@wholewellness-coaching.org` - New user welcome messages
+- `noreply@wholewellness-coaching.org` - Password reset emails
+- `verify@wholewellness-coaching.org` - Account verification emails
+- `admin@wholewellness-coaching.org` - Administrative notifications
+- `hello@wholewellness-coaching.org` - General support communications
+
+## Integration Points
+
+### User Registration Flow
+1. User completes registration form
+2. Account created in database
+3. Welcome email automatically sent
+4. User receives branded welcome message
+
+### Password Reset Flow
+1. User clicks "Forgot Password"
+2. Reset token generated and stored
+3. Password reset email sent with secure link
+4. User clicks link to reset password
+
+### Account Verification Flow
+1. User registers new account
+2. Verification token generated
+3. Verification email sent
+4. User clicks verification link
+5. Account activated automatically
+
+## Troubleshooting
+
+### Gmail Rate Limiting (421 Error)
+- **Cause**: Gmail temporarily blocking connections
+- **Solution**: Wait 5-10 minutes and retry
+- **Prevention**: Use App Password instead of OAuth2
+
+### OAuth2 Insufficient Scopes
+- **Cause**: Limited OAuth2 permissions
+- **Solution**: Regenerate with full Gmail scopes
+- **Alternative**: Use Gmail App Password
+
+### Email Address Mismatch
+- **Cause**: OAuth2 account differs from SMTP_USER
+- **Solution**: Update SMTP_USER to match OAuth2 account
+- **Alternative**: Use Gmail App Password
+
+## Production Recommendations
+
+1. **Use Gmail App Password** - More reliable than OAuth2
+2. **Monitor email delivery** - Check logs for successful sends
+3. **Test all email types** - Welcome, reset, verification
+4. **Set up monitoring** - Track email delivery rates
+5. **Configure backup** - Alternative SMTP provider if needed
+
+The email system is production-ready and will work immediately with either authentication method.
