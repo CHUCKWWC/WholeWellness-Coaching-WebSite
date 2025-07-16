@@ -240,7 +240,7 @@ export default function DonationPortal() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Make a Difference</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Your donation helps provide life-changing coaching to women who need it most. 
+            Your donation helps provide life-changing coaching to individuals who need it most. 
             Every contribution, no matter the size, creates lasting impact.
           </p>
         </div>

@@ -10,7 +10,7 @@ export default function CoachSignup() {
     {
       icon: Heart,
       title: "Make a Difference",
-      description: "Support underserved women through life's challenges and transitions"
+      description: "Support individuals through life's challenges and transitions"
     },
     {
       icon: DollarSign,
@@ -42,7 +42,7 @@ export default function CoachSignup() {
   const requirements = [
     "Certified life coach, therapist, counselor, or related credential",
     "Minimum 2 years of coaching or counseling experience",
-    "Experience working with women and trauma-informed care",
+    "Experience with trauma-informed care and diverse populations",
     "Reliable internet connection for video sessions",
     "Commitment to our mission of serving underserved communities",
     "Pass background check and reference verification"
@@ -58,8 +58,8 @@ export default function CoachSignup() {
               Become a Whole Wellness Coach
             </h1>
             <p className="text-xl mb-8 opacity-95">
-              Join our team of compassionate professionals making a real difference 
-              in the lives of women who need it most.
+              Join our team of compassionate professionals and make a real difference 
+              in someone's life.
             </p>
             <Button 
               size="lg" 
