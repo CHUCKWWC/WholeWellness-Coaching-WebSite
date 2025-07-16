@@ -95,8 +95,9 @@ export default function Footer() {
               © 2024 Wholewellness Coaching. All rights reserved.
             </p>
             <div className="flex space-x-6 text-gray-300">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link href="/coach-signup" className="hover:text-white transition-colors">Become a Coach</Link>
               <a href="#" className="hover:text-white transition-colors">Accessibility</a>
             </div>
           </div>
