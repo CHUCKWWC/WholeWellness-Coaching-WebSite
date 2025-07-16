@@ -1,0 +1,89 @@
+Here is the revised overview for WholeWellnessCoaching.org:
+
+Overview
+The onboarding experience at WholeWellnessCoaching.org is designed to be highly structured, personal, and user-friendly. It begins the moment a user clicks the “Get Started” call-to-action and is characterized by a multi-step guided questionnaire. The process aims to understand the user’s coaching needs and preferences, collect essential background information, and match them with a professional coach who fits their profile.
+
+Step-by-Step Process
+Welcome & Explanation
+
+Users are greeted with an introduction about how WholeWellnessCoaching.org works and the value of finding the right coach.
+
+The onboarding emphasizes confidentiality and personalization, encouraging honest and complete responses.
+
+Coaching Needs & Preferences
+
+Users specify the type of coaching they are seeking (e.g., individual, couple, professional).
+
+Questions cover the motivations for seeking coaching and any preferences for coach characteristics (gender, age, background, specializations, etc.).
+
+Profiling & Understanding Your Goals
+
+Users answer several profiling questions to build a holistic picture, including:
+
+Demographic details (age, gender, occupation).
+
+Relationship status and living situation.
+
+Areas of focus or concern (e.g., stress management, career goals, work-life balance, relationship skills).
+
+Current and past coaching or therapy experiences.
+
+Important Disclaimer: Coaching is not a substitute for clinical therapy or a crisis service. The intake process clarifies that if a user is in crisis or experiencing severe distress, they should contact emergency services. Resources for urgent help are provided before users proceed.
+
+Lifestyle & Scheduling
+
+Users indicate their goals for coaching and preferred times for sessions.
+
+Some limitations noted: users can’t always specify exact days/times they are available at the initial stage, which may cause scheduling issues later.
+
+Consent and Privacy
+
+Users must digitally agree to our privacy policy, terms of service, and consent forms regarding the secure use of their personal data.
+
+Clear explanations and links to our data protection and confidentiality standards are included.
+
+Account Creation & Payment
+
+The user supplies contact details to create a secure account.
+
+Payment information is required before being matched with a coach. Pricing options and billing cycles are explained clearly at this stage.
+
+The up-front payment is necessary to reserve a coach and proceed with the matching process.
+
+Personalized Coach Matching
+
+After payment, the WholeWellnessCoaching.org team carefully reviews the collected profile to personally match users with a coach based on expertise, preferences, and availability.
+
+Users typically receive a match notification within 24-48 hours.
+
+Session Scheduling & Communication
+
+Once matched, users can schedule their first live session (chat, phone, or video) and begin messaging their coach via a secure portal.
+
+Users have access to an in-app chat room, journaling features, and group workshops or webinars.
+
+Post-Onboarding
+
+Users can switch coaches if unsatisfied, providing additional preferences for a new match.
+
+All onboarding answers are retained in the system, forming the basis for ongoing coaching.
+
+User Experience & Design
+The process is visually guided, with a clear progress indicator and step-by-step navigation.
+
+Immediate validation on required questions, but little ability to skip or return to previous steps—inputs cannot be changed once submitted unless restarting.
+
+Accessibility and responsive layout are prioritized, creating a seamless experience on both desktop and mobile.
+
+Support resources and FAQs are available during onboarding for users needing assistance or more information.
+
+Key Observations
+Personalization: The system tailors subsequent questions based on previous responses.
+
+Depth: The questionnaire is comprehensive, covering personal, practical, and preference-based aspects.
+
+Transparency: Terms about privacy and the scope of coaching are made clear before collecting sensitive data.
+
+Limitations: Users report an inability to revisit previous answers and must sometimes restart the onboarding if changes are needed.
+
+Matching & Payment: Matching is contingent upon payment, and the upfront purchase can surprise or deter some users.

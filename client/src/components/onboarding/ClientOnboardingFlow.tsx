@@ -7,24 +7,24 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Import step components
-import PersonalInfoStep from './steps/PersonalInfoStep';
-import GoalsAndNeedsStep from './steps/GoalsAndNeedsStep';
-import HealthAssessmentStep from './steps/HealthAssessmentStep';
-import SupportPreferencesStep from './steps/SupportPreferencesStep';
-import SafetyAssessmentStep from './steps/SafetyAssessmentStep';
-import WelcomePacketStep from './steps/WelcomePacketStep';
-import SchedulingStep from './steps/SchedulingStep';
-import ReviewAndSubmitStep from './steps/ReviewAndSubmitStep';
+import WelcomeExplanationStep from './steps/WelcomeExplanationStep';
+import CoachingNeedsStep from './steps/CoachingNeedsStep';
+import ProfilingGoalsStep from './steps/ProfilingGoalsStep';
+import LifestyleSchedulingStep from './steps/LifestyleSchedulingStep';
+import ConsentPrivacyStep from './steps/ConsentPrivacyStep';
+import AccountPaymentStep from './steps/AccountPaymentStep';
+import CoachMatchingStep from './steps/CoachMatchingStep';
+import SessionSchedulingStep from './steps/SessionSchedulingStep';
 
 const steps = [
-  { title: 'Personal Information', component: PersonalInfoStep },
-  { title: 'Goals & Needs', component: GoalsAndNeedsStep },
-  { title: 'Health Assessment', component: HealthAssessmentStep },
-  { title: 'Support Preferences', component: SupportPreferencesStep },
-  { title: 'Safety Assessment', component: SafetyAssessmentStep },
-  { title: 'Welcome Packet', component: WelcomePacketStep },
-  { title: 'Schedule Discovery Call', component: SchedulingStep },
-  { title: 'Review & Submit', component: ReviewAndSubmitStep }
+  { title: 'Welcome', component: WelcomeExplanationStep },
+  { title: 'Coaching Needs', component: CoachingNeedsStep },
+  { title: 'Your Profile & Goals', component: ProfilingGoalsStep },
+  { title: 'Lifestyle & Scheduling', component: LifestyleSchedulingStep },
+  { title: 'Consent & Privacy', component: ConsentPrivacyStep },
+  { title: 'Account & Payment', component: AccountPaymentStep },
+  { title: 'Coach Matching', component: CoachMatchingStep },
+  { title: 'Schedule Session', component: SessionSchedulingStep }
 ];
 
 export default function ClientOnboardingFlow() {
@@ -64,7 +64,7 @@ export default function ClientOnboardingFlow() {
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold">Welcome to Your Wellness Journey</h2>
+          <h2 className="text-2xl font-bold">Your Personalized Coaching Journey</h2>
           <span className="text-sm text-gray-600">
             Step {currentStep + 1} of {totalSteps}
           </span>
@@ -77,7 +77,10 @@ export default function ClientOnboardingFlow() {
         <CardHeader>
           <CardTitle>{steps[currentStep].title}</CardTitle>
           <CardDescription>
-            Please provide accurate information to help us create the best support plan for you.
+            {currentStep === 0 ? 
+              'Learn how WholeWellnessCoaching.org works and the value of finding the right coach.' :
+              'This information helps us match you with the perfect coach for your needs.'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -112,7 +115,7 @@ export default function ClientOnboardingFlow() {
           disabled={!isValidStep || isLoading}
           className="flex items-center gap-2"
         >
-          {currentStep === totalSteps - 1 ? 'Complete' : 'Next'}
+          {currentStep === totalSteps - 1 ? 'Complete Registration' : 'Next'}
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

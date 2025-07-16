@@ -217,6 +217,13 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Added "Get Started" navigation link pointing to /digital-onboarding
   - Created progress persistence with database integration
   - **COMPLETE**: Comprehensive digital onboarding matching BetterHelp/Talkspace quality standards
+- July 16, 2025. Restructured onboarding flow to match comprehensive questionnaire approach
+  - Updated "Get Started" to direct straight to guided questionnaire (removed client/coach selection)
+  - Created 8-step comprehensive onboarding flow: Welcome, Coaching Needs, Profile & Goals, Lifestyle & Scheduling, Consent & Privacy, Account & Payment, Coach Matching, Session Scheduling
+  - Added crisis intervention disclaimers and emergency resources in profiling step
+  - Implemented secure payment collection with pricing plans during onboarding
+  - Added 24-48 hour coach matching process explanation
+  - **UPDATED**: Onboarding now follows BetterHelp/Talkspace model with upfront payment and personalized matching
 
 ## User Preferences
 
