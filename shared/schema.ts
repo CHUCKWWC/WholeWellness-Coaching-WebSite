@@ -369,6 +369,63 @@ export const coachMetrics = pgTable("coach_metrics", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Onboarding System Tables
+export const onboardingProgress = pgTable("onboarding_progress", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  currentStep: integer("current_step").default(0),
+  totalSteps: integer("total_steps").notNull(),
+  data: jsonb("data").default({}),
+  completed: boolean("completed").default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const clientIntake = pgTable("client_intake", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  primaryGoal: text("primary_goal"),
+  specificChallenges: jsonb("specific_challenges").$type<string[]>().default([]),
+  previousSupport: text("previous_support"),
+  urgencyLevel: varchar("urgency_level"),
+  healthConcerns: jsonb("health_concerns").$type<string[]>().default([]),
+  medications: text("medications"),
+  sleepQuality: integer("sleep_quality"),
+  stressLevel: integer("stress_level"),
+  exerciseFrequency: varchar("exercise_frequency"),
+  coachingStyle: jsonb("coaching_style").$type<string[]>().default([]),
+  sessionFrequency: varchar("session_frequency"),
+  preferredDays: jsonb("preferred_days").$type<string[]>().default([]),
+  preferredTimes: jsonb("preferred_times").$type<string[]>().default([]),
+  communicationPreference: varchar("communication_preference"),
+  emergencyContact: jsonb("emergency_contact"),
+  currentSafetyLevel: integer("current_safety_level"),
+  needsImmediateSupport: boolean("needs_immediate_support").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const coachApplications = pgTable("coach_applications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  bio: text("bio"),
+  location: varchar("location"),
+  linkedIn: varchar("linked_in"),
+  certifications: jsonb("certifications").$type<string[]>().default([]),
+  specializations: jsonb("specializations").$type<string[]>().default([]),
+  yearsOfExperience: integer("years_of_experience"),
+  availability: jsonb("availability"),
+  bankingInfo: jsonb("banking_info"),
+  backgroundCheckConsent: boolean("background_check_consent").default(false),
+  status: varchar("status").default("pending"), // pending, under_review, approved, rejected
+  reviewNotes: text("review_notes"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Mental Wellness Resource Hub
 export const mentalWellnessResources = pgTable("mental_wellness_resources", {
   id: serial("id").primaryKey(),

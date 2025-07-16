@@ -1,0 +1,103 @@
+Goal
+Build an engaging onboarding flow for a mental health/wellness platform that matches or exceeds the client intake quality of BetterHelp and Talkspace. This means a smooth, multi-step guided experience, clear explanations, and real-time feedback. The process should dynamically tailor questions, provide progress visibility, and ensure responsive, accessible UI/UX.
+
+Requirements Overview
+User Flow
+Stepwise Progression: Multi-page/modal interface, each with a clear focus (e.g., demographics, goals, preferences, consent).
+
+State Persistence: Save user progress at each step (local/session storage or backend).
+
+Dynamic Routing/Branching: Adjust next questions/screens based on prior responses.
+
+Progress Indicator: Visual feedback showing number of steps completed/remaining.
+
+Core Functionalities
+Responsive Layout: Ensure mobile and desktop usability.
+
+Form Controls: Multiple choice, checkboxes, text input, sliders, etc.
+
+Validation: Immediate ("onBlur"/"onChange") and on submit—errors must be clear and actionable.
+
+Accessible Markup: All elements (buttons, labels, ARIA tags) must meet accessibility standards.
+
+Key Features from Reference Platforms
+Personalization: Starting with open-ended questions or goals.
+
+Psychometric/Lifestyle Assessments: Series of branching questions.
+
+Consent & Privacy: Digital acknowledgment and policy links.
+
+Matching Logic: Final step gives initial “match”^ (dummy data for MVP unless live backend).
+
+CTA Buttons: Clear navigation (“Continue”, “Go Back”, “Submit”, “Restart”).
+
+Technical Implementation Guidance
+Interface (Frontend)
+Use a robust framework (React, Vue, or similar).
+
+Components are modular and reusable—one per step.
+
+Control navigation with state (e.g., useState, useReducer), or client router for step URLs.
+
+Track form state and updates globally or via context/provider pattern.
+
+Button Action Verification
+To verify that all buttons initiate expected actions:
+
+Unit Tests: Write tests (e.g., Jest/React Testing Library) to confirm click/tap on each button:
+
+Advances step ("Continue" triggers route/state update)
+
+Returns to previous step ("Go Back" toggles state)
+
+Submits data and shows loading feedback ("Submit" reveals spinner, disables double submits)
+
+Visual Feedback: Ensure button has a “pressed” state and loading indicator during async ops.
+
+Event Logging: Log all UI actions (console, log system, or mock API) for QA.
+
+Button Verification Sample Pseudocode:
+
+javascript
+test('Continue button moves to the next step', () => {
+  render(<OnboardingFlow />);
+  fireEvent.click(screen.getByText('Continue'));
+  expect(screen.getByTestId('step-progress')).toHaveTextContent('Step 2');
+});
+Backend Integration
+Store stepwise answers in session/context and persist to API when done.
+
+Implement endpoint mocks for QA if backend is unavailable.
+
+Include schema example for intake responses.
+
+Accessibility & Compliance
+Use semantic HTML and label all inputs/buttons.
+
+Ensure keyboard and screen reader navigation.
+
+Show clear error feedback tied to inputs.
+
+Testing
+Unit and Integration Tests: Cover all form logic, validation, and navigational actions.
+
+E2E Tests: Use Cypress or Playwright to simulate complete user flow—including retries, editing, error handling.
+
+Deliverables Checklist
+Feature	Requirement	Method of Verification
+Multi-step form	Component per step, progress tracker	UI + unit test
+Validation	Per-field, per-step, on submit	UI feedback + test
+Button Actions	Click triggers correct navigation/state	Unit + E2E test
+Responsive design	Mobile/desktop layouts	Media queries + browser QA
+Accessibility	ARIA, labeling, tab order	Manual + automated scan
+Persistent storage	State saved/restored	Simulated reload QA
+Final Notes
+Reference BetterHelp and Talkspace onboarding flows for copy, tone, and screen order.
+
+Provide a user experience that's reassuring, frictionless, and confidential.
+
+Ensure that every primary button translates clearly and instantly to an app action, and that such actions are covered by automated tests.
+
+^ For MVP, “matching” may be simulated; in production, hook to a coach/provider database.
+
+: Review of https://www.betterhelp.com/get-started and related onboarding best practices.

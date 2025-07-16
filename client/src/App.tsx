@@ -37,6 +37,7 @@ import EmailVerification from "@/pages/EmailVerification";
 import HelpDemo from "@/pages/HelpDemo";
 import MentalWellnessHub from "@/pages/MentalWellnessHub";
 import PersonalizedRecommendations from "@/pages/PersonalizedRecommendations";
+import DigitalOnboarding from "@/pages/DigitalOnboarding";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -74,6 +75,7 @@ function Router() {
           <Route path="/help-demo" component={HelpDemo} />
           <Route path="/mental-wellness" component={MentalWellnessHub} />
           <Route path="/personalized-recommendations" component={PersonalizedRecommendations} />
+          <Route path="/digital-onboarding" component={DigitalOnboarding} />
           <Route component={NotFound} />
         </Switch>
       </main>
