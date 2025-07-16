@@ -1,60 +1,50 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './server/supabase.js';
 
-const supabaseUrl = 'https://pwuwmnivvdvdxdewynbo.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY;
-
-console.log('Testing database connection...');
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Key exists:', !!supabaseKey);
-
-if (!supabaseKey) {
-  console.error('SUPABASE_KEY environment variable is not set');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-async function testConnection() {
+async function testDatabaseConnection() {
   try {
-    // Test 1: Check if we can connect to the database
-    const { data, error } = await supabase.from('users').select('count').limit(1);
-    console.log('Database connection test:');
-    console.log('Data:', data);
-    console.log('Error:', error);
-
-    // Test 2: Try to create mental wellness resources table
-    const { data: createData, error: createError } = await supabase.rpc('exec_sql', {
-      sql: `CREATE TABLE IF NOT EXISTS mental_wellness_resources (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR NOT NULL,
-        description TEXT NOT NULL,
-        category VARCHAR NOT NULL,
-        resource_type VARCHAR NOT NULL,
-        url TEXT,
-        phone_number VARCHAR,
-        is_emergency BOOLEAN DEFAULT FALSE,
-        availability VARCHAR,
-        languages JSONB DEFAULT '["English"]',
-        cost_info VARCHAR,
-        target_audience VARCHAR,
-        rating DECIMAL(3,2),
-        usage_count INTEGER DEFAULT 0,
-        tags JSONB DEFAULT '[]',
-        is_active BOOLEAN DEFAULT TRUE,
-        is_featured BOOLEAN DEFAULT FALSE,
-        verification_status VARCHAR DEFAULT 'verified',
-        last_verified TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-      );`
-    });
-    console.log('Create table test:');
-    console.log('Data:', createData);
-    console.log('Error:', createError);
-
+    console.log('Testing database connection...');
+    
+    // Test basic connection with users table (which we know exists)
+    const { data: users, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    
+    if (userError) {
+      console.error('Connection error:', userError.message);
+      return false;
+    }
+    
+    console.log('✅ Database connection successful');
+    console.log('✅ Users table accessible');
+    
+    // Test if knowledge_base table exists
+    const { data: kbData, error: kbError } = await supabase
+      .from('knowledge_base')
+      .select('*')
+      .limit(1);
+    
+    if (kbError) {
+      if (kbError.message.includes('does not exist')) {
+        console.log('❌ Knowledge base table does not exist');
+        console.log('📋 You need to create the knowledge base tables manually');
+        console.log('📄 Run the SQL script: supabase-knowledge-base-schema.sql');
+        console.log('📍 In your Supabase dashboard > SQL Editor');
+        return false;
+      } else {
+        console.error('Knowledge base error:', kbError.message);
+        return false;
+      }
+    } else {
+      console.log('✅ Knowledge base table exists!');
+      console.log('📊 Articles found:', kbData.length);
+      return true;
+    }
+    
   } catch (error) {
-    console.error('Connection test failed:', error);
+    console.error('❌ Unexpected error:', error.message);
+    return false;
   }
 }
 
-testConnection();
+testDatabaseConnection();
