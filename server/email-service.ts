@@ -11,6 +11,7 @@ interface EmailTemplate {
 
 export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
+  private gmailApi: any = null;
 
   constructor() {
     // Transporter will be initialized on first use
@@ -21,6 +22,51 @@ export class EmailService {
       this.transporter = await this.createEmailTransporter();
     }
     return this.transporter;
+  }
+
+  private async createGmailAPI() {
+    if (!this.gmailApi) {
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        'https://developers.google.com/oauthplayground'
+      );
+
+      oauth2Client.setCredentials({
+        refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+      });
+
+      this.gmailApi = google.gmail({ version: 'v1', auth: oauth2Client });
+    }
+    return this.gmailApi;
+  }
+
+  private async sendViaGmailAPI(to: string, subject: string, html: string, text: string, from?: string): Promise<void> {
+    const gmail = await this.createGmailAPI();
+    const senderEmail = from || process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org';
+
+    const message = [
+      `From: ${senderEmail}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=utf-8',
+      '',
+      html
+    ].join('\n');
+
+    const encodedMessage = Buffer.from(message)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage,
+      },
+    });
   }
 
   private async createEmailTransporter(): Promise<nodemailer.Transporter> {
@@ -50,6 +96,31 @@ export class EmailService {
     }
     
     throw new Error('No email authentication configured. Please set SMTP_PASS or OAuth2 credentials.');
+  }
+
+  private async sendEmailWithFallback(to: string, subject: string, html: string, text: string, from?: string): Promise<void> {
+    // Try Gmail API first (most reliable with OAuth2)
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
+      try {
+        console.log('Sending email via Gmail API');
+        await this.sendViaGmailAPI(to, subject, html, text, from);
+        console.log(`Email sent successfully via Gmail API to: ${to}`);
+        return;
+      } catch (error) {
+        console.warn('Gmail API failed, falling back to SMTP:', error.message);
+      }
+    }
+
+    // Fallback to SMTP transporter
+    const transporter = await this.ensureTransporter();
+    await transporter.sendMail({
+      from: from || process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org',
+      to: to,
+      subject: subject,
+      html: html,
+      text: text,
+    });
+    console.log(`Email sent successfully via SMTP to: ${to}`);
   }
 
   private async createOAuthTransporter(): Promise<nodemailer.Transporter> {
@@ -83,18 +154,15 @@ export class EmailService {
   // Send welcome email to new users
   async sendWelcomeEmail(userEmail: string, firstName: string): Promise<void> {
     const template = this.getWelcomeEmailTemplate(firstName);
-    const transporter = await this.ensureTransporter();
     
     try {
-      await transporter.sendMail({
-        from: process.env.FROM_EMAIL || 'welcome@wholewellness-coaching.org',
-        to: userEmail,
-        subject: template.subject,
-        html: template.html,
-        text: template.text,
-      });
-      
-      console.log(`Welcome email sent to: ${userEmail}`);
+      await this.sendEmailWithFallback(
+        userEmail,
+        template.subject,
+        template.html,
+        template.text,
+        'welcome@wholewellness-coaching.org'
+      );
     } catch (error) {
       console.error('Error sending welcome email:', error);
       throw error;
@@ -104,18 +172,15 @@ export class EmailService {
   // Send password reset email
   async sendPasswordResetEmail(userEmail: string, resetToken: string): Promise<void> {
     const template = this.getPasswordResetEmailTemplate(resetToken);
-    const transporter = await this.ensureTransporter();
     
     try {
-      await transporter.sendMail({
-        from: process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org',
-        to: userEmail,
-        subject: template.subject,
-        html: template.html,
-        text: template.text,
-      });
-      
-      console.log(`Password reset email sent to: ${userEmail}`);
+      await this.sendEmailWithFallback(
+        userEmail,
+        template.subject,
+        template.html,
+        template.text,
+        'noreply@wholewellness-coaching.org'
+      );
     } catch (error) {
       console.error('Error sending password reset email:', error);
       throw error;
@@ -125,18 +190,15 @@ export class EmailService {
   // Send account verification email
   async sendVerificationEmail(userEmail: string, verificationToken: string): Promise<void> {
     const template = this.getVerificationEmailTemplate(verificationToken);
-    const transporter = await this.ensureTransporter();
     
     try {
-      await transporter.sendMail({
-        from: process.env.FROM_EMAIL || 'verify@wholewellness-coaching.org',
-        to: userEmail,
-        subject: template.subject,
-        html: template.html,
-        text: template.text,
-      });
-      
-      console.log(`Verification email sent to: ${userEmail}`);
+      await this.sendEmailWithFallback(
+        userEmail,
+        template.subject,
+        template.html,
+        template.text,
+        'verify@wholewellness-coaching.org'
+      );
     } catch (error) {
       console.error('Error sending verification email:', error);
       throw error;
