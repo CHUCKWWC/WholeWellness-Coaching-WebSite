@@ -176,15 +176,24 @@ export class AuthService {
 // Middleware to require authentication
 export const requireAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token: string | undefined;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Check Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+    
+    // Check session cookie as fallback
+    if (!token && req.cookies && req.cookies.session_token) {
+      token = req.cookies.session_token;
+    }
+    
+    if (!token) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const token = authHeader.substring(7);
     const decoded = AuthService.verifyToken(token);
-
     const user = await AuthService.getUserById(decoded.id);
 
     if (!user) {
@@ -202,12 +211,21 @@ export const requireAuth = async (req: AuthenticatedRequest, res: Response, next
 // Middleware for optional authentication (user might or might not be logged in)
 export const optionalAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token: string | undefined;
     
+    // Check Authorization header first
+    const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+      token = authHeader.substring(7);
+    }
+    
+    // Check session cookie as fallback
+    if (!token && req.cookies && req.cookies.session_token) {
+      token = req.cookies.session_token;
+    }
+    
+    if (token) {
       const decoded = AuthService.verifyToken(token);
-
       const user = await AuthService.getUserById(decoded.id);
       if (user) {
         req.user = user;
