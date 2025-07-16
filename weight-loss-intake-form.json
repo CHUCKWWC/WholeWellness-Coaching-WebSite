@@ -1,0 +1,329 @@
+{
+  "formTitle": "Weight Loss Intake Questionnaire",
+  "formDescription": "Please complete this comprehensive intake form to help us understand your health history, goals, and preferences for personalized weight loss coaching.",
+  "formSections": [
+    {
+      "sectionTitle": "Personal Information",
+      "sectionDescription": "Basic information about you",
+      "fields": [
+        {
+          "fieldName": "fullName",
+          "fieldType": "text",
+          "label": "Full Name",
+          "placeholder": "Enter your full name",
+          "required": true,
+          "validation": {
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        {
+          "fieldName": "email",
+          "fieldType": "email",
+          "label": "Email Address",
+          "placeholder": "your.email@example.com",
+          "required": true,
+          "validation": {
+            "format": "email"
+          }
+        },
+        {
+          "fieldName": "phone",
+          "fieldType": "tel",
+          "label": "Phone Number",
+          "placeholder": "(555) 123-4567",
+          "required": false,
+          "validation": {
+            "format": "phone"
+          }
+        },
+        {
+          "fieldName": "age",
+          "fieldType": "number",
+          "label": "Age",
+          "placeholder": "Enter your age",
+          "required": true,
+          "validation": {
+            "min": 18,
+            "max": 120,
+            "message": "Must be 18 or older"
+          }
+        }
+      ]
+    },
+    {
+      "sectionTitle": "Physical Information",
+      "sectionDescription": "Your current physical stats and goals",
+      "fields": [
+        {
+          "fieldName": "height",
+          "fieldType": "text",
+          "label": "Height",
+          "placeholder": "5'6\" or 168 cm",
+          "required": true,
+          "helpText": "Please include units (feet/inches or centimeters)"
+        },
+        {
+          "fieldName": "currentWeight",
+          "fieldType": "text",
+          "label": "Current Weight",
+          "placeholder": "150 lbs or 68 kg",
+          "required": true,
+          "helpText": "Please include units (lbs or kg)"
+        },
+        {
+          "fieldName": "goalWeight",
+          "fieldType": "text",
+          "label": "Goal Weight",
+          "placeholder": "130 lbs or 59 kg",
+          "required": true,
+          "helpText": "Your target weight with units"
+        },
+        {
+          "fieldName": "activityLevel",
+          "fieldType": "select",
+          "label": "Current Activity Level",
+          "required": false,
+          "options": [
+            { "value": "sedentary", "label": "Sedentary (little or no exercise)" },
+            { "value": "lightly_active", "label": "Lightly active (light exercise 1-3 days/week)" },
+            { "value": "moderately_active", "label": "Moderately active (moderate exercise 3-5 days/week)" },
+            { "value": "very_active", "label": "Very active (hard exercise 6-7 days/week)" },
+            { "value": "extremely_active", "label": "Extremely active (very hard exercise, physical job)" }
+          ]
+        }
+      ]
+    },
+    {
+      "sectionTitle": "Medical History",
+      "sectionDescription": "Important health information for safe coaching",
+      "fields": [
+        {
+          "fieldName": "medicalConditions",
+          "fieldType": "textarea",
+          "label": "Medical Conditions",
+          "placeholder": "List any medical conditions, chronic illnesses, or health concerns...",
+          "required": false,
+          "helpText": "Include: diabetes, thyroid issues, heart conditions, high blood pressure, PCOS, etc."
+        },
+        {
+          "fieldName": "medications",
+          "fieldType": "textarea",
+          "label": "Current Medications",
+          "placeholder": "List all medications, supplements, and vitamins you currently take...",
+          "required": false,
+          "helpText": "Include prescription medications, over-the-counter drugs, and supplements"
+        },
+        {
+          "fieldName": "allergies",
+          "fieldType": "textarea",
+          "label": "Food Allergies & Intolerances",
+          "placeholder": "List any food allergies, intolerances, or sensitivities...",
+          "required": false,
+          "helpText": "Include: gluten, dairy, nuts, shellfish, etc."
+        },
+        {
+          "fieldName": "digestiveIssues",
+          "fieldType": "textarea",
+          "label": "Digestive Issues",
+          "placeholder": "Describe any digestive problems or concerns...",
+          "required": false,
+          "helpText": "Include: IBS, acid reflux, bloating, constipation, etc."
+        },
+        {
+          "fieldName": "physicalLimitations",
+          "fieldType": "textarea",
+          "label": "Physical Limitations",
+          "placeholder": "Describe any physical limitations or injuries that affect exercise...",
+          "required": false,
+          "helpText": "Include: joint pain, back problems, mobility issues, recent surgeries, etc."
+        },
+        {
+          "fieldName": "weightLossMedications",
+          "fieldType": "textarea",
+          "label": "Weight Loss Medications",
+          "placeholder": "List any weight loss medications or supplements you've used...",
+          "required": false,
+          "helpText": "Include: Ozempic, Wegovy, Contrave, over-the-counter supplements, etc."
+        }
+      ]
+    },
+    {
+      "sectionTitle": "Weight Loss History",
+      "sectionDescription": "Your previous experiences with weight management",
+      "fields": [
+        {
+          "fieldName": "weightHistory",
+          "fieldType": "textarea",
+          "label": "Weight History",
+          "placeholder": "Describe your weight fluctuations over the years...",
+          "required": false,
+          "helpText": "Include: when you gained weight, life events that affected your weight, patterns you've noticed"
+        },
+        {
+          "fieldName": "previousAttempts",
+          "fieldType": "textarea",
+          "label": "Previous Weight Loss Attempts",
+          "placeholder": "What diets or weight loss programs have you tried? What worked best and why?",
+          "required": false,
+          "helpText": "Include: Keto, Paleo, Low-Carb, Intermittent Fasting, Weight Watchers, etc."
+        },
+        {
+          "fieldName": "challengingAspects",
+          "fieldType": "textarea",
+          "label": "Challenging Aspects",
+          "placeholder": "What has been most challenging about losing weight in the past?",
+          "required": false,
+          "helpText": "Include: cravings, emotional eating, time constraints, motivation, etc."
+        }
+      ]
+    },
+    {
+      "sectionTitle": "Current Lifestyle",
+      "sectionDescription": "Your current eating and lifestyle habits",
+      "fields": [
+        {
+          "fieldName": "currentEatingHabits",
+          "fieldType": "textarea",
+          "label": "Current Eating Habits",
+          "placeholder": "Describe your typical daily eating patterns...",
+          "required": false,
+          "helpText": "Include: meal timing, portion sizes, snacking habits, favorite foods, eating triggers"
+        },
+        {
+          "fieldName": "lifestyle",
+          "fieldType": "textarea",
+          "label": "Lifestyle Factors",
+          "placeholder": "Describe your daily routine, work schedule, and lifestyle factors...",
+          "required": false,
+          "helpText": "Include: work hours, stress levels, sleep patterns, family obligations, social activities"
+        }
+      ]
+    },
+    {
+      "sectionTitle": "Mindset & Goals",
+      "sectionDescription": "Your motivation and expectations",
+      "fields": [
+        {
+          "fieldName": "mindsetFactors",
+          "fieldType": "textarea",
+          "label": "Mindset & Emotional Factors",
+          "placeholder": "Describe your relationship with food and any emotional eating patterns...",
+          "required": false,
+          "helpText": "Include: stress eating, emotional triggers, body image concerns, self-sabotage patterns"
+        },
+        {
+          "fieldName": "goalsExpectations",
+          "fieldType": "textarea",
+          "label": "Goals & Expectations",
+          "placeholder": "What are your specific goals and what do you hope to achieve?",
+          "required": false,
+          "helpText": "Include: timeline, specific outcomes, lifestyle changes, health improvements"
+        },
+        {
+          "fieldName": "interestedInSupplements",
+          "fieldType": "checkbox",
+          "label": "Interested in Supplement Recommendations",
+          "required": false,
+          "defaultValue": false,
+          "helpText": "Check if you're open to receiving information about supplements that may support your weight loss goals"
+        }
+      ]
+    }
+  ],
+  "formSettings": {
+    "enableStepProgress": true,
+    "enableSaveProgress": true,
+    "submitButtonText": "Submit Intake Form",
+    "successMessage": "Thank you for completing the weight loss intake questionnaire. A coach will contact you soon.",
+    "errorMessage": "There was an error submitting your intake form. Please try again.",
+    "requiredFieldsMessage": "Please fill out all required fields before proceeding.",
+    "privacyNotice": "Your information is confidential and will only be used to provide personalized coaching services. We do not share your data with third parties."
+  },
+  "formValidation": {
+    "totalFields": 21,
+    "requiredFields": 5,
+    "estimatedCompletionTime": "10-15 minutes",
+    "fieldValidationRules": {
+      "fullName": {
+        "required": true,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "email": {
+        "required": true,
+        "format": "email"
+      },
+      "age": {
+        "required": true,
+        "min": 18,
+        "max": 120
+      },
+      "height": {
+        "required": true,
+        "minLength": 2
+      },
+      "currentWeight": {
+        "required": true,
+        "minLength": 2
+      },
+      "goalWeight": {
+        "required": true,
+        "minLength": 2
+      }
+    }
+  },
+  "databaseMapping": {
+    "tableName": "weight_loss_intakes",
+    "primaryKey": "id",
+    "statusField": "status",
+    "createdAtField": "created_at",
+    "fieldMapping": {
+      "fullName": "full_name",
+      "email": "email",
+      "phone": "phone",
+      "age": "age",
+      "height": "height",
+      "currentWeight": "current_weight",
+      "goalWeight": "goal_weight",
+      "medicalConditions": "medical_conditions",
+      "medications": "medications",
+      "allergies": "allergies",
+      "digestiveIssues": "digestive_issues",
+      "physicalLimitations": "physical_limitations",
+      "weightLossMedications": "weight_loss_medications",
+      "weightHistory": "weight_history",
+      "previousAttempts": "previous_attempts",
+      "challengingAspects": "challenging_aspects",
+      "currentEatingHabits": "current_eating_habits",
+      "lifestyle": "lifestyle",
+      "activityLevel": "activity_level",
+      "mindsetFactors": "mindset_factors",
+      "goalsExpectations": "goals_expectations",
+      "interestedInSupplements": "interested_in_supplements"
+    }
+  },
+  "apiEndpoints": {
+    "create": "/api/weight-loss-intakes",
+    "read": "/api/weight-loss-intakes/:id",
+    "update": "/api/weight-loss-intakes/:id",
+    "list": "/api/weight-loss-intakes"
+  },
+  "integrations": {
+    "emailNotifications": {
+      "enabled": true,
+      "adminEmail": "admin@wholewellnesscoaching.org",
+      "clientConfirmation": true,
+      "templates": {
+        "adminNotification": "New weight loss intake form submitted",
+        "clientConfirmation": "Thank you for your weight loss intake submission"
+      }
+    },
+    "coachAssignment": {
+      "enabled": true,
+      "autoAssign": false,
+      "specialtyMatching": true,
+      "notificationDelay": "24-48 hours"
+    }
+  }
+}
