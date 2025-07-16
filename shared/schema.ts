@@ -588,6 +588,94 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Knowledge Base Tables
+export const knowledgeBase = pgTable("knowledge_base", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(),
+  slug: varchar("slug").unique().notNull(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  category: varchar("category").notNull(), // FAQ, Guide, Tutorial, Documentation, Policy
+  subcategory: varchar("subcategory"), // Specific topic area
+  tags: jsonb("tags").$type<string[]>().default([]),
+  status: varchar("status").default("published"), // draft, published, archived
+  priority: integer("priority").default(0), // For ordering/importance
+  difficulty: varchar("difficulty"), // beginner, intermediate, advanced
+  estimatedReadTime: integer("estimated_read_time"), // in minutes
+  viewCount: integer("view_count").default(0),
+  helpfulCount: integer("helpful_count").default(0),
+  notHelpfulCount: integer("not_helpful_count").default(0),
+  searchKeywords: text("search_keywords"), // Additional search terms
+  relatedArticles: jsonb("related_articles").$type<number[]>().default([]),
+  featuredImage: text("featured_image"),
+  metaDescription: text("meta_description"),
+  metaKeywords: text("meta_keywords"),
+  authorId: varchar("author_id").references(() => users.id),
+  authorName: varchar("author_name").default("Admin"),
+  lastReviewedBy: varchar("last_reviewed_by").references(() => users.id),
+  lastReviewedAt: timestamp("last_reviewed_at"),
+  isPublic: boolean("is_public").default(true),
+  requiresAuth: boolean("requires_auth").default(false),
+  targetAudience: varchar("target_audience").default("general"), // general, clients, coaches, admin
+  language: varchar("language").default("en"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const knowledgeBaseCategories = pgTable("knowledge_base_categories", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  slug: varchar("slug").unique().notNull(),
+  description: text("description"),
+  icon: varchar("icon"), // Icon name or URL
+  color: varchar("color"), // Hex color code
+  parentId: integer("parent_id").references(() => knowledgeBaseCategories.id),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const knowledgeBaseFeedback = pgTable("knowledge_base_feedback", {
+  id: serial("id").primaryKey(),
+  articleId: integer("article_id").references(() => knowledgeBase.id).notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // For anonymous feedback
+  wasHelpful: boolean("was_helpful").notNull(),
+  feedback: text("feedback"),
+  improvementSuggestions: text("improvement_suggestions"),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeBaseViews = pgTable("knowledge_base_views", {
+  id: serial("id").primaryKey(),
+  articleId: integer("article_id").references(() => knowledgeBase.id).notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // For anonymous views
+  viewDuration: integer("view_duration"), // in seconds
+  completedReading: boolean("completed_reading").default(false),
+  exitPoint: varchar("exit_point"), // Where user left the article
+  referrer: text("referrer"),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const knowledgeBaseSearch = pgTable("knowledge_base_search", {
+  id: serial("id").primaryKey(),
+  query: text("query").notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"), // For anonymous searches
+  resultsCount: integer("results_count").default(0),
+  selectedResultId: integer("selected_result_id").references(() => knowledgeBase.id),
+  wasSuccessful: boolean("was_successful").default(false),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   donations: many(donations),
@@ -642,6 +730,61 @@ export const contentBlocksRelations = relations(contentBlocks, ({ one }) => ({
   page: one(contentPages, {
     fields: [contentBlocks.pageId],
     references: [contentPages.id],
+  }),
+}));
+
+// Knowledge Base Relations
+export const knowledgeBaseRelations = relations(knowledgeBase, ({ one, many }) => ({
+  author: one(users, {
+    fields: [knowledgeBase.authorId],
+    references: [users.id],
+  }),
+  reviewedBy: one(users, {
+    fields: [knowledgeBase.lastReviewedBy],
+    references: [users.id],
+  }),
+  feedback: many(knowledgeBaseFeedback),
+  views: many(knowledgeBaseViews),
+}));
+
+export const knowledgeBaseCategoriesRelations = relations(knowledgeBaseCategories, ({ one, many }) => ({
+  parent: one(knowledgeBaseCategories, {
+    fields: [knowledgeBaseCategories.parentId],
+    references: [knowledgeBaseCategories.id],
+  }),
+  children: many(knowledgeBaseCategories),
+}));
+
+export const knowledgeBaseFeedbackRelations = relations(knowledgeBaseFeedback, ({ one }) => ({
+  article: one(knowledgeBase, {
+    fields: [knowledgeBaseFeedback.articleId],
+    references: [knowledgeBase.id],
+  }),
+  user: one(users, {
+    fields: [knowledgeBaseFeedback.userId],
+    references: [users.id],
+  }),
+}));
+
+export const knowledgeBaseViewsRelations = relations(knowledgeBaseViews, ({ one }) => ({
+  article: one(knowledgeBase, {
+    fields: [knowledgeBaseViews.articleId],
+    references: [knowledgeBase.id],
+  }),
+  user: one(users, {
+    fields: [knowledgeBaseViews.userId],
+    references: [users.id],
+  }),
+}));
+
+export const knowledgeBaseSearchRelations = relations(knowledgeBaseSearch, ({ one }) => ({
+  selectedResult: one(knowledgeBase, {
+    fields: [knowledgeBaseSearch.selectedResultId],
+    references: [knowledgeBase.id],
+  }),
+  user: one(users, {
+    fields: [knowledgeBaseSearch.userId],
+    references: [users.id],
   }),
 }));
 
@@ -831,6 +974,37 @@ export const insertPersonalizedRecommendationSchema = createInsertSchema(persona
   generatedAt: true,
 });
 
+// Knowledge Base Insert Schemas
+export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({
+  id: true,
+  viewCount: true,
+  helpfulCount: true,
+  notHelpfulCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeBaseCategorySchema = createInsertSchema(knowledgeBaseCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeBaseFeedbackSchema = createInsertSchema(knowledgeBaseFeedback).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeBaseViewSchema = createInsertSchema(knowledgeBaseViews).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKnowledgeBaseSearchSchema = createInsertSchema(knowledgeBaseSearch).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -899,6 +1073,18 @@ export type NavigationMenu = typeof navigationMenus.$inferSelect;
 export type InsertNavigationMenu = z.infer<typeof insertNavigationSchema>;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+
+// Knowledge Base Types
+export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
+export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;
+export type KnowledgeBaseCategory = typeof knowledgeBaseCategories.$inferSelect;
+export type InsertKnowledgeBaseCategory = z.infer<typeof insertKnowledgeBaseCategorySchema>;
+export type KnowledgeBaseFeedback = typeof knowledgeBaseFeedback.$inferSelect;
+export type InsertKnowledgeBaseFeedback = z.infer<typeof insertKnowledgeBaseFeedbackSchema>;
+export type KnowledgeBaseView = typeof knowledgeBaseViews.$inferSelect;
+export type InsertKnowledgeBaseView = z.infer<typeof insertKnowledgeBaseViewSchema>;
+export type KnowledgeBaseSearch = typeof knowledgeBaseSearch.$inferSelect;
+export type InsertKnowledgeBaseSearch = z.infer<typeof insertKnowledgeBaseSearchSchema>;
 
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
