@@ -40,6 +40,7 @@ import PersonalizedRecommendations from "@/pages/PersonalizedRecommendations";
 import DigitalOnboarding from "@/pages/DigitalOnboarding";
 import CoachOnboarding from "@/pages/CoachOnboarding";
 import CoachSignup from "@/pages/CoachSignup";
+import CoachProfile from "@/pages/CoachProfile";
 import Checkout from "@/pages/Checkout";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Subscribe from "@/pages/Subscribe";
@@ -84,6 +85,7 @@ function Router() {
           <Route path="/digital-onboarding" component={DigitalOnboarding} />
           <Route path="/coach-onboarding" component={CoachOnboarding} />
           <Route path="/coach-signup" component={CoachSignup} />
+          <Route path="/coach-profile" component={CoachProfile} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/payment-success" component={PaymentSuccess} />
           <Route path="/subscribe" component={Subscribe} />

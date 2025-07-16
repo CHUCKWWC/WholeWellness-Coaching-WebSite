@@ -157,6 +157,11 @@ export default function Navigation() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link href="/coach-profile" className="w-full">
+                        Coach Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer" className="w-full">
                         🧪 Beta Test AI Coach
                       </a>
