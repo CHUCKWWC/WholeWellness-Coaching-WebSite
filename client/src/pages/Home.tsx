@@ -328,9 +328,11 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold text-secondary mb-4">Volunteer</h3>
                 <p className="text-gray-600 mb-6">Share your skills and time to help expand our reach and impact in the community.</p>
-                <Button className="bg-primary text-white hover:bg-secondary transition-colors">
-                  Join Our Team
-                </Button>
+                <Link href="/volunteer-application">
+                  <Button className="bg-primary text-white hover:bg-secondary transition-colors">
+                    Join Our Team
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
             

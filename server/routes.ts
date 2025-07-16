@@ -2358,5 +2358,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Volunteer Application Routes
+  app.post('/api/volunteer/application', async (req, res) => {
+    try {
+      const applicationData = req.body;
+      
+      // Create email content
+      const emailContent = `
+        <h2>New Volunteer Application Submitted</h2>
+        <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+        
+        <h3>Personal Information</h3>
+        <p><strong>Name:</strong> ${applicationData.firstName} ${applicationData.lastName}</p>
+        <p><strong>Email:</strong> ${applicationData.email}</p>
+        <p><strong>Phone:</strong> ${applicationData.phone}</p>
+        <p><strong>Address:</strong> ${applicationData.address}, ${applicationData.city}, ${applicationData.state} ${applicationData.zipCode}</p>
+        <p><strong>Date of Birth:</strong> ${applicationData.dateOfBirth}</p>
+        
+        <h3>Emergency Contact</h3>
+        <p><strong>Name:</strong> ${applicationData.emergencyContactName}</p>
+        <p><strong>Phone:</strong> ${applicationData.emergencyContactPhone}</p>
+        
+        <h3>Availability</h3>
+        <ul>
+          ${applicationData.availability.map((time: string) => `<li>${time}</li>`).join('')}
+        </ul>
+        
+        <h3>Volunteer Areas of Interest</h3>
+        <ul>
+          ${applicationData.volunteerAreas.map((area: string) => `<li>${area}</li>`).join('')}
+        </ul>
+        
+        <h3>Experience & Motivation</h3>
+        <p><strong>Relevant Experience:</strong><br>${applicationData.experience.replace(/\n/g, '<br>')}</p>
+        <p><strong>Motivation:</strong><br>${applicationData.motivation.replace(/\n/g, '<br>')}</p>
+        <p><strong>Skills:</strong><br>${applicationData.skills.replace(/\n/g, '<br>')}</p>
+        
+        ${applicationData.references ? `<h3>References</h3><p>${applicationData.references.replace(/\n/g, '<br>')}</p>` : ''}
+        
+        <h3>Agreements</h3>
+        <p><strong>Background Check:</strong> ${applicationData.backgroundCheck ? 'Agreed' : 'Not Agreed'}</p>
+        <p><strong>Commitment Agreement:</strong> ${applicationData.commitmentAgreement ? 'Agreed' : 'Not Agreed'}</p>
+        <p><strong>Privacy Policy:</strong> ${applicationData.privacyPolicy ? 'Agreed' : 'Not Agreed'}</p>
+        
+        <p><em>This application was submitted through the Whole Wellness Coaching volunteer portal.</em></p>
+      `;
+      
+      // Send email using email service
+      const { EmailService } = require('./email-service');
+      const emailService = new EmailService();
+      await emailService.sendEmail({
+        to: 'dasha.lazaryuk@gmail.com',
+        from: 'volunteer@wholewellnesscoaching.org',
+        subject: `New Volunteer Application - ${applicationData.firstName} ${applicationData.lastName}`,
+        html: emailContent,
+        text: `New Volunteer Application from ${applicationData.firstName} ${applicationData.lastName}. Please check your email for the full application details.`
+      });
+      
+      console.log('Volunteer application email sent successfully');
+      res.json({ success: true, message: 'Application submitted successfully' });
+    } catch (error) {
+      console.error('Error submitting volunteer application:', error);
+      res.status(500).json({ error: 'Failed to submit application' });
+    }
+  });
+
   return httpServer;
 }
