@@ -189,12 +189,12 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Created database schema for recommendations, mental wellness resources, and usage analytics
   - Added business information: 12370 Potranco Rd, Suite 207 PMB 1209, San Antonio, TX 78253-4260
 - July 14, 2025. Email system configuration updated with new domain format
-  - Updated all email addresses to use wholewellness-coaching.org domain format
-  - Welcome emails: welcome@wholewellness-coaching.org
-  - Password reset: noreply@wholewellness-coaching.org
-  - Account verification: verify@wholewellness-coaching.org
-  - Admin notifications: admin@wholewellness-coaching.org
-  - General support: hello@wholewellness-coaching.org
+  - Updated all email addresses to use wholewellnesscoaching.org domain format (no hyphens)
+  - Welcome emails: welcome@wholewellnesscoaching.org
+  - Password reset: noreply@wholewellnesscoaching.org
+  - Account verification: verify@wholewellnesscoaching.org
+  - Admin notifications: admin@wholewellnesscoaching.org
+  - General support: hello@wholewellnesscoaching.org
   - Updated email templates and workflow configurations with new domain references
 - July 16, 2025. OAuth2 email authentication system implemented
   - Integrated Google OAuth2 credentials for secure Gmail authentication
@@ -207,6 +207,7 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - **GMAIL API INTEGRATION**: Successfully implemented Gmail API OAuth2 for reliable email delivery
   - **COMPREHENSIVE EMAIL SYSTEM**: All email types tested and working - welcome, password reset, account verification
   - **AUTOMATIC FALLBACK**: Gmail API primary method with SMTP fallback for maximum reliability
+  - **DOMAIN CORRECTION**: Updated all email templates to use wholewellnesscoaching.org (no hyphens) for reset URLs and links
 
 ## User Preferences
 
