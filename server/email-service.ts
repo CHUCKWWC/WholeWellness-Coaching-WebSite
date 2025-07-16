@@ -10,17 +10,27 @@ interface EmailTemplate {
 }
 
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
 
   constructor() {
-    // Configure email transporter with OAuth2 support
-    this.transporter = this.createEmailTransporter();
+    // Transporter will be initialized on first use
   }
 
-  private createEmailTransporter(): nodemailer.Transporter {
+  private async ensureTransporter(): Promise<nodemailer.Transporter> {
+    if (!this.transporter) {
+      this.transporter = await this.createEmailTransporter();
+    }
+    return this.transporter;
+  }
+
+  private async createEmailTransporter(): Promise<nodemailer.Transporter> {
     // Try OAuth2 first if credentials are available
-    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-      return this.createOAuthTransporter();
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
+      try {
+        return await this.createOAuthTransporter();
+      } catch (error) {
+        console.warn('OAuth2 failed, falling back to SMTP:', error.message);
+      }
     }
     
     // Fallback to SMTP with App Password
@@ -35,7 +45,7 @@ export class EmailService {
     });
   }
 
-  private createOAuthTransporter(): nodemailer.Transporter {
+  private async createOAuthTransporter(): Promise<nodemailer.Transporter> {
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -46,6 +56,10 @@ export class EmailService {
       refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
     });
 
+    // Get fresh access token
+    const { credentials } = await oauth2Client.refreshAccessToken();
+    const accessToken = credentials.access_token;
+
     return nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -54,7 +68,7 @@ export class EmailService {
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-        accessToken: process.env.GOOGLE_ACCESS_TOKEN,
+        accessToken: accessToken,
       },
     });
   }
@@ -62,9 +76,10 @@ export class EmailService {
   // Send welcome email to new users
   async sendWelcomeEmail(userEmail: string, firstName: string): Promise<void> {
     const template = this.getWelcomeEmailTemplate(firstName);
+    const transporter = await this.ensureTransporter();
     
     try {
-      await this.transporter.sendMail({
+      await transporter.sendMail({
         from: process.env.FROM_EMAIL || 'welcome@wholewellness-coaching.org',
         to: userEmail,
         subject: template.subject,
@@ -82,9 +97,10 @@ export class EmailService {
   // Send password reset email
   async sendPasswordResetEmail(userEmail: string, resetToken: string): Promise<void> {
     const template = this.getPasswordResetEmailTemplate(resetToken);
+    const transporter = await this.ensureTransporter();
     
     try {
-      await this.transporter.sendMail({
+      await transporter.sendMail({
         from: process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org',
         to: userEmail,
         subject: template.subject,
@@ -102,9 +118,10 @@ export class EmailService {
   // Send account verification email
   async sendVerificationEmail(userEmail: string, verificationToken: string): Promise<void> {
     const template = this.getVerificationEmailTemplate(verificationToken);
+    const transporter = await this.ensureTransporter();
     
     try {
-      await this.transporter.sendMail({
+      await transporter.sendMail({
         from: process.env.FROM_EMAIL || 'verify@wholewellness-coaching.org',
         to: userEmail,
         subject: template.subject,
