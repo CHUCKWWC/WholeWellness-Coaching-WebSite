@@ -32,8 +32,11 @@ export class EmailService {
         'https://developers.google.com/oauthplayground'
       );
 
+      // Use the hardcoded refresh token for testing
+      const refreshToken = process.env.GOOGLE_REFRESH_TOKEN || '1//04clMNK7pH7O2CgYIARAAGAQSNwF-L9IrU6JqGBHtInEsv12laeRoUMIRtjovsnT0sr67n6ln9CSWWanRhObL_HGqjoUy8VAqTwE';
+
       oauth2Client.setCredentials({
-        refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+        refresh_token: refreshToken,
       });
 
       this.gmailApi = google.gmail({ version: 'v1', auth: oauth2Client });
@@ -100,7 +103,7 @@ export class EmailService {
 
   private async sendEmailWithFallback(to: string, subject: string, html: string, text: string, from?: string): Promise<void> {
     // Try Gmail API first (most reliable with OAuth2)
-    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       try {
         console.log('Sending email via Gmail API');
         await this.sendViaGmailAPI(to, subject, html, text, from);
