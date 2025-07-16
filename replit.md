@@ -224,6 +224,8 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - Implemented secure payment collection with pricing plans during onboarding
   - Added 24-48 hour coach matching process explanation
   - **UPDATED**: Onboarding now follows BetterHelp/Talkspace model with upfront payment and personalized matching
+  - **FIXED**: Corrected apiRequest parameter ordering in OnboardingContext (method comes first, then URL)
+  - **ENHANCED**: Onboarding now works for non-authenticated users with local storage until account creation
 
 ## User Preferences
 

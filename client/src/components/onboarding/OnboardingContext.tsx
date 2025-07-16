@@ -134,23 +134,21 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   };
 
   const saveProgress = async () => {
+    // For now, we'll only save progress locally since the user isn't authenticated yet
+    // The actual saving to database will happen when they create their account
     setIsLoading(true);
     setError(null);
     
     try {
-      await apiRequest(`/api/onboarding/save-progress`, {
-        method: 'POST',
-        body: JSON.stringify({
-          type: onboardingType,
-          step: currentStep,
-          data
-        })
-      });
+      // Save to localStorage
+      localStorage.setItem(`onboarding_${onboardingType}_data`, JSON.stringify(data));
+      localStorage.setItem(`onboarding_${onboardingType}_step`, currentStep.toString());
+      
+      // We'll save to the database after account creation in the AccountPaymentStep
+      setIsLoading(false);
     } catch (err) {
       setError('Failed to save progress. Please try again.');
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -159,13 +157,16 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
     setError(null);
     
     try {
-      await apiRequest(`/api/onboarding/complete`, {
-        method: 'POST',
-        body: JSON.stringify({
+      // Only attempt to save to database if user is authenticated
+      // This will be called after account creation in the AccountPaymentStep
+      const sessionToken = document.cookie.split('; ').find(row => row.startsWith('session_token='));
+      
+      if (sessionToken) {
+        await apiRequest('POST', '/api/onboarding/complete', {
           type: onboardingType,
           data
-        })
-      });
+        });
+      }
       
       // Clear localStorage after successful completion
       localStorage.removeItem(`onboarding_${onboardingType}_data`);
