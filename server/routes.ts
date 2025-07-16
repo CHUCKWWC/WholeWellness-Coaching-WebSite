@@ -224,6 +224,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create test coach account endpoint
   app.post('/api/create-test-coach', createTestCoach);
 
+  // Coach application payment endpoint
+  app.post('/api/coach/application-payment', async (req, res) => {
+    try {
+      const { amount } = req.body;
+      
+      if (!stripe) {
+        return res.status(400).json({ message: 'Payment processing not configured' });
+      }
+
+      if (amount !== 99.00) {
+        return res.status(400).json({ message: 'Invalid application fee amount' });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 9900, // $99.00 in cents
+        currency: 'usd',
+        metadata: {
+          type: 'coach_application_fee',
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      console.error('Coach application payment error:', error);
+      res.status(500).json({ 
+        message: 'Error creating payment intent: ' + error.message 
+      });
+    }
+  });
+
   // Password reset routes
   app.post('/api/auth/request-reset', async (req, res) => {
     try {

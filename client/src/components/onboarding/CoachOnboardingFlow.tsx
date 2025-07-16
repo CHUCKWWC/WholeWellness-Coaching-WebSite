@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Import coach-specific step components
 import CoachPersonalInfoStep from './steps/coach/CoachPersonalInfoStep';
+import CoachPaymentStep from './steps/coach/CoachPaymentStep';
 import CoachQualificationsStep from './steps/coach/CoachQualificationsStep';
 import CoachSpecializationsStep from './steps/coach/CoachSpecializationsStep';
 import CoachAvailabilityStep from './steps/coach/CoachAvailabilityStep';
@@ -16,6 +17,7 @@ import CoachReviewStep from './steps/coach/CoachReviewStep';
 
 const steps = [
   { title: 'Personal Information', component: CoachPersonalInfoStep },
+  { title: 'Application Payment', component: CoachPaymentStep },
   { title: 'Qualifications & Experience', component: CoachQualificationsStep },
   { title: 'Coaching Specializations', component: CoachSpecializationsStep },
   { title: 'Availability & Schedule', component: CoachAvailabilityStep },
@@ -31,14 +33,44 @@ export default function CoachOnboardingFlow() {
     nextStep, 
     previousStep,
     saveProgress,
-    isLoading 
+    isLoading,
+    data,
+    updateData
   } = useOnboarding();
 
   const [isValidStep, setIsValidStep] = useState(false);
+  const [paymentVerified, setPaymentVerified] = useState(false);
 
   const CurrentStepComponent = steps[currentStep].component;
 
+  // Listen for payment completion
+  useEffect(() => {
+    const handlePaymentComplete = (event: CustomEvent) => {
+      if (event.detail.paid) {
+        setPaymentVerified(true);
+        updateData({ applicationFeePaid: true });
+      }
+    };
+
+    window.addEventListener('coachPaymentComplete' as any, handlePaymentComplete);
+    return () => {
+      window.removeEventListener('coachPaymentComplete' as any, handlePaymentComplete);
+    };
+  }, [updateData]);
+
+  // Check if payment is already completed
+  useEffect(() => {
+    if (data.applicationFeePaid) {
+      setPaymentVerified(true);
+    }
+  }, [data.applicationFeePaid]);
+
   const handleNext = async () => {
+    // For payment step (step 1), require payment verification
+    if (currentStep === 1 && !paymentVerified) {
+      return;
+    }
+
     if (isValidStep) {
       try {
         await saveProgress();

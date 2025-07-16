@@ -47,6 +47,7 @@ interface OnboardingData {
   availability?: any;
   bankingInfo?: any;
   backgroundCheckConsent?: boolean;
+  applicationFeePaid?: boolean;
 }
 
 interface OnboardingContextType {
@@ -89,7 +90,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const totalSteps = onboardingType === 'client' ? 8 : 6;
+  const totalSteps = onboardingType === 'client' ? 8 : 7; // 7 steps for coach including payment
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   // Load saved progress from localStorage
