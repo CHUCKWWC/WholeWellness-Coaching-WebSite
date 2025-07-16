@@ -153,7 +153,16 @@ export class AuthService {
     try {
       const user = await storage.getUserById(userId);
       
-      if (!user || !user.isActive) {
+      if (!user) {
+        console.error('User not found with ID:', userId);
+        return null;
+      }
+      
+      // Default isActive to true if undefined
+      const isActive = user.isActive !== false;
+      
+      if (!isActive) {
+        console.error('User is inactive:', userId);
         return null;
       }
 
@@ -162,9 +171,9 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
-        membershipLevel: user.membershipLevel,
-        isActive: user.isActive
+        role: user.role || 'user',
+        membershipLevel: user.membershipLevel || 'free',
+        isActive: isActive
       };
     } catch (error) {
       console.error('Error fetching user by ID:', error);
@@ -187,6 +196,7 @@ export const requireAuth = async (req: AuthenticatedRequest, res: Response, next
     // Check session cookie as fallback
     if (!token && req.cookies && req.cookies.session_token) {
       token = req.cookies.session_token;
+      console.log('Using session token from cookie');
     }
     
     if (!token) {
@@ -194,6 +204,8 @@ export const requireAuth = async (req: AuthenticatedRequest, res: Response, next
     }
 
     const decoded = AuthService.verifyToken(token);
+    console.log('Decoded token:', decoded);
+    
     const user = await AuthService.getUserById(decoded.id);
 
     if (!user) {

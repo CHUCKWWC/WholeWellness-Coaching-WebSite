@@ -120,7 +120,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save onboarding data if provided
       if (onboardingData) {
-        await onboardingService.saveOnboardingData(user.id, onboardingData);
+        // TODO: Implement onboarding data saving
+        // await onboardingService.saveOnboardingData(user.id, onboardingData);
       }
       
       // Create session
