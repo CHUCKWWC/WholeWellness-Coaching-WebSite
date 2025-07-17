@@ -145,7 +145,7 @@ export default function AICoaching() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-primary"
+              className="border-white hover:bg-white hover:text-primary text-[#121827]"
             >
               Learn More About AI Coaching
             </Button>
