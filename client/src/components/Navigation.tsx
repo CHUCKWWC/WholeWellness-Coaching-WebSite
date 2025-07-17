@@ -35,6 +35,7 @@ const dropdownItems = [
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
+  { href: "/wix-booking", label: "Book Appointment" },
   { href: "/impact", label: "Impact" },
   { href: "/contact", label: "Contact" },
 ];

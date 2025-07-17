@@ -1024,6 +1024,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new booking
+  app.post("/api/wix/bookings", async (req, res) => {
+    try {
+      const bookingData = req.body;
+      const booking = await wixIntegration.createBooking(bookingData);
+      res.json(booking);
+    } catch (error) {
+      console.error("Error creating Wix booking:", error);
+      res.status(500).json({ error: "Failed to create booking" });
+    }
+  });
+
+  // Get available time slots for a service
+  app.get("/api/wix/services/:serviceId/slots", async (req, res) => {
+    try {
+      const { serviceId } = req.params;
+      const { date } = req.query;
+      
+      if (!date) {
+        return res.status(400).json({ error: "Date parameter is required" });
+      }
+      
+      const slots = await wixIntegration.getAvailableSlots(serviceId, date as string);
+      res.json(slots);
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      res.status(500).json({ error: "Failed to fetch available slots" });
+    }
+  });
+
+  // Cancel a booking
+  app.delete("/api/wix/bookings/:bookingId", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const result = await wixIntegration.cancelBooking(bookingId);
+      res.json({ success: result });
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      res.status(500).json({ error: "Failed to cancel booking" });
+    }
+  });
+
+  // Reschedule a booking
+  app.put("/api/wix/bookings/:bookingId/reschedule", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const { newSlot } = req.body;
+      const result = await wixIntegration.rescheduleBooking(bookingId, newSlot);
+      res.json({ success: result });
+    } catch (error) {
+      console.error("Error rescheduling booking:", error);
+      res.status(500).json({ error: "Failed to reschedule booking" });
+    }
+  });
+
   app.get("/api/wix/data/:collectionId", async (req, res) => {
     try {
       const { collectionId } = req.params;

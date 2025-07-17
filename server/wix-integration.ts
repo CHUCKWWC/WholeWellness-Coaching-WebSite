@@ -164,22 +164,156 @@ export class WixIntegration {
   // Fetch bookings from Wix
   async getBookings(): Promise<WixBooking[]> {
     try {
-      const bookingsList = await this.wixClient.bookings.queryBookings().find();
+      // Use the data collection API for bookings
+      const bookings = await this.getDataItems('Bookings');
       
       console.log('Wix Bookings:');
-      console.log('Total: ', bookingsList.items.length);
+      console.log('Total: ', bookings.length);
       
-      return bookingsList.items.map((booking: any) => ({
-        _id: booking._id,
-        serviceId: booking.serviceId,
-        userId: booking.bookedEntity?.contactId,
-        dateTime: booking.slot?.startDateTime,
-        status: booking.status,
-        notes: booking.additionalFields?.customFieldsMessage
+      return bookings.map((booking: any) => ({
+        _id: booking.data._id,
+        serviceId: booking.data.serviceId,
+        userId: booking.data.userId,
+        dateTime: booking.data.dateTime,
+        status: booking.data.status || 'pending',
+        notes: booking.data.notes
       }));
     } catch (error) {
       console.error('Error fetching bookings from Wix:', error);
       return [];
+    }
+  }
+
+  // Create a new booking in Wix
+  async createBooking(bookingData: {
+    serviceId: string;
+    userId: string;
+    contactDetails: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+    };
+    slot: {
+      startDateTime: string;
+      endDateTime: string;
+    };
+    notes?: string;
+  }): Promise<WixBooking> {
+    try {
+      // Create booking using data collection API
+      const bookingId = `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const booking = await this.wixClient.data.insertDataItem({
+        dataCollectionId: 'Bookings',
+        dataItem: {
+          data: {
+            _id: bookingId,
+            serviceId: bookingData.serviceId,
+            userId: bookingData.userId,
+            dateTime: bookingData.slot.startDateTime,
+            endDateTime: bookingData.slot.endDateTime,
+            status: 'pending',
+            contactFirstName: bookingData.contactDetails.firstName,
+            contactLastName: bookingData.contactDetails.lastName,
+            contactEmail: bookingData.contactDetails.email,
+            contactPhone: bookingData.contactDetails.phone || '',
+            notes: bookingData.notes || '',
+            createdAt: new Date().toISOString()
+          }
+        }
+      });
+
+      console.log('Booking created successfully:', booking._id);
+      
+      return {
+        _id: booking._id,
+        serviceId: bookingData.serviceId,
+        userId: bookingData.userId,
+        dateTime: bookingData.slot.startDateTime,
+        status: 'pending',
+        notes: bookingData.notes || ''
+      };
+    } catch (error) {
+      console.error('Error creating booking in Wix:', error);
+      throw error;
+    }
+  }
+
+  // Get available time slots for a service
+  async getAvailableSlots(serviceId: string, date: string): Promise<any[]> {
+    try {
+      // Generate available time slots from 9 AM to 5 PM (business hours)
+      const slots = [];
+      const baseDate = new Date(date);
+      
+      for (let hour = 9; hour < 17; hour++) {
+        const startTime = new Date(baseDate);
+        startTime.setHours(hour, 0, 0, 0);
+        
+        const endTime = new Date(baseDate);
+        endTime.setHours(hour + 1, 0, 0, 0);
+        
+        slots.push({
+          startDateTime: startTime.toISOString(),
+          endDateTime: endTime.toISOString(),
+          duration: 60, // 60 minutes
+          available: true
+        });
+      }
+
+      console.log(`Generated ${slots.length} available slots for ${serviceId} on ${date}`);
+      return slots;
+    } catch (error) {
+      console.error('Error generating available slots:', error);
+      return [];
+    }
+  }
+
+  // Cancel a booking
+  async cancelBooking(bookingId: string): Promise<boolean> {
+    try {
+      await this.wixClient.data.updateDataItem({
+        dataCollectionId: 'Bookings',
+        dataItemId: bookingId,
+        dataItem: {
+          data: {
+            status: 'cancelled',
+            updatedAt: new Date().toISOString()
+          }
+        }
+      });
+      console.log('Booking cancelled successfully:', bookingId);
+      return true;
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      return false;
+    }
+  }
+
+  // Reschedule a booking
+  async rescheduleBooking(bookingId: string, newSlot: {
+    startDateTime: string;
+    endDateTime: string;
+  }): Promise<boolean> {
+    try {
+      await this.wixClient.data.updateDataItem({
+        dataCollectionId: 'Bookings',
+        dataItemId: bookingId,
+        dataItem: {
+          data: {
+            dateTime: newSlot.startDateTime,
+            endDateTime: newSlot.endDateTime,
+            status: 'confirmed',
+            updatedAt: new Date().toISOString()
+          }
+        }
+      });
+      console.log('Booking rescheduled successfully:', bookingId);
+      return true;
+    } catch (error) {
+      console.error('Error rescheduling booking:', error);
+      return false;
     }
   }
 
