@@ -1899,6 +1899,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Discovery Quiz Routes
+  app.post('/api/discovery-quiz', async (req, res) => {
+    try {
+      const {
+        sessionId,
+        currentNeeds,
+        situationDetails,
+        supportPreference,
+        readinessLevel,
+        recommendedPath,
+        completed
+      } = req.body;
+
+      let userId = null;
+      if (req.cookies?.auth_token) {
+        try {
+          const authService = AuthService.getInstance();
+          const decoded = authService.verifyToken(req.cookies.auth_token);
+          userId = decoded.id;
+        } catch (err) {
+          // Continue with anonymous save
+        }
+      }
+
+      // Save quiz results
+      const quizResult = await storage.saveDiscoveryQuizResult({
+        userId,
+        sessionId,
+        currentNeeds,
+        situationDetails,
+        supportPreference,
+        readinessLevel,
+        recommendedPath,
+        completed,
+        quizVersion: 'v1'
+      });
+
+      res.json({
+        success: true,
+        quizId: quizResult.id,
+        message: 'Quiz results saved successfully'
+      });
+    } catch (error) {
+      console.error('Error saving discovery quiz results:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to save quiz results'
+      });
+    }
+  });
+
+  app.get('/api/discovery-quiz/history', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const quizHistory = await storage.getUserQuizHistory(userId);
+
+      res.json({
+        success: true,
+        quizHistory
+      });
+    } catch (error) {
+      console.error('Error fetching quiz history:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch quiz history'
+      });
+    }
+  });
+
+  app.get('/api/discovery-quiz/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const quizResult = await storage.getQuizResultBySession(sessionId);
+
+      if (!quizResult) {
+        return res.status(404).json({
+          success: false,
+          message: 'Quiz results not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        quizResult
+      });
+    } catch (error) {
+      console.error('Error fetching quiz result:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch quiz result'
+      });
+    }
+  });
+
   // AI Coaching Routes for Beta Testing
   app.post("/api/ai-coaching/generate-meal-plan", async (req, res) => {
     try {

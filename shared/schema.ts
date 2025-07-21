@@ -106,6 +106,34 @@ export const chatSessions = pgTable("chat_sessions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Discovery quiz results for onboarding
+export const discoveryQuizResults = pgTable("discovery_quiz_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id), // Can be null for anonymous users
+  sessionId: varchar("session_id"), // For tracking anonymous sessions
+  currentNeeds: text("current_needs").array(), // Up to 3 selections
+  situationDetails: jsonb("situation_details"), // Deeper dive responses
+  supportPreference: varchar("support_preference"), // live, ai, mix, unsure
+  readinessLevel: varchar("readiness_level"), // overwhelmed, managing, motivated, curious
+  recommendedPath: jsonb("recommended_path"), // Generated coaching matches
+  quizVersion: varchar("quiz_version").default("v1"),
+  completed: boolean("completed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Coach matching logic and tags
+export const coachMatchTags = pgTable("coach_match_tags", {
+  id: serial("id").primaryKey(),
+  tagCombination: varchar("tag_combination").notNull(), // e.g., "divorce+emotionally_lost"
+  primaryCoach: varchar("primary_coach"), // Main coach specialty
+  supportingCoaches: text("supporting_coaches").array(), // Additional coach types
+  aiTools: text("ai_tools").array(), // Recommended AI assistance
+  groupSupport: boolean("group_support").default(false),
+  priority: integer("priority").default(1), // For matching precedence
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Chat messages with summaries
 export const chatMessages = pgTable("chat_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

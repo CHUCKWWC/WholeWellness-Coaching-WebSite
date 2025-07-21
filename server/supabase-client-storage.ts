@@ -736,6 +736,75 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
+  // Discovery Quiz Results Management
+  async saveDiscoveryQuizResult(quizData: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('discovery_quiz_results')
+        .insert({
+          user_id: quizData.userId,
+          session_id: quizData.sessionId,
+          current_needs: quizData.currentNeeds,
+          situation_details: quizData.situationDetails,
+          support_preference: quizData.supportPreference,
+          readiness_level: quizData.readinessLevel,
+          recommended_path: quizData.recommendedPath,
+          quiz_version: quizData.quizVersion,
+          completed: quizData.completed
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving discovery quiz result:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error saving discovery quiz result:', err);
+      throw err;
+    }
+  }
+
+  async getUserQuizHistory(userId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('discovery_quiz_results')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error getting user quiz history:', error);
+        return [];
+      }
+      return data || [];
+    } catch (err) {
+      console.error('Error getting user quiz history:', err);
+      return [];
+    }
+  }
+
+  async getQuizResultBySession(sessionId: string): Promise<any | null> {
+    try {
+      const { data, error } = await supabase
+        .from('discovery_quiz_results')
+        .select('*')
+        .eq('session_id', sessionId)
+        .single();
+
+      if (error) {
+        console.error('Error getting quiz result by session:', error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.error('Error getting quiz result by session:', err);
+      return null;
+    }
+  }
+
   // Weight Loss Intakes
   async getWeightLossIntake(id: number): Promise<WeightLossIntake | undefined> {
     try {
