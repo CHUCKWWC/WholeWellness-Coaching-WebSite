@@ -2478,5 +2478,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Assessment system routes
+  app.get("/api/programs", requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const programs = await storage.getUserPrograms(user.id);
+      res.json(programs);
+    } catch (error) {
+      console.error("Error fetching programs:", error);
+      res.status(500).json({ error: "Failed to fetch programs" });
+    }
+  });
+
+  app.post("/api/programs", requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const { assessmentType, paid } = req.body;
+      
+      const program = await storage.createProgram({
+        userId: user.id,
+        assessmentType,
+        paid: paid || false,
+        results: null
+      });
+      
+      res.json(program);
+    } catch (error) {
+      console.error("Error creating program:", error);
+      res.status(500).json({ error: "Failed to create program" });
+    }
+  });
+
+  // Assessment payment intent
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { assessmentId, amount } = req.body;
+      
+      if (!stripe) {
+        return res.status(400).json({ error: "Stripe not configured" });
+      }
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          assessmentId,
+          userId: req.user?.id || 'anonymous'
+        }
+      });
+      
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        sessionId: paymentIntent.id 
+      });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ error: "Failed to create payment intent" });
+    }
+  });
+
+  // Chat session management
+  app.get("/api/chat/sessions", requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const sessions = await storage.getUserChatSessions(user.id);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching chat sessions:", error);
+      res.status(500).json({ error: "Failed to fetch chat sessions" });
+    }
+  });
+
+  app.post("/api/chat/sessions", requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      const { module } = req.body;
+      const threadId = `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const session = await storage.createChatSession({
+        userId: user.id,
+        threadId,
+        module
+      });
+      
+      res.json(session);
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+      res.status(500).json({ error: "Failed to create chat session" });
+    }
+  });
+
+  app.post("/api/chat/messages", async (req, res) => {
+    try {
+      const { sessionId, role, content, summary } = req.body;
+      
+      const message = await storage.createChatMessage({
+        sessionId,
+        role,
+        content,
+        summary
+      });
+      
+      res.json(message);
+    } catch (error) {
+      console.error("Error creating chat message:", error);
+      res.status(500).json({ error: "Failed to create chat message" });
+    }
+  });
+
   return httpServer;
 }

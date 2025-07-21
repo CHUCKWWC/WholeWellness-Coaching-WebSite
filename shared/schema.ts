@@ -7,8 +7,9 @@ import {
   timestamp, 
   varchar, 
   decimal, 
-  jsonb 
+  jsonb,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -26,6 +27,11 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   profileImageUrl: varchar("profile_image_url"),
+  bio: text("bio"), // 200 char max enforced in validation
+  rating: integer("rating").default(0), // 0-5 stars, admin-editable
+  introVideoUrl: varchar("intro_video_url"),
+  keywords: text("keywords").array(), // max 5 keywords, 20 chars each
+  preferredCoach: varchar("preferred_coach"),
   role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
   permissions: jsonb("permissions"), // JSON array of permission strings
   isActive: boolean("is_active").default(true),
@@ -78,6 +84,35 @@ export const bookings = pgTable("bookings", {
   message: text("message"),
   status: text("status").default("pending"), // pending, confirmed, completed, cancelled
   scheduledDate: timestamp("scheduled_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Assessment system for paid results
+export const programs = pgTable("programs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  assessmentType: varchar("assessment_type").notNull(),
+  results: jsonb("results"),
+  paid: boolean("paid").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Chat sessions for AI coach memory
+export const chatSessions = pgTable("chat_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  threadId: varchar("thread_id").notNull().unique(),
+  module: varchar("module"), // weight_loss, career, wellness, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Chat messages with summaries
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => chatSessions.id),
+  role: varchar("role").notNull(), // 'user' | 'assistant'
+  content: text("content").notNull(),
+  summary: text("summary"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -47,6 +47,7 @@ import Subscribe from "@/pages/Subscribe";
 import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import VolunteerApplication from "@/pages/VolunteerApplication";
 import WixBooking from "@/pages/WixBooking";
+import Assessments from "@/pages/Assessments";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -94,6 +95,7 @@ function Router() {
           <Route path="/subscription-success" component={SubscriptionSuccess} />
           <Route path="/volunteer-application" component={VolunteerApplication} />
           <Route path="/wix-booking" component={WixBooking} />
+          <Route path="/assessments" component={Assessments} />
           <Route component={NotFound} />
         </Switch>
       </main>

@@ -2,7 +2,8 @@ import {
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
   type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
-  type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting
+  type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting,
+  type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -80,6 +81,23 @@ export interface IStorage {
   createSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
   updateSiteSetting(key: string, setting: Partial<InsertSiteSetting>): Promise<SiteSetting | undefined>;
   deleteSiteSetting(key: string): Promise<boolean>;
+
+  // Assessment Programs
+  getProgram(id: string): Promise<Program | undefined>;
+  getUserPrograms(userId: string): Promise<Program[]>;
+  createProgram(program: InsertProgram): Promise<Program>;
+  updateProgram(id: string, program: Partial<InsertProgram>): Promise<Program | undefined>;
+
+  // Chat Sessions
+  getChatSession(id: string): Promise<ChatSession | undefined>;
+  getUserChatSessions(userId: string): Promise<ChatSession[]>;
+  createChatSession(session: InsertChatSession): Promise<ChatSession>;
+  getChatSessionByThreadId(threadId: string): Promise<ChatSession | undefined>;
+
+  // Chat Messages
+  getChatMessage(id: string): Promise<ChatMessage | undefined>;
+  getChatMessagesBySessionId(sessionId: string): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
 }
 
 export class MemoryStorage implements IStorage {
