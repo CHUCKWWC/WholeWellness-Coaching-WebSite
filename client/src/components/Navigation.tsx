@@ -24,6 +24,7 @@ import {
 const navigationItems = [
   { href: "/", label: "Home" },
   { href: "/ai-coaching", label: "AI Coaching" },
+  { href: "/assessments", label: "Assessments" },
   { href: "/mental-wellness", label: "Mental Wellness" },
   { href: "/personalized-recommendations", label: "Personal Recommendations" },
   { href: "/digital-onboarding", label: "Get Started" },
@@ -35,7 +36,6 @@ const dropdownItems = [
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
-  { href: "/assessments", label: "Premium Assessments" },
   { href: "/wix-booking", label: "Book Appointment" },
   { href: "/impact", label: "Impact" },
   { href: "/contact", label: "Contact" },
