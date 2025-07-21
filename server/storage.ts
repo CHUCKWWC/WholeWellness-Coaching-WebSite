@@ -112,6 +112,9 @@ export class MemoryStorage implements IStorage {
   private mediaItems: MediaItem[] = [];
   private navigationMenus: NavigationMenu[] = [];
   private siteSettings: SiteSetting[] = [];
+  private programs: Program[] = [];
+  private chatSessions: ChatSession[] = [];
+  private chatMessages: ChatMessage[] = [];
 
   constructor() {
     // Initialize with sample data for testing
