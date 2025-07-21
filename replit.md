@@ -235,6 +235,15 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - **TEST ACCOUNT**: Created test coach credentials (username: chuck, password: chucknice1) for testing coach portal features
   - **DATABASE WORKAROUND**: Resolved SASL_SIGNATURE_MISMATCH errors by implementing hardcoded test coach login in authentication endpoint
   - **AUTHENTICATION**: Modified login schema to accept usernames in addition to email addresses for coach accounts
+- July 21, 2025. New approved pricing policy implementation completed
+  - **PRICING POLICY**: Motion by Lisa Jones, seconded by Dr. Bobby Guillory, unanimously approved new pricing structure
+  - **LIVE COACHING**: $599 for 6 sessions (50 minutes each), 70% to coaches, 30% to WholeWellness admin
+  - **AI COACHING**: $299 for 6 sessions (50% of live coaching rates), guided by proprietary algorithms
+  - **COMBINED PACKAGE**: $799 for 12 sessions (6 AI + 6 Live), $99 savings vs separate packages
+  - **NAVIGATION UPDATE**: Added "Assessments" to main navigation for strategic lead generation placement
+  - **CONVERSION FUNNEL**: Assessment results now drive coaching package upsells with clear pricing display
+  - **SUPABASE INTEGRATION**: Successfully migrated from memory to persistent Supabase storage for production readiness
+  - **THIRD-PARTY TESTING**: Created comprehensive testing guide with 25+ documented routes and user credentials
 
 ## User Preferences
 

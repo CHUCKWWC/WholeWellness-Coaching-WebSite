@@ -318,14 +318,30 @@ export default function AICoaching() {
             Choose your specialized AI coach and begin personalized conversations 
             that support your growth and transformation.
           </p>
-          <Button 
-            size="lg" 
-            variant="secondary"
-            onClick={() => setShowChat(true)}
-            className="bg-white text-primary hover:bg-gray-100"
-          >
-            Start Your First Session
-          </Button>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-8 mx-auto max-w-md">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-2">$299</div>
+              <div className="text-white/90 text-sm">6 AI Coaching Sessions</div>
+              <div className="text-white/80 text-xs">50% off live coaching rates</div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              variant="secondary"
+              onClick={() => setShowChat(true)}
+              className="bg-white text-primary hover:bg-gray-100"
+            >
+              Try AI Chat Free
+            </Button>
+            <Button 
+              size="lg" 
+              className="bg-secondary hover:bg-secondary/90 text-white"
+              onClick={() => window.location.href = '/subscribe?plan=ai_coaching'}
+            >
+              Purchase AI Package - $299
+            </Button>
+          </div>
         </div>
       </section>
     </div>

@@ -116,49 +116,61 @@ const SubscribeForm = ({ clientSecret, planName, planPrice, onSuccess }: Subscri
 
 const pricingPlans = [
   {
-    id: 'weekly',
-    name: 'Weekly Sessions',
-    price: '$80',
-    description: 'Best for active support and rapid progress',
+    id: 'ai_coaching',
+    name: 'AI Coaching Package',
+    price: '$299',
+    description: 'Six AI coaching sessions guided by proprietary algorithms',
     features: [
-      'Weekly 50-minute sessions',
-      'Unlimited messaging between sessions',
-      'Personalized action plans',
-      'Progress tracking tools',
+      '6 AI coaching sessions (50 minutes each)',
+      '24/7 availability',
+      'Personalized wellness insights',
+      'Progress tracking & analytics',
       'Resource library access',
-      'Crisis support available'
+      'Email support'
     ],
-    popular: true
+    popular: false,
+    sessions: 6,
+    sessionType: 'AI',
+    savings: '50% off live coaching rates'
   },
   {
-    id: 'biweekly',
-    name: 'Bi-Weekly Sessions',
-    price: '$160',
-    description: 'Balanced support for steady growth',
+    id: 'live_coaching',
+    name: 'Live Coaching Package',
+    price: '$599',
+    description: 'Six professional live coaching sessions with certified coaches',
     features: [
-      'Two sessions per month',
-      'Unlimited messaging between sessions',
-      'Goal tracking tools',
-      'Resource library access',
-      'Email support',
-      'Monthly progress reports'
+      '6 live coaching sessions (50 minutes each)',
+      'Certified professional coaches',
+      'Weekly or biweekly scheduling options',
+      'Video session capabilities',
+      'Personalized coaching plans',
+      'Progress tracking & goals',
+      'Priority support',
+      'Discounts available for returning clients'
     ],
-    popular: false
+    popular: true,
+    sessions: 6,
+    sessionType: 'Live',
+    revenueModel: '70% to coaches, 30% to WholeWellness'
   },
   {
-    id: 'monthly',
-    name: 'Monthly Sessions',
-    price: '$90',
-    description: 'Maintenance and check-in support',
+    id: 'combined',
+    name: 'Combined Package',
+    price: '$799',
+    description: 'Best value - both AI and live coaching sessions',
     features: [
-      'One session per month',
-      'Unlimited messaging between sessions',
-      'Email support',
-      'Resource library access',
-      'Quarterly progress review',
-      'Community forum access'
+      '6 AI coaching sessions',
+      '6 live coaching sessions', 
+      '12 total sessions (50 minutes each)',
+      'Hybrid coaching approach',
+      'Flexible scheduling options',
+      'All premium features included',
+      'Maximum support & guidance'
     ],
-    popular: false
+    popular: false,
+    sessions: 12,
+    sessionType: 'Hybrid',
+    savings: '$99 savings vs separate packages'
   }
 ];
 
