@@ -9,7 +9,8 @@ import type {
   Donation, MentalWellnessResource, InsertMentalWellnessResource,
   EmergencyContact, InsertEmergencyContact, WellnessAssessment, InsertWellnessAssessment,
   PersonalizedRecommendation, InsertPersonalizedRecommendation,
-  ResourceUsageAnalytics, InsertResourceUsageAnalytics
+  ResourceUsageAnalytics, InsertResourceUsageAnalytics,
+  Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage
 } from "@shared/schema";
 
 export interface IStorage {
@@ -142,6 +143,23 @@ export interface IStorage {
 
   // User Authentication Extended
   getUserById(id: string): Promise<any>;
+
+  // Assessment Programs
+  getProgram(id: string): Promise<Program | undefined>;
+  getUserPrograms(userId: string): Promise<Program[]>;
+  createProgram(program: InsertProgram): Promise<Program>;
+  updateProgram(id: string, program: Partial<InsertProgram>): Promise<Program | undefined>;
+
+  // Chat Sessions
+  getChatSession(id: string): Promise<ChatSession | undefined>;
+  getUserChatSessions(userId: string): Promise<ChatSession[]>;
+  createChatSession(session: InsertChatSession): Promise<ChatSession>;
+  getChatSessionByThreadId(threadId: string): Promise<ChatSession | undefined>;
+
+  // Chat Messages
+  getChatMessage(id: string): Promise<ChatMessage | undefined>;
+  getChatMessagesBySessionId(sessionId: string): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   updateUserLastLogin(userId: string): Promise<void>;
 
   // Mental Wellness Resource Hub
@@ -2259,6 +2277,343 @@ export class SupabaseClientStorage implements IStorage {
         popular: [],
         featured: []
       };
+    }
+  }
+
+  // Assessment Programs
+  async getProgram(id: string): Promise<Program | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('assessment_programs')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error getting program:', error);
+        return undefined;
+      }
+      
+      return data as Program;
+    } catch (error) {
+      console.error('Error getting program:', error);
+      return undefined;
+    }
+  }
+
+  async getUserPrograms(userId: string): Promise<Program[]> {
+    try {
+      const { data, error } = await supabase
+        .from('assessment_programs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting user programs:', error);
+        return [];
+      }
+      
+      return data as Program[];
+    } catch (error) {
+      console.error('Error getting user programs:', error);
+      return [];
+    }
+  }
+
+  async createProgram(program: InsertProgram): Promise<Program> {
+    try {
+      const dbProgram = {
+        id: randomUUID(),
+        user_id: program.userId,
+        program_type: program.programType,
+        results: program.results,
+        payment_required: program.paymentRequired || false,
+        payment_completed: program.paymentCompleted || false,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
+      const { data, error } = await supabase
+        .from('assessment_programs')
+        .insert(dbProgram)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating program:', error);
+        throw new Error('Failed to create program');
+      }
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        programType: data.program_type,
+        results: data.results,
+        paymentRequired: data.payment_required,
+        paymentCompleted: data.payment_completed,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Program;
+    } catch (error) {
+      console.error('Error creating program:', error);
+      throw error;
+    }
+  }
+
+  async updateProgram(id: string, program: Partial<InsertProgram>): Promise<Program | undefined> {
+    try {
+      const updateData = {
+        ...(program.programType && { program_type: program.programType }),
+        ...(program.results && { results: program.results }),
+        ...(program.paymentRequired !== undefined && { payment_required: program.paymentRequired }),
+        ...(program.paymentCompleted !== undefined && { payment_completed: program.paymentCompleted }),
+        updated_at: new Date()
+      };
+
+      const { data, error } = await supabase
+        .from('assessment_programs')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating program:', error);
+        return undefined;
+      }
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        programType: data.program_type,
+        results: data.results,
+        paymentRequired: data.payment_required,
+        paymentCompleted: data.payment_completed,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Program;
+    } catch (error) {
+      console.error('Error updating program:', error);
+      return undefined;
+    }
+  }
+
+  // Chat Sessions
+  async getChatSession(id: string): Promise<ChatSession | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error getting chat session:', error);
+        return undefined;
+      }
+      
+      return {
+        id: data.id,
+        userId: data.user_id,
+        threadId: data.thread_id,
+        sessionType: data.session_type,
+        metadata: data.metadata,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as ChatSession;
+    } catch (error) {
+      console.error('Error getting chat session:', error);
+      return undefined;
+    }
+  }
+
+  async getUserChatSessions(userId: string): Promise<ChatSession[]> {
+    try {
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting user chat sessions:', error);
+        return [];
+      }
+      
+      return data.map(session => ({
+        id: session.id,
+        userId: session.user_id,
+        threadId: session.thread_id,
+        sessionType: session.session_type,
+        metadata: session.metadata,
+        createdAt: session.created_at,
+        updatedAt: session.updated_at
+      })) as ChatSession[];
+    } catch (error) {
+      console.error('Error getting user chat sessions:', error);
+      return [];
+    }
+  }
+
+  async createChatSession(session: InsertChatSession): Promise<ChatSession> {
+    try {
+      const dbSession = {
+        id: randomUUID(),
+        user_id: session.userId,
+        thread_id: session.threadId,
+        session_type: session.sessionType,
+        metadata: session.metadata || {},
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .insert(dbSession)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating chat session:', error);
+        throw new Error('Failed to create chat session');
+      }
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        threadId: data.thread_id,
+        sessionType: data.session_type,
+        metadata: data.metadata,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as ChatSession;
+    } catch (error) {
+      console.error('Error creating chat session:', error);
+      throw error;
+    }
+  }
+
+  async getChatSessionByThreadId(threadId: string): Promise<ChatSession | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('thread_id', threadId)
+        .single();
+      
+      if (error) {
+        console.error('Error getting chat session by thread ID:', error);
+        return undefined;
+      }
+      
+      return {
+        id: data.id,
+        userId: data.user_id,
+        threadId: data.thread_id,
+        sessionType: data.session_type,
+        metadata: data.metadata,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as ChatSession;
+    } catch (error) {
+      console.error('Error getting chat session by thread ID:', error);
+      return undefined;
+    }
+  }
+
+  // Chat Messages
+  async getChatMessage(id: string): Promise<ChatMessage | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error getting chat message:', error);
+        return undefined;
+      }
+      
+      return {
+        id: data.id,
+        sessionId: data.session_id,
+        userId: data.user_id,
+        content: data.content,
+        messageType: data.message_type,
+        metadata: data.metadata,
+        createdAt: data.created_at
+      } as ChatMessage;
+    } catch (error) {
+      console.error('Error getting chat message:', error);
+      return undefined;
+    }
+  }
+
+  async getChatMessagesBySessionId(sessionId: string): Promise<ChatMessage[]> {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('Error getting chat messages:', error);
+        return [];
+      }
+      
+      return data.map(message => ({
+        id: message.id,
+        sessionId: message.session_id,
+        userId: message.user_id,
+        content: message.content,
+        messageType: message.message_type,
+        metadata: message.metadata,
+        createdAt: message.created_at
+      })) as ChatMessage[];
+    } catch (error) {
+      console.error('Error getting chat messages:', error);
+      return [];
+    }
+  }
+
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    try {
+      const dbMessage = {
+        id: randomUUID(),
+        session_id: message.sessionId,
+        user_id: message.userId,
+        content: message.content,
+        message_type: message.messageType,
+        metadata: message.metadata || {},
+        created_at: new Date()
+      };
+
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert(dbMessage)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating chat message:', error);
+        throw new Error('Failed to create chat message');
+      }
+
+      return {
+        id: data.id,
+        sessionId: data.session_id,
+        userId: data.user_id,
+        content: data.content,
+        messageType: data.message_type,
+        metadata: data.metadata,
+        createdAt: data.created_at
+      } as ChatMessage;
+    } catch (error) {
+      console.error('Error creating chat message:', error);
+      throw error;
     }
   }
 }

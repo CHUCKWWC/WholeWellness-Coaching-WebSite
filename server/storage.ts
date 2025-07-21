@@ -529,4 +529,7 @@ export class MemoryStorage implements IStorage {
   }
 }
 
-export const storage = new MemoryStorage();
+// Import SupabaseClientStorage
+import { SupabaseClientStorage } from "./supabase-client-storage";
+
+export const storage = new SupabaseClientStorage();
