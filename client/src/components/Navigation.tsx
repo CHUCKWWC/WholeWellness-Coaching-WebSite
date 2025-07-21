@@ -27,7 +27,7 @@ const navigationItems = [
   { href: "/mental-wellness", label: "Mental Wellness" },
   { href: "/personalized-recommendations", label: "Personal Recommendations" },
   { href: "/digital-onboarding", label: "Get Started" },
-  { href: "/subscribe", label: "Subscribe" },
+  { href: "/subscribe", label: "Premium Access" },
   { href: "/resources", label: "Resources" },
 ];
 
@@ -35,6 +35,7 @@ const dropdownItems = [
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
+  { href: "/assessments", label: "Premium Assessments" },
   { href: "/wix-booking", label: "Book Appointment" },
   { href: "/impact", label: "Impact" },
   { href: "/contact", label: "Contact" },
