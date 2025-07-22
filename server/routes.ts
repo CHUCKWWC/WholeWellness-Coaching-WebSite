@@ -49,11 +49,32 @@ import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
 import { recommendationEngine, type UserProfile, type RecommendationContext } from './recommendation-engine';
 import { createTestCoach } from './create-coach-endpoint';
+import passport from "passport";
+import session from "express-session";
+import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add cookie parser middleware
   app.use(cookieParser());
+  
+  // Session configuration for OAuth
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'wholewellness-oauth-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
+  
+  // Initialize Passport and session
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
+  // Setup Google OAuth
+  setupGoogleAuth();
   
   // Initialize Stripe (if key exists)
   let stripe: Stripe | null = null;
@@ -1898,6 +1919,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // Google OAuth Routes
+  app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  
+  app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), 
+    async (req, res) => {
+      try {
+        // Generate JWT token for the authenticated user
+        const token = generateGoogleAuthToken(req.user);
+        
+        // Set the token as a cookie
+        res.cookie('auth_token', token, {
+          httpOnly: true,
+          secure: false, // Set to true in production with HTTPS
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        
+        // Redirect to the homepage or dashboard
+        res.redirect('/?auth=success');
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        res.redirect('/login?error=auth_failed');
+      }
+    }
+  );
 
   // Discovery Quiz Routes
   app.post('/api/discovery-quiz', async (req, res) => {

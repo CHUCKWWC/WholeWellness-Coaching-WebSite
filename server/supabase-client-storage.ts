@@ -284,6 +284,52 @@ export interface IStorage {
 export class SupabaseClientStorage implements IStorage {
   
   // Users
+  // Google OAuth Methods
+  async getUserByGoogleId(googleId: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('google_id', googleId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error getting user by Google ID:', error);
+        return null;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error getting user by Google ID:', err);
+      return null;
+    }
+  }
+
+  async updateUserGoogleId(userId: string, googleId: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+          google_id: googleId,
+          provider: 'google',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating user Google ID:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error updating user Google ID:', err);
+      throw err;
+    }
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     try {
       const { data, error } = await supabase

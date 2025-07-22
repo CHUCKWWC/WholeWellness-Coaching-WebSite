@@ -32,6 +32,8 @@ export const users = pgTable("users", {
   introVideoUrl: varchar("intro_video_url"),
   keywords: text("keywords").array(), // max 5 keywords, 20 chars each
   preferredCoach: varchar("preferred_coach"),
+  googleId: varchar("google_id"),
+  provider: varchar("provider").default("local"), // local, google, facebook, apple
   role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
   permissions: jsonb("permissions"), // JSON array of permission strings
   isActive: boolean("is_active").default(true),

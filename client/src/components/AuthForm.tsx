@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import SocialLogin from "@/components/SocialLogin";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -68,6 +69,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <SocialLogin 
+          title=""
+          description=""
+          buttonText="Continue with Google"
+          showDivider={true}
+        />
+        
         <Form {...loginForm}>
           <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
             <FormField
