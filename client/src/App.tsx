@@ -52,6 +52,7 @@ import UserProfile from "@/pages/UserProfile";
 import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import CoachCertifications from "@/pages/CoachCertifications";
 import ModuleLearning from "@/pages/ModuleLearning";
+import CertificationDashboard from "@/pages/CertificationDashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -110,6 +111,7 @@ function Router() {
             const enrollmentId = params.get('enrollmentId') || '';
             return <ModuleLearning courseId={courseId} enrollmentId={enrollmentId} />;
           }} />
+          <Route path="/certification-dashboard" component={CertificationDashboard} />
           <Route component={NotFound} />
         </Switch>
       </main>
