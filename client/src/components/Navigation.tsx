@@ -21,18 +21,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Condensed navigation - core items only
 const navigationItems = [
   { href: "/", label: "Home" },
   { href: "/ai-coaching", label: "AI Coaching" },
   { href: "/assessments", label: "Assessments" },
-  { href: "/mental-wellness", label: "Mental Wellness" },
-  { href: "/personalized-recommendations", label: "Personal Recommendations" },
   { href: "/digital-onboarding", label: "Get Started" },
-  { href: "/subscribe", label: "Premium Access" },
-  { href: "/resources", label: "Resources" },
 ];
 
+// Move more items to dropdown to reduce header width
 const dropdownItems = [
+  { href: "/mental-wellness", label: "Mental Wellness" },
+  { href: "/personalized-recommendations", label: "Personal Recommendations" },
+  { href: "/subscribe", label: "Premium Access" },
+  { href: "/resources", label: "Resources" },
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
@@ -81,15 +83,15 @@ export default function Navigation() {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Center */}
+          {/* Desktop Navigation - Center - Condensed */}
           <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-6">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap",
                     location === item.href
                       ? "text-primary"
                       : "text-gray-600 hover:text-primary"
@@ -99,15 +101,15 @@ export default function Navigation() {
                 </Link>
               ))}
               
-              {/* More Menu Dropdown */}
+              {/* More Menu Dropdown - Compact */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary">
+                  <Button variant="ghost" className="px-2 py-2 text-sm font-medium text-gray-600 hover:text-primary">
                     More
-                    <ChevronDown className="ml-1 h-4 w-4" />
+                    <ChevronDown className="ml-1 h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-48">
+                <DropdownMenuContent align="center" className="w-56">
                   {dropdownItems.map((item) => (
                     <DropdownMenuItem key={item.href} asChild>
                       <Link href={item.href} className="w-full cursor-pointer">
@@ -120,8 +122,8 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* Desktop Actions - Right */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Desktop Actions - Right - Compact */}
+          <div className="hidden md:flex items-center space-x-2">
             {isAuthenticated ? (
               <>
                 <AdminAccess />

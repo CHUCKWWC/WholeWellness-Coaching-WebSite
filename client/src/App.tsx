@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
 import HelpSystem from "@/components/HelpSystem";
 import EmpatheticHelpProvider from "@/components/EmpatheticHelpProvider";
+import CoachLoginButton from "@/components/CoachLoginButton";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Services from "@/pages/Services";
@@ -118,6 +119,7 @@ function Router() {
       <Footer />
       <Chatbot />
       <HelpSystem />
+      <CoachLoginButton />
     </div>
   );
 }
