@@ -45,7 +45,7 @@ export class EmailService {
 
   private async sendViaGmailAPI(to: string, subject: string, html: string, text: string, from?: string): Promise<void> {
     const gmail = await this.createGmailAPI();
-    const senderEmail = from || process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org';
+    const senderEmail = from || process.env.GMAIL_USER || 'noreply@wholewellnesscoaching.org';
 
     const message = [
       `From: ${senderEmail}`,
@@ -72,7 +72,21 @@ export class EmailService {
   }
 
   private async createEmailTransporter(): Promise<nodemailer.Transporter> {
-    // Prioritize SMTP with App Password for reliability
+    // Prioritize Gmail SMTP with App Password for reliability
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      console.log('Using Gmail SMTP with App Password authentication');
+      return nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+      });
+    }
+    
+    // Fallback to generic SMTP if configured
     if (process.env.SMTP_PASS) {
       console.log('Using SMTP with App Password authentication');
       return nodemailer.createTransport({
