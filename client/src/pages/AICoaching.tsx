@@ -22,6 +22,9 @@ export default function AICoaching() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  
+  // Get current persona configuration
+  const currentPersonaConfig = personaConfig[currentPersona as keyof typeof personaConfig];
 
   // Persona configurations with brand colors
   const personaConfig = {
@@ -96,8 +99,7 @@ export default function AICoaching() {
     // Send to AI with persona context
     sendMessage.mutate({
       message: message,
-      coachType: selectedCoach.id,
-      persona: currentPersona
+      coachType: selectedCoach.id
     });
 
     setInputMessage("");
@@ -310,7 +312,7 @@ export default function AICoaching() {
                   >
                     {currentPersonaConfig.name}
                   </Badge>
-                  <Select value={currentPersona} onValueChange={handlePersonaChange}>
+                  <Select value={currentPersona} onValueChange={setCurrentPersona}>
                     <SelectTrigger className="w-[200px]">
                       <SelectValue />
                     </SelectTrigger>

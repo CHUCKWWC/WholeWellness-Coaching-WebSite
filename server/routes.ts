@@ -43,6 +43,7 @@ import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
 import { aiCoaching, type CoachingProfile } from "./ai-coaching";
 import { adminRoutes } from "./admin-routes";
+import { CoachEarningsSystem } from "./coach-earnings-system";
 import { coachRoutes } from "./coach-routes";
 import { donationRoutes } from "./donation-routes";
 import { onboardingRoutes } from "./onboarding-routes";
@@ -251,10 +252,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create test coach account endpoint
   app.post('/api/create-test-coach', createTestCoach);
 
+  // Coach earnings tracking and management endpoints
+  app.post('/api/coach/track-earnings', requireAuth, async (req: any, res) => {
+    try {
+      const { amount, source = 'manual' } = req.body;
+      const userId = req.user.id;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Invalid amount' });
+      }
+      
+      await CoachEarningsSystem.trackEarnings(userId, amount, source);
+      const summary = await CoachEarningsSystem.getEarningsSummary(userId);
+      
+      res.json({
+        message: 'Earnings tracked successfully',
+        summary
+      });
+    } catch (error: any) {
+      console.error('Earnings tracking error:', error);
+      res.status(500).json({ message: error.message || 'Failed to track earnings' });
+    }
+  });
+
+  app.get('/api/coach/earnings-summary', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const summary = await CoachEarningsSystem.getEarningsSummary(userId);
+      
+      if (!summary) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(summary);
+    } catch (error: any) {
+      console.error('Earnings summary error:', error);
+      res.status(500).json({ message: error.message || 'Failed to get earnings summary' });
+    }
+  });
+
+  app.get('/api/coach/eligibility', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const isEligible = await CoachEarningsSystem.checkCoachEligibility(userId);
+      
+      res.json({ eligible: isEligible });
+    } catch (error: any) {
+      console.error('Eligibility check error:', error);
+      res.status(500).json({ message: error.message || 'Failed to check eligibility' });
+    }
+  });
+
   // Coach application payment endpoint
-  app.post('/api/coach/application-payment', async (req, res) => {
+  app.post('/api/coach/application-payment', requireAuth, async (req: any, res) => {
     try {
       const { amount } = req.body;
+      const userId = req.user.id;
       
       if (!stripe) {
         return res.status(400).json({ message: 'Payment processing not configured' });
@@ -269,6 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: 'usd',
         metadata: {
           type: 'coach_application_fee',
+          userId: userId,
           timestamp: new Date().toISOString()
         }
       });
@@ -941,6 +995,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const event = req.body;
+      
+      // Handle coach application payment success
+      if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object;
+        
+        if (paymentIntent.metadata?.type === 'coach_application_fee') {
+          const userId = paymentIntent.metadata.userId;
+          const amount = paymentIntent.amount / 100; // Convert from cents
+          
+          if (userId && amount === 99.00) {
+            console.log(`💳 Coach application payment received: $${amount} for user ${userId}`);
+            
+            // Track earnings and automatically upgrade to coach role
+            await CoachEarningsSystem.trackEarnings(userId, amount, 'coach_application_fee');
+            
+            console.log(`🎉 Coach application fee processed - user ${userId} should now have coach role`);
+          }
+        }
+      }
       
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;

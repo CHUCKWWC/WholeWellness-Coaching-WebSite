@@ -20,6 +20,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
   
   // Bookings
   getBooking(id: number): Promise<Booking | undefined>;
@@ -475,6 +476,68 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
+    }
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    try {
+      // Map camelCase fields to snake_case for database
+      const dbUpdates: any = {};
+      
+      if (updates.email !== undefined) dbUpdates.email = updates.email;
+      if (updates.passwordHash !== undefined) dbUpdates.password_hash = updates.passwordHash;
+      if (updates.firstName !== undefined) dbUpdates.first_name = updates.firstName;
+      if (updates.lastName !== undefined) dbUpdates.last_name = updates.lastName;
+      if (updates.membershipLevel !== undefined) dbUpdates.membership_level = updates.membershipLevel;
+      if (updates.donationTotal !== undefined) dbUpdates.donation_total = updates.donationTotal;
+      if (updates.rewardPoints !== undefined) dbUpdates.reward_points = updates.rewardPoints;
+      if (updates.stripeCustomerId !== undefined) dbUpdates.stripe_customer_id = updates.stripeCustomerId;
+      if (updates.profileImageUrl !== undefined) dbUpdates.profile_image_url = updates.profileImageUrl;
+      if (updates.googleId !== undefined) dbUpdates.google_id = updates.googleId;
+      if (updates.provider !== undefined) dbUpdates.provider = updates.provider;
+      if (updates.role !== undefined) dbUpdates.role = updates.role;
+      if (updates.permissions !== undefined) dbUpdates.permissions = updates.permissions;
+      if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
+      if (updates.lastLogin !== undefined) dbUpdates.last_login = updates.lastLogin;
+      if (updates.updatedAt !== undefined) dbUpdates.updated_at = updates.updatedAt;
+
+      const { data, error } = await supabase
+        .from('users')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating user:', error);
+        return undefined;
+      }
+      
+      // Map snake_case response back to camelCase
+      return {
+        id: data.id,
+        email: data.email,
+        passwordHash: data.password_hash,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        membershipLevel: data.membership_level,
+        donationTotal: data.donation_total,
+        rewardPoints: data.reward_points,
+        stripeCustomerId: data.stripe_customer_id,
+        profileImageUrl: data.profile_image_url,
+        googleId: data.google_id,
+        provider: data.provider,
+        role: data.role,
+        permissions: data.permissions,
+        isActive: data.is_active,
+        joinDate: data.join_date,
+        lastLogin: data.last_login,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as User;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
     }
   }
 

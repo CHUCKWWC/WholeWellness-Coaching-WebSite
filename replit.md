@@ -297,6 +297,13 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - **ANIMATED COACH LOGIN BUTTON**: Implemented comprehensive floating button with multiple sophisticated animations including floating motion, pulsing rings, gradient glow, hover effects, shimmer, rotating icons, sparkles, and floating particles
   - **SMART VISIBILITY**: Coach login button automatically hides when coach is already authenticated
   - **PROFESSIONAL ANIMATIONS**: Premium-quality CSS keyframe animations for engaging user experience while maintaining professionalism
+- July 23, 2025. Automatic coach role upgrade system implemented
+  - **AUTOMATIC ROLE UPGRADE**: Created CoachEarningsSystem that automatically upgrades users to coach role when they earn $99.00
+  - **STRIPE WEBHOOK INTEGRATION**: Enhanced payment webhook to detect coach application fees and trigger role upgrades
+  - **EARNINGS TRACKING**: Comprehensive earnings tracking with audit logging and notification system
+  - **API ENDPOINTS**: Added /api/coach/track-earnings, /api/coach/earnings-summary, and /api/coach/eligibility endpoints
+  - **TESTING SYSTEM**: Created test scripts and manual tracking tools for verification
+  - **AUTOMATED WORKFLOW**: Coach application payments now automatically grant coach privileges without manual intervention
   - **SECURITY FIX**: Resolved high-risk vulnerability where member accounts could access coach-only resources
   - **ROLE-BASED AUTHORIZATION**: Added `requireCoachRole` middleware securing all coach endpoints with 403 error responses for unauthorized users
   - **PROTECTED ENDPOINTS**: All coach resources now require coach role: certification courses, profile management, banking info, client data
