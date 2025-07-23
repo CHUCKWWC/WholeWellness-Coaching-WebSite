@@ -46,7 +46,11 @@ export class AuthService {
       {
         id: user.id,
         email: user.email,
-        role: user.role || 'user'
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role || 'user',
+        membershipLevel: user.membershipLevel || 'free',
+        isActive: user.isActive !== false
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
