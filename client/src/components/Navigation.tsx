@@ -90,12 +90,7 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(
-                    "px-2 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap",
-                    location === item.href
-                      ? "text-primary"
-                      : "text-gray-600 hover:text-primary"
-                  )}
+                  className="px-2 py-2 rounded-md transition-colors whitespace-nowrap text-gray-600 hover:text-primary text-[12px] text-center ml-[0px] mr-[0px] pl-[5px] pr-[5px] pt-[6px] pb-[6px] font-bold"
                 >
                   {item.label}
                 </Link>
