@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Brain, MessageCircle, Shield, Clock, Users, Zap, Send, User, Bot } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Brain, MessageCircle, Shield, Clock, Users, Zap, Send, User, Bot, Settings, Palette, Heart, Dumbbell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import HelpBubble from "@/components/HelpBubble";
@@ -17,8 +18,42 @@ export default function AICoaching() {
   const [selectedCoach, setSelectedCoach] = useState<any>(null);
   const [messages, setMessages] = useState<Array<{id: string, text: string, isUser: boolean, timestamp: Date}>>([]);
   const [inputMessage, setInputMessage] = useState("");
+  const [currentPersona, setCurrentPersona] = useState("supportive");
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+
+  // Persona configurations with brand colors
+  const personaConfig = {
+    supportive: {
+      name: "Supportive & Empathetic",
+      color: "#0D7377", // Brand teal
+      description: "Warm, understanding, and encouraging approach",
+      icon: Heart,
+      sampleResponses: ["Let's explore that together with compassion", "I'm here to support you through this journey"]
+    },
+    motivational: {
+      name: "Motivational & Energetic", 
+      color: "#F7B801", // Brand yellow
+      description: "High-energy, inspiring, and goal-focused",
+      icon: Zap,
+      sampleResponses: ["You've got this! Let's make it happen!", "Time to turn those goals into reality!"]
+    },
+    analytical: {
+      name: "Analytical & Strategic",
+      color: "#5E9A62", // Brand green
+      description: "Data-driven, logical, and solution-oriented",
+      icon: Brain,
+      sampleResponses: ["Let's break this down systematically", "Based on the data, here's what I recommend"]
+    },
+    gentle: {
+      name: "Gentle & Nurturing",
+      color: "#8DB4C2", // Soft blue-green
+      description: "Calm, patient, and understanding approach",
+      icon: Users,
+      sampleResponses: ["Take your time, there's no rush", "Every small step counts"]
+    }
+  };
 
   // AI Chat mutation
   const sendMessage = useMutation({
@@ -58,13 +93,34 @@ export default function AICoaching() {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Send to AI
+    // Send to AI with persona context
     sendMessage.mutate({
       message: message,
-      coachType: selectedCoach.id
+      coachType: selectedCoach.id,
+      persona: currentPersona
     });
 
     setInputMessage("");
+  };
+
+  const handlePersonaChange = (newPersona: string) => {
+    setCurrentPersona(newPersona);
+    const config = personaConfig[newPersona as keyof typeof personaConfig];
+    
+    // Add system message about persona change
+    const systemMessage = {
+      id: `system-${Date.now()}`,
+      text: `Coaching style changed to: ${config.name}`,
+      isUser: false,
+      timestamp: new Date(),
+      isSystem: true
+    };
+    setMessages(prev => [...prev, systemMessage]);
+
+    toast({
+      title: "Coaching Style Updated",
+      description: `Now using ${config.name} approach`,
+    });
   };
 
   const handlePromptClick = (prompt: string) => {
@@ -224,44 +280,108 @@ export default function AICoaching() {
           </div>
 
           {/* Chat Interface */}
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="border-b">
-              <div className="flex items-center gap-3">
-                <div className="text-2xl">{selectedCoach.avatar}</div>
-                <div>
-                  <CardTitle className="text-lg">{selectedCoach.name}</CardTitle>
-                  <CardDescription>{selectedCoach.coach}</CardDescription>
+          <Card className="h-[700px] flex flex-col shadow-xl">
+            <CardHeader 
+              className="border-b bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700"
+              style={{ 
+                borderBottom: `3px solid ${currentPersonaConfig.color}`,
+                background: `linear-gradient(135deg, ${currentPersonaConfig.color}15 0%, ${currentPersonaConfig.color}05 100%)`
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">{selectedCoach.avatar}</div>
+                  <div>
+                    <CardTitle className="text-lg">{selectedCoach.name}</CardTitle>
+                    <CardDescription>{selectedCoach.coach}</CardDescription>
+                  </div>
+                </div>
+                
+                {/* Persona Selector in Chat Header */}
+                <div className="flex items-center gap-3">
+                  <Badge 
+                    variant="outline" 
+                    className="px-3 py-1"
+                    style={{ 
+                      borderColor: currentPersonaConfig.color,
+                      color: currentPersonaConfig.color,
+                      backgroundColor: `${currentPersonaConfig.color}10`
+                    }}
+                  >
+                    {currentPersonaConfig.name}
+                  </Badge>
+                  <Select value={currentPersona} onValueChange={handlePersonaChange}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(personaConfig).map(([key, config]) => {
+                        const IconComponent = config.icon;
+                        return (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="h-4 w-4" style={{ color: config.color }} />
+                              <span>{config.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
 
             {/* Messages Area */}
             <CardContent className="flex-1 flex flex-col p-0">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`flex gap-2 max-w-[80%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                        message.isUser ? 'bg-primary text-white' : 'bg-gray-200'
-                      }`}>
-                        {message.isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-800/50 dark:to-gray-900">
+                {messages.map((message: any) => {
+                  // Handle system messages differently
+                  if (message.isSystem) {
+                    return (
+                      <div key={message.id} className="flex justify-center">
+                        <div className="bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 text-xs text-gray-600 dark:text-gray-300">
+                          {message.text}
+                        </div>
                       </div>
-                      <div className={`rounded-lg p-3 ${
-                        message.isUser 
-                          ? 'bg-primary text-white' 
-                          : 'bg-gray-100 text-gray-900'
-                      }`}>
-                        <p className="text-sm">{message.text}</p>
-                        <p className="text-xs opacity-70 mt-1">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                    );
+                  }
+                  
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`flex gap-3 max-w-[85%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm shadow-md ${
+                          message.isUser 
+                            ? 'text-white'
+                            : 'text-white'
+                        }`}
+                        style={{
+                          backgroundColor: message.isUser ? currentPersonaConfig.color : '#6B7280'
+                        }}>
+                          {message.isUser ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                        </div>
+                        <div className={`rounded-2xl px-4 py-3 shadow-sm max-w-full ${
+                          message.isUser 
+                            ? 'text-white' 
+                            : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-600'
+                        }`}
+                        style={{
+                          backgroundColor: message.isUser ? currentPersonaConfig.color : undefined
+                        }}>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+                          <p className={`text-xs mt-2 ${
+                            message.isUser ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {sendMessage.isPending && (
                   <div className="flex justify-start">
                     <div className="flex gap-2 max-w-[80%]">
@@ -281,8 +401,17 @@ export default function AICoaching() {
               </div>
 
               {/* Suggested Prompts */}
-              <div className="border-t p-4 bg-gray-50">
-                <p className="text-sm font-medium text-gray-700 mb-3">Suggested prompts:</p>
+              <div className="border-t p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested prompts:</p>
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: currentPersonaConfig.color }}
+                    ></div>
+                    {currentPersonaConfig.name} style
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {selectedCoach.suggestedPrompts.map((prompt: string, index: number) => (
                     <Button
@@ -290,7 +419,20 @@ export default function AICoaching() {
                       variant="outline"
                       size="sm"
                       onClick={() => handlePromptClick(prompt)}
-                      className="text-xs h-8"
+                      className="text-xs h-8 hover:shadow-sm transition-all duration-200"
+                      style={{
+                        borderColor: `${currentPersonaConfig.color}50`,
+                        backgroundColor: 'white',
+                        '--hover-bg': `${currentPersonaConfig.color}10`
+                      } as any}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = `${currentPersonaConfig.color}10`;
+                        e.currentTarget.style.borderColor = currentPersonaConfig.color;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                        e.currentTarget.style.borderColor = `${currentPersonaConfig.color}50`;
+                      }}
                     >
                       {prompt}
                     </Button>
@@ -298,24 +440,37 @@ export default function AICoaching() {
                 </div>
 
                 {/* Message Input */}
-                <div className="flex gap-2">
-                  <Textarea
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Type your message here..."
-                    className="resize-none"
-                    rows={2}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(inputMessage);
-                      }
-                    }}
-                  />
+                <div className="flex gap-3">
+                  <div className="flex-1 relative">
+                    <Textarea
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      placeholder={`Type your message here... (${currentPersonaConfig.name} style)`}
+                      className="resize-none border-2 focus:border-current transition-colors pr-12"
+                      style={{ borderColor: `${currentPersonaConfig.color}30` }}
+                      rows={2}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(inputMessage);
+                        }
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = currentPersonaConfig.color;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = `${currentPersonaConfig.color}30`;
+                      }}
+                    />
+                  </div>
                   <Button
                     onClick={() => handleSendMessage(inputMessage)}
                     disabled={!inputMessage.trim() || sendMessage.isPending}
-                    className="self-end"
+                    className="self-end px-6 shadow-md hover:shadow-lg transition-all duration-200"
+                    style={{ 
+                      backgroundColor: currentPersonaConfig.color,
+                      borderColor: currentPersonaConfig.color
+                    }}
                   >
                     <Send className="w-4 h-4" />
                   </Button>

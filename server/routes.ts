@@ -2168,25 +2168,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use('/uploads', express.static(uploadDir));
 
-  // AI Coaching Chat Endpoint
+  // AI Coaching Chat Endpoint with Persona Support
   app.post("/api/ai-coaching/chat", async (req, res) => {
     try {
-      const { message, coachType } = req.body;
+      const { message, coachType, persona = "supportive" } = req.body;
       
       if (!message || !coachType) {
         return res.status(400).json({ message: "Message and coach type are required" });
       }
       
-      // Simple demo response based on coach type
-      const coachResponses = {
-        "weight-loss": "As your Weight Loss Coach, I understand your goals! Here's my personalized advice for your weight loss journey: " + message,
-        "relationship": "As your Relationship Coach, I'm here to help you build stronger connections. Let's work together on: " + message,
-        "wellness": "As your Wellness Coordinator, I focus on your overall wellbeing. Here's how we can address: " + message,
-        "behavior": "As your Behavior Coach, I'll help you create positive changes. Let's tackle: " + message
+      // Persona-based response styles
+      const personaStyles = {
+        supportive: {
+          prefix: "I'm here to support you. ",
+          tone: "warm and understanding",
+          suffix: " What would feel most helpful for you right now?"
+        },
+        motivational: {
+          prefix: "You've got this! ",
+          tone: "energetic and inspiring", 
+          suffix: " Ready to make some positive changes happen?"
+        },
+        analytical: {
+          prefix: "Let me break this down for you. ",
+          tone: "logical and strategic",
+          suffix: " What specific outcome are you hoping to achieve?"
+        },
+        gentle: {
+          prefix: "Take your time with this. ",
+          tone: "calm and patient",
+          suffix: " Remember, every small step counts."
+        }
       };
+
+      // Coach-specific knowledge bases
+      const coachKnowledge = {
+        "weight-loss": {
+          focus: "sustainable weight loss and healthy habits",
+          expertise: ["nutrition", "meal planning", "exercise", "motivation", "habit formation"]
+        },
+        "relationship": {
+          focus: "building stronger, healthier relationships", 
+          expertise: ["communication", "conflict resolution", "trust building", "emotional intimacy", "boundaries"]
+        },
+        "wellness": {
+          focus: "overall wellness and life balance",
+          expertise: ["stress management", "work-life balance", "mental health", "self-care", "mindfulness"]
+        },
+        "behavior": {
+          focus: "positive behavior change and personal development",
+          expertise: ["habit formation", "goal setting", "overcoming barriers", "self-discipline", "pattern recognition"]
+        }
+      };
+
+      const currentPersona = personaStyles[persona as keyof typeof personaStyles] || personaStyles.supportive;
+      const coachInfo = coachKnowledge[coachType as keyof typeof coachKnowledge] || coachKnowledge.wellness;
       
-      const response = coachResponses[coachType as keyof typeof coachResponses] || 
-        "Thank you for your message. I'm here to help you with your personal growth journey.";
+      // Generate contextual response
+      let response = currentPersona.prefix;
+      response += `As your ${coachType.replace('-', ' ')} specialist focusing on ${coachInfo.focus}, I can help you with ${message.toLowerCase()}. `;
+      
+      // Add persona-specific guidance
+      if (persona === "analytical") {
+        response += "Let's create a structured approach to address this systematically.";
+      } else if (persona === "motivational") {
+        response += "I believe in your ability to overcome this challenge!";
+      } else if (persona === "gentle") {
+        response += "We'll work through this at a pace that feels comfortable for you.";
+      } else {
+        response += "I'm here to guide you through this with understanding and care.";
+      }
+      
+      response += currentPersona.suffix;
       
       res.json({ success: true, response });
     } catch (error: any) {
