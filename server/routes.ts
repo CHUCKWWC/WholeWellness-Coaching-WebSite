@@ -2052,6 +2052,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Coaching Chat Endpoint
+  app.post("/api/ai-coaching/chat", async (req, res) => {
+    try {
+      const { message, coachType } = req.body;
+      
+      if (!message || !coachType) {
+        return res.status(400).json({ message: "Message and coach type are required" });
+      }
+      
+      // Simple demo response based on coach type
+      const coachResponses = {
+        "weight-loss": "As your Weight Loss Coach, I understand your goals! Here's my personalized advice for your weight loss journey: " + message,
+        "relationship": "As your Relationship Coach, I'm here to help you build stronger connections. Let's work together on: " + message,
+        "wellness": "As your Wellness Coordinator, I focus on your overall wellbeing. Here's how we can address: " + message,
+        "behavior": "As your Behavior Coach, I'll help you create positive changes. Let's tackle: " + message
+      };
+      
+      const response = coachResponses[coachType as keyof typeof coachResponses] || 
+        "Thank you for your message. I'm here to help you with your personal growth journey.";
+      
+      res.json({ success: true, response });
+    } catch (error: any) {
+      console.error('Error processing AI chat:', error);
+      res.status(500).json({ message: error.message || "Failed to process chat message" });
+    }
+  });
+
   // AI Coaching Routes for Beta Testing
   app.post("/api/ai-coaching/generate-meal-plan", async (req, res) => {
     try {

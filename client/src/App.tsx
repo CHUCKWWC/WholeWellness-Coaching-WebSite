@@ -48,6 +48,7 @@ import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import VolunteerApplication from "@/pages/VolunteerApplication";
 import WixBooking from "@/pages/WixBooking";
 import Assessments from "@/pages/Assessments";
+import UserProfile from "@/pages/UserProfile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -74,6 +75,7 @@ function Router() {
           <Route path="/member-portal" component={MemberPortal} />
           <Route path="/coach-dashboard" component={CoachDashboard} />
           <Route path="/assessments" component={Assessments} />
+          <Route path="/user-profile" component={UserProfile} />
           <Route path="/admin-login" component={AdminLogin} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/donation-portal" component={DonationPortal} />

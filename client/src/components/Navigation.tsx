@@ -149,6 +149,11 @@ export default function Navigation() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
+                      <Link href="/user-profile" className="w-full">
+                        Profile & Progress
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link href="/member-portal" className="w-full">
                         Member Portal
                       </Link>
