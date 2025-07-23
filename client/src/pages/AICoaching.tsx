@@ -416,9 +416,10 @@ export default function AICoaching() {
                   
                   <Button 
                     className="w-full bg-primary hover:bg-secondary text-white transition-colors"
-                    onClick={() => window.open(coach.url, '_blank')}
+                    onClick={() => handleCoachSelect(coach)}
                   >
-                    Start Coaching with {coach.name.split(' ')[0]}
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Start Chat with {coach.coach.split(' - ')[0]}
                   </Button>
                 </CardContent>
               </Card>
