@@ -251,6 +251,46 @@ export const optionalAuth = async (req: AuthenticatedRequest, res: Response, nex
   }
 };
 
+// Middleware to require coach role
+export const requireCoachRole = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    let token: string | undefined;
+    
+    // Check Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+    
+    // Check session cookie as fallback
+    if (!token && req.cookies && req.cookies.session_token) {
+      token = req.cookies.session_token;
+    }
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const decoded = AuthService.verifyToken(token);
+    const user = await AuthService.getUserById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Check if user has coach role
+    if (user.role !== 'coach') {
+      return res.status(403).json({ error: 'Coach access required' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Coach auth middleware error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+};
+
 // User registration route handler
 export const register = async (req: Request, res: Response) => {
   try {

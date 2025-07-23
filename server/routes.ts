@@ -33,6 +33,7 @@ import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integratio
 import { coachStorage } from "./coach-storage";
 import { 
   requireAuth, 
+  requireCoachRole,
   optionalAuth,
   type AuthenticatedRequest 
 } from "./auth";
@@ -47,7 +48,7 @@ import { donationRoutes } from "./donation-routes";
 import { onboardingRoutes } from "./onboarding-routes";
 import { onboardingNewRoutes } from "./onboarding-new-routes";
 import { assessmentRoutes } from "./assessment-routes";
-import { requireAuth, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
+import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 import { adminLogin, adminLogout } from "./admin-auth";
 import { onboardingService } from "./onboarding-service";
 import { supabase } from "./supabase";
@@ -282,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Coach certification progress endpoint (matching the original Supabase query structure)
-  app.get("/api/coach/certification-progress", async (req: any, res) => {
+  app.get("/api/coach/certification-progress", requireCoachRole as any, async (req: any, res) => {
     try {
       // Mock data that matches the original code's expected structure
       const certificationProgress = [
@@ -332,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Start module endpoint (matching original functionality)
-  app.post("/api/coach/start-module", async (req: any, res) => {
+  app.post("/api/coach/start-module", requireCoachRole as any, async (req: any, res) => {
     try {
       const { moduleId, status } = req.body;
       
@@ -351,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Submit quiz endpoint (matching original scoring logic)
-  app.post("/api/coach/submit-quiz", async (req: any, res) => {
+  app.post("/api/coach/submit-quiz", requireCoachRole as any, async (req: any, res) => {
     try {
       const { moduleId, score, answers, status } = req.body;
       
@@ -1499,7 +1500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Coach Management Routes
   
   // Get coach profile
-  app.get("/api/coach/profile", requireAuth as any, async (req: any, res) => {
+  app.get("/api/coach/profile", requireCoachRole as any, async (req: any, res) => {
     try {
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
@@ -1512,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create or update coach profile
-  app.post("/api/coach/profile", requireAuth as any, async (req: any, res) => {
+  app.post("/api/coach/profile", requireCoachRole as any, async (req: any, res) => {
     try {
       const coachData = insertCoachSchema.parse({
         ...req.body,
@@ -1537,7 +1538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get coach credentials
-  app.get("/api/coach/credentials", requireAuth as any, async (req: any, res) => {
+  app.get("/api/coach/credentials", requireCoachRole as any, async (req: any, res) => {
     try {
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
@@ -1552,7 +1553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add coach credential
-  app.post("/api/coach/credentials", requireAuth as any, async (req: any, res) => {
+  app.post("/api/coach/credentials", requireCoachRole as any, async (req: any, res) => {
     try {
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
@@ -1576,7 +1577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get coach banking info
-  app.get("/api/coach/banking", requireAuth as any, async (req: any, res) => {
+  app.get("/api/coach/banking", requireCoachRole as any, async (req: any, res) => {
     try {
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
@@ -1599,7 +1600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add/update coach banking info
-  app.post("/api/coach/banking", requireAuth as any, async (req: any, res) => {
+  app.post("/api/coach/banking", requireCoachRole as any, async (req: any, res) => {
     try {
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
@@ -1623,7 +1624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get coach availability
-  app.get("/api/coach/availability", requireAuth as any, async (req: any, res) => {
+  app.get("/api/coach/availability", requireCoachRole as any, async (req: any, res) => {
     try {
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
@@ -3146,7 +3147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get coach's current enrollments
-  app.get("/api/coach/my-enrollments", async (req, res) => {
+  app.get("/api/coach/my-enrollments", requireCoachRole as any, async (req, res) => {
     try {
       // Mock enrollments for demo
       const enrollments = [
@@ -3173,7 +3174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get coach's earned certificates
-  app.get("/api/coach/my-certificates", async (req, res) => {
+  app.get("/api/coach/my-certificates", requireCoachRole as any, async (req, res) => {
     try {
       // Mock certificates for demo
       const certificates = [
