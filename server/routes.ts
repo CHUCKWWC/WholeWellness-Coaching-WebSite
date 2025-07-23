@@ -281,6 +281,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Coach certification progress endpoint (matching the original Supabase query structure)
+  app.get("/api/coach/certification-progress", async (req: any, res) => {
+    try {
+      // Mock data that matches the original code's expected structure
+      const certificationProgress = [
+        {
+          module_id: 1,
+          status: 'not_started',
+          score: null,
+          answers: {},
+          modules: {
+            id: 1,
+            title: 'Introduction to Wellness Coaching',
+            content: '<h3>Module 1: Introduction to Wellness Coaching</h3><p>This module covers the fundamentals of wellness coaching, including key principles, methodologies, and best practices.</p><ul><li>Understanding client needs</li><li>Building rapport and trust</li><li>Setting realistic goals</li><li>Tracking progress effectively</li></ul>',
+            module_order: 1
+          }
+        },
+        {
+          module_id: 2,
+          status: 'not_started',
+          score: null,
+          answers: {},
+          modules: {
+            id: 2,
+            title: 'Advanced Nutrition Fundamentals',
+            content: '<h3>Module 2: Advanced Nutrition Fundamentals</h3><p>Deep dive into nutritional science and practical application for coaching clients.</p><ul><li>Macronutrient balance</li><li>Meal planning strategies</li><li>Dietary restrictions and adaptations</li><li>Evidence-based nutrition recommendations</li></ul>',
+            module_order: 2
+          }
+        },
+        {
+          module_id: 3,
+          status: 'not_started',
+          score: null,
+          answers: {},
+          modules: {
+            id: 3,
+            title: 'Relationship Counseling Techniques',
+            content: '<h3>Module 3: Relationship Counseling Techniques</h3><p>Essential skills for helping clients improve their relationships and communication.</p><ul><li>Active listening techniques</li><li>Conflict resolution strategies</li><li>Communication improvement methods</li><li>Boundary setting and respect</li></ul>',
+            module_order: 3
+          }
+        }
+      ];
+
+      res.json(certificationProgress);
+    } catch (error) {
+      console.error("Error fetching certification progress:", error);
+      res.status(500).json({ message: "Failed to fetch certification progress" });
+    }
+  });
+
+  // Start module endpoint (matching original functionality)
+  app.post("/api/coach/start-module", async (req: any, res) => {
+    try {
+      const { moduleId, status } = req.body;
+      
+      // In a real implementation, this would update the database
+      // For now, we return success to match the original code behavior
+      res.json({ 
+        success: true,
+        message: `Module ${moduleId} status updated to ${status}`,
+        moduleId,
+        status 
+      });
+    } catch (error) {
+      console.error("Error starting module:", error);
+      res.status(500).json({ message: "Failed to start module" });
+    }
+  });
+
+  // Submit quiz endpoint (matching original scoring logic)
+  app.post("/api/coach/submit-quiz", async (req: any, res) => {
+    try {
+      const { moduleId, score, answers, status } = req.body;
+      
+      // In a real implementation, this would update the database
+      // For now, we return the submitted data to match the original code behavior
+      res.json({ 
+        success: true,
+        message: `Quiz for module ${moduleId} submitted successfully`,
+        moduleId,
+        score,
+        answers,
+        status,
+        passed: status === 'completed'
+      });
+    } catch (error) {
+      console.error("Error submitting quiz:", error);
+      res.status(500).json({ message: "Failed to submit quiz" });
+    }
+  });
+
   // Password reset routes
   app.post('/api/auth/request-reset', async (req, res) => {
     try {
