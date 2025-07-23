@@ -10,7 +10,9 @@ import type {
   EmergencyContact, InsertEmergencyContact, WellnessAssessment, InsertWellnessAssessment,
   PersonalizedRecommendation, InsertPersonalizedRecommendation,
   ResourceUsageAnalytics, InsertResourceUsageAnalytics,
-  Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage
+  Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage,
+  AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment,
+  CoachInteraction, InsertCoachInteraction
 } from "@shared/schema";
 
 export interface IStorage {
@@ -1303,6 +1305,226 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error creating admin activity log:', error);
       throw new Error('Failed to create admin activity log');
+    }
+  }
+
+  // ============================================
+  // MULTI-ASSESSMENT SYSTEM METHODS
+  // ============================================
+
+  // Assessment Types Management
+  async getActiveAssessmentTypes(): Promise<AssessmentType[]> {
+    try {
+      const { data, error } = await supabase
+        .from('assessment_types')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_name');
+      
+      if (error) {
+        console.error('Error getting assessment types:', error);
+        return [];
+      }
+      
+      return data as AssessmentType[];
+    } catch (error) {
+      console.error('Error getting assessment types:', error);
+      return [];
+    }
+  }
+
+  async getAssessmentTypeById(id: string): Promise<AssessmentType | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('assessment_types')
+        .select('*')
+        .eq('id', id)
+        .eq('is_active', true)
+        .single();
+      
+      if (error) {
+        console.error('Error getting assessment type by id:', error);
+        return undefined;
+      }
+      
+      return data as AssessmentType;
+    } catch (error) {
+      console.error('Error getting assessment type by id:', error);
+      return undefined;
+    }
+  }
+
+  async createAssessmentType(assessmentType: InsertAssessmentType): Promise<AssessmentType> {
+    try {
+      const { data, error } = await supabase
+        .from('assessment_types')
+        .insert(assessmentType)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating assessment type:', error);
+        throw new Error('Failed to create assessment type');
+      }
+      
+      return data as AssessmentType;
+    } catch (error) {
+      console.error('Error creating assessment type:', error);
+      throw new Error('Failed to create assessment type');
+    }
+  }
+
+  // User Assessment Management
+  async createUserAssessment(assessment: InsertUserAssessment): Promise<UserAssessment> {
+    try {
+      const { data, error } = await supabase
+        .from('user_assessments')
+        .insert(assessment)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating user assessment:', error);
+        throw new Error('Failed to create user assessment');
+      }
+      
+      return data as UserAssessment;
+    } catch (error) {
+      console.error('Error creating user assessment:', error);
+      throw new Error('Failed to create user assessment');
+    }
+  }
+
+  async getUserAssessments(userId: string): Promise<UserAssessment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_assessments')
+        .select(`
+          *,
+          assessment_types(name, display_name, category)
+        `)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('completed_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting user assessments:', error);
+        return [];
+      }
+      
+      return data as UserAssessment[];
+    } catch (error) {
+      console.error('Error getting user assessments:', error);
+      return [];
+    }
+  }
+
+  async getAssessmentsForCoach(userId: string, coachType: string): Promise<UserAssessment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_assessments')
+        .select(`
+          *,
+          assessment_types!inner(name, display_name, category, coach_types)
+        `)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .contains('assessment_types.coach_types', [coachType])
+        .order('completed_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting assessments for coach:', error);
+        return [];
+      }
+      
+      return data as UserAssessment[];
+    } catch (error) {
+      console.error('Error getting assessments for coach:', error);
+      return [];
+    }
+  }
+
+  async getUserAssessmentSummary(userId: string): Promise<any> {
+    try {
+      const assessments = await this.getUserAssessments(userId);
+      
+      // Create a summary organized by category
+      const summary = assessments.reduce((acc, assessment) => {
+        const category = assessment.assessment_types?.category || 'other';
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push({
+          id: assessment.id,
+          type: assessment.assessment_types?.display_name,
+          completedAt: assessment.completed_at,
+          summary: assessment.summary,
+          tags: assessment.tags,
+        });
+        return acc;
+      }, {} as Record<string, any[]>);
+      
+      return {
+        userId,
+        totalAssessments: assessments.length,
+        categories: summary,
+        lastAssessment: assessments[0]?.completed_at,
+      };
+    } catch (error) {
+      console.error('Error getting user assessment summary:', error);
+      return {
+        userId,
+        totalAssessments: 0,
+        categories: {},
+        lastAssessment: null,
+      };
+    }
+  }
+
+  // Coach Interaction Tracking
+  async createCoachInteraction(interaction: InsertCoachInteraction): Promise<CoachInteraction> {
+    try {
+      const { data, error } = await supabase
+        .from('coach_interactions')
+        .insert(interaction)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating coach interaction:', error);
+        throw new Error('Failed to create coach interaction');
+      }
+      
+      return data as CoachInteraction;
+    } catch (error) {
+      console.error('Error creating coach interaction:', error);
+      throw new Error('Failed to create coach interaction');
+    }
+  }
+
+  async getCoachInteractionHistory(userId: string, coachType?: string): Promise<CoachInteraction[]> {
+    try {
+      let query = supabase
+        .from('coach_interactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (coachType) {
+        query = query.eq('coach_type', coachType);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error getting coach interaction history:', error);
+        return [];
+      }
+      
+      return data as CoachInteraction[];
+    } catch (error) {
+      console.error('Error getting coach interaction history:', error);
+      return [];
     }
   }
 

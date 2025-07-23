@@ -1186,3 +1186,119 @@ export const adminLoginSchema = z.object({
 });
 
 export type AdminLoginData = z.infer<typeof adminLoginSchema>;
+
+// ============================================
+// MULTI-ASSESSMENT SYSTEM TABLES
+// ============================================
+
+// Assessment types definition
+export const assessmentTypes = pgTable("assessment_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // "weight_loss_intake", "attachment_style", etc.
+  displayName: varchar("display_name").notNull(), // "Weight Loss Intake", "Attachment Style Assessment"
+  category: varchar("category").notNull(), // "health", "relationships", "career", etc.
+  description: text("description"),
+  version: integer("version").default(1),
+  fields: jsonb("fields").notNull(), // Field definitions for the form
+  coachTypes: text("coach_types").array(), // Which AI coaches can access this data
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User completed assessments
+export const userAssessments = pgTable("user_assessments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  assessmentTypeId: varchar("assessment_type_id").notNull().references(() => assessmentTypes.id),
+  responses: jsonb("responses").notNull(), // All form responses
+  summary: text("summary"), // AI-generated summary of responses
+  tags: text("tags").array(), // Extracted tags for search/matching
+  completedAt: timestamp("completed_at").defaultNow(),
+  lastAccessedAt: timestamp("last_accessed_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// AI coach access log (tracking which coaches access what data)
+export const coachInteractions = pgTable("coach_interactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  coachType: varchar("coach_type").notNull(), // "weight_loss", "relationship", etc.
+  accessedAssessments: text("accessed_assessments").array(), // Array of assessment IDs used
+  interactionSummary: text("interaction_summary"),
+  sessionId: varchar("session_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Assessment templates/forms
+export const assessmentForms = pgTable("assessment_forms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  assessmentTypeId: varchar("assessment_type_id").notNull().references(() => assessmentTypes.id),
+  formData: jsonb("form_data").notNull(), // Complete form structure
+  validationRules: jsonb("validation_rules"), // Field validation rules
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations for assessment system
+export const assessmentTypesRelations = relations(assessmentTypes, ({ many }) => ({
+  userAssessments: many(userAssessments),
+  assessmentForms: many(assessmentForms),
+}));
+
+export const userAssessmentsRelations = relations(userAssessments, ({ one }) => ({
+  user: one(users, {
+    fields: [userAssessments.userId],
+    references: [users.id],
+  }),
+  assessmentType: one(assessmentTypes, {
+    fields: [userAssessments.assessmentTypeId],
+    references: [assessmentTypes.id],
+  }),
+}));
+
+export const coachInteractionsRelations = relations(coachInteractions, ({ one }) => ({
+  user: one(users, {
+    fields: [coachInteractions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas for assessment system
+export const insertAssessmentTypeSchema = createInsertSchema(assessmentTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserAssessmentSchema = createInsertSchema(userAssessments).omit({
+  id: true,
+  completedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCoachInteractionSchema = createInsertSchema(coachInteractions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAssessmentFormSchema = createInsertSchema(assessmentForms).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for assessment system
+export type AssessmentType = typeof assessmentTypes.$inferSelect;
+export type InsertAssessmentType = z.infer<typeof insertAssessmentTypeSchema>;
+
+export type UserAssessment = typeof userAssessments.$inferSelect;
+export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;
+
+export type CoachInteraction = typeof coachInteractions.$inferSelect;
+export type InsertCoachInteraction = z.infer<typeof insertCoachInteractionSchema>;
+
+export type AssessmentForm = typeof assessmentForms.$inferSelect;
+export type InsertAssessmentForm = z.infer<typeof insertAssessmentFormSchema>;

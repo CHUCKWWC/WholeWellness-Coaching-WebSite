@@ -73,6 +73,7 @@ function Router() {
           <Route path="/donate" component={Donate} />
           <Route path="/member-portal" component={MemberPortal} />
           <Route path="/coach-dashboard" component={CoachDashboard} />
+          <Route path="/assessments" component={Assessments} />
           <Route path="/admin-login" component={AdminLogin} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/donation-portal" component={DonationPortal} />

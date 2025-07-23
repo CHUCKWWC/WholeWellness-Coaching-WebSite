@@ -42,6 +42,7 @@ import { coachRoutes } from "./coach-routes";
 import { donationRoutes } from "./donation-routes";
 import { onboardingRoutes } from "./onboarding-routes";
 import { onboardingNewRoutes } from "./onboarding-new-routes";
+import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 import { adminLogin, adminLogout } from "./admin-auth";
 import { onboardingService } from "./onboarding-service";
@@ -2307,6 +2308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/coach', coachRoutes);
   app.use('/api/donation', donationRoutes);
   app.use('/api/onboarding', onboardingRoutes);
+  app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);
 
   const httpServer = createServer(app);
