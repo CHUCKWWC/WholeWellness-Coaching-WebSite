@@ -3136,5 +3136,259 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get course modules for learning
+  app.get("/api/coach/courses/:courseId/modules", async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      
+      // Mock course modules for demo
+      const modules = [
+        {
+          id: "module-1",
+          courseId,
+          moduleNumber: 1,
+          title: "Introduction to Wellness Coaching",
+          description: "Foundational principles and core concepts of holistic wellness coaching",
+          duration: 45,
+          contentType: "video",
+          contentUrl: "https://player.vimeo.com/video/example1",
+          content: "<p>Welcome to the comprehensive wellness coaching certification program. This module introduces you to the foundational principles of holistic wellness coaching, including understanding client needs, setting realistic goals, and building sustainable coaching relationships.</p><h3>Learning Objectives:</h3><ul><li>Understand the core principles of wellness coaching</li><li>Learn to identify client motivations and barriers</li><li>Develop active listening and empathy skills</li></ul>",
+          isRequired: true,
+          orderIndex: 1,
+          resources: [
+            {
+              title: "Wellness Coaching Framework PDF",
+              type: "pdf",
+              url: "#",
+              description: "Comprehensive guide to wellness coaching methodologies"
+            },
+            {
+              title: "Client Assessment Templates",
+              type: "tool",
+              url: "#",
+              description: "Downloadable templates for client intake and assessment"
+            }
+          ]
+        },
+        {
+          id: "module-2",
+          courseId,
+          moduleNumber: 2,
+          title: "Goal Setting and Action Planning",
+          description: "SMART goal methodology and creating actionable wellness plans",
+          duration: 60,
+          contentType: "quiz",
+          content: "<p>This module focuses on the critical skill of helping clients set achievable, measurable goals and create actionable plans for sustainable wellness improvements.</p>",
+          quiz: {
+            questions: [
+              {
+                id: "q1",
+                question: "What does SMART stand for in goal setting?",
+                type: "multiple_choice",
+                options: [
+                  "Specific, Measurable, Achievable, Relevant, Time-bound",
+                  "Simple, Modern, Accurate, Realistic, Targeted",
+                  "Strategic, Meaningful, Ambitious, Reliable, Trackable",
+                  "Structured, Motivational, Actionable, Results-focused, Timely"
+                ],
+                correctAnswer: 0,
+                explanation: "SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound.",
+                points: 10
+              },
+              {
+                id: "q2", 
+                question: "A client wants to 'be healthier' - this is an example of a well-defined goal.",
+                type: "true_false",
+                correctAnswer: "false",
+                explanation: "This goal is too vague. A SMART goal would be more specific, like 'exercise 30 minutes, 3 times per week for the next 3 months'.",
+                points: 10
+              },
+              {
+                id: "q3",
+                question: "Describe how you would help a client break down a large wellness goal into smaller, manageable steps. Provide a specific example.",
+                type: "essay",
+                points: 20
+              }
+            ],
+            passingScore: 80,
+            timeLimit: 30
+          },
+          isRequired: true,
+          orderIndex: 2
+        },
+        {
+          id: "module-3",
+          courseId,
+          moduleNumber: 3,
+          title: "Motivational Interviewing Techniques",
+          description: "Advanced communication strategies for behavior change",
+          duration: 75,
+          contentType: "text",
+          content: "<p>Motivational interviewing is a collaborative conversation style that strengthens a person's motivation and commitment to change. This evidence-based approach is essential for wellness coaches.</p><h3>Core Principles:</h3><ol><li><strong>Express Empathy:</strong> Understand the client's perspective</li><li><strong>Develop Discrepancy:</strong> Help clients see gaps between current behavior and goals</li><li><strong>Roll with Resistance:</strong> Avoid arguing or confronting</li><li><strong>Support Self-Efficacy:</strong> Build confidence in the client's ability to change</li></ol><h3>Key Techniques:</h3><ul><li>Open-ended questions</li><li>Affirmations</li><li>Reflective listening</li><li>Summarizing</li></ul><p>Practice these techniques in every client interaction to build rapport and facilitate sustainable behavior change.</p>",
+          isRequired: true,
+          orderIndex: 3,
+          resources: [
+            {
+              title: "Motivational Interviewing Question Bank",
+              type: "pdf",
+              url: "#",
+              description: "100+ open-ended questions for coaching sessions"
+            }
+          ]
+        },
+        {
+          id: "module-4",
+          courseId,
+          moduleNumber: 4,
+          title: "Case Study Analysis",
+          description: "Apply your learning to real-world coaching scenarios",
+          duration: 90,
+          contentType: "assignment",
+          content: "<p>This capstone assignment allows you to demonstrate your mastery of wellness coaching principles through detailed case study analysis.</p>",
+          assignment: {
+            instructions: "<p>You will be presented with a detailed client case study. Your task is to:</p><ol><li>Analyze the client's current situation, challenges, and goals</li><li>Develop a comprehensive coaching plan using SMART goals</li><li>Identify potential barriers and strategies to overcome them</li><li>Create sample motivational interviewing questions</li><li>Design a 3-month action plan with measurable milestones</li></ol><p><strong>Case Study:</strong> Sarah is a 35-year-old working mother who wants to improve her overall wellness. She struggles with stress management, irregular eating patterns, and finds little time for physical activity. She has tried various diets and exercise programs but hasn't maintained long-term success. Sarah's goal is to 'feel more energetic and confident' while managing her busy lifestyle.</p>",
+            submissionFormat: "Written analysis (1500-2000 words) addressing all required components",
+            maxScore: 100
+          },
+          isRequired: true,
+          orderIndex: 4
+        }
+      ];
+      
+      res.json(modules);
+    } catch (error) {
+      console.error("Error fetching course modules:", error);
+      res.status(500).json({ message: "Failed to fetch course modules" });
+    }
+  });
+
+  // Get module progress for enrollment
+  app.get("/api/coach/module-progress/:enrollmentId", async (req, res) => {
+    try {
+      const { enrollmentId } = req.params;
+      
+      // Mock module progress for demo
+      const progress = [
+        {
+          id: "progress-1",
+          enrollmentId,
+          moduleId: "module-1",
+          status: "completed",
+          startedAt: "2025-07-01T10:00:00Z",
+          completedAt: "2025-07-01T11:30:00Z",
+          timeSpent: 90,
+          attempts: 1,
+          score: 95
+        },
+        {
+          id: "progress-2", 
+          enrollmentId,
+          moduleId: "module-2",
+          status: "in_progress",
+          startedAt: "2025-07-02T09:00:00Z",
+          timeSpent: 25,
+          attempts: 1,
+          score: null
+        }
+      ];
+      
+      res.json(progress);
+    } catch (error) {
+      console.error("Error fetching module progress:", error);
+      res.status(500).json({ message: "Failed to fetch module progress" });
+    }
+  });
+
+  // Start a module
+  app.post("/api/coach/start-module", async (req, res) => {
+    try {
+      const { enrollmentId, moduleId } = req.body;
+      
+      if (!enrollmentId || !moduleId) {
+        return res.status(400).json({ message: "Enrollment ID and Module ID are required" });
+      }
+      
+      // Mock module start
+      const progress = {
+        id: `progress-${Date.now()}`,
+        enrollmentId,
+        moduleId,
+        status: "in_progress",
+        startedAt: new Date().toISOString(),
+        timeSpent: 0,
+        attempts: 1
+      };
+      
+      res.json({ success: true, progress });
+    } catch (error) {
+      console.error("Error starting module:", error);
+      res.status(500).json({ message: "Failed to start module" });
+    }
+  });
+
+  // Submit quiz answers
+  app.post("/api/coach/submit-quiz", async (req, res) => {
+    try {
+      const { enrollmentId, moduleId, answers, timeSpent } = req.body;
+      
+      if (!enrollmentId || !moduleId || !answers) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Mock quiz scoring - in production, this would be more sophisticated
+      const totalQuestions = Object.keys(answers).length;
+      let correctAnswers = 0;
+      
+      // Simple scoring logic for demo
+      Object.values(answers).forEach((answer: any) => {
+        if (typeof answer === 'string' && (answer.includes('Specific') || answer === 'false' || answer.length > 50)) {
+          correctAnswers++;
+        }
+      });
+      
+      const score = Math.round((correctAnswers / totalQuestions) * 100);
+      const passed = score >= 80;
+      
+      const result = {
+        score,
+        passed,
+        answers,
+        completedAt: new Date().toISOString(),
+        timeSpent: timeSpent || 0,
+        feedback: passed ? "Excellent work! You've demonstrated mastery of the concepts." : "Please review the material and try again. Focus on the areas you missed."
+      };
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error submitting quiz:", error);
+      res.status(500).json({ message: "Failed to submit quiz" });
+    }
+  });
+
+  // Submit assignment
+  app.post("/api/coach/submit-assignment", async (req, res) => {
+    try {
+      const { enrollmentId, moduleId, submission, timeSpent } = req.body;
+      
+      if (!enrollmentId || !moduleId || !submission) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Mock assignment submission
+      const result = {
+        submissionId: `submission-${Date.now()}`,
+        submittedAt: new Date().toISOString(),
+        status: "submitted",
+        timeSpent: timeSpent || 0,
+        feedback: "Your assignment has been submitted and will be reviewed by an instructor within 3-5 business days."
+      };
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error submitting assignment:", error);
+      res.status(500).json({ message: "Failed to submit assignment" });
+    }
+  });
+
   return httpServer;
 }

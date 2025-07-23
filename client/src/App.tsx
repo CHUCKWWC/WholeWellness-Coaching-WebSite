@@ -51,6 +51,7 @@ import Assessments from "@/pages/Assessments";
 import UserProfile from "@/pages/UserProfile";
 import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import CoachCertifications from "@/pages/CoachCertifications";
+import ModuleLearning from "@/pages/ModuleLearning";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -103,6 +104,12 @@ function Router() {
           <Route path="/assessments" component={Assessments} />
           <Route path="/enhanced-onboarding" component={EnhancedOnboarding} />
           <Route path="/coach-certifications" component={CoachCertifications} />
+          <Route path="/module-learning" component={() => {
+            const params = new URLSearchParams(window.location.search);
+            const courseId = params.get('courseId') || '';
+            const enrollmentId = params.get('enrollmentId') || '';
+            return <ModuleLearning courseId={courseId} enrollmentId={enrollmentId} />;
+          }} />
           <Route component={NotFound} />
         </Switch>
       </main>

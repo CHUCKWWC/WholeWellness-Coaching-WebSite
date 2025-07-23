@@ -214,6 +214,7 @@ export default function CoachCertifications() {
               <Button 
                 className="flex-1"
                 style={{ backgroundColor: "#5E9A62" }}
+                onClick={() => window.open(`/module-learning?courseId=${course.id}&enrollmentId=${enrollment.id}`, '_blank')}
               >
                 <Play className="h-4 w-4 mr-2" />
                 Continue Learning
