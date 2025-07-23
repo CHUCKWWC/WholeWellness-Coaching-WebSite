@@ -373,6 +373,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin route to update user role (temporary for testing)
+  app.post('/api/auth/update-coach-role', async (req, res) => {
+    try {
+      const { email, role } = req.body;
+      
+      // Update user role in database
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      await storage.updateUser(user.id, { role });
+      
+      // Get updated user to confirm
+      const updatedUser = await storage.getUserByEmail(email);
+      res.json({ 
+        success: true, 
+        message: `User ${email} role updated to ${role}`,
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      res.status(500).json({ error: 'Failed to update user role' });
+    }
+  });
+
+  // Check user endpoint (temporary for testing)
+  app.get('/api/auth/check-user', async (req, res) => {
+    try {
+      const { email } = req.query;
+      const user = await storage.getUserByEmail(email as string);
+      res.json({ user });
+    } catch (error) {
+      console.error('Error checking user:', error);
+      res.status(500).json({ error: 'Failed to check user' });
+    }
+  });
+
   // Password reset routes
   app.post('/api/auth/request-reset', async (req, res) => {
     try {
