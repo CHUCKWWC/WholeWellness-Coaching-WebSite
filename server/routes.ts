@@ -1,5 +1,9 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./supabase-client-storage";
 import { 
   insertBookingSchema, 
@@ -2051,6 +2055,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // File upload configuration
+  const uploadDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const storage_config = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const subDir = file.fieldname === 'video' ? 'videos' : 
+                     file.fieldname === 'photo' ? 'photos' : 'documents';
+      const fullPath = path.join(uploadDir, subDir);
+      if (!fs.existsSync(fullPath)) {
+        fs.mkdirSync(fullPath, { recursive: true });
+      }
+      cb(null, fullPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+      cb(null, uniqueName);
+    }
+  });
+
+  const upload = multer({
+    storage: storage_config,
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB for videos
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.fieldname === 'video') {
+        if (file.mimetype.startsWith('video/')) {
+          cb(null, true);
+        } else {
+          cb(new Error('Only video files are allowed'));
+        }
+      } else if (file.fieldname === 'photo') {
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, true);
+        } else {
+          cb(new Error('Only image files are allowed'));
+        }
+      } else {
+        cb(null, true);
+      }
+    }
+  });
+
+  // Video upload endpoint
+  app.post('/api/upload/video', upload.single('video'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No video file uploaded' });
+      }
+
+      const videoUrl = `/uploads/videos/${req.file.filename}`;
+      res.json({
+        success: true,
+        videoUrl: videoUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('Video upload error:', error);
+      res.status(500).json({ error: 'Failed to upload video' });
+    }
+  });
+
+  // Photo upload endpoint
+  app.post('/api/upload/photo', upload.single('photo'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No photo file uploaded' });
+      }
+
+      const photoUrl = `/uploads/photos/${req.file.filename}`;
+      res.json({
+        success: true,
+        photoUrl: photoUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      res.status(500).json({ error: 'Failed to upload photo' });
+    }
+  });
+
+  // Document upload endpoint
+  app.post('/api/upload/document', upload.single('document'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No document file uploaded' });
+      }
+
+      const documentUrl = `/uploads/documents/${req.file.filename}`;
+      res.json({
+        success: true,
+        documentUrl: documentUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('Document upload error:', error);
+      res.status(500).json({ error: 'Failed to upload document' });
+    }
+  });
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(uploadDir));
 
   // AI Coaching Chat Endpoint
   app.post("/api/ai-coaching/chat", async (req, res) => {

@@ -475,12 +475,25 @@ export const clientIntake = pgTable("client_intake", {
 export const coachApplications = pgTable("coach_applications", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  email: varchar("email"),
+  phone: varchar("phone"),
   bio: text("bio"),
   location: varchar("location"),
   linkedIn: varchar("linked_in"),
+  credentials: text("credentials"),
+  experience: text("experience"),
   certifications: jsonb("certifications").$type<string[]>().default([]),
   specializations: jsonb("specializations").$type<string[]>().default([]),
+  specialties: jsonb("specialties").$type<string[]>().default([]),
   yearsOfExperience: integer("years_of_experience"),
+  photoUrl: varchar("photo_url"),
+  videoUrl: varchar("video_url"),
+  resumeUrl: varchar("resume_url"),
+  certificationUrls: jsonb("certification_urls").$type<string[]>().default([]),
+  philosophy: text("philosophy"), // Coaching philosophy
+  methods: text("methods"), // Methods and techniques
   availability: jsonb("availability"),
   bankingInfo: jsonb("banking_info"),
   backgroundCheckConsent: boolean("background_check_consent").default(false),
@@ -490,6 +503,29 @@ export const coachApplications = pgTable("coach_applications", {
   reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Application documents for enhanced coach onboarding
+export const applicationDocuments = pgTable("application_documents", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => coachApplications.id).notNull(),
+  documentType: varchar("document_type").notNull(), // resume, certification, photo, intro_video
+  fileName: varchar("file_name").notNull(),
+  fileUrl: varchar("file_url").notNull(),
+  fileSize: integer("file_size"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+// Onboarding steps for tracking progress
+export const onboardingSteps = pgTable("onboarding_steps", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => coachApplications.id).notNull(),
+  stepName: varchar("step_name").notNull(),
+  stepType: varchar("step_type").notNull(), // document_upload, form_completion, video_upload, review
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Mental Wellness Resource Hub

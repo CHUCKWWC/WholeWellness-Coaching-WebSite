@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(191, 73%, 37%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(89, 43%, 51%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Wellness color palette */
+  --wellness-teal: hsl(191, 73%, 37%);
+  --wellness-green: hsl(89, 43%, 51%);
+  --wellness-light: hsl(174, 56%, 94%);
+  --wellness-dark: hsl(191, 73%, 27%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(191, 73%, 37%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .wellness-gradient {
+    background: linear-gradient(135deg, var(--wellness-teal) 0%, var(--wellness-green) 100%);
+  }
+  
+  .upload-zone {
+    border: 2px dashed var(--wellness-teal);
+    transition: all 0.3s ease;
+  }
+  
+  .upload-zone:hover {
+    border-color: var(--wellness-green);
+    background-color: var(--wellness-light);
+  }
+  
+  .video-player {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, var(--wellness-teal) 0%, var(--wellness-green) 100%);
+  }
+  
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+  
+  .progress-ring-circle {
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 251.2;
+    transition: stroke-dashoffset 0.5s ease;
+  }
+  
+  .btn-primary {
+    @apply bg-[var(--wellness-teal)] text-white hover:bg-[var(--wellness-dark)] transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--wellness-green)] text-white hover:bg-green-600 transition-colors;
+  }
+  
+  .wellness-card {
+    @apply bg-white rounded-xl shadow-lg p-6;
+  }
+  
+  .wellness-input {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--wellness-teal)] focus:border-transparent;
+  }
+}

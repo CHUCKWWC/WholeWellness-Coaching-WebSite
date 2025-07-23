@@ -49,6 +49,7 @@ import VolunteerApplication from "@/pages/VolunteerApplication";
 import WixBooking from "@/pages/WixBooking";
 import Assessments from "@/pages/Assessments";
 import UserProfile from "@/pages/UserProfile";
+import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -99,6 +100,7 @@ function Router() {
           <Route path="/volunteer-application" component={VolunteerApplication} />
           <Route path="/wix-booking" component={WixBooking} />
           <Route path="/assessments" component={Assessments} />
+          <Route path="/enhanced-onboarding" component={EnhancedOnboarding} />
           <Route component={NotFound} />
         </Switch>
       </main>
