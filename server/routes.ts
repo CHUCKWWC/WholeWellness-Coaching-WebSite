@@ -2936,5 +2936,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Coach Certification Course Management Routes
+  
+  // Get all available certification courses
+  app.get("/api/coach/certification-courses", async (req, res) => {
+    try {
+      // Mock certification courses for demo
+      const courses = [
+        {
+          id: "course-1",
+          title: "Advanced Wellness Coaching Certification",
+          description: "Comprehensive training in holistic wellness coaching techniques, covering nutrition, fitness, mental health, and lifestyle optimization strategies.",
+          category: "wellness",
+          level: "intermediate",
+          duration: 40,
+          creditHours: "35.0",
+          price: "799.00",
+          instructorName: "Dr. Sarah Mitchell",
+          instructorBio: "Licensed therapist with 15+ years in wellness coaching",
+          courseImageUrl: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400",
+          previewVideoUrl: null,
+          requirements: ["Basic coaching certification", "1+ year experience"],
+          learningObjectives: [
+            "Master advanced coaching techniques",
+            "Understand wellness psychology",
+            "Develop personalized wellness plans"
+          ],
+          accreditation: "International Coach Federation (ICF)",
+          tags: ["wellness", "holistic", "lifestyle"],
+          isActive: true,
+          enrollmentLimit: 50,
+          startDate: "2025-08-01T00:00:00Z",
+          endDate: "2025-12-15T00:00:00Z"
+        },
+        {
+          id: "course-2", 
+          title: "Nutrition Coaching Fundamentals",
+          description: "Evidence-based nutrition coaching principles, meal planning strategies, and behavior change techniques for sustainable dietary improvements.",
+          category: "nutrition",
+          level: "beginner",
+          duration: 25,
+          creditHours: "20.0",
+          price: "599.00",
+          instructorName: "Rachel Davis, RD",
+          instructorBio: "Registered Dietitian and certified nutrition coach",
+          courseImageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400",
+          requirements: [],
+          learningObjectives: [
+            "Understand nutritional science basics",
+            "Learn meal planning techniques", 
+            "Master behavior change strategies"
+          ],
+          accreditation: "Academy of Nutrition and Dietetics",
+          tags: ["nutrition", "meal-planning", "behavior-change"],
+          isActive: true,
+          enrollmentLimit: null,
+          startDate: "2025-07-15T00:00:00Z",
+          endDate: "2025-11-30T00:00:00Z"
+        },
+        {
+          id: "course-3",
+          title: "Relationship Counseling Techniques",
+          description: "Professional training in couples counseling, communication strategies, conflict resolution, and building healthy relationship dynamics.",
+          category: "relationship", 
+          level: "advanced",
+          duration: 60,
+          creditHours: "45.0",
+          price: "1299.00",
+          instructorName: "Dr. Michael Thompson",
+          instructorBio: "Licensed Marriage and Family Therapist with 20+ years experience",
+          courseImageUrl: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400",
+          requirements: ["Master's degree in counseling", "Licensed therapist"],
+          learningObjectives: [
+            "Advanced couples therapy techniques",
+            "Conflict resolution strategies",
+            "Family systems theory application"
+          ],
+          accreditation: "American Association for Marriage and Family Therapy",
+          tags: ["relationship", "counseling", "therapy"],
+          isActive: true,
+          enrollmentLimit: 25,
+          startDate: "2025-09-01T00:00:00Z", 
+          endDate: "2026-02-28T00:00:00Z"
+        },
+        {
+          id: "course-4",
+          title: "Behavior Modification Strategies",
+          description: "Scientific approaches to behavior change, habit formation, goal setting, and overcoming psychological barriers to personal development.",
+          category: "behavior",
+          level: "intermediate",
+          duration: 30,
+          creditHours: "25.0", 
+          price: "699.00",
+          instructorName: "Dr. Lisa Chen",
+          instructorBio: "Behavioral psychologist specializing in habit formation",
+          courseImageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400",
+          requirements: ["Basic psychology knowledge"],
+          learningObjectives: [
+            "Understanding behavior change science",
+            "Habit formation techniques",
+            "Goal setting and achievement strategies"
+          ],
+          accreditation: "Association for Applied and Therapeutic Humor",
+          tags: ["behavior", "habits", "psychology"],
+          isActive: true,
+          enrollmentLimit: 40,
+          startDate: "2025-08-15T00:00:00Z",
+          endDate: "2025-12-01T00:00:00Z"
+        }
+      ];
+      
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching certification courses:", error);
+      res.status(500).json({ message: "Failed to fetch certification courses" });
+    }
+  });
+
+  // Get coach's current enrollments
+  app.get("/api/coach/my-enrollments", async (req, res) => {
+    try {
+      // Mock enrollments for demo
+      const enrollments = [
+        {
+          id: "enrollment-1",
+          coachId: "chuck", // matches test coach
+          courseId: "course-1",
+          enrollmentDate: "2025-07-01T00:00:00Z",
+          status: "in_progress",
+          progress: "65.5",
+          currentModule: 3,
+          completedModules: [1, 2],
+          startedAt: "2025-07-01T00:00:00Z",
+          paymentStatus: "paid",
+          totalTimeSpent: 1260 // 21 hours in minutes
+        }
+      ];
+      
+      res.json(enrollments);
+    } catch (error) {
+      console.error("Error fetching enrollments:", error);
+      res.status(500).json({ message: "Failed to fetch enrollments" });
+    }
+  });
+
+  // Get coach's earned certificates
+  app.get("/api/coach/my-certificates", async (req, res) => {
+    try {
+      // Mock certificates for demo
+      const certificates = [
+        {
+          id: "cert-1",
+          coachId: "chuck",
+          courseId: "course-2",
+          courseTitle: "Nutrition Coaching Fundamentals",
+          certificateNumber: "WWC-2024-NC-001",
+          issuedDate: "2024-12-15T00:00:00Z",
+          expirationDate: "2027-12-15T00:00:00Z",
+          creditHours: "20.0",
+          status: "active",
+          credentialUrl: "https://credentials.wholewellnesscoaching.org/verify/WWC-2024-NC-001",
+          certificatePdfUrl: "/certificates/WWC-2024-NC-001.pdf"
+        }
+      ];
+      
+      res.json(certificates);
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+      res.status(500).json({ message: "Failed to fetch certificates" });
+    }
+  });
+
+  // Enroll coach in a certification course
+  app.post("/api/coach/enroll-course", async (req, res) => {
+    try {
+      const { courseId } = req.body;
+      
+      if (!courseId) {
+        return res.status(400).json({ message: "Course ID is required" });
+      }
+      
+      // Mock enrollment creation
+      const enrollment = {
+        id: `enrollment-${Date.now()}`,
+        coachId: "current-coach", // In production, get from authenticated user
+        courseId,
+        enrollmentDate: new Date().toISOString(),
+        status: "enrolled",
+        progress: "0",
+        currentModule: 1,
+        completedModules: [],
+        paymentStatus: "pending"
+      };
+      
+      res.json({ success: true, enrollment });
+    } catch (error) {
+      console.error("Error enrolling in course:", error);
+      res.status(500).json({ message: "Failed to enroll in course" });
+    }
+  });
+
   return httpServer;
 }

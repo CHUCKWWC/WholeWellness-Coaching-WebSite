@@ -43,6 +43,130 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Certification courses that coaches can access
+export const certificationCourses = pgTable("certification_courses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  category: varchar("category").notNull(), // wellness, nutrition, relationship, behavior, etc.
+  level: varchar("level").notNull(), // beginner, intermediate, advanced, master
+  duration: integer("duration").notNull(), // in hours
+  creditHours: decimal("credit_hours").notNull(), // CE credit hours
+  price: decimal("price").notNull(),
+  instructorName: varchar("instructor_name").notNull(),
+  instructorBio: text("instructor_bio"),
+  courseImageUrl: varchar("course_image_url"),
+  previewVideoUrl: varchar("preview_video_url"),
+  syllabus: jsonb("syllabus"), // Course modules and lessons
+  requirements: text("requirements").array(), // Prerequisites
+  learningObjectives: text("learning_objectives").array(),
+  accreditation: varchar("accreditation"), // Accrediting body
+  tags: text("tags").array(),
+  isActive: boolean("is_active").default(true),
+  enrollmentLimit: integer("enrollment_limit"), // null = unlimited
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Coach enrollments in certification courses
+export const coachEnrollments = pgTable("coach_enrollments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  coachId: varchar("coach_id").notNull().references(() => users.id),
+  courseId: varchar("course_id").notNull().references(() => certificationCourses.id),
+  enrollmentDate: timestamp("enrollment_date").defaultNow(),
+  status: varchar("status").default("enrolled"), // enrolled, in_progress, completed, withdrawn, failed
+  progress: decimal("progress").default("0"), // 0-100
+  currentModule: integer("current_module").default(1),
+  completedModules: integer("completed_modules").array().default([]),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  certificateIssued: boolean("certificate_issued").default(false),
+  certificateNumber: varchar("certificate_number"),
+  finalGrade: decimal("final_grade"), // 0-100
+  totalTimeSpent: integer("total_time_spent").default(0), // in minutes
+  paymentStatus: varchar("payment_status").default("pending"), // pending, paid, refunded
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Course modules/lessons within certification courses
+export const courseModules = pgTable("course_modules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  courseId: varchar("course_id").notNull().references(() => certificationCourses.id),
+  moduleNumber: integer("module_number").notNull(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  duration: integer("duration").notNull(), // in minutes
+  contentType: varchar("content_type").notNull(), // video, text, interactive, quiz, assignment
+  contentUrl: varchar("content_url"), // video URL, document URL, etc.
+  content: text("content"), // text content or HTML
+  quiz: jsonb("quiz"), // Quiz questions and answers
+  assignment: jsonb("assignment"), // Assignment details
+  resources: jsonb("resources"), // Additional learning resources
+  isRequired: boolean("is_required").default(true),
+  passingScore: decimal("passing_score").default("70"), // For quizzes/assignments
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Coach progress through individual modules
+export const moduleProgress = pgTable("module_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  enrollmentId: varchar("enrollment_id").notNull().references(() => coachEnrollments.id),
+  moduleId: varchar("module_id").notNull().references(() => courseModules.id),
+  status: varchar("status").default("not_started"), // not_started, in_progress, completed, passed, failed
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  timeSpent: integer("time_spent").default(0), // in minutes
+  attempts: integer("attempts").default(0),
+  score: decimal("score"), // For quizzes/assignments
+  submissionData: jsonb("submission_data"), // Quiz answers, assignment submissions
+  feedback: text("feedback"), // Instructor feedback
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Digital certificates issued to coaches
+export const coachCertificates = pgTable("coach_certificates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  coachId: varchar("coach_id").notNull().references(() => users.id),
+  courseId: varchar("course_id").notNull().references(() => certificationCourses.id),
+  enrollmentId: varchar("enrollment_id").notNull().references(() => coachEnrollments.id),
+  certificateNumber: varchar("certificate_number").notNull().unique(),
+  issuedDate: timestamp("issued_date").defaultNow(),
+  expirationDate: timestamp("expiration_date"), // Some certifications expire
+  credentialUrl: varchar("credential_url"), // Link to verify certificate
+  certificatePdfUrl: varchar("certificate_pdf_url"), // PDF download
+  digitalBadgeUrl: varchar("digital_badge_url"), // LinkedIn badge, etc.
+  status: varchar("status").default("active"), // active, expired, revoked
+  revokedReason: text("revoked_reason"),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Continuing education credits tracking
+export const ceCredits = pgTable("ce_credits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  coachId: varchar("coach_id").notNull().references(() => users.id),
+  courseId: varchar("course_id").references(() => certificationCourses.id),
+  certificateId: varchar("certificate_id").references(() => coachCertificates.id),
+  creditHours: decimal("credit_hours").notNull(),
+  creditType: varchar("credit_type").notNull(), // course, workshop, conference, self_study
+  provider: varchar("provider").notNull(),
+  completionDate: timestamp("completion_date").notNull(),
+  verificationStatus: varchar("verification_status").default("pending"), // pending, verified, rejected
+  documentUrl: varchar("document_url"), // Supporting documentation
+  description: text("description"),
+  category: varchar("category"), // wellness, ethics, clinical, etc.
+  accreditationBody: varchar("accreditation_body"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Admin sessions for secure dashboard access
 export const adminSessions = pgTable("admin_sessions", {
   id: serial("id").primaryKey(),

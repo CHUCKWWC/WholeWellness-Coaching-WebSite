@@ -153,6 +153,13 @@ export default function Navigation() {
                         Profile & Progress
                       </Link>
                     </DropdownMenuItem>
+                    {user?.role === "coach" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/coach-certifications" className="w-full">
+                          Certification Courses
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/member-portal" className="w-full">
                         Member Portal
