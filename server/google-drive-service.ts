@@ -27,15 +27,15 @@ class GoogleDriveService {
 
   constructor() {
     this.oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_DRIVE_CLIENT_ID,
-      process.env.GOOGLE_DRIVE_CLIENT_SECRET,
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
       'https://wholewellnesscoaching.org/auth/google/callback'
     );
 
     // Set refresh token if available
-    if (process.env.GOOGLE_DRIVE_REFRESH_TOKEN) {
+    if (process.env.GOOGLE_REFRESH_TOKEN) {
       this.oauth2Client.setCredentials({
-        refresh_token: process.env.GOOGLE_DRIVE_REFRESH_TOKEN
+        refresh_token: process.env.GOOGLE_REFRESH_TOKEN
       });
     }
 
@@ -47,8 +47,15 @@ class GoogleDriveService {
    */
   async initialize(): Promise<boolean> {
     try {
+      // Check if we have the required credentials
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
+        console.log('Google Drive credentials not configured, using demo mode');
+        return false;
+      }
+
       // Test authentication by fetching user info
       await this.drive.about.get({ fields: 'user' });
+      console.log('Google Drive authentication successful');
       return true;
     } catch (error) {
       console.error('Google Drive authentication failed:', error);

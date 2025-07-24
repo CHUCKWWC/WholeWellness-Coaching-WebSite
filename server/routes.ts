@@ -3694,6 +3694,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Google Drive Integration for Coach Certification Files
   
+  // Test Google Drive connection endpoint
+  app.get("/api/test-google-drive", requireAuth as any, async (req, res) => {
+    try {
+      console.log("Testing Google Drive connection...");
+      const isAuthenticated = await googleDriveService.initialize();
+      
+      if (isAuthenticated) {
+        // Test access to your specific folder
+        const files = await googleDriveService.getCourseFiles("1G8F_pu26GDIYg2hAmSxjJ2P1bvIL4pya");
+        res.json({ 
+          status: "success", 
+          message: "Google Drive connected successfully",
+          folderAccess: true,
+          fileCount: files.length,
+          sampleFiles: files.slice(0, 3).map(f => ({ name: f.name, type: f.mimeType }))
+        });
+      } else {
+        res.json({ 
+          status: "demo", 
+          message: "Using demo mode - Google Drive credentials not configured or invalid" 
+        });
+      }
+    } catch (error: any) {
+      console.error("Google Drive test error:", error);
+      res.json({ 
+        status: "error", 
+        message: error.message,
+        usingDemo: true 
+      });
+    }
+  });
+  
   // Get course files from Google Drive
   app.get("/api/coach/course-files/:courseId", requireAuth as any, async (req, res) => {
     try {
