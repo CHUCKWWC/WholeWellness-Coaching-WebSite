@@ -278,9 +278,6 @@ export default function CoachCertifications() {
             <TabsTrigger value="certificates">My Certificates</TabsTrigger>
             <TabsTrigger value="files">Course Files</TabsTrigger>
           </TabsList>
-            <TabsTrigger value="completed">Certificates</TabsTrigger>
-            <TabsTrigger value="credits">CE Credits</TabsTrigger>
-          </TabsList>
 
           {/* Browse Courses Tab */}
           <TabsContent value="browse" className="space-y-6">
