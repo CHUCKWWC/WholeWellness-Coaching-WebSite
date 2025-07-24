@@ -297,6 +297,13 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
   - **DATABASE SCHEMA IDENTIFIED**: Confirmed database uses snake_case columns (donation_total) while code uses camelCase mapping
   - **COACH EARNINGS SYSTEM**: Automatic role upgrade system working with $99 threshold detection
   - **PRODUCTION READY**: All core systems operational - authentication, payments, email notifications, coach management
+- July 24, 2025. Certification course access opened to all authenticated users
+  - **CERTIFICATION ACCESS UPDATE**: Removed coach-only restriction from all certification course endpoints and components
+  - **API ENDPOINTS UPDATED**: Changed all /api/coach/certification-* endpoints from requireCoachRole to requireAuth middleware
+  - **NAVIGATION UPDATED**: Certification courses now visible to all authenticated users in user dropdown menu
+  - **FOOTER ENHANCEMENT**: Added "Coaches Portal" link to footer for easy coach access
+  - **COACH LOGIN BUTTON REMOVED**: Removed floating CoachLoginButton component from main app layout
+  - **USER EXPERIENCE**: Certification courses now accessible to all users for professional development and skills enhancement
 - July 23, 2025. Database schema Google OAuth integration fixes completed
   - **GOOGLE_ID COLUMN FIX**: Resolved "Could not find the 'google_id' column" database schema cache error
   - **STORAGE LAYER UPDATES**: Updated SupabaseClientStorage createUser, getUser, and getUserByEmail methods to properly handle google_id and provider fields
