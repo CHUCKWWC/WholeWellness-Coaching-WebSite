@@ -19,9 +19,11 @@ export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
   updateUserRole(id: string, role: string): Promise<User | undefined>;
+  deleteUser(id: string): Promise<boolean>;
   
   // Bookings
   getBooking(id: number): Promise<Booking | undefined>;
@@ -539,6 +541,62 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error updating user:', error);
       return undefined;
+    }
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching all users:', error);
+        throw error;
+      }
+      
+      return data.map(user => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        passwordHash: user.password_hash,
+        membershipLevel: user.membership_level,
+        rewardPoints: user.reward_points,
+        donationTotal: user.donation_total,
+        profileImageUrl: user.profile_image_url,
+        googleId: user.google_id,
+        provider: user.provider,
+        role: user.role,
+        isActive: user.is_active !== false,
+        lastLogin: user.last_login,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+        permissions: user.permissions
+      }));
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      throw error;
+    }
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId);
+      
+      if (error) {
+        console.error('Error deleting user:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
     }
   }
 

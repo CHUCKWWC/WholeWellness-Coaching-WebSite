@@ -191,7 +191,7 @@ export default function Navigation() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <a href="https://wholewellness-coaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer" className="w-full">
+                      <a href="https://wholewellnesscoaching.org/wwcchatbot#wwcchatbot" target="_blank" rel="noopener noreferrer" className="w-full">
                         🧪 Beta Test AI Coach
                       </a>
                     </DropdownMenuItem>

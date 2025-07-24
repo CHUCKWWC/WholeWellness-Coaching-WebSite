@@ -130,7 +130,7 @@ export class EmailService {
     // Fallback to SMTP transporter
     const transporter = await this.ensureTransporter();
     await transporter.sendMail({
-      from: from || process.env.FROM_EMAIL || 'noreply@wholewellness-coaching.org',
+      from: from || process.env.FROM_EMAIL || 'noreply@wholewellnesscoaching.org',
       to: to,
       subject: subject,
       html: html,

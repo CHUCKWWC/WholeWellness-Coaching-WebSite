@@ -3639,5 +3639,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Security Management Endpoints
+  
+  // Get all users for admin dashboard
+  app.get('/api/admin/security/users', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  // Create new user (admin only)
+  app.post('/api/admin/security/users', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+
+      const { email, firstName, lastName, password, role, isActive, permissions } = req.body;
+      
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({ message: 'Required fields: email, password, firstName, lastName' });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ message: 'User with this email already exists' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      
+      const newUser = await storage.createUser({
+        email,
+        passwordHash: hashedPassword,
+        firstName,
+        lastName,
+        role: role || 'user',
+        isActive: isActive !== undefined ? isActive : true,
+        permissions: permissions || null
+      });
+
+      // Remove password hash from response
+      const { passwordHash, ...userResponse } = newUser;
+      res.status(201).json(userResponse);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ message: 'Failed to create user' });
+    }
+  });
+
+  // Update user (admin only)
+  app.put('/api/admin/security/users/:userId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+
+      const { userId } = req.params;
+      const updates = req.body;
+      
+      // Remove sensitive fields that shouldn't be updated directly
+      delete updates.passwordHash;
+      delete updates.id;
+      delete updates.createdAt;
+
+      const updatedUser = await storage.updateUser(userId, updates);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Remove password hash from response
+      const { passwordHash, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ message: 'Failed to update user' });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete('/api/admin/security/users/:userId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+
+      const { userId } = req.params;
+      
+      // Prevent admin from deleting themselves
+      if (userId === req.user.id) {
+        return res.status(400).json({ message: 'Cannot delete your own account' });
+      }
+
+      const success = await storage.deleteUser(userId);
+      
+      if (!success) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ message: 'Failed to delete user' });
+    }
+  });
+
+  // Create admin accounts
+  app.post('/api/admin/security/create-admin-accounts', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+
+      const adminAccounts = [
+        {
+          email: 'charles.watson@wholewellnesscoaching.org',
+          firstName: 'Charles',
+          lastName: 'Watson',
+          role: 'admin'
+        },
+        {
+          email: 'charles.watson@gmail.com',
+          firstName: 'Charles',
+          lastName: 'Watson',
+          role: 'admin'
+        }
+      ];
+
+      const createdAccounts = [];
+      const defaultPassword = 'AdminWWC2024!';
+
+      for (const account of adminAccounts) {
+        try {
+          // Check if user already exists
+          const existingUser = await storage.getUserByEmail(account.email);
+          if (existingUser) {
+            // Update existing user to admin role
+            const updatedUser = await storage.updateUserRole(existingUser.id, 'admin');
+            createdAccounts.push({ email: account.email, status: 'updated', role: 'admin' });
+          } else {
+            // Create new admin user
+            const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+            const newUser = await storage.createUser({
+              email: account.email,
+              passwordHash: hashedPassword,
+              firstName: account.firstName,
+              lastName: account.lastName,
+              role: account.role,
+              isActive: true
+            });
+            createdAccounts.push({ email: account.email, status: 'created', role: 'admin' });
+          }
+        } catch (error) {
+          console.error(`Error processing admin account ${account.email}:`, error);
+          createdAccounts.push({ email: account.email, status: 'error', error: error.message });
+        }
+      }
+
+      res.json({ 
+        message: 'Admin account processing completed',
+        accounts: createdAccounts,
+        defaultPassword: defaultPassword
+      });
+    } catch (error) {
+      console.error('Error creating admin accounts:', error);
+      res.status(500).json({ message: 'Failed to create admin accounts' });
+    }
+  });
+
+  // Get security analytics
+  app.get('/api/admin/security/analytics', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+      }
+
+      const users = await storage.getAllUsers();
+      
+      const analytics = {
+        totalUsers: users.length,
+        activeUsers: users.filter(u => u.isActive).length,
+        roleDistribution: users.reduce((acc, user) => {
+          acc[user.role] = (acc[user.role] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        recentLogins: users.filter(u => u.lastLogin && 
+          new Date(u.lastLogin) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        ).length
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error('Error fetching security analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch analytics' });
+    }
+  });
+
   return httpServer;
 }

@@ -12,7 +12,7 @@ Comprehensive nonprofit life coaching and wellness platform serving underserved 
 - **Email Verification**: Account verification system with automated emails
 - **Profile Management**: User profile updates and preferences
 - **Test Credentials**: 
-  - Regular User: charles.watson@WholeWellness-Coaching.org
+  - Regular User: charles.watson@wholewellnesscoaching.org
   - Test Coach: username: chuck, password: chucknice1
 
 ### 2. Assessment Programs System

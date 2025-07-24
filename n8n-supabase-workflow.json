@@ -315,7 +315,7 @@
     },
     {
       "parameters": {
-        "to": "admin@wholewellness-coaching.org",
+        "to": "admin@wholewellnesscoaching.org",
         "subject": "User Action Automation: {{ $json.action }}",
         "emailType": "html",
         "message": "<!DOCTYPE html>\n<html>\n<head>\n    <title>User Action Notification</title>\n</head>\n<body>\n    <h2>User Action Automation Executed</h2>\n    <p><strong>Action:</strong> {{ $('Process User Action').first().$json.action }}</p>\n    <p><strong>User ID:</strong> {{ $('Process User Action').first().$json.userId }}</p>\n    <p><strong>Timestamp:</strong> {{ new Date().toISOString() }}</p>\n    <p><strong>Status:</strong> {{ $json.success ? 'Success' : 'Failed' }}</p>\n    \n    <h3>Details:</h3>\n    <pre>{{ JSON.stringify($json, null, 2) }}</pre>\n</body>\n</html>",

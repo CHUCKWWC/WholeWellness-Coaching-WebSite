@@ -17,15 +17,15 @@
 - **Welcome Emails**: Sent automatically after user registration
 - **Password Reset**: Secure token-based reset functionality  
 - **Account Verification**: One-click email verification
-- **Professional Branding**: wholewellness-coaching.org domain integration
+- **Professional Branding**: wholewellnesscoaching.org domain integration
 - **Gmail API OAuth2**: Primary authentication method
 - **SMTP Fallback**: Automatic fallback if Gmail API fails
 
 ### Email Addresses
-- `welcome@wholewellness-coaching.org` - New user welcome messages
-- `noreply@wholewellness-coaching.org` - Password reset emails
-- `verify@wholewellness-coaching.org` - Account verification emails
-- `admin@wholewellness-coaching.org` - Administrative notifications
+- `welcome@wholewellnesscoaching.org` - New user welcome messages
+- `noreply@wholewellnesscoaching.org` - Password reset emails
+- `verify@wholewellnesscoaching.org` - Account verification emails
+- `admin@wholewellnesscoaching.org` - Administrative notifications
 
 ### Technical Implementation
 - **Primary Method**: Gmail API with OAuth2 authentication

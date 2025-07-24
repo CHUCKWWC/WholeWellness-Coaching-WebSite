@@ -29,7 +29,7 @@ interface ChatbotProps {
 }
 
 export default function Chatbot({ 
-  webhookUrl = "https://wholewellness-coaching.app.n8n.cloud/webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat" 
+  webhookUrl = "https://wholewellnesscoaching.app.n8n.cloud/webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat" 
 }: ChatbotProps) {
   const { user, isAuthenticated, isPaidMember, isLoading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -104,9 +104,9 @@ export default function Chatbot({
           agentType: 'general',
           timestamp: new Date().toISOString(),
           user_data: {
-            source: 'wholewellness-coaching.org',
+            source: 'wholewellnesscoaching.org',
             membershipLevel: user?.membershipLevel,
-            intake_form_url: 'https://wholewellness-coaching.org/weight-loss-intake'
+            intake_form_url: 'https://wholewellnesscoaching.org/weight-loss-intake'
           }
         })
       });
@@ -134,7 +134,7 @@ export default function Chatbot({
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I'm experiencing technical difficulties. Please ensure you've completed the intake form at https://wholewellness-coaching.org/weight-loss-intake and try again.",
+        text: "I'm sorry, I'm experiencing technical difficulties. Please ensure you've completed the intake form at https://wholewellnesscoaching.org/weight-loss-intake and try again.",
         isUser: false,
         timestamp: new Date()
       };

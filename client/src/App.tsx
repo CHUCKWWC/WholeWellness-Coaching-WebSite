@@ -54,6 +54,7 @@ import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import CoachCertifications from "@/pages/CoachCertifications";
 import ModuleLearning from "@/pages/ModuleLearning";
 import CertificationDashboard from "@/pages/CertificationDashboard";
+import AdminSecurity from "@/pages/AdminSecurity";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -83,6 +84,7 @@ function Router() {
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/admin-login" component={AdminLogin} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
+          <Route path="/admin-security" component={AdminSecurity} />
           <Route path="/donation-portal" component={DonationPortal} />
           <Route path="/coach-portal" component={CoachPortal} />
           <Route path="/privacy" component={Privacy} />

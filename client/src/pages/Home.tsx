@@ -236,7 +236,7 @@ export default function Home() {
                 <p className="text-white/90 mb-6">AI-powered weight loss coaching with personalized meal plans and fitness guidance</p>
                 <Button 
                   className="bg-white text-secondary hover:bg-gray-100 transition-colors w-full"
-                  onClick={() => window.open('https://wholewellness-coaching.org/wwcchatbot#wwcchatbot', '_blank')}
+                  onClick={() => window.open('https://wholewellnesscoaching.org/wwcchatbot#wwcchatbot', '_blank')}
                 >
                   Start Weight Loss Journey
                 </Button>

@@ -79,7 +79,7 @@ export default function Contact() {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email Us",
-      content: "info@wholewellness-coaching.org",
+      content: "info@wholewellnesscoaching.org",
       description: "Send us an email anytime"
     },
     {

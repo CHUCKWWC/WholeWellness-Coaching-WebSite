@@ -16,7 +16,7 @@ The WholeWellness Platform demonstrates excellent foundation architecture with c
 
 **Test Results:**
 ```json
-User Login: {"id":"a43a92f2-f64b-4dbb-99b1-a47b62c4409e","email":"charles.watson@WholeWellness-Coaching.org","role":"user"}
+User Login: {"id":"a43a92f2-f64b-4dbb-99b1-a47b62c4409e","email":"charles.watson@wholewellnesscoaching.org","role":"user"}
 Coach Login: {"id":"coach_chuck_test","role":"coach","email":"chuck"}
 ```
 

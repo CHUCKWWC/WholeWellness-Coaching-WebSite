@@ -8,7 +8,7 @@ const oauth_credentials = {
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
   "token_uri": "https://oauth2.googleapis.com/token",
   "authorized_origins": [
-    "https://wholewellness-coaching.org",
+    "https://wholewellnesscoaching.org",
     "https://wholewellnesscoaching.org"
   ]
 };

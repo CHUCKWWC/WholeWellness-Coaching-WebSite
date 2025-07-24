@@ -156,7 +156,7 @@ export default function AICoachingChat({ selectedAgent, onAgentChange }: AICoach
 
   const sendMessageToN8N = async (message: string, agentId: string) => {
     try {
-      const response = await fetch('https://wholewellness-coaching.app.n8n.cloud/webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat', {
+      const response = await fetch('https://wholewellnesscoaching.app.n8n.cloud/webhook/54619a3e-0c22-4288-a126-47dbf7a934dd/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

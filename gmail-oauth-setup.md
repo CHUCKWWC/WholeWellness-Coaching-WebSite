@@ -4,7 +4,7 @@
 From your provided file, we have:
 - **Client ID**: `69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com`
 - **Client Secret**: `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`
-- **Authorized Origins**: `https://wholewellness-coaching.org`, `https://wholewellnesscoaching.org`
+- **Authorized Origins**: `https://wholewellnesscoaching.org`
 
 ## Option 1: Use OAuth2 (Recommended)
 This is more secure and doesn't require app passwords.
@@ -17,7 +17,7 @@ This is more secure and doesn't require app passwords.
    - Enter your Client ID and Client Secret
    - In Step 1, select "Gmail API v1" → "https://mail.google.com/"
    - Click "Authorize APIs"
-   - Sign in with charles.watson@wholewellness-coaching.org
+   - Sign in with charles.watson@wholewellnesscoaching.org
    - In Step 2, click "Exchange authorization code for tokens"
    - Copy the **Refresh Token**
 

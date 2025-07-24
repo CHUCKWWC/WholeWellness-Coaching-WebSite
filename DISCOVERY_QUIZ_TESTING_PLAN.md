@@ -12,7 +12,7 @@ This comprehensive testing plan covers the WholeWellness Discovery Roadmap & Qui
 ## Testing Credentials
 
 ### User Accounts
-- **Test User**: charles.watson@WholeWellness-Coaching.org / Password: chucknice1
+- **Test User**: charles.watson@wholewellnesscoaching.org / Password: chucknice1
 - **Anonymous Testing**: No credentials required for Discovery Quiz
 
 ### Coach Account
@@ -20,7 +20,7 @@ This comprehensive testing plan covers the WholeWellness Discovery Roadmap & Qui
 - **Coach Profile**: Relationship & Wellness Specialist
 
 ### Admin Access
-- **Admin User**: charles.watson@WholeWellness-Coaching.org
+- **Admin User**: charles.watson@wholewellnesscoaching.org
 - **Role**: Super Admin with full platform access
 
 ## Core Feature Testing

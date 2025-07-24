@@ -9,7 +9,7 @@ export default function Privacy() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Welcome to Whole Wellness Coaching. Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, wholewellness-coaching.org, and use our services. By using our services, you agree to the collection and use of information in accordance with this Privacy Policy.
+              Welcome to Whole Wellness Coaching. Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, wholewellnesscoaching.org, and use our services. By using our services, you agree to the collection and use of information in accordance with this Privacy Policy.
             </p>
           </section>
 
