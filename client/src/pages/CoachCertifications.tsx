@@ -27,6 +27,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import GoogleDriveCourseFiles from "@/components/GoogleDriveCourseFiles";
 
 export default function CoachCertifications() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -273,7 +274,10 @@ export default function CoachCertifications() {
         <Tabs defaultValue="browse" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="browse">Browse Courses</TabsTrigger>
-            <TabsTrigger value="enrolled">My Enrollments</TabsTrigger>
+            <TabsTrigger value="enrolled">My Enrollments</TabsTrigger>  
+            <TabsTrigger value="certificates">My Certificates</TabsTrigger>
+            <TabsTrigger value="files">Course Files</TabsTrigger>
+          </TabsList>
             <TabsTrigger value="completed">Certificates</TabsTrigger>
             <TabsTrigger value="credits">CE Credits</TabsTrigger>
           </TabsList>
@@ -486,6 +490,36 @@ export default function CoachCertifications() {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* Google Drive Course Files Tab */}
+          <TabsContent value="files" className="space-y-6">
+            {enrollments.length > 0 ? (
+              <div className="space-y-6">
+                {enrollments.map((enrollment: any) => {
+                  const course = courses.find((c: any) => c.id === enrollment.courseId);
+                  return course ? (
+                    <GoogleDriveCourseFiles 
+                      key={enrollment.courseId}
+                      courseId={enrollment.courseId}
+                      courseName={course.title}
+                    />
+                  ) : null;
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No enrolled courses
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Enroll in courses to access Google Drive course materials and files.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>

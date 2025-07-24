@@ -60,6 +60,7 @@ import { createTestCoach } from './create-coach-endpoint';
 import passport from "passport";
 import session from "express-session";
 import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
+import { googleDriveService, type DriveFile, type DriveFolder } from "./google-drive-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -3651,6 +3652,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching security analytics:', error);
       res.status(500).json({ message: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Google Drive Integration for Coach Certification Files
+  
+  // Get course files from Google Drive
+  app.get("/api/coach/course-files/:courseId", requireAuth as any, async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      
+      // Get course info to find Drive folder ID
+      const courses = await storage.getCertificationCourses();
+      const course = courses.find(c => c.id === courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Check if course has Google Drive folder configured
+      const driveFolder = course.syllabus?.driveFolder || course.syllabus?.googleDriveId;
+      
+      if (!driveFolder) {
+        return res.json({ files: [], message: "No Google Drive folder configured for this course" });
+      }
+
+      // Initialize Google Drive service
+      const isAuthenticated = await googleDriveService.initialize();
+      if (!isAuthenticated) {
+        return res.status(500).json({ message: "Google Drive authentication failed" });
+      }
+
+      // Fetch files from Google Drive
+      const files = await googleDriveService.getCourseFiles(driveFolder);
+      
+      res.json({ 
+        files: files.map(file => ({
+          id: file.id,
+          name: file.name,
+          type: file.mimeType,
+          viewLink: file.webViewLink,
+          downloadLink: file.webContentLink,
+          thumbnail: file.thumbnailLink,
+          size: file.size,
+          modified: file.modifiedTime
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching course files:", error);
+      res.status(500).json({ message: "Failed to fetch course files from Google Drive" });
+    }
+  });
+
+  // Get course folder structure from Google Drive
+  app.get("/api/coach/course-folder/:courseId", requireAuth as any, async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      
+      const courses = await storage.getCertificationCourses();
+      const course = courses.find(c => c.id === courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      const driveFolder = course.syllabus?.driveFolder || course.syllabus?.googleDriveId;
+      
+      if (!driveFolder) {
+        return res.json({ folder: null, message: "No Google Drive folder configured" });
+      }
+
+      const isAuthenticated = await googleDriveService.initialize();
+      if (!isAuthenticated) {
+        return res.status(500).json({ message: "Google Drive authentication failed" });
+      }
+
+      const folderStructure = await googleDriveService.getCourseFolderStructure(driveFolder);
+      res.json({ folder: folderStructure });
+    } catch (error) {
+      console.error("Error fetching folder structure:", error);
+      res.status(500).json({ message: "Failed to fetch folder structure from Google Drive" });
+    }
+  });
+
+  // Get file download URL from Google Drive
+  app.get("/api/coach/drive-file/:fileId/download", requireAuth as any, async (req, res) => {
+    try {
+      const { fileId } = req.params;
+      
+      const isAuthenticated = await googleDriveService.initialize();
+      if (!isAuthenticated) {
+        return res.status(500).json({ message: "Google Drive authentication failed" });
+      }
+
+      const downloadUrl = await googleDriveService.getDownloadUrl(fileId);
+      res.json({ downloadUrl });
+    } catch (error) {
+      console.error("Error getting download URL:", error);
+      res.status(500).json({ message: "Failed to get download URL from Google Drive" });
+    }
+  });
+
+  // Search course files in Google Drive
+  app.get("/api/coach/search-course-files/:courseId", requireAuth as any, async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      const { q: searchQuery } = req.query;
+      
+      if (!searchQuery) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      const courses = await storage.getCertificationCourses();
+      const course = courses.find(c => c.id === courseId);
+      
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      const driveFolder = course.syllabus?.driveFolder || course.syllabus?.googleDriveId;
+      
+      if (!driveFolder) {
+        return res.json({ files: [], message: "No Google Drive folder configured" });
+      }
+
+      const isAuthenticated = await googleDriveService.initialize();
+      if (!isAuthenticated) {
+        return res.status(500).json({ message: "Google Drive authentication failed" });
+      }
+
+      const files = await googleDriveService.searchFiles(searchQuery as string, driveFolder);
+      
+      res.json({ 
+        files: files.map(file => ({
+          id: file.id,
+          name: file.name,
+          type: file.mimeType,
+          viewLink: file.webViewLink,
+          downloadLink: file.webContentLink,
+          thumbnail: file.thumbnailLink,
+          size: file.size,
+          modified: file.modifiedTime
+        }))
+      });
+    } catch (error) {
+      console.error("Error searching course files:", error);
+      res.status(500).json({ message: "Failed to search course files in Google Drive" });
     }
   });
 
