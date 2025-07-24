@@ -19,7 +19,7 @@ import Contact from "@/pages/Contact";
 import Booking from "@/pages/Booking";
 import Members from "@/pages/Members";
 import WeightLossIntake from "@/pages/WeightLossIntake";
-import BetaTestPortal from "@/pages/BetaTestPortal";
+
 import Impact from "@/pages/Impact";
 import Admin from "@/pages/Admin";
 import CMS from "@/pages/CMS";
@@ -73,7 +73,7 @@ function Router() {
           <Route path="/booking" component={Booking} />
           <Route path="/members" component={Members} />
           <Route path="/weight-loss-intake" component={WeightLossIntake} />
-          <Route path="/beta-test/:sessionId?" component={BetaTestPortal} />
+
           <Route path="/impact" component={Impact} />
           <Route path="/admin" component={Admin} />
           <Route path="/cms" component={CMS} />
@@ -105,7 +105,6 @@ function Router() {
           <Route path="/subscription-success" component={SubscriptionSuccess} />
           <Route path="/volunteer-application" component={VolunteerApplication} />
           <Route path="/wix-booking" component={WixBooking} />
-          <Route path="/assessments" component={Assessments} />
           <Route path="/enhanced-onboarding" component={EnhancedOnboarding} />
           <Route path="/coach-certifications" component={CoachCertifications} />
           <Route path="/module-learning" component={() => {

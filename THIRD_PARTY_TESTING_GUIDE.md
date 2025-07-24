@@ -34,7 +34,7 @@ Comprehensive nonprofit life coaching and wellness platform serving underserved 
 - **Chat Interface**: Real-time AI coaching conversations
 - **Memory System**: Chat session persistence and history
 - **External Integration**: OpenAI GPT-4 via n8n workflow automation
-- **Beta Testing Portal**: Dedicated testing environment at `/beta-test/`
+- **Testing Environment**: Comprehensive AI coaching testing capabilities
 
 ### 4. Professional Coach Management
 - **Coach Signup**: Comprehensive application process with banking integration
@@ -124,8 +124,8 @@ Comprehensive nonprofit life coaching and wellness platform serving underserved 
 - `/donation-portal` - Donation management
 - `/cms` - Content management system
 
-### Beta Testing
-- `/beta-test/` - AI coaching beta testing portal
+### Additional Pages
+- `/ai-coaching` - AI coaching interface portal
 - `/help-demo` - Help system demonstration
 
 ## Technical Architecture

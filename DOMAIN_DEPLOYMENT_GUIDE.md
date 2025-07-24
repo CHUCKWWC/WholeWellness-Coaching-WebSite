@@ -65,7 +65,7 @@ VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
 - Donation processing with Stripe
 - AI coaching system (6 specialized agents)
 - Coach management dashboard
-- Beta testing portal for weight loss coaching
+- AI coaching portal for weight loss coaching
 
 ### AI Coaching Sessions ✅
 - Nutritionist AI coach
@@ -79,7 +79,7 @@ VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
 - Reward points system
 - Membership levels (Bronze, Silver, Gold, Platinum)
 - Community impact dashboard
-- Beta testing access
+- AI coaching access
 
 ### Coach Features ✅
 - Professional onboarding
@@ -111,7 +111,7 @@ VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
 - [ ] Donation process end-to-end
 - [ ] AI coaching sessions functional
 - [ ] Coach dashboard accessible
-- [ ] Beta testing portal working
+- [ ] AI coaching portal working
 
 ## Ongoing Maintenance
 

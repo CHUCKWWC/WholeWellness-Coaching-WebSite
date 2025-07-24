@@ -80,7 +80,7 @@ Your new website at wholewellnesscoaching.org is a complete digital solution tha
 
 ## Special Programs
 
-### **Beta Testing Portal**
+### **Testing Portal**
 - **Weight loss coaching** program with AI assistance
 - **Free access** for program participants
 - **Feedback collection** to improve services

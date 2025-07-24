@@ -40,4 +40,4 @@ chatbot-project/
 
 ## Post-Deployment
 - Test the chatbot at your new Replit URL
-- Update the beta test button link in your main website to point to the new URL
+- Update the testing button link in your main website to point to the new URL

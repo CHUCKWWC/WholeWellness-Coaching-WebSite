@@ -1,4 +1,4 @@
-// Comprehensive coaching templates for beta testing
+// Comprehensive coaching templates for testing
 // Based on evidence-based nutrition and fitness principles
 
 export interface PersonalizedPlan {
