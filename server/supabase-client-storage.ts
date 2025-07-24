@@ -21,6 +21,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  updateUserRole(id: string, role: string): Promise<User | undefined>;
   
   // Bookings
   getBooking(id: number): Promise<Booking | undefined>;
@@ -537,6 +538,51 @@ export class SupabaseClientStorage implements IStorage {
       } as User;
     } catch (error) {
       console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
+
+  async updateUserRole(id: string, role: string): Promise<User | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+          role: role,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating user role:', error);
+        return undefined;
+      }
+      
+      // Map snake_case response back to camelCase
+      return {
+        id: data.id,
+        email: data.email,
+        passwordHash: data.password_hash,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        membershipLevel: data.membership_level,
+        donationTotal: data.donation_total,
+        rewardPoints: data.reward_points,
+        stripeCustomerId: data.stripe_customer_id,
+        profileImageUrl: data.profile_image_url,
+        googleId: data.google_id,
+        provider: data.provider,
+        role: data.role,
+        permissions: data.permissions,
+        isActive: data.is_active,
+        joinDate: data.join_date,
+        lastLogin: data.last_login,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as User;
+    } catch (error) {
+      console.error('Error updating user role:', error);
       return undefined;
     }
   }

@@ -303,6 +303,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user role (for testing purposes)
+  app.post('/api/coach/update-role', requireAuth, async (req: any, res) => {
+    try {
+      const { userId, role } = req.body;
+      const currentUserId = req.user.id;
+      
+      // Only allow users to update their own role or admin/super_admin
+      if (userId !== currentUserId && req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const user = await storage.updateUserRole(userId, role);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json({ message: 'Role updated successfully', user });
+    } catch (error: any) {
+      console.error('Update role error:', error);
+      res.status(500).json({ message: error.message || 'Failed to update role' });
+    }
+  });
+
   // Coach application payment endpoint
   app.post('/api/coach/application-payment', requireAuth, async (req: any, res) => {
     try {
@@ -568,16 +591,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
     
-    res.json({
-      id: req.user.id,
-      email: req.user.email,
-      firstName: req.user.firstName,
-      lastName: req.user.lastName,
-      membershipLevel: req.user.membershipLevel,
-      rewardPoints: req.user.rewardPoints,
-      donationTotal: req.user.donationTotal,
-      profileImageUrl: req.user.profileImageUrl
-    });
+    // Fetch complete user data from database to ensure role is included
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        membershipLevel: user.membershipLevel,
+        rewardPoints: user.rewardPoints,
+        donationTotal: user.donationTotal,
+        profileImageUrl: user.profileImageUrl,
+        role: user.role
+      });
+    } catch (error) {
+      console.error('Error fetching complete user data:', error);
+      res.json({
+        id: req.user.id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+        membershipLevel: req.user.membershipLevel,
+        rewardPoints: req.user.rewardPoints,
+        donationTotal: req.user.donationTotal,
+        profileImageUrl: req.user.profileImageUrl,
+        role: req.user.role || 'user'
+      });
+    }
   });
 
   // Payment Processing Routes

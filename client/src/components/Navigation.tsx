@@ -160,6 +160,21 @@ export default function Navigation() {
                         Certification Dashboard
                       </Link>
                     </DropdownMenuItem>
+                    {user?.role === "coach" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/coach-profile" className="w-full text-blue-600 font-medium">
+                            🏠 Coach Portal
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/coach-certifications" className="w-full text-green-600 font-medium">
+                            🎓 Coach Certification Hub
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/member-portal" className="w-full">
                         Member Portal
