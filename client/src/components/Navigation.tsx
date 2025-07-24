@@ -160,7 +160,7 @@ export default function Navigation() {
                         Certification Dashboard
                       </Link>
                     </DropdownMenuItem>
-                    {user?.role === "coach" && (
+                    {(user as any)?.role === "coach" && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>

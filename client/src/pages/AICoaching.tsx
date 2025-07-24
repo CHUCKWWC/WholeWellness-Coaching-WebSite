@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,23 +9,22 @@ import { Textarea } from "@/components/ui/textarea";
 import HelpBubble from "@/components/HelpBubble";
 import { WithEmpatheticHelp } from "@/components/EmpatheticHelpProvider";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function AICoaching() {
   const [showChat, setShowChat] = useState(false);
   const [selectedCoach, setSelectedCoach] = useState<any>(null);
-  const [messages, setMessages] = useState<Array<{id: string, text: string, isUser: boolean, timestamp: Date}>>([]);
+  const [messages, setMessages] = useState<Array<{id: string, text: string, isUser: boolean, timestamp: Date, sessionId?: string}>>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [currentPersona, setCurrentPersona] = useState("supportive");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  
-  // Get current persona configuration
-  const currentPersonaConfig = personaConfig[currentPersona as keyof typeof personaConfig];
-
+  const isMobile = useIsMobile();
   // Persona configurations with brand colors
   const personaConfig = {
     supportive: {
@@ -58,7 +57,22 @@ export default function AICoaching() {
     }
   };
 
-  // AI Chat mutation
+  // Get current persona configuration
+  const currentPersonaConfig = personaConfig[currentPersona as keyof typeof personaConfig];
+
+  // Load chat history for current session
+  const { data: chatHistory } = useQuery({
+    queryKey: ['/api/chat/history', currentSessionId],
+    enabled: !!currentSessionId,
+  });
+
+  // Load previous chat sessions
+  const { data: chatSessions } = useQuery({
+    queryKey: ['/api/chat/sessions', user?.id],
+    enabled: !!user && isAuthenticated,
+  });
+
+  // AI Chat mutation with memory
   const sendMessage = useMutation({
     mutationFn: async (data: { message: string; coachType: string }) => {
       const response = await apiRequest("POST", "/api/ai-coaching/chat", data);
@@ -281,39 +295,39 @@ export default function AICoaching() {
             </Button>
           </div>
 
-          {/* Chat Interface */}
-          <Card className="h-[700px] flex flex-col shadow-xl">
+          {/* Chat Interface - Mobile Optimized */}
+          <Card className={`${isMobile ? 'h-[90vh]' : 'h-[700px]'} flex flex-col shadow-xl`}>
             <CardHeader 
-              className="border-b bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700"
+              className={`border-b bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 ${isMobile ? 'p-3' : 'p-6'}`}
               style={{ 
                 borderBottom: `3px solid ${currentPersonaConfig.color}`,
                 background: `linear-gradient(135deg, ${currentPersonaConfig.color}15 0%, ${currentPersonaConfig.color}05 100%)`
               }}
             >
-              <div className="flex items-center justify-between">
+              <div className={`flex items-center ${isMobile ? 'flex-col gap-2' : 'justify-between'}`}>
                 <div className="flex items-center gap-3">
-                  <div className="text-2xl">{selectedCoach.avatar}</div>
+                  <div className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>{selectedCoach.avatar}</div>
                   <div>
-                    <CardTitle className="text-lg">{selectedCoach.name}</CardTitle>
-                    <CardDescription>{selectedCoach.coach}</CardDescription>
+                    <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>{selectedCoach.name}</CardTitle>
+                    <CardDescription className={`${isMobile ? 'text-xs' : 'text-sm'}`}>{selectedCoach.coach}</CardDescription>
                   </div>
                 </div>
                 
-                {/* Persona Selector in Chat Header */}
-                <div className="flex items-center gap-3">
+                {/* Persona Selector in Chat Header - Mobile Responsive */}
+                <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
                   <Badge 
                     variant="outline" 
-                    className="px-3 py-1"
+                    className={`${isMobile ? 'px-2 py-1 text-xs' : 'px-3 py-1'}`}
                     style={{ 
                       borderColor: currentPersonaConfig.color,
                       color: currentPersonaConfig.color,
                       backgroundColor: `${currentPersonaConfig.color}10`
                     }}
                   >
-                    {currentPersonaConfig.name}
+                    {isMobile ? currentPersonaConfig.name.split(' ')[0] : currentPersonaConfig.name}
                   </Badge>
                   <Select value={currentPersona} onValueChange={setCurrentPersona}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className={`${isMobile ? 'w-[140px] text-xs' : 'w-[200px]'}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -323,7 +337,7 @@ export default function AICoaching() {
                           <SelectItem key={key} value={key}>
                             <div className="flex items-center gap-2">
                               <IconComponent className="h-4 w-4" style={{ color: config.color }} />
-                              <span>{config.name}</span>
+                              <span className={`${isMobile ? 'text-xs' : ''}`}>{config.name}</span>
                             </div>
                           </SelectItem>
                         );
@@ -334,9 +348,9 @@ export default function AICoaching() {
               </div>
             </CardHeader>
 
-            {/* Messages Area */}
+            {/* Messages Area - Mobile Optimized */}
             <CardContent className="flex-1 flex flex-col p-0">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-800/50 dark:to-gray-900">
+              <div className={`flex-1 overflow-y-auto ${isMobile ? 'p-2' : 'p-4'} ${isMobile ? 'space-y-2' : 'space-y-4'} bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-800/50 dark:to-gray-900`}>
                 {messages.map((message: any) => {
                   // Handle system messages differently
                   if (message.isSystem) {

@@ -38,6 +38,7 @@ import {
   type AuthenticatedRequest 
 } from "./auth";
 import { donationStorage } from "./donation-storage";
+import { registerAIChatRoutes } from "./ai-chat-routes";
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
@@ -3652,6 +3653,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch analytics' });
     }
   });
+
+  // AI Chat Routes with Memory - Direct Implementation
+  registerAIChatRoutes(app);
 
   return httpServer;
 }
