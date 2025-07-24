@@ -3142,8 +3142,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Coach Certification Course Management Routes
   
-  // Get all available certification courses
-  app.get("/api/coach/certification-courses", async (req, res) => {
+  // Get all available certification courses (available to all authenticated users)
+  app.get("/api/coach/certification-courses", requireAuth as any, async (req, res) => {
     try {
       // Mock certification courses for demo
       const courses = [
@@ -3257,8 +3257,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get coach's current enrollments
-  app.get("/api/coach/my-enrollments", requireCoachRole as any, async (req, res) => {
+  // Get user's current enrollments (available to all authenticated users)
+  app.get("/api/coach/my-enrollments", requireAuth as any, async (req, res) => {
     try {
       // Mock enrollments for demo
       const enrollments = [
@@ -3284,8 +3284,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get coach's earned certificates
-  app.get("/api/coach/my-certificates", requireCoachRole as any, async (req, res) => {
+  // Get user's earned certificates (available to all authenticated users)
+  app.get("/api/coach/my-certificates", requireAuth as any, async (req, res) => {
     try {
       // Mock certificates for demo
       const certificates = [
@@ -3311,8 +3311,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enroll coach in a certification course
-  app.post("/api/coach/enroll-course", async (req, res) => {
+  // Enroll user in a certification course (available to all authenticated users)
+  app.post("/api/coach/enroll-course", requireAuth as any, async (req, res) => {
     try {
       const { courseId } = req.body;
       
@@ -3340,8 +3340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get course modules for learning
-  app.get("/api/coach/courses/:courseId/modules", async (req, res) => {
+  // Get course modules for learning (available to all authenticated users)
+  app.get("/api/coach/courses/:courseId/modules", requireAuth as any, async (req, res) => {
     try {
       const { courseId } = req.params;
       
@@ -3466,8 +3466,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get module progress for enrollment
-  app.get("/api/coach/module-progress/:enrollmentId", async (req, res) => {
+  // Get module progress for enrollment (available to all authenticated users)
+  app.get("/api/coach/module-progress/:enrollmentId", requireAuth as any, async (req, res) => {
     try {
       const { enrollmentId } = req.params;
       
@@ -3503,8 +3503,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start a module
-  app.post("/api/coach/start-module", async (req, res) => {
+  // Start a module (available to all authenticated users)
+  app.post("/api/coach/start-module", requireAuth as any, async (req, res) => {
     try {
       const { enrollmentId, moduleId } = req.body;
       
@@ -3530,8 +3530,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Submit quiz answers
-  app.post("/api/coach/submit-quiz", async (req, res) => {
+  // Submit quiz answers (available to all authenticated users)
+  app.post("/api/coach/submit-quiz", requireAuth as any, async (req, res) => {
     try {
       const { enrollmentId, moduleId, answers, timeSpent } = req.body;
       
@@ -3569,8 +3569,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Submit assignment
-  app.post("/api/coach/submit-assignment", async (req, res) => {
+  // Submit assignment (available to all authenticated users)
+  app.post("/api/coach/submit-assignment", requireAuth as any, async (req, res) => {
     try {
       const { enrollmentId, moduleId, submission, timeSpent } = req.body;
       

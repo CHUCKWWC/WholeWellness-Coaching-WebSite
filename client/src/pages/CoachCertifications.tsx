@@ -38,19 +38,19 @@ export default function CoachCertifications() {
   // Fetch available certification courses
   const { data: courses = [], isLoading: coursesLoading } = useQuery({
     queryKey: ["/api/coach/certification-courses"],
-    enabled: isAuthenticated && user?.role === "coach"
+    enabled: isAuthenticated
   });
 
-  // Fetch coach's current enrollments
+  // Fetch user's current enrollments
   const { data: enrollments = [], isLoading: enrollmentsLoading } = useQuery({
     queryKey: ["/api/coach/my-enrollments"],
-    enabled: isAuthenticated && user?.role === "coach"
+    enabled: isAuthenticated
   });
 
-  // Fetch coach's earned certificates
+  // Fetch user's earned certificates
   const { data: certificates = [], isLoading: certificatesLoading } = useQuery({
     queryKey: ["/api/coach/my-certificates"],
-    enabled: isAuthenticated && user?.role === "coach"
+    enabled: isAuthenticated
   });
 
   // Enroll in a course
@@ -240,15 +240,15 @@ export default function CoachCertifications() {
     );
   };
 
-  if (!isAuthenticated || user?.role !== "coach") {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardHeader className="text-center">
             <Lock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <CardTitle>Access Restricted</CardTitle>
+            <CardTitle>Authentication Required</CardTitle>
             <CardDescription>
-              Certification courses are only available to registered coaches.
+              Please sign in to access certification courses.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -263,7 +263,7 @@ export default function CoachCertifications() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Coach Certification Courses
+            Certification Courses
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Enhance your skills with professional development courses and earn continuing education credits.
