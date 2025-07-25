@@ -381,25 +381,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           module_id: 2,
-          status: 'not_started',
+          status: 'coming_soon',
           score: null,
           answers: {},
           modules: {
             id: 2,
             title: 'Advanced Nutrition Fundamentals',
-            content: '<h3>Module 2: Advanced Nutrition Fundamentals</h3><p>Deep dive into nutritional science and practical application for coaching clients.</p><ul><li>Macronutrient balance</li><li>Meal planning strategies</li><li>Dietary restrictions and adaptations</li><li>Evidence-based nutrition recommendations</li></ul><h4>Learning Objectives:</h4><ol><li>Understand the role of macronutrients in optimal health</li><li>Create personalized meal plans for diverse dietary needs</li><li>Apply evidence-based nutrition principles in coaching sessions</li><li>Recognize and address common nutritional deficiencies</li></ol><h4>Quiz Section:</h4><p>After reviewing the content above, you will be tested on key nutrition concepts and their practical application in coaching scenarios.</p>',
+            content: '<h3>Coming Soon</h3><p>This module is currently under development and will be available soon. It will cover advanced nutritional science and practical application for coaching clients.</p>',
             module_order: 2
           }
         },
         {
           module_id: 3,
-          status: 'not_started',
+          status: 'coming_soon',
           score: null,
           answers: {},
           modules: {
             id: 3,
             title: 'Relationship Counseling Fundamentals',
-            content: '<h3>Module 3: Relationship Counseling Fundamentals</h3><p>This comprehensive module covers essential relationship counseling techniques and communication strategies for coaches working with clients on relationship challenges.</p><ul><li>Active listening and empathy building</li><li>Conflict resolution strategies</li><li>Communication pattern analysis</li><li>Setting healthy boundaries</li><li>Attachment theory in practice</li></ul><h4>Key Concepts:</h4><ol><li>Understanding different attachment styles and their impact</li><li>Recognizing toxic relationship patterns</li><li>Facilitating healthy communication between partners</li><li>Supporting clients through relationship transitions</li></ol><h4>Practical Applications:</h4><p>Learn how to guide clients through relationship challenges using evidence-based counseling techniques and communication frameworks.</p><h4>Quiz Section:</h4><p>After reviewing the content above, you will be tested on relationship counseling principles and their practical application in coaching scenarios.</p>',
+            content: '<h3>Coming Soon</h3><p>This module is currently under development and will be available soon. It will cover essential relationship counseling techniques and communication strategies.</p>',
             module_order: 3
           }
         }

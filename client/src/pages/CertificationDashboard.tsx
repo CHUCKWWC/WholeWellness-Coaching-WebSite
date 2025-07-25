@@ -191,7 +191,11 @@ export default function CertificationDashboard() {
               <h3>{item.modules.title}</h3>
               <p>Status: {item.status}</p>
               {item.score !== null && <p>Score: {item.score}%</p>}
-              {item.status !== 'completed' && (
+              {item.status === 'coming_soon' ? (
+                <button disabled className="coming-soon-btn">
+                  Coming Soon
+                </button>
+              ) : item.status !== 'completed' && (
                 <button onClick={() => startModule(item.modules)}>
                   {item.status === 'in_progress' || item.status === 'failed' ? 'Retry Module' : 'Start Module'}
                 </button>
