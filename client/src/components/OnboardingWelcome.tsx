@@ -169,7 +169,17 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
               <div className="p-6 border-b bg-gray-50">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-800">Welcome Journey</h2>
-                  <Badge variant="outline">{currentStep + 1} of {onboardingSteps.length}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">{currentStep + 1} of {onboardingSteps.length}</Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={onComplete}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      Skip Tour
+                    </Button>
+                  </div>
                 </div>
                 <Progress value={progress} className="h-2" />
               </div>
@@ -290,6 +300,17 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
               className="p-8"
             >
               <div className="text-center mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <div></div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={onComplete}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    Skip Tour
+                  </Button>
+                </div>
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}

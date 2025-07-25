@@ -397,6 +397,17 @@ export default function DiscoveryQuiz() {
     <div className="max-w-2xl mx-auto p-6">
       {/* Header */}
       <div className="text-center mb-8">
+        <div className="flex justify-between items-start mb-4">
+          <div></div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => window.location.href = '/'}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            Skip Quiz
+          </Button>
+        </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           🌟 WholeWellness Discovery Roadmap
         </h1>

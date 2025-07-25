@@ -93,9 +93,19 @@ export default function CoachOnboardingFlow() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-2xl font-bold">Coach Application</h2>
-          <span className="text-sm text-gray-600">
-            Step {currentStep + 1} of {totalSteps}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">
+              Step {currentStep + 1} of {totalSteps}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => window.location.href = '/'}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Exit Application
+            </Button>
+          </div>
         </div>
         <Progress value={progress} className="h-3" />
       </div>

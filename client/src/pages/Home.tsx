@@ -20,19 +20,24 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Show onboarding for new users or first-time visitors
+  // Show onboarding for new users or first-time visitors (only once per user)
   useEffect(() => {
     if (isAuthenticated && user) {
-      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-      if (!hasSeenOnboarding) {
-        setShowOnboarding(true);
+      const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${user.id}`);
+      if (!hasSeenOnboarding && !showOnboarding) {
+        const timer = setTimeout(() => {
+          setShowOnboarding(true);
+        }, 1000); // Delay to prevent multiple triggers
+        return () => clearTimeout(timer);
       }
     }
   }, [isAuthenticated, user]);
 
   const completeOnboarding = () => {
     setShowOnboarding(false);
-    localStorage.setItem('hasSeenOnboarding', 'true');
+    if (user) {
+      localStorage.setItem(`hasSeenOnboarding_${user.id}`, 'true');
+    }
   };
   const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],

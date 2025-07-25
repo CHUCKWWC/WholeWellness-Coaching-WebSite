@@ -133,9 +133,19 @@ export default function DigitalOnboarding() {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           
-          <p className="text-sm text-gray-500 mt-4">
-            Takes 3-5 minutes • Personalized recommendations • No commitment required
-          </p>
+          <div className="mt-4">
+            <p className="text-sm text-gray-500 mb-2">
+              Takes 3-5 minutes • Personalized recommendations • No commitment required
+            </p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => window.location.href = '/'}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              Skip Discovery Quiz
+            </Button>
+          </div>
         </div>
 
         {/* Trust Indicators */}
