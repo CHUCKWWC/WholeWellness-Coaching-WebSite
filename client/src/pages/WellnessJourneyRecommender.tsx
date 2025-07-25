@@ -1,710 +1,645 @@
-import { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import {
-  Brain,
-  Target,
-  Calendar,
-  TrendingUp,
-  Heart,
-  Lightbulb,
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Calendar, 
+  Target, 
+  TrendingUp, 
+  Heart, 
+  Brain, 
+  Activity, 
   Star,
   Clock,
   CheckCircle,
-  AlertTriangle,
-  Users,
-  Activity,
   BookOpen,
-  Zap,
+  Users,
   Award,
-  Sparkles,
-  BarChart3,
-  MapPin,
+  Lightbulb,
   ArrowRight,
-  RefreshCw,
-  Download,
-  Share2,
-  ThumbsUp,
-  ThumbsDown,
-  MessageCircle,
-  Play,
-  Pause,
-  SkipForward,
-  Calendar as CalendarIcon,
-  Bell,
-  Settings,
-  Filter,
-  Search,
-  Globe
-} from 'lucide-react';
+  RefreshCw
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
-// Enhanced schemas for wellness journey
-const wellnessGoalSchema = z.object({
-  category: z.enum(['physical', 'mental', 'emotional', 'spiritual', 'social', 'career', 'financial']),
-  specific_goal: z.string().min(5, 'Please describe your goal in detail'),
-  priority: z.enum(['high', 'medium', 'low']),
-  timeline: z.enum(['1_week', '1_month', '3_months', '6_months', '1_year', 'ongoing']),
-  current_level: z.number().min(1).max(10),
-  target_level: z.number().min(1).max(10),
-  obstacles: z.array(z.string()).optional(),
-  motivation: z.string().optional(),
-});
-
-const lifestyleAssessmentSchema = z.object({
-  sleep_hours: z.number().min(0).max(24),
-  exercise_frequency: z.enum(['none', 'rarely', 'weekly', 'several_times', 'daily']),
-  stress_level: z.number().min(1).max(10),
-  energy_level: z.number().min(1).max(10),
-  social_connection: z.number().min(1).max(10),
-  work_life_balance: z.number().min(1).max(10),
-  diet_quality: z.enum(['poor', 'fair', 'good', 'excellent']),
-  major_life_changes: z.array(z.string()).optional(),
-  support_system: z.enum(['none', 'limited', 'moderate', 'strong']),
-  previous_wellness_experience: z.string().optional(),
-});
-
-const preferencesSchema = z.object({
-  learning_style: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']),
-  session_duration: z.enum(['5_min', '15_min', '30_min', '60_min', '90_min']),
-  frequency: z.enum(['daily', 'every_other_day', 'weekly', 'bi_weekly', 'monthly']),
-  reminder_preferences: z.array(z.enum(['email', 'push', 'sms', 'none'])),
-  preferred_times: z.array(z.enum(['morning', 'afternoon', 'evening', 'late_night'])),
-  intensity_preference: z.enum(['gentle', 'moderate', 'intense']),
-  group_vs_individual: z.enum(['individual', 'small_group', 'large_group', 'both']),
-  technology_comfort: z.number().min(1).max(10),
-});
-
-type WellnessGoal = z.infer<typeof wellnessGoalSchema>;
-type LifestyleAssessment = z.infer<typeof lifestyleAssessmentSchema>;
-type Preferences = z.infer<typeof preferencesSchema>;
-
-interface WellnessJourneyRecommendation {
+interface WellnessJourney {
   id: string;
-  type: 'daily_practice' | 'weekly_goal' | 'monthly_challenge' | 'resource' | 'milestone' | 'adjustment';
   title: string;
   description: string;
+  journey_type: string;
+  current_phase: string;
+  overall_progress: number;
+  estimated_completion: string;
+  is_active: boolean;
+  wellness_goals: WellnessGoal[];
+  journey_phases: JourneyPhase[];
+  wellness_recommendations: WellnessRecommendation[];
+  journey_milestones: JourneyMilestone[];
+  ai_insights: AiInsight[];
+}
+
+interface WellnessGoal {
+  id: string;
   category: string;
-  priority: number;
-  estimated_time: number;
-  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
-  ai_reasoning: string;
-  action_steps: string[];
-  success_metrics: string[];
-  resources: Array<{
-    type: 'article' | 'video' | 'audio' | 'exercise' | 'tool' | 'app';
-    title: string;
-    url: string;
-    duration?: number;
-  }>;
-  prerequisites?: string[];
-  follow_up_actions?: string[];
-  personalization_factors: string[];
-  expected_outcomes: string[];
-  progress_tracking: {
-    method: string;
-    frequency: string;
-    checkpoints: string[];
-  };
-  adaptation_triggers: string[];
-  crisis_support?: boolean;
+  specific_goal: string;
+  priority: string;
+  timeline: string;
+  current_level: number;
+  target_level: number;
+  is_achieved: boolean;
 }
 
 interface JourneyPhase {
   id: string;
-  name: string;
-  description: string;
-  duration: string;
-  goals: string[];
-  milestones: string[];
-  recommendations: WellnessJourneyRecommendation[];
-  progress: number;
+  phase_name: string;
+  phase_description: string;
+  phase_order: number;
+  estimated_duration: string;
   is_current: boolean;
-  is_completed: boolean;
+  wellness_recommendations: WellnessRecommendation[];
 }
 
-interface WellnessJourney {
+interface WellnessRecommendation {
   id: string;
-  user_id: string;
-  journey_type: string;
-  start_date: string;
-  estimated_completion: string;
-  current_phase: string;
-  overall_progress: number;
-  phases: JourneyPhase[];
-  goals: WellnessGoal[];
-  lifestyle_assessment: LifestyleAssessment;
-  preferences: Preferences;
-  adaptations: Array<{
-    date: string;
-    reason: string;
-    changes: string[];
-  }>;
-  success_stories: Array<{
-    date: string;
-    achievement: string;
-    impact: string;
-  }>;
-  created_at: string;
-  updated_at: string;
+  type: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  estimated_time: string;
+  difficulty_level: string;
+  user_progress: number;
+  ai_reasoning: string;
+  action_steps: string[];
+  expected_outcomes: string[];
+  resources: any[];
+}
+
+interface JourneyMilestone {
+  id: string;
+  title: string;
+  description: string;
+  milestone_order: number;
+  is_achieved: boolean;
+  target_date: string;
+}
+
+interface AiInsight {
+  id: string;
+  insight_type: string;
+  title: string;
+  description: string;
+  confidence: number;
+  impact_level: string;
+  suggested_actions: string[];
+}
+
+interface JourneyAnalytics {
+  journey: WellnessJourney;
+  analytics: {
+    totalGoals: number;
+    achievedGoals: number;
+    goalCompletionRate: number;
+    totalRecommendations: number;
+    completedRecommendations: number;
+    recommendationCompletionRate: number;
+    overallProgress: number;
+    totalInsights: number;
+    totalProgressEntries: number;
+  };
 }
 
 export default function WellnessJourneyRecommender() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Forms for different steps
-  const goalsForm = useForm<{ goals: WellnessGoal[] }>({
-    resolver: zodResolver(z.object({ goals: z.array(wellnessGoalSchema) })),
-    defaultValues: { goals: [] }
-  });
-
-  const lifestyleForm = useForm<LifestyleAssessment>({
-    resolver: zodResolver(lifestyleAssessmentSchema),
-    defaultValues: {
-      sleep_hours: 7,
-      exercise_frequency: 'weekly',
-      stress_level: 5,
-      energy_level: 5,
-      social_connection: 5,
-      work_life_balance: 5,
-      diet_quality: 'fair',
-      support_system: 'moderate',
-    }
-  });
-
-  const preferencesForm = useForm<Preferences>({
-    resolver: zodResolver(preferencesSchema),
-    defaultValues: {
-      learning_style: 'visual',
-      session_duration: '30_min',
-      frequency: 'daily',
-      reminder_preferences: ['email'],
-      preferred_times: ['morning'],
-      intensity_preference: 'moderate',
-      group_vs_individual: 'individual',
-      technology_comfort: 7,
-    }
-  });
-
-  // Fetch existing journey
-  const { data: existingJourney, isLoading: journeyLoading } = useQuery({
-    queryKey: ['/api/wellness-journey/current'],
-    enabled: isAuthenticated,
+  // Fetch current wellness journey
+  const { data: journeyData, isLoading: loadingJourney, error } = useQuery<JourneyAnalytics>({
+    queryKey: ["/api/wellness-journey/current"],
     retry: false,
   });
 
-  // Generate journey mutation
-  const generateJourney = useMutation({
-    mutationFn: async (data: {
-      goals: WellnessGoal[];
-      lifestyle: LifestyleAssessment;
-      preferences: Preferences;
-    }) => {
-      const response = await apiRequest('POST', '/api/wellness-journey/generate', data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Journey Created!",
-        description: "Your personalized wellness journey has been generated.",
+  // Create new wellness journey mutation
+  const createJourneyMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/wellness-journey/create", {
+        journeyType: "comprehensive_wellness",
+        title: "Your Personalized Wellness Journey",
+        description: "A comprehensive wellness journey tailored to your unique needs and goals",
+        estimatedCompletion: "12 weeks"
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/wellness-journey/current'] });
-      setCurrentStep(5); // Move to journey view
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wellness-journey/current"] });
+      toast({
+        title: "Journey Created",
+        description: "Your personalized wellness journey has been created successfully!",
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to generate journey",
+        description: error.message || "Failed to create wellness journey",
         variant: "destructive",
       });
     },
   });
 
-  // Update progress mutation
-  const updateProgress = useMutation({
-    mutationFn: async (data: { recommendation_id: string; progress: number; notes?: string }) => {
-      const response = await apiRequest('POST', '/api/wellness-journey/progress', data);
-      return response.json();
+  // Update recommendation progress
+  const updateProgressMutation = useMutation({
+    mutationFn: async ({ recommendationId, progress }: { recommendationId: string; progress: number }) => {
+      return await apiRequest("PUT", `/api/wellness-journey/recommendations/${recommendationId}/progress`, {
+        progress
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/wellness-journey/current'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wellness-journey/current"] });
       toast({
         title: "Progress Updated",
-        description: "Your progress has been saved.",
+        description: "Your progress has been recorded successfully!",
       });
     },
   });
 
-  const handleGenerateJourney = async () => {
-    const goalsValid = await goalsForm.trigger();
-    const lifestyleValid = await lifestyleForm.trigger();
-    const preferencesValid = await preferencesForm.trigger();
-
-    if (!goalsValid || !lifestyleValid || !preferencesValid) {
+  // Complete milestone mutation
+  const completeMilestoneMutation = useMutation({
+    mutationFn: async ({ milestoneId, reflection, difficultyRating, satisfactionRating }: {
+      milestoneId: string;
+      reflection?: string;
+      difficultyRating?: number;
+      satisfactionRating?: number;
+    }) => {
+      return await apiRequest("POST", `/api/wellness-journey/milestones/${milestoneId}/complete`, {
+        reflection,
+        difficultyRating,
+        satisfactionRating
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wellness-journey/current"] });
       toast({
-        title: "Please Complete All Sections",
-        description: "Make sure all forms are filled out correctly.",
-        variant: "destructive",
+        title: "Milestone Completed!",
+        description: "Congratulations on achieving this milestone!",
       });
-      return;
-    }
+    },
+  });
 
-    setIsGenerating(true);
-    try {
-      await generateJourney.mutateAsync({
-        goals: goalsForm.getValues().goals,
-        lifestyle: lifestyleForm.getValues(),
-        preferences: preferencesForm.getValues(),
-      });
-    } finally {
-      setIsGenerating(false);
-    }
+  const handleStartJourney = () => {
+    createJourneyMutation.mutate();
   };
 
-  const GoalsSetup = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Define Your Wellness Goals
-        </CardTitle>
-        <CardDescription>
-          Set specific, measurable goals across different areas of your life
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {['physical', 'mental', 'emotional', 'social'].map((category) => (
-            <Card key={category} className="p-4">
-              <h4 className="font-semibold mb-3 capitalize">{category} Wellness</h4>
-              <div className="space-y-3">
-                <Input placeholder={`Describe your ${category} goal`} />
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <label className="text-sm">Current Level</label>
-                    <Slider defaultValue={[5]} max={10} step={1} />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-sm">Target Level</label>
-                    <Slider defaultValue={[8]} max={10} step={1} />
-                  </div>
-                </div>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Timeline" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1_month">1 Month</SelectItem>
-                    <SelectItem value="3_months">3 Months</SelectItem>
-                    <SelectItem value="6_months">6 Months</SelectItem>
-                    <SelectItem value="1_year">1 Year</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Textarea placeholder="What motivates you to achieve this goal?" rows={2} />
-              </div>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const handleUpdateProgress = (recommendationId: string, progress: number) => {
+    updateProgressMutation.mutate({ recommendationId, progress });
+  };
 
-  const LifestyleAssessment = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Current Lifestyle Assessment
-        </CardTitle>
-        <CardDescription>
-          Help us understand your current habits and circumstances
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Sleep Hours per Night</label>
-              <Slider defaultValue={[7]} max={12} min={3} step={0.5} className="mt-2" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Current Stress Level (1-10)</label>
-              <Slider defaultValue={[5]} max={10} min={1} step={1} className="mt-2" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Energy Level (1-10)</label>
-              <Slider defaultValue={[5]} max={10} min={1} step={1} className="mt-2" />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Exercise Frequency</label>
-              <Select>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="rarely">Rarely</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="several_times">Several times a week</SelectItem>
-                  <SelectItem value="daily">Daily</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Diet Quality</label>
-              <Select>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Rate your diet" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="poor">Poor</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="excellent">Excellent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Support System</label>
-              <Select>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Rate your support" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="limited">Limited</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="strong">Strong</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const handleCompleteMilestone = (milestoneId: string) => {
+    completeMilestoneMutation.mutate({ 
+      milestoneId,
+      satisfactionRating: 5,
+      difficultyRating: 3
+    });
+  };
 
-  const PreferencesSetup = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Your Preferences
-        </CardTitle>
-        <CardDescription>
-          Customize how you want to engage with your wellness journey
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Learning Style</label>
-              <Select>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="How do you learn best?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="visual">Visual (images, charts)</SelectItem>
-                  <SelectItem value="auditory">Auditory (podcasts, music)</SelectItem>
-                  <SelectItem value="kinesthetic">Hands-on (activities)</SelectItem>
-                  <SelectItem value="reading">Reading/Writing</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Preferred Session Duration</label>
-              <Select>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="How long per session?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5_min">5 minutes</SelectItem>
-                  <SelectItem value="15_min">15 minutes</SelectItem>
-                  <SelectItem value="30_min">30 minutes</SelectItem>
-                  <SelectItem value="60_min">60 minutes</SelectItem>
-                  <SelectItem value="90_min">90 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Intensity Preference</label>
-              <Select>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Challenge level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gentle">Gentle pace</SelectItem>
-                  <SelectItem value="moderate">Moderate challenge</SelectItem>
-                  <SelectItem value="intense">High intensity</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Preferred Times</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {['morning', 'afternoon', 'evening', 'late_night'].map((time) => (
-                  <div key={time} className="flex items-center space-x-2">
-                    <Checkbox id={time} />
-                    <label htmlFor={time} className="text-sm capitalize">{time.replace('_', ' ')}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Reminder Preferences</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {['email', 'push', 'sms'].map((method) => (
-                  <div key={method} className="flex items-center space-x-2">
-                    <Checkbox id={method} />
-                    <label htmlFor={method} className="text-sm uppercase">{method}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Technology Comfort Level (1-10)</label>
-              <Slider defaultValue={[7]} max={10} min={1} step={1} className="mt-2" />
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const JourneyOverview = ({ journey }: { journey: WellnessJourney }) => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-blue-600" />
-              Your Personalized Wellness Journey
-            </div>
-            <Badge variant="secondary">{journey.overall_progress}% Complete</Badge>
-          </CardTitle>
-          <CardDescription>
-            AI-generated journey based on your goals, lifestyle, and preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Progress value={journey.overall_progress} className="w-full" />
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{journey.phases.filter(p => p.is_completed).length}</div>
-              <div className="text-sm text-gray-600">Phases Completed</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{journey.goals.length}</div>
-              <div className="text-sm text-gray-600">Active Goals</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{journey.success_stories.length}</div>
-              <div className="text-sm text-gray-600">Achievements</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Current Phase: {journey.phases.find(p => p.is_current)?.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {journey.phases.find(p => p.is_current)?.recommendations.slice(0, 3).map((rec) => (
-              <div key={rec.id} className="mb-4 p-3 border rounded-lg">
-                <h4 className="font-semibold">{rec.title}</h4>
-                <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline">{rec.estimated_time} min</Badge>
-                  <Button size="sm" onClick={() => updateProgress.mutate({ recommendation_id: rec.id, progress: 100 })}>
-                    Complete
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Recent Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {journey.success_stories.slice(0, 3).map((story, index) => (
-              <div key={index} className="mb-3 p-3 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-800">{story.achievement}</h4>
-                <p className="text-sm text-green-600">{story.impact}</p>
-                <span className="text-xs text-green-500">{new Date(story.date).toLocaleDateString()}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  if (journeyLoading) {
+  if (loadingJourney) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading your wellness journey...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <p className="text-gray-600">Loading your wellness journey...</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (existingJourney) {
+  if (error && !journeyData) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <JourneyOverview journey={existingJourney} />
-      </div>
-    );
-  }
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center max-w-2xl mx-auto">
+          <div className="mb-8">
+            <Heart className="h-16 w-16 mx-auto mb-4 text-blue-600" />
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              AI-Powered Wellness Journey Recommender
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Create a personalized wellness journey tailored specifically to your unique needs, goals, and lifestyle
+            </p>
+          </div>
 
-  return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2">
-          <Brain className="h-8 w-8 text-blue-600" />
-          AI-Powered Wellness Journey Recommender
-        </h1>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Get a personalized, adaptive wellness journey designed specifically for your goals, lifestyle, and preferences using advanced AI analysis.
-        </p>
-      </div>
-
-      <div className="mb-8">
-        <div className="flex items-center justify-center space-x-4">
-          {[1, 2, 3, 4].map((step) => (
-            <div key={step} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
-                {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
-              </div>
-              {step < 4 && <ArrowRight className="h-4 w-4 text-gray-400 mx-2" />}
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center mt-2">
-          <span className="text-sm text-gray-600">
-            Step {currentStep} of 4: {
-              currentStep === 1 ? 'Define Goals' :
-              currentStep === 2 ? 'Assess Lifestyle' :
-              currentStep === 3 ? 'Set Preferences' :
-              'Generate Journey'
-            }
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        {currentStep === 1 && <GoalsSetup />}
-        {currentStep === 2 && <LifestyleAssessment />}
-        {currentStep === 3 && <PreferencesSetup />}
-        
-        {currentStep === 4 && (
-          <Card>
+          <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Ready to Generate Your Journey!
+                <Lightbulb className="h-5 w-5 text-yellow-500" />
+                Start Your Wellness Journey
               </CardTitle>
               <CardDescription>
-                Based on your inputs, we'll create a personalized wellness journey with AI-powered recommendations
+                Our AI will analyze your preferences and create a comprehensive wellness plan with personalized recommendations
               </CardDescription>
             </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <div className="text-4xl">🌟</div>
-              <p>Your personalized journey will include:</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  Daily personalized recommendations
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  Adaptive milestone tracking
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  Progress-based adjustments
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  Curated resources and tools
-                </div>
-              </div>
-              <Button
-                onClick={handleGenerateJourney}
-                disabled={isGenerating}
-                className="w-full md:w-auto"
+            <CardContent>
+              <Button 
+                onClick={handleStartJourney}
+                disabled={createJourneyMutation.isPending}
+                className="w-full"
                 size="lg"
               >
-                {isGenerating ? (
+                {createJourneyMutation.isPending ? (
                   <>
-                    <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                    Generating Your Journey...
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Creating Your Journey...
                   </>
                 ) : (
                   <>
-                    <Zap className="h-5 w-5 mr-2" />
-                    Generate My Journey
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    Begin My Wellness Journey
                   </>
                 )}
               </Button>
             </CardContent>
           </Card>
-        )}
 
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-            disabled={currentStep === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
-            disabled={currentStep === 4}
-          >
-            Next
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <Target className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                  <h3 className="font-semibold mb-2">Personalized Goals</h3>
+                  <p className="text-sm text-gray-600">AI-generated goals based on your unique situation and aspirations</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                  <h3 className="font-semibold mb-2">Progress Tracking</h3>
+                  <p className="text-sm text-gray-600">Real-time monitoring of your wellness journey with actionable insights</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <Brain className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                  <h3 className="font-semibold mb-2">AI Insights</h3>
+                  <p className="text-sm text-gray-600">Intelligent recommendations that adapt to your progress and feedback</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
+    );
+  }
+
+  const journey = journeyData?.journey;
+  const analytics = journeyData?.analytics;
+
+  if (!journey) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert>
+          <AlertDescription>
+            Unable to load your wellness journey. Please try refreshing the page.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          {journey.title}
+        </h1>
+        <p className="text-xl text-gray-600 mb-4">{journey.description}</p>
+        <div className="flex items-center gap-4 mb-4">
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            {journey.estimated_completion}
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Activity className="h-3 w-3" />
+            {journey.current_phase}
+          </Badge>
+        </div>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Overall Progress</span>
+            <span className="text-sm text-gray-600">{journey.overall_progress}%</span>
+          </div>
+          <Progress value={journey.overall_progress} className="w-full" />
+        </div>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+          <TabsTrigger value="goals">Goals</TabsTrigger>
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
+          <TabsTrigger value="insights">AI Insights</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold">{analytics?.totalGoals || 0}</p>
+                    <p className="text-sm text-gray-600">Total Goals</p>
+                  </div>
+                  <Target className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold">{analytics?.totalRecommendations || 0}</p>
+                    <p className="text-sm text-gray-600">Recommendations</p>
+                  </div>
+                  <BookOpen className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold">{analytics?.totalInsights || 0}</p>
+                    <p className="text-sm text-gray-600">AI Insights</p>
+                  </div>
+                  <Brain className="h-8 w-8 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold">{Math.round(analytics?.goalCompletionRate || 0)}%</p>
+                    <p className="text-sm text-gray-600">Completion Rate</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-orange-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Journey Phases */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Journey Phases</CardTitle>
+              <CardDescription>Progress through your personalized wellness phases</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {journey.journey_phases?.map((phase, index) => (
+                  <div key={phase.id} className={`p-4 rounded-lg border ${phase.is_current ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold flex items-center gap-2">
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${phase.is_current ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            {index + 1}
+                          </span>
+                          {phase.phase_name}
+                          {phase.is_current && <Badge variant="secondary">Current</Badge>}
+                        </h4>
+                        <p className="text-sm text-gray-600 mt-1">{phase.phase_description}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline">{phase.estimated_duration}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Recommendations Tab */}
+        <TabsContent value="recommendations" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {journey.wellness_recommendations?.map((recommendation) => (
+              <Card key={recommendation.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{recommendation.title}</CardTitle>
+                      <CardDescription>{recommendation.description}</CardDescription>
+                    </div>
+                    <Badge 
+                      variant={recommendation.priority === 'high' ? 'destructive' : 
+                              recommendation.priority === 'medium' ? 'default' : 'secondary'}
+                    >
+                      {recommendation.priority}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Progress</span>
+                        <span className="text-sm text-gray-600">{recommendation.user_progress}%</span>
+                      </div>
+                      <Progress value={recommendation.user_progress} />
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {recommendation.estimated_time}
+                      </div>
+                      <Badge variant="outline">{recommendation.difficulty_level}</Badge>
+                      <Badge variant="outline">{recommendation.category}</Badge>
+                    </div>
+
+                    {recommendation.action_steps && recommendation.action_steps.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-sm mb-2">Action Steps:</h5>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          {recommendation.action_steps.slice(0, 3).map((step, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="text-blue-600 mt-1">•</span>
+                              {step}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateProgress(recommendation.id, Math.min(100, recommendation.user_progress + 25))}
+                        disabled={recommendation.user_progress >= 100 || updateProgressMutation.isPending}
+                      >
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Update Progress
+                      </Button>
+                      {recommendation.user_progress >= 100 && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Completed
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Goals Tab */}
+        <TabsContent value="goals" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {journey.wellness_goals?.map((goal) => (
+              <Card key={goal.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Target className="h-4 w-4" />
+                        {goal.specific_goal}
+                      </CardTitle>
+                      <CardDescription>Category: {goal.category}</CardDescription>
+                    </div>
+                    {goal.is_achieved && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Achieved
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Progress</span>
+                        <span className="text-sm text-gray-600">{goal.current_level}/{goal.target_level}</span>
+                      </div>
+                      <Progress value={(goal.current_level / goal.target_level) * 100} />
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm">
+                      <Badge variant="outline">{goal.priority} priority</Badge>
+                      <Badge variant="outline">{goal.timeline}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Milestones Tab */}
+        <TabsContent value="milestones" className="space-y-6">
+          <div className="space-y-4">
+            {journey.journey_milestones?.map((milestone, index) => (
+              <Card key={milestone.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${milestone.is_achieved ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                      {milestone.is_achieved ? <CheckCircle className="h-4 w-4" /> : index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        {milestone.title}
+                        {milestone.is_achieved && (
+                          <Badge variant="secondary">Completed</Badge>
+                        )}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">{milestone.description}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(milestone.target_date).toLocaleDateString()}
+                        </Badge>
+                        {!milestone.is_achieved && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleCompleteMilestone(milestone.id)}
+                            disabled={completeMilestoneMutation.isPending}
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Mark Complete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* AI Insights Tab */}
+        <TabsContent value="insights" className="space-y-6">
+          <div className="space-y-4">
+            {journey.ai_insights?.map((insight) => (
+              <Card key={insight.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple-600" />
+                        {insight.title}
+                      </CardTitle>
+                      <CardDescription>{insight.description}</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={insight.impact_level === 'high' ? 'destructive' : 
+                                insight.impact_level === 'medium' ? 'default' : 'secondary'}
+                      >
+                        {insight.impact_level} impact
+                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 text-yellow-500" />
+                        <span className="text-xs">{Math.round(insight.confidence * 100)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {insight.suggested_actions && insight.suggested_actions.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-sm mb-2">Suggested Actions:</h5>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        {insight.suggested_actions.map((action, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-purple-600 mt-1">•</span>
+                            {action}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

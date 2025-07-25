@@ -57,6 +57,7 @@ import ModuleLearning from "@/pages/ModuleLearning";
 import CertificationDashboard from "@/pages/CertificationDashboard";
 import CertificationGuide from "@/pages/CertificationGuide";
 import AdminSecurity from "@/pages/AdminSecurity";
+import WellnessJourneyRecommender from "@/pages/WellnessJourneyRecommender";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -118,6 +119,7 @@ function Router() {
           }} />
           <Route path="/certification-dashboard" component={CertificationDashboard} />
           <Route path="/certification-guide" component={CertificationGuide} />
+          <Route path="/wellness-journey" component={WellnessJourneyRecommender} />
           <Route component={NotFound} />
         </Switch>
       </main>

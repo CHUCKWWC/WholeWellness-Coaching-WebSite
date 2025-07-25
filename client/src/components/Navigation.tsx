@@ -31,6 +31,7 @@ const navigationItems = [
 
 // Move more items to dropdown to reduce header width
 const dropdownItems = [
+  { href: "/wellness-journey", label: "Wellness Journey" },
   { href: "/mental-wellness", label: "Mental Wellness" },
   { href: "/personalized-recommendations", label: "Personal Recommendations" },
   { href: "/subscribe", label: "Premium Access" },

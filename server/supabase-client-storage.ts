@@ -3477,11 +3477,20 @@ export class SupabaseClientStorage implements IStorage {
 
   async updateRecommendationProgress(recommendationId: string, progress: number): Promise<void> {
     try {
+      // First get current times_accessed value
+      const { data: current } = await supabase
+        .from('wellness_recommendations')
+        .select('times_accessed')
+        .eq('id', recommendationId)
+        .single();
+
+      const newTimesAccessed = (current?.times_accessed || 0) + 1;
+
       const { error } = await supabase
         .from('wellness_recommendations')
         .update({ 
           user_progress: progress,
-          times_accessed: supabase.raw('times_accessed + 1'),
+          times_accessed: newTimesAccessed,
           last_accessed: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
