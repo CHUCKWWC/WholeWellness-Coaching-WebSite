@@ -72,8 +72,9 @@ export interface AuthenticatedAdminRequest extends Request {
 
 // Admin login schema
 const adminLoginSchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(1)
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 export class AdminAuthService {
@@ -105,9 +106,9 @@ export class AdminAuthService {
   }
 
   // Authenticate admin user
-  static async authenticateAdmin(username: string, password: string): Promise<AdminUser | null> {
+  static async authenticateAdmin(email: string, password: string): Promise<AdminUser | null> {
     try {
-      const admin = await storage.getAdminByUsername(username);
+      const admin = await storage.getAdminByEmail(email);
       
       if (!admin || !admin.isActive) {
         return null;
@@ -315,9 +316,9 @@ export const requireSuperAdmin = (req: AuthenticatedAdminRequest, res: Response,
 // Admin login route handler
 export const adminLogin = async (req: Request, res: Response) => {
   try {
-    const { username, password } = adminLoginSchema.parse(req.body);
+    const { email, password } = adminLoginSchema.parse(req.body);
 
-    const adminUser = await AdminAuthService.authenticateAdmin(username, password);
+    const adminUser = await AdminAuthService.authenticateAdmin(email, password);
 
     if (!adminUser) {
       return res.status(401).json({ error: 'Invalid credentials' });

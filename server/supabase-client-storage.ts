@@ -2074,6 +2074,26 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
+  async getAdminByEmail(email: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', email)
+        .single();
+      
+      if (error) {
+        console.error('Error getting admin by email:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting admin by email:', error);
+      return null;
+    }
+  }
+
   async updateAdminLastLogin(adminId: string): Promise<void> {
     try {
       await supabase
