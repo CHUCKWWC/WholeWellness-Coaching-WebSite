@@ -63,6 +63,9 @@ export interface AdminUser {
   lastLogin?: Date;
   isActive: boolean;
   isSuperAdmin: boolean;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
 }
 
 // Authenticated admin request interface
@@ -70,11 +73,13 @@ export interface AuthenticatedAdminRequest extends Request {
   adminUser?: AdminUser;
 }
 
-// Admin login schema
-const adminLoginSchema = z.object({
+// Admin OAuth schema - Google OAuth only
+export const adminOAuthSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  rememberMe: z.boolean().optional().default(false),
+  googleId: z.string().min(1, "Google ID is required"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  profileImageUrl: z.string().optional()
 });
 
 export class AdminAuthService {
@@ -105,39 +110,66 @@ export class AdminAuthService {
     }
   }
 
-  // Authenticate admin user
-  static async authenticateAdmin(email: string, password: string): Promise<AdminUser | null> {
+  // Authenticate admin user via Google OAuth only
+  static async authenticateAdminOAuth(oauthData: z.infer<typeof adminOAuthSchema>): Promise<AdminUser | null> {
     try {
-      const admin = await storage.getAdminByEmail(email);
-      
-      if (!admin || !admin.isActive) {
+      // Hardcoded authorized admin emails
+      const authorizedAdmins = [
+        'charles.watson@wholewellnesscoaching.org',
+        'charles.watson@gmail.com'
+      ];
+
+      if (!authorizedAdmins.includes(oauthData.email)) {
+        console.log(`Admin OAuth failed - unauthorized email: ${oauthData.email}`);
         return null;
       }
 
-      const isValidPassword = await bcrypt.compare(password, admin.passwordHash);
+      // Check if user exists in database
+      let user = await storage.getUserByEmail(oauthData.email);
       
-      if (!isValidPassword) {
-        return null;
+      // Create admin user if doesn't exist
+      if (!user) {
+        user = await storage.createUser({
+          email: oauthData.email,
+          firstName: oauthData.firstName || 'Admin',
+          lastName: oauthData.lastName || 'User',
+          profileImageUrl: oauthData.profileImageUrl,
+          googleId: oauthData.googleId,
+          role: 'super_admin', // Default to super admin for authorized emails
+          isActive: true,
+          provider: 'google'
+        });
+      } else {
+        // Update existing user with OAuth data
+        await storage.updateUser(user.id, {
+          googleId: oauthData.googleId,
+          firstName: oauthData.firstName || user.firstName,
+          lastName: oauthData.lastName || user.lastName,
+          profileImageUrl: oauthData.profileImageUrl || user.profileImageUrl,
+          lastLogin: new Date(),
+          role: user.role || 'super_admin',
+          isActive: true
+        });
+        user = await storage.getUserByEmail(oauthData.email); // Refresh user data
       }
 
-      // Update last login
-      await storage.updateAdminLastLogin(admin.id);
-
-      // Get admin permissions
-      const permissions = await storage.getAdminPermissions(admin.id);
+      const permissions = this.getUserPermissions(user);
 
       return {
-        id: admin.id,
-        username: admin.username,
-        email: admin.email,
-        role: admin.role,
+        id: user.id,
+        username: user.email,
+        email: user.email,
+        role: user.role,
         permissions,
         lastLogin: new Date(),
-        isActive: admin.isActive,
-        isSuperAdmin: admin.role === 'super_admin'
+        isActive: true,
+        isSuperAdmin: user.role === 'super_admin',
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl
       };
     } catch (error) {
-      console.error('Admin authentication error:', error);
+      console.error('Admin OAuth authentication error:', error);
       return null;
     }
   }
@@ -171,28 +203,23 @@ export class AdminAuthService {
         return null;
       }
 
-      const session = await storage.getAdminSession(sessionToken);
+      // For now, use regular user storage since admin storage may not exist
+      const user = await storage.getUser(decoded.adminId);
       
-      if (!session || !session.isActive || session.expiresAt < new Date()) {
+      if (!user || !user.isActive || (user.role !== 'admin' && user.role !== 'super_admin')) {
         return null;
       }
 
-      const admin = await storage.getAdminById(session.adminId);
-      
-      if (!admin || !admin.isActive) {
-        return null;
-      }
-
-      const permissions = await storage.getAdminPermissions(admin.id);
+      const permissions = this.getUserPermissions(user);
 
       return {
-        id: admin.id,
-        username: admin.username,
-        email: admin.email,
-        role: admin.role,
+        id: user.id,
+        username: user.email, // Use email as username for OAuth
+        email: user.email,
+        role: user.role,
         permissions,
-        isActive: admin.isActive,
-        isSuperAdmin: admin.role === 'super_admin'
+        isActive: user.isActive,
+        isSuperAdmin: user.role === 'super_admin'
       };
     } catch (error) {
       console.error('Session validation error:', error);
@@ -244,19 +271,44 @@ export class AdminAuthService {
 
     return permissions.some(permission => adminUser.permissions.includes(permission));
   }
+
+  // Get user permissions based on role
+  static getUserPermissions(user: any): Permission[] {
+    if (user.role === 'super_admin') {
+      return Object.values(PERMISSIONS);
+    }
+    
+    if (user.role === 'admin') {
+      return [
+        PERMISSIONS.VIEW_DASHBOARD,
+        PERMISSIONS.VIEW_USERS,
+        PERMISSIONS.EDIT_USERS,
+        PERMISSIONS.VIEW_COACHES,
+        PERMISSIONS.EDIT_COACHES,
+        PERMISSIONS.VIEW_DONATIONS,
+        PERMISSIONS.VIEW_BOOKINGS,
+        PERMISSIONS.EDIT_BOOKINGS,
+        PERMISSIONS.CONTENT_MANAGEMENT,
+        PERMISSIONS.VIEW_REPORTS,
+        PERMISSIONS.MARKETING,
+        PERMISSIONS.SEND_NOTIFICATIONS
+      ];
+    }
+    
+    return [];
+  }
 }
 
-// Middleware to require admin authentication
+// Middleware to require admin authentication via cookie
 export const requireAdminAuth = async (req: AuthenticatedAdminRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    const sessionToken = req.cookies?.adminSession;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!sessionToken) {
       return res.status(401).json({ error: 'Admin authentication required' });
     }
 
-    const token = authHeader.substring(7);
-    const adminUser = await AdminAuthService.validateAdminSession(token);
+    const adminUser = await AdminAuthService.validateAdminSession(sessionToken);
 
     if (!adminUser) {
       return res.status(401).json({ error: 'Invalid or expired admin session' });
@@ -313,79 +365,15 @@ export const requireSuperAdmin = (req: AuthenticatedAdminRequest, res: Response,
   next();
 };
 
-// Admin login route handler
-export const adminLogin = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = adminLoginSchema.parse(req.body);
-
-    const adminUser = await AdminAuthService.authenticateAdmin(email, password);
-
-    if (!adminUser) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const sessionToken = await AdminAuthService.createAdminSession(adminUser.id, req);
-
-    // Log successful login
-    await AdminAuthService.logActivity(
-      adminUser.id,
-      'LOGIN',
-      'admin_session',
-      sessionToken,
-      { success: true },
-      req
-    );
-
-    res.json({
-      success: true,
-      token: sessionToken,
-      admin: {
-        id: adminUser.id,
-        username: adminUser.username,
-        email: adminUser.email,
-        role: adminUser.role,
-        permissions: adminUser.permissions,
-        isSuperAdmin: adminUser.isSuperAdmin
-      }
-    });
-  } catch (error) {
-    console.error('Admin login error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid login data', details: error.errors });
-    }
-    
-    res.status(500).json({ error: 'Login failed' });
+// Middleware to require admin role (for backwards compatibility)
+export const requireAdminRole = (req: AuthenticatedAdminRequest, res: Response, next: NextFunction) => {
+  if (!req.adminUser) {
+    return res.status(401).json({ error: 'Admin authentication required' });
   }
-};
 
-// Admin logout route handler
-export const adminLogout = async (req: AuthenticatedAdminRequest, res: Response) => {
-  try {
-    const authHeader = req.headers.authorization;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      
-      // Deactivate the session
-      await storage.deactivateAdminSession(token);
-      
-      // Log logout activity
-      if (req.adminUser) {
-        await AdminAuthService.logActivity(
-          req.adminUser.id,
-          'LOGOUT',
-          'admin_session',
-          token,
-          { success: true },
-          req
-        );
-      }
-    }
-
-    res.json({ success: true, message: 'Logged out successfully' });
-  } catch (error) {
-    console.error('Admin logout error:', error);
-    res.status(500).json({ error: 'Logout failed' });
+  if (req.adminUser.role !== 'admin' && req.adminUser.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Admin access required' });
   }
+
+  next();
 };

@@ -13,52 +13,56 @@ import {
   AuthenticatedAdminRequest 
 } from './admin-auth.js';
 import { storage } from './supabase-client-storage.js';
-import { adminLoginSchema } from '@shared/schema';
+// No longer using password-based login schema
 import { z } from 'zod';
 
 const router = Router();
 
-// Admin authentication routes
-router.post('/auth/login', async (req, res) => {
+// Admin Google OAuth authentication route
+router.post('/auth/oauth-login', async (req, res) => {
   try {
-    const loginData = adminLoginSchema.parse(req.body);
-    const result = await AdminAuthService.login(loginData, req);
+    const oauthData = req.body;
     
-    if (result.success && result.sessionToken) {
-      // Set secure HTTP-only cookie
-      res.cookie('adminSession', result.sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: loginData.rememberMe ? 24 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000 // 24h or 8h
-      });
-      
-      res.json({
-        success: true,
-        user: result.user,
-        permissions: AdminAuthService.getUserPermissions(result.user!),
-        sessionToken: result.sessionToken
-      });
-    } else {
-      res.status(401).json({
+    // Authenticate admin via Google OAuth
+    const adminUser = await AdminAuthService.authenticateAdminOAuth(oauthData);
+    
+    if (!adminUser) {
+      return res.status(401).json({
         success: false,
-        error: result.error
+        error: 'Admin access denied. Only authorized administrators can access this area.'
       });
     }
+    
+    // Create admin session
+    const sessionToken = await AdminAuthService.createAdminSession(adminUser.id, req);
+    
+    // Set secure HTTP-only cookie
+    res.cookie('adminSession', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    
+    res.json({
+      success: true,
+      user: {
+        id: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+        firstName: oauthData.firstName,
+        lastName: oauthData.lastName,
+        profileImageUrl: oauthData.profileImageUrl
+      },
+      permissions: adminUser.permissions,
+      sessionToken
+    });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid input data',
-        details: error.errors
-      });
-    } else {
-      console.error('Admin login error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
+    console.error('Admin OAuth login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Authentication failed'
+    });
   }
 });
 

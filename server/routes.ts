@@ -51,7 +51,7 @@ import { onboardingRoutes } from "./onboarding-routes";
 import { onboardingNewRoutes } from "./onboarding-new-routes";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
-import { adminLogin, adminLogout } from "./admin-auth";
+// Admin auth now uses OAuth only - no password login exports
 import { onboardingService } from "./onboarding-service";
 import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
@@ -2428,8 +2428,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes (already defined above)
   
   // Admin authentication routes
-  app.post('/api/admin/auth/login', adminLogin);
-  app.post('/api/admin/auth/logout', adminLogout);
+  // Legacy admin password login removed - OAuth only authentication
+  // Admin OAuth routes are now handled by admin-dashboard-routes
 
   // Database setup route (temporary) - create tables directly without RPC
   app.post('/api/setup-onboarding-db', async (req, res) => {

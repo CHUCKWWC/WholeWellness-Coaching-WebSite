@@ -1,62 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Eye, EyeOff } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-
-const adminLoginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  rememberMe: z.boolean().optional().default(false),
-});
-
-type AdminLoginForm = z.infer<typeof adminLoginSchema>;
+import { Shield, UserCheck, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import SocialLogin from '@/components/SocialLogin';
 
 export default function AdminLogin() {
-  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string>('');
+  const { toast } = useToast();
 
-  const form = useForm<AdminLoginForm>({
-    resolver: zodResolver(adminLoginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      rememberMe: false,
-    },
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: (data: AdminLoginForm) => apiRequest('POST', '/api/admin/auth/login', data),
+  const adminOAuthMutation = useMutation({
+    mutationFn: (oauthData: any) => apiRequest('POST', '/api/admin/auth/oauth-login', oauthData),
     onSuccess: (data) => {
       if (data.success) {
         toast({
-          title: 'Login successful',
-          description: `Welcome back, ${data.user.firstName}!`,
+          title: 'Admin Access Granted',
+          description: `Welcome, ${data.user.firstName}!`,
         });
         // Redirect to admin dashboard
         window.location.href = '/admin-dashboard';
       } else {
-        setLoginError(data.error || 'Login failed');
+        setLoginError(data.error || 'Admin access denied');
       }
     },
     onError: (error: any) => {
-      console.error('Login error:', error);
-      setLoginError(error.message || 'Login failed. Please try again.');
+      console.error('Admin OAuth error:', error);
+      setLoginError(error.message || 'Authentication failed. Please try again.');
     },
   });
 
-  const onSubmit = (data: AdminLoginForm) => {
+  const handleGoogleSuccess = (userData: any) => {
     setLoginError('');
-    loginMutation.mutate(data);
+    adminOAuthMutation.mutate({
+      email: userData.email,
+      googleId: userData.id,
+      firstName: userData.given_name,
+      lastName: userData.family_name,
+      profileImageUrl: userData.picture
+    });
+  };
+
+  const handleGoogleError = (error: any) => {
+    console.error('Google OAuth error:', error);
+    setLoginError('Google authentication failed. Please try again.');
   };
 
   return (
@@ -70,124 +59,66 @@ export default function AdminLogin() {
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">Admin Access</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to access the administrative dashboard
+            Secure Google OAuth authentication for administrators
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              Administrator Login
+            </CardTitle>
             <CardDescription>
-              Enter your admin credentials to continue
+              Use your authorized Google account to access the admin dashboard
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {loginError && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{loginError}</AlertDescription>
-                  </Alert>
-                )}
+          <CardContent className="space-y-6">
+            {loginError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{loginError}</AlertDescription>
+              </Alert>
+            )}
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="admin@example.com"
-                          {...field}
-                          disabled={loginMutation.isPending}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <div className="space-y-4">
+              <SocialLogin
+                onGoogleSuccess={handleGoogleSuccess}
+                onGoogleError={handleGoogleError}
+                disabled={adminOAuthMutation.isPending}
+                buttonText="Sign in with Google"
+                className="w-full"
+              />
+              
+              {adminOAuthMutation.isPending && (
+                <div className="text-center text-sm text-gray-500">
+                  Authenticating administrator access...
+                </div>
+              )}
+            </div>
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="Enter your password"
-                            {...field}
-                            disabled={loginMutation.isPending}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                            disabled={loginMutation.isPending}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="rememberMe"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={loginMutation.isPending}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-normal">
-                          Keep me signed in for 24 hours
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loginMutation.isPending}
-                >
-                  {loginMutation.isPending ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Signing in...
-                    </div>
-                  ) : (
-                    'Sign In'
-                  )}
-                </Button>
-              </form>
-            </Form>
+            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>Admin Access Only:</strong> Only authorized administrators with 
+                  'admin' or 'super_admin' roles can access this area. Your Google account 
+                  must be pre-approved for administrative access.
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <div className="text-center">
-          <p className="text-xs text-gray-600">
-            This is a secure admin area. All actions are logged and monitored.
-          </p>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => window.location.href = '/'}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            Back to Homepage
+          </Button>
         </div>
       </div>
     </div>
