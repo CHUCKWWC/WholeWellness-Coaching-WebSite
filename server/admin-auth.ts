@@ -116,6 +116,7 @@ export class AdminAuthService {
       // Hardcoded authorized admin emails
       const authorizedAdmins = [
         'charles.watson@wholewellnesscoaching.org',
+        'charles.watson@wholewellness-coaching.org',
         'charles.watson@gmail.com'
       ];
 
