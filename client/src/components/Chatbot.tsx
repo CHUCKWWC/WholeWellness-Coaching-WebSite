@@ -207,7 +207,7 @@ export default function Chatbot({
           <div className="space-y-2 w-full">
             <Button 
               onClick={() => window.location.href = '/members'}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full pl-[17px] pr-[17px] pt-[28px] pb-[28px] mt-[23px] mb-[23px] ml-[1px] mr-[1px] bg-blue-600 hover:bg-blue-700"
             >
               {isAuthenticated ? 'Upgrade Membership' : 'Login / Sign Up'}
             </Button>
