@@ -362,8 +362,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Coach certification progress endpoint (matching the original Supabase query structure)
-  app.get("/api/coach/certification-progress", requireCoachRole as any, async (req: any, res) => {
+  // Coach certification progress endpoint (available to all authenticated users)
+  app.get("/api/coach/certification-progress", requireAuth as any, async (req: any, res) => {
     try {
       // Mock data that matches the original code's expected structure
       const certificationProgress = [
@@ -387,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           modules: {
             id: 2,
             title: 'Advanced Nutrition Fundamentals',
-            content: '<h3>Module 2: Advanced Nutrition Fundamentals</h3><p>Deep dive into nutritional science and practical application for coaching clients.</p><ul><li>Macronutrient balance</li><li>Meal planning strategies</li><li>Dietary restrictions and adaptations</li><li>Evidence-based nutrition recommendations</li></ul>',
+            content: '<h3>Module 2: Advanced Nutrition Fundamentals</h3><p>Deep dive into nutritional science and practical application for coaching clients.</p><ul><li>Macronutrient balance</li><li>Meal planning strategies</li><li>Dietary restrictions and adaptations</li><li>Evidence-based nutrition recommendations</li></ul><h4>Learning Objectives:</h4><ol><li>Understand the role of macronutrients in optimal health</li><li>Create personalized meal plans for diverse dietary needs</li><li>Apply evidence-based nutrition principles in coaching sessions</li><li>Recognize and address common nutritional deficiencies</li></ol><h4>Quiz Section:</h4><p>After reviewing the content above, you will be tested on key nutrition concepts and their practical application in coaching scenarios.</p>',
             module_order: 2
           }
         },
@@ -398,8 +398,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           answers: {},
           modules: {
             id: 3,
-            title: 'Relationship Counseling Techniques',
-            content: '<h3>Module 3: Relationship Counseling Techniques</h3><p>Essential skills for helping clients improve their relationships and communication.</p><ul><li>Active listening techniques</li><li>Conflict resolution strategies</li><li>Communication improvement methods</li><li>Boundary setting and respect</li></ul>',
+            title: 'Relationship Counseling Fundamentals',
+            content: '<h3>Module 3: Relationship Counseling Fundamentals</h3><p>This comprehensive module covers essential relationship counseling techniques and communication strategies for coaches working with clients on relationship challenges.</p><ul><li>Active listening and empathy building</li><li>Conflict resolution strategies</li><li>Communication pattern analysis</li><li>Setting healthy boundaries</li><li>Attachment theory in practice</li></ul><h4>Key Concepts:</h4><ol><li>Understanding different attachment styles and their impact</li><li>Recognizing toxic relationship patterns</li><li>Facilitating healthy communication between partners</li><li>Supporting clients through relationship transitions</li></ol><h4>Practical Applications:</h4><p>Learn how to guide clients through relationship challenges using evidence-based counseling techniques and communication frameworks.</p><h4>Quiz Section:</h4><p>After reviewing the content above, you will be tested on relationship counseling principles and their practical application in coaching scenarios.</p>',
             module_order: 3
           }
         }
@@ -412,8 +412,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start module endpoint (matching original functionality)
-  app.post("/api/coach/start-module", requireCoachRole as any, async (req: any, res) => {
+  // Start module endpoint (available to all authenticated users)
+  app.post("/api/coach/start-module", requireAuth as any, async (req: any, res) => {
     try {
       const { moduleId, status } = req.body;
       
