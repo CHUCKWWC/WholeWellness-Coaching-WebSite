@@ -39,6 +39,8 @@ const dropdownItems = [
   { href: "/services", label: "Services" },
   { href: "/programs", label: "Programs" },
   { href: "/wix-booking", label: "Book Appointment" },
+  { href: "/coach-login", label: "Coach Sign In" },
+  { href: "/coach-signup", label: "Become a Coach" },
   { href: "/impact", label: "Impact" },
   { href: "/contact", label: "Contact" },
 ];
