@@ -62,6 +62,7 @@ import session from "express-session";
 import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
 import { googleDriveService, type DriveFile, type DriveFolder } from "./google-drive-service";
 import { googleDriveDemoService } from "./google-drive-demo";
+import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -2567,6 +2568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/onboarding', onboardingRoutes);
   app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);
+
+  // Register wellness journey routes
+  registerWellnessJourneyRoutes(app);
 
   const httpServer = createServer(app);
   // Mental Wellness Resource Hub Routes

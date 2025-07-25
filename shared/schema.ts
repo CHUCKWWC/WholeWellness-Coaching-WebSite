@@ -901,6 +901,229 @@ export const knowledgeBaseSearch = pgTable("knowledge_base_search", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI-Powered Wellness Journey Recommender Tables
+export const wellnessJourneys = pgTable("wellness_journeys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  journeyType: varchar("journey_type").notNull(), // comprehensive, targeted, crisis_recovery, maintenance
+  title: varchar("title").notNull(),
+  description: text("description"),
+  startDate: timestamp("start_date").defaultNow(),
+  estimatedCompletion: timestamp("estimated_completion"),
+  actualCompletion: timestamp("actual_completion"),
+  currentPhase: varchar("current_phase"),
+  overallProgress: integer("overall_progress").default(0), // 0-100 percentage
+  aiAlgorithmVersion: varchar("ai_algorithm_version").default("v1.0"),
+  adaptationCount: integer("adaptation_count").default(0),
+  successMetrics: jsonb("success_metrics").$type<Record<string, any>>().default({}),
+  userSatisfactionScore: integer("user_satisfaction_score"), // 1-10 rating
+  isActive: boolean("is_active").default(true),
+  isCompleted: boolean("is_completed").default(false),
+  completionReasons: text("completion_reasons"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const wellnessGoals = pgTable("wellness_goals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  category: varchar("category").notNull(), // physical, mental, emotional, spiritual, social, career, financial
+  specificGoal: text("specific_goal").notNull(),
+  priority: varchar("priority").notNull(), // high, medium, low
+  timeline: varchar("timeline").notNull(), // 1_week, 1_month, 3_months, 6_months, 1_year, ongoing
+  currentLevel: integer("current_level").notNull(), // 1-10 scale
+  targetLevel: integer("target_level").notNull(), // 1-10 scale
+  actualLevel: integer("actual_level"), // Updated as user progresses
+  obstacles: jsonb("obstacles").$type<string[]>().default([]),
+  motivation: text("motivation"),
+  progressNotes: text("progress_notes"),
+  isAchieved: boolean("is_achieved").default(false),
+  achievedAt: timestamp("achieved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const lifestyleAssessments = pgTable("lifestyle_assessments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  sleepHours: decimal("sleep_hours", { precision: 3, scale: 1 }).notNull(),
+  exerciseFrequency: varchar("exercise_frequency").notNull(), // none, rarely, weekly, several_times, daily
+  stressLevel: integer("stress_level").notNull(), // 1-10 scale
+  energyLevel: integer("energy_level").notNull(), // 1-10 scale
+  socialConnection: integer("social_connection").notNull(), // 1-10 scale
+  workLifeBalance: integer("work_life_balance").notNull(), // 1-10 scale
+  dietQuality: varchar("diet_quality").notNull(), // poor, fair, good, excellent
+  majorLifeChanges: jsonb("major_life_changes").$type<string[]>().default([]),
+  supportSystem: varchar("support_system").notNull(), // none, limited, moderate, strong
+  previousWellnessExperience: text("previous_wellness_experience"),
+  healthConcerns: jsonb("health_concerns").$type<string[]>().default([]),
+  medications: text("medications"),
+  chronicConditions: jsonb("chronic_conditions").$type<string[]>().default([]),
+  mentalHealthHistory: text("mental_health_history"),
+  substanceUse: jsonb("substance_use").$type<Record<string, any>>().default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  learningStyle: varchar("learning_style").notNull(), // visual, auditory, kinesthetic, reading
+  sessionDuration: varchar("session_duration").notNull(), // 5_min, 15_min, 30_min, 60_min, 90_min
+  frequency: varchar("frequency").notNull(), // daily, every_other_day, weekly, bi_weekly, monthly
+  reminderPreferences: jsonb("reminder_preferences").$type<string[]>().default([]), // email, push, sms, none
+  preferredTimes: jsonb("preferred_times").$type<string[]>().default([]), // morning, afternoon, evening, late_night
+  intensityPreference: varchar("intensity_preference").notNull(), // gentle, moderate, intense
+  groupVsIndividual: varchar("group_vs_individual").notNull(), // individual, small_group, large_group, both
+  technologyComfort: integer("technology_comfort").notNull(), // 1-10 scale
+  communicationStyle: varchar("communication_style"), // direct, supportive, motivational, gentle
+  culturalConsiderations: text("cultural_considerations"),
+  accessibilityNeeds: jsonb("accessibility_needs").$type<string[]>().default([]),
+  languagePreference: varchar("language_preference").default("en"),
+  timezone: varchar("timezone"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const journeyPhases = pgTable("journey_phases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  phaseName: varchar("phase_name").notNull(),
+  phaseDescription: text("phase_description"),
+  phaseOrder: integer("phase_order").notNull(),
+  estimatedDuration: varchar("estimated_duration"), // "2 weeks", "1 month", etc.
+  actualDuration: integer("actual_duration"), // in days
+  goals: jsonb("goals").$type<string[]>().default([]),
+  milestones: jsonb("milestones").$type<string[]>().default([]),
+  successCriteria: jsonb("success_criteria").$type<string[]>().default([]),
+  progress: integer("progress").default(0), // 0-100 percentage
+  isCurrent: boolean("is_current").default(false),
+  isCompleted: boolean("is_completed").default(false),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  completionNotes: text("completion_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const wellnessRecommendations = pgTable("wellness_recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  phaseId: varchar("phase_id").references(() => journeyPhases.id),
+  type: varchar("type").notNull(), // daily_practice, weekly_goal, monthly_challenge, resource, milestone, adjustment
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  category: varchar("category").notNull(),
+  priority: integer("priority").notNull(), // 1-10 priority level
+  estimatedTime: integer("estimated_time").notNull(), // in minutes
+  difficultyLevel: varchar("difficulty_level").notNull(), // beginner, intermediate, advanced
+  aiReasoning: text("ai_reasoning").notNull(),
+  actionSteps: jsonb("action_steps").$type<string[]>().default([]),
+  successMetrics: jsonb("success_metrics").$type<string[]>().default([]),
+  resources: jsonb("resources").$type<Array<{
+    type: string;
+    title: string;
+    url: string;
+    duration?: number;
+  }>>().default([]),
+  prerequisites: jsonb("prerequisites").$type<string[]>().default([]),
+  followUpActions: jsonb("follow_up_actions").$type<string[]>().default([]),
+  personalizationFactors: jsonb("personalization_factors").$type<string[]>().default([]),
+  expectedOutcomes: jsonb("expected_outcomes").$type<string[]>().default([]),
+  progressTracking: jsonb("progress_tracking").$type<{
+    method: string;
+    frequency: string;
+    checkpoints: string[];
+  }>(),
+  adaptationTriggers: jsonb("adaptation_triggers").$type<string[]>().default([]),
+  crisisSupport: boolean("crisis_support").default(false),
+  isActive: boolean("is_active").default(true),
+  userProgress: integer("user_progress").default(0), // 0-100 percentage
+  userRating: integer("user_rating"), // 1-5 stars
+  userFeedback: text("user_feedback"),
+  timesAccessed: integer("times_accessed").default(0),
+  lastAccessed: timestamp("last_accessed"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const journeyAdaptations = pgTable("journey_adaptations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  adaptationReason: varchar("adaptation_reason").notNull(), // user_feedback, progress_stalled, life_changes, crisis, goal_achieved
+  adaptationType: varchar("adaptation_type").notNull(), // phase_adjustment, goal_modification, pace_change, resource_swap, crisis_intervention
+  originalValue: jsonb("original_value"),
+  newValue: jsonb("new_value"),
+  description: text("description").notNull(),
+  aiConfidence: decimal("ai_confidence", { precision: 3, scale: 2 }), // 0.00-1.00
+  userApproved: boolean("user_approved").default(false),
+  effectivenessScore: integer("effectiveness_score"), // 1-10, assessed later
+  impactOnProgress: integer("impact_on_progress"), // -10 to +10 scale
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const journeyMilestones = pgTable("journey_milestones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  phaseId: varchar("phase_id").references(() => journeyPhases.id),
+  milestoneType: varchar("milestone_type").notNull(), // goal_achievement, habit_formation, skill_mastery, breakthrough, celebration
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  criteriaForCompletion: jsonb("criteria_for_completion").$type<string[]>().default([]),
+  targetDate: timestamp("target_date"),
+  isAchieved: boolean("is_achieved").default(false),
+  achievedAt: timestamp("achieved_at"),
+  celebrationSuggestions: jsonb("celebration_suggestions").$type<string[]>().default([]),
+  impactOnJourney: text("impact_on_journey"),
+  userReflection: text("user_reflection"),
+  nextSteps: jsonb("next_steps").$type<string[]>().default([]),
+  difficultyRating: integer("difficulty_rating"), // 1-10 scale, set by user after achievement
+  satisfactionRating: integer("satisfaction_rating"), // 1-10 scale, set by user after achievement
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const progressTracking = pgTable("progress_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),  
+  recommendationId: varchar("recommendation_id").references(() => wellnessRecommendations.id),
+  goalId: varchar("goal_id").references(() => wellnessGoals.id),
+  trackingDate: timestamp("tracking_date").defaultNow(),
+  progressValue: decimal("progress_value", { precision: 5, scale: 2 }), // flexible numeric value
+  progressUnit: varchar("progress_unit"), // percentage, hours, sessions, points, level, etc.
+  userNotes: text("user_notes"),
+  moodRating: integer("mood_rating"), // 1-10 scale
+  energyRating: integer("energy_rating"), // 1-10 scale
+  confidenceRating: integer("confidence_rating"), // 1-10 scale
+  challengesEncountered: jsonb("challenges_encountered").$type<string[]>().default([]),
+  successesCelebrated: jsonb("successes_celebrated").$type<string[]>().default([]),
+  adaptationsNeeded: text("adaptations_needed"),
+  isAutoTracked: boolean("is_auto_tracked").default(false), // if tracked automatically vs manual entry
+  dataSource: varchar("data_source"), // manual, app_integration, wearable, etc.
+  verificationStatus: varchar("verification_status").default("pending"), // pending, verified, needs_review
+  createdAt: timestamp("created_at").defaultNow(),  
+});
+
+export const aiInsights = pgTable("ai_insights", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  journeyId: varchar("journey_id").notNull().references(() => wellnessJourneys.id),
+  insightType: varchar("insight_type").notNull(), // pattern_recognition, progress_analysis, recommendation_optimization, risk_assessment, success_prediction
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  dataPoints: jsonb("data_points").$type<Record<string, any>>().default({}), // relevant data that led to insight
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).notNull(), // 0.00-1.00
+  actionable: boolean("actionable").default(true),
+  suggestedActions: jsonb("suggested_actions").$type<string[]>().default([]),
+  impactLevel: varchar("impact_level").notNull(), // low, medium, high, critical
+  validatedByUser: boolean("validated_by_user"),
+  userFeedback: text("user_feedback"),
+  algorithmVersion: varchar("algorithm_version").default("v1.0"),
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   donations: many(donations),

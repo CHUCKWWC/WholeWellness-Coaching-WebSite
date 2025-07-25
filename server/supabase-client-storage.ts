@@ -285,6 +285,29 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<any>;
   deletePasswordResetToken(token: string): Promise<void>;
   updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
+
+  // AI-Powered Wellness Journey Recommender
+  getCurrentWellnessJourney(userId: string): Promise<any>;
+  getWellnessJourney(id: string): Promise<any>;
+  createWellnessJourney(journey: any): Promise<any>;
+  updateJourneyProgress(journeyId: string): Promise<void>;
+  
+  createWellnessGoal(goal: any): Promise<any>;
+  createLifestyleAssessment(assessment: any): Promise<any>;
+  createUserPreferences(preferences: any): Promise<any>;
+  createJourneyPhase(phase: any): Promise<any>;
+  getJourneyPhases(journeyId: string): Promise<any[]>;
+  
+  createWellnessRecommendation(recommendation: any): Promise<any>;
+  getWellnessRecommendation(id: string): Promise<any>;
+  updateRecommendationProgress(recommendationId: string, progress: number): Promise<void>;
+  
+  createProgressTracking(tracking: any): Promise<any>;
+  createAiInsight(insight: any): Promise<any>;
+  
+  getJourneyAnalytics(userId: string): Promise<any>;
+  generateJourneyAdaptations(journeyId: string, reason: string, feedback?: string): Promise<any[]>;
+  completeMilestone(milestoneId: string, userId: string, reflection?: string, difficultyRating?: number, satisfactionRating?: number): Promise<any>;
 }
 
 export class SupabaseClientStorage implements IStorage {
@@ -3142,6 +3165,511 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error getting chat messages:', error);
       return [];
+    }
+  }
+
+  // AI-Powered Wellness Journey Recommender Implementation
+  async getCurrentWellnessJourney(userId: string): Promise<any> {
+    try {
+      const { data: journey, error } = await supabase
+        .from('wellness_journeys')
+        .select(`
+          *,
+          wellness_goals (*),
+          lifestyle_assessments (*),
+          user_preferences (*),
+          journey_phases (
+            *,
+            wellness_recommendations (*)
+          ),
+          journey_milestones (*),
+          ai_insights (*)
+        `)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching wellness journey:', error);
+        return null;
+      }
+
+      return journey;
+    } catch (error) {
+      console.error('Error fetching current wellness journey:', error);
+      throw error;
+    }
+  }
+
+  async getWellnessJourney(id: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_journeys')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching wellness journey:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching wellness journey:', error);
+      throw error;
+    }
+  }
+
+  async createWellnessJourney(journey: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_journeys')
+        .insert([{
+          user_id: journey.userId,
+          journey_type: journey.journeyType,
+          title: journey.title,
+          description: journey.description,
+          estimated_completion: journey.estimatedCompletion,
+          current_phase: journey.currentPhase,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating wellness journey:', error);
+        throw new Error('Failed to create wellness journey');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating wellness journey:', error);
+      throw error;
+    }
+  }
+
+  async updateJourneyProgress(journeyId: string): Promise<void> {
+    try {
+      // Get all recommendations for this journey and calculate overall progress
+      const { data: recommendations } = await supabase
+        .from('wellness_recommendations')
+        .select('user_progress')
+        .eq('journey_id', journeyId)
+        .eq('is_active', true);
+
+      if (recommendations && recommendations.length > 0) {
+        const totalProgress = recommendations.reduce((sum, rec) => sum + (rec.user_progress || 0), 0);
+        const averageProgress = Math.round(totalProgress / recommendations.length);
+
+        const { error } = await supabase
+          .from('wellness_journeys')
+          .update({ 
+            overall_progress: averageProgress,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', journeyId);
+
+        if (error) {
+          console.error('Error updating journey progress:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating journey progress:', error);
+    }
+  }
+
+  async createWellnessGoal(goal: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_goals')
+        .insert([{
+          journey_id: goal.journeyId,
+          category: goal.category,
+          specific_goal: goal.specificGoal,
+          priority: goal.priority,
+          timeline: goal.timeline,
+          current_level: goal.currentLevel,
+          target_level: goal.targetLevel,
+          obstacles: goal.obstacles,
+          motivation: goal.motivation,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating wellness goal:', error);
+        throw new Error('Failed to create wellness goal');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating wellness goal:', error);
+      throw error;
+    }
+  }
+
+  async createLifestyleAssessment(assessment: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('lifestyle_assessments')
+        .insert([{
+          journey_id: assessment.journeyId,
+          sleep_hours: assessment.sleepHours,
+          exercise_frequency: assessment.exerciseFrequency,
+          stress_level: assessment.stressLevel,
+          energy_level: assessment.energyLevel,
+          social_connection: assessment.socialConnection,
+          work_life_balance: assessment.workLifeBalance,
+          diet_quality: assessment.dietQuality,
+          major_life_changes: assessment.majorLifeChanges,
+          support_system: assessment.supportSystem,
+          previous_wellness_experience: assessment.previousWellnessExperience,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating lifestyle assessment:', error);
+        throw new Error('Failed to create lifestyle assessment');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating lifestyle assessment:', error);
+      throw error;
+    }
+  }
+
+  async createUserPreferences(preferences: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .insert([{
+          journey_id: preferences.journeyId,
+          learning_style: preferences.learningStyle,
+          session_duration: preferences.sessionDuration,
+          frequency: preferences.frequency,
+          reminder_preferences: preferences.reminderPreferences,
+          preferred_times: preferences.preferredTimes,
+          intensity_preference: preferences.intensityPreference,
+          group_vs_individual: preferences.groupVsIndividual,
+          technology_comfort: preferences.technologyComfort,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating user preferences:', error);
+        throw new Error('Failed to create user preferences');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating user preferences:', error);
+      throw error;
+    }
+  }
+
+  async createJourneyPhase(phase: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('journey_phases')
+        .insert([{
+          journey_id: phase.journeyId,
+          phase_name: phase.phaseName,
+          phase_description: phase.phaseDescription,
+          phase_order: phase.phaseOrder,
+          estimated_duration: phase.estimatedDuration,
+          goals: phase.goals,
+          milestones: phase.milestones,
+          is_current: phase.isCurrent,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating journey phase:', error);
+        throw new Error('Failed to create journey phase');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating journey phase:', error);
+      throw error;
+    }
+  }
+
+  async getJourneyPhases(journeyId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('journey_phases')
+        .select('*')
+        .eq('journey_id', journeyId)
+        .order('phase_order');
+
+      if (error) {
+        console.error('Error fetching journey phases:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching journey phases:', error);
+      return [];
+    }
+  }
+
+  async createWellnessRecommendation(recommendation: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_recommendations')
+        .insert([{
+          journey_id: recommendation.journeyId,
+          phase_id: recommendation.phaseId,
+          type: recommendation.type,
+          title: recommendation.title,
+          description: recommendation.description,
+          category: recommendation.category,
+          priority: recommendation.priority,
+          estimated_time: recommendation.estimatedTime,
+          difficulty_level: recommendation.difficultyLevel,
+          ai_reasoning: recommendation.aiReasoning,
+          action_steps: recommendation.actionSteps,
+          success_metrics: recommendation.successMetrics,
+          resources: recommendation.resources,
+          expected_outcomes: recommendation.expectedOutcomes,
+          progress_tracking: recommendation.progressTracking,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating wellness recommendation:', error);
+        throw new Error('Failed to create wellness recommendation');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating wellness recommendation:', error);
+      throw error;
+    }
+  }
+
+  async getWellnessRecommendation(id: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('wellness_recommendations')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching wellness recommendation:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching wellness recommendation:', error);
+      throw error;
+    }
+  }
+
+  async updateRecommendationProgress(recommendationId: string, progress: number): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('wellness_recommendations')
+        .update({ 
+          user_progress: progress,
+          times_accessed: supabase.raw('times_accessed + 1'),
+          last_accessed: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', recommendationId);
+
+      if (error) {
+        console.error('Error updating recommendation progress:', error);
+        throw new Error('Failed to update recommendation progress');
+      }
+    } catch (error) {
+      console.error('Error updating recommendation progress:', error);
+      throw error;
+    }
+  }
+
+  async createProgressTracking(tracking: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('progress_tracking')
+        .insert([{
+          journey_id: tracking.journeyId,
+          recommendation_id: tracking.recommendationId,
+          goal_id: tracking.goalId,
+          progress_value: tracking.progressValue,
+          progress_unit: tracking.progressUnit,
+          user_notes: tracking.userNotes,
+          mood_rating: tracking.moodRating,
+          energy_rating: tracking.energyRating,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating progress tracking:', error);
+        throw new Error('Failed to create progress tracking');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating progress tracking:', error);
+      throw error;
+    }
+  }
+
+  async createAiInsight(insight: any): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('ai_insights')
+        .insert([{
+          journey_id: insight.journeyId,
+          insight_type: insight.insightType,
+          title: insight.title,
+          description: insight.description,
+          confidence: insight.confidence,
+          impact_level: insight.impactLevel,
+          suggested_actions: insight.suggestedActions,
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating AI insight:', error);
+        throw new Error('Failed to create AI insight');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating AI insight:', error);
+      throw error;
+    }
+  }
+
+  async getJourneyAnalytics(userId: string): Promise<any> {
+    try {
+      const { data: journey } = await supabase
+        .from('wellness_journeys')
+        .select(`
+          *,
+          wellness_goals (*),
+          journey_phases (*),
+          wellness_recommendations (*),
+          progress_tracking (*),
+          ai_insights (*)
+        `)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (!journey) {
+        return null;
+      }
+
+      // Calculate analytics
+      const totalGoals = journey.wellness_goals?.length || 0;
+      const achievedGoals = journey.wellness_goals?.filter((g: any) => g.is_achieved).length || 0;
+      const totalRecommendations = journey.wellness_recommendations?.length || 0;
+      const completedRecommendations = journey.wellness_recommendations?.filter((r: any) => r.user_progress >= 100).length || 0;
+      const averageProgress = journey.overall_progress || 0;
+
+      return {
+        journey,
+        analytics: {
+          totalGoals,
+          achievedGoals,
+          goalCompletionRate: totalGoals > 0 ? (achievedGoals / totalGoals) * 100 : 0,
+          totalRecommendations,
+          completedRecommendations,
+          recommendationCompletionRate: totalRecommendations > 0 ? (completedRecommendations / totalRecommendations) * 100 : 0,
+          overallProgress: averageProgress,
+          totalInsights: journey.ai_insights?.length || 0,
+          totalProgressEntries: journey.progress_tracking?.length || 0,
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching journey analytics:', error);
+      throw error;
+    }
+  }
+
+  async generateJourneyAdaptations(journeyId: string, reason: string, feedback?: string): Promise<any[]> {
+    try {
+      // This would typically involve AI analysis, but for now we'll create basic adaptations
+      const adaptations = [{
+        journey_id: journeyId,
+        adaptation_reason: reason,
+        adaptation_type: 'pace_change',
+        description: `Journey adapted based on user feedback: ${reason}`,
+        ai_confidence: 0.8,
+      }];
+
+      const { data, error } = await supabase
+        .from('journey_adaptations')
+        .insert(adaptations)
+        .select('*');
+
+      if (error) {
+        console.error('Error creating adaptations:', error);
+        throw new Error('Failed to generate adaptations');
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error generating journey adaptations:', error);
+      throw error;
+    }
+  }
+
+  async completeMilestone(milestoneId: string, userId: string, reflection?: string, difficultyRating?: number, satisfactionRating?: number): Promise<any> {
+    try {
+      // First verify the milestone belongs to the user's journey
+      const { data: milestone } = await supabase
+        .from('journey_milestones')
+        .select(`
+          *,
+          wellness_journeys!inner (user_id)
+        `)
+        .eq('id', milestoneId)
+        .eq('wellness_journeys.user_id', userId)
+        .single();
+
+      if (!milestone) {
+        return null;
+      }
+
+      // Update the milestone
+      const { data, error } = await supabase
+        .from('journey_milestones')
+        .update({
+          is_achieved: true,
+          achieved_at: new Date().toISOString(),
+          user_reflection: reflection,
+          difficulty_rating: difficultyRating,
+          satisfaction_rating: satisfactionRating,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', milestoneId)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error completing milestone:', error);
+        throw new Error('Failed to complete milestone');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error completing milestone:', error);
+      throw error;
     }
   }
 
