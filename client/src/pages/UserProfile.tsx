@@ -80,14 +80,29 @@ export default function UserProfile() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                  <User className="w-8 h-8 text-white" />
-                </div>
+                {user?.profileImageUrl ? (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt={`${user.firstName || ''} ${user.lastName || ''}`}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                    <User className="w-8 h-8 text-white" />
+                  </div>
+                )}
                 <div>
-                  <CardTitle className="text-2xl">Welcome back, {user?.firstName || 'Member'}!</CardTitle>
+                  <CardTitle className="text-2xl">
+                    Welcome back, {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0] || 'Member'}!
+                  </CardTitle>
                   <CardDescription>
                     Track your wellness journey and view your progress across all coaching areas.
                   </CardDescription>
+                  {user?.email && (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {user.email}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>

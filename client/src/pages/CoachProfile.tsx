@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,54 +31,85 @@ interface CoachProfileData {
   }>;
 }
 
-const defaultProfileData: CoachProfileData = {
-  profilePic: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop",
-  name: "Jane Doe",
+const getDefaultProfileData = (user: any): CoachProfileData => ({
+  profilePic: user?.profileImageUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+  name: user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.firstName || user?.email?.split('@')[0] || "Coach",
   title: "Certified Wellness & Life Coach",
-  bio: "Hi, I'm Jane! I help driven professionals find balance, reduce stress, and build fulfilling lives. With over 10 years of experience, I provide actionable strategies for sustainable well-being. My approach is holistic, focusing on mind, body, and spirit to unlock your full potential.",
+  bio: `Hi, I'm ${user?.firstName || 'your coach'}! I help people find balance, reduce stress, and build fulfilling lives. I provide actionable strategies for sustainable well-being through a holistic approach that focuses on mind, body, and spirit to unlock your full potential.`,
   rating: 5,
-  specialties: ["Financial Coaching", "Relationship Coaching", "Mindfulness & Stress Reduction", "Career Transition"],
+  specialties: ["Wellness Coaching", "Life Balance", "Mindfulness & Stress Reduction", "Personal Development"],
   introVideoTitle: "A Little More About Me",
   ctaTitle: "Ready to Start Your Journey?",
   ctaText: "Schedule a complimentary discovery session with me to see how we can work together to achieve your goals.",
   videoLibraryTitle: "My Video Library",
   videos: [
     { id: "1", title: "Mindful Mornings", description: "Start your day with intention and clarity." },
-    { id: "2", title: "Navigating Finances", description: "Build a healthy relationship with money." },
+    { id: "2", title: "Wellness Fundamentals", description: "Build a foundation for lasting wellness." },
     { id: "3", title: "Effective Communication", description: "Strengthen your personal and professional bonds." },
     { id: "4", title: "Work-Life Balance", description: "Strategies to avoid burnout and thrive." }
   ]
-};
+});
 
 export default function CoachProfile() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [profileData, setProfileData] = useState<CoachProfileData>(defaultProfileData);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState("");
 
-  // Load profile data from localStorage on mount
-  useEffect(() => {
-    const savedData = localStorage.getItem("coachProfileData");
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setProfileData({ ...defaultProfileData, ...parsedData });
-      } catch (error) {
-        console.error("Error loading profile data:", error);
-      }
-    }
-  }, []);
+  // Get coach profile data from server
+  const { data: profileData, isLoading } = useQuery({
+    queryKey: ["/api/coach/profile", user?.id],
+    enabled: isAuthenticated && !!user?.id,
+    initialData: () => user ? getDefaultProfileData(user) : getDefaultProfileData({}),
+  });
 
-  // Save profile data to localStorage
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: Partial<CoachProfileData>) => 
+      apiRequest("PUT", "/api/coach/profile", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coach/profile"] });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "There was an error updating your profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-4">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">
+              Please log in to access your coach profile.
+            </p>
+            <Button onClick={() => window.location.href = '/login'}>
+              Log In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Save profile data to server
   const saveProfile = () => {
-    localStorage.setItem("coachProfileData", JSON.stringify(profileData));
+    updateProfileMutation.mutate(profileData);
     setIsEditMode(false);
-    toast({
-      title: "Profile Saved",
-      description: "Your profile changes have been saved successfully.",
-    });
   };
 
   // Handle field editing
@@ -86,7 +120,8 @@ export default function CoachProfile() {
   };
 
   const saveField = (field: string) => {
-    setProfileData(prev => ({ ...prev, [field]: tempValue }));
+    const updatedData = { ...profileData, [field]: tempValue };
+    updateProfileMutation.mutate(updatedData);
     setEditingField(null);
   };
 

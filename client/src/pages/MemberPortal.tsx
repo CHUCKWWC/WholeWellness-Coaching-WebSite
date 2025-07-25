@@ -153,26 +153,39 @@ export default function MemberPortal() {
         className={`bg-gradient-to-r ${membershipConfig.gradient} rounded-lg p-8 text-white`}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-16 w-16 border-4 border-white">
-              <AvatarImage src={user?.profileImageUrl} />
-              <AvatarFallback className="bg-white text-gray-800 text-xl">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex items-center gap-4">
+            {user?.profileImageUrl ? (
+              <img 
+                src={user.profileImageUrl} 
+                alt={`${user.firstName || ''} ${user.lastName || ''}`}
+                className="w-16 h-16 rounded-full object-cover border-3 border-white/20"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                <IconComponent className="w-8 h-8 text-white" />
+              </div>
+            )}
             <div>
-              <h1 className="text-3xl font-bold">
-                Welcome back, {user?.firstName}!
+              <h1 className="text-2xl font-bold">
+                Welcome back, {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0] || 'Member'}!
               </h1>
-              <p className="text-white/80">{membershipConfig.description}</p>
+              <p className="text-white/80 text-lg">
+                {membershipConfig.description}
+              </p>
+              {user?.email && (
+                <p className="text-white/60 text-sm mt-1">
+                  {user.email}
+                </p>
+              )}
             </div>
           </div>
           <div className="text-right">
-            <Badge className="bg-white text-gray-800 mb-2">
-              <IconComponent className="h-4 w-4 mr-1" />
-              {membershipConfig.label}
+            <Badge className="bg-white/20 text-white border-white/30 mb-2">
+              {membershipConfig.label} Member
             </Badge>
-            <div className="text-2xl font-bold">{dashboardData?.rewardPoints || 0} Points</div>
+            <div className="text-3xl font-bold">
+              {user?.rewardPoints || 0} points
+            </div>
           </div>
         </div>
       </motion.div>
