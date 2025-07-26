@@ -2017,28 +2017,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Google OAuth Routes
-  app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  // Google OAuth Routes - Updated for secure browser compliance
+  app.get('/auth/google', (req, res, next) => {
+    // Add additional parameters to comply with Google's secure browser policy
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+      prompt: 'select_account',
+      access_type: 'offline',
+      // Ensure we're using HTTPS callback in production
+      callbackURL: process.env.NODE_ENV === 'production' 
+        ? 'https://wholewellnesscoaching.org/auth/google/callback'
+        : undefined
+    })(req, res, next);
+  });
   
-  app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), 
+  app.get('/auth/google/callback', 
+    passport.authenticate('google', { 
+      failureRedirect: '/?error=auth_failed',
+      session: false  // Disable session to prevent issues
+    }), 
     async (req, res) => {
       try {
+        if (!req.user) {
+          console.error('No user data received from Google OAuth');
+          return res.redirect('/?error=no_user_data');
+        }
+
         // Generate JWT token for the authenticated user
         const token = generateGoogleAuthToken(req.user);
         
-        // Set the token as a cookie with secure settings for production
+        // Set the token as a secure HTTP-only cookie
         res.cookie('auth_token', token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+          secure: true, // Always use secure in production
           sameSite: 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          domain: process.env.NODE_ENV === 'production' ? '.wholewellnesscoaching.org' : undefined
         });
         
-        // Redirect to the homepage or dashboard
+        // Redirect to the homepage with success indicator
         res.redirect('/?auth=success');
       } catch (error) {
         console.error('OAuth callback error:', error);
-        res.redirect('/login?error=auth_failed');
+        res.redirect('/?error=auth_failed');
       }
     }
   );

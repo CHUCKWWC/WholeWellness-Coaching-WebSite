@@ -8,13 +8,17 @@ const GOOGLE_CLIENT_ID = '69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.goog
 const GOOGLE_CLIENT_SECRET = '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';
 
 export function setupGoogleAuth() {
-  // Use production domain for OAuth callback
-  const callbackURL = "https://wholewellnesscoaching.org/auth/google/callback";
+  // Dynamic callback URL based on environment for secure browser compliance
+  const callbackURL = process.env.NODE_ENV === 'production' 
+    ? "https://wholewellnesscoaching.org/auth/google/callback"
+    : "/auth/google/callback";
     
   passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: callbackURL
+    callbackURL: callbackURL,
+    scope: ['profile', 'email'],
+    passReqToCallback: false
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       console.log('Google OAuth Profile:', profile);
