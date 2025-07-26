@@ -2019,15 +2019,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Google OAuth Routes - Updated for secure browser compliance
   app.get('/auth/google', (req, res, next) => {
-    // Add additional parameters to comply with Google's secure browser policy
+    // Use the correct Replit domain for OAuth
     passport.authenticate('google', {
       scope: ['profile', 'email'],
       prompt: 'select_account',
-      access_type: 'offline',
-      // Ensure we're using HTTPS callback in production
-      callbackURL: process.env.NODE_ENV === 'production' 
-        ? 'https://wholewellnesscoaching.org/auth/google/callback'
-        : undefined
+      access_type: 'offline'
     })(req, res, next);
   });
   
@@ -2049,10 +2045,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Set the token as a secure HTTP-only cookie
         res.cookie('auth_token', token, {
           httpOnly: true,
-          secure: true, // Always use secure in production
+          secure: true,
           sameSite: 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          domain: process.env.NODE_ENV === 'production' ? '.wholewellnesscoaching.org' : undefined
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         
         // Redirect to the homepage with success indicator
