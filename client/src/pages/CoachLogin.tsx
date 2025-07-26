@@ -36,8 +36,11 @@ export default function CoachLogin() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: CoachLoginForm) => apiRequest('POST', '/api/auth/login', data),
-    onSuccess: (data) => {
+    mutationFn: async (data: CoachLoginForm) => {
+      const response = await apiRequest('POST', '/api/auth/login', data);
+      return response.json();
+    },
+    onSuccess: (data: any) => {
       if (data.user?.role === 'coach') {
         toast({
           title: 'Welcome back!',
@@ -112,14 +115,10 @@ export default function CoachLogin() {
 
             <div className="space-y-4">
               <SocialLogin
-                onGoogleSuccess={handleGoogleSuccess}
-                onGoogleError={handleGoogleError}
                 disabled={loginMutation.isPending}
                 buttonText="Sign in with Google"
                 className="w-full"
               />
-              
-              
             </div>
 
             <Form {...form}>
