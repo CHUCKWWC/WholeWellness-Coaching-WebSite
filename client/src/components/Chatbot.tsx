@@ -214,7 +214,7 @@ export default function Chatbot({
             <Button 
               onClick={() => window.location.href = '/booking'}
               variant="outline"
-              className="w-full"
+              className="w-full pl-[17px] pr-[17px] pt-[28px] pb-[28px] mt-[23px] mb-[23px] ml-[1px] mr-[1px]"
             >
               Book Live Coach Session
             </Button>
