@@ -5,6 +5,9 @@ import TestimonialCard from "@/components/TestimonialCard";
 import BookingForm from "@/components/BookingForm";
 import AuthForm from "@/components/AuthForm";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
+import QuickStartDashboard from "@/components/QuickStartDashboard";
+import GuidedTour from "@/components/GuidedTour";
+import FirstTimeUserExperience from "@/components/FirstTimeUserExperience";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -19,15 +22,40 @@ import teamHandsImg from "@assets/wwc_ (9)_1751919370287.jpg";
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
-  // Show onboarding for new users or first-time visitors (only once per user)
+  // Show welcome experience for first-time visitors (highest priority)
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcome(true);
+      }, 1500); // Show welcome first
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Show guided tour for returning visitors who haven't seen it
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    const hasSeenTour = localStorage.getItem('hasSeenTour');
+    if (hasSeenWelcome && !hasSeenTour) {
+      const timer = setTimeout(() => {
+        setShowTour(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Show onboarding for authenticated users
   useEffect(() => {
     if (isAuthenticated && user) {
       const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${user.id}`);
       if (!hasSeenOnboarding && !showOnboarding) {
         const timer = setTimeout(() => {
           setShowOnboarding(true);
-        }, 1000); // Delay to prevent multiple triggers
+        }, 1000);
         return () => clearTimeout(timer);
       }
     }
@@ -38,6 +66,16 @@ export default function Home() {
     if (user) {
       localStorage.setItem(`hasSeenOnboarding_${user.id}`, 'true');
     }
+  };
+
+  const closeTour = () => {
+    setShowTour(false);
+    localStorage.setItem('hasSeenTour', 'true');
+  };
+
+  const closeWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome', 'true');
   };
   const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],
@@ -69,6 +107,15 @@ export default function Home() {
   return (
     <div>
       <Hero />
+      
+      {/* First Time User Experience */}
+      <FirstTimeUserExperience isOpen={showWelcome} onClose={closeWelcome} />
+      
+      {/* Guided Tour */}
+      <GuidedTour isOpen={showTour} onClose={closeTour} />
+      
+      {/* Quick Start Dashboard - prominently placed after hero */}
+      <QuickStartDashboard />
       
       {/* Mission & Values */}
       <section className="py-16 bg-white">
