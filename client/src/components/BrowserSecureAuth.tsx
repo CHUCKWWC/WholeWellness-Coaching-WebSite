@@ -14,12 +14,12 @@ export default function BrowserSecureAuth({ onClose }: BrowserSecureAuthProps) {
 
   return (
     <div className="space-y-4">
-      <Alert className="border-blue-200 bg-blue-50">
-        <Shield className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
-          <strong>Secure Authentication Required</strong>
+      <Alert className="border-yellow-200 bg-yellow-50">
+        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+        <AlertDescription className="text-yellow-800">
+          <strong>Google OAuth Setup Required</strong>
           <br />
-          For your security, Google authentication will open in a secure browser window.
+          If you see "Access blocked" error, the admin needs to update the Google Cloud Console redirect URI to: <code className="text-xs">https://whole-wellness-coaching.replit.app/auth/google/callback</code>
         </AlertDescription>
       </Alert>
 
@@ -43,6 +43,7 @@ export default function BrowserSecureAuth({ onClose }: BrowserSecureAuthProps) {
             Secure Google authentication
           </p>
           <p>You'll be redirected to Google to sign in</p>
+          <p className="text-yellow-600">If blocked, use email/password option below</p>
         </div>
       </div>
 
