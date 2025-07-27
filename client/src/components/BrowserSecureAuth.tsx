@@ -13,7 +13,7 @@ export default function BrowserSecureAuth({ onClose }: BrowserSecureAuthProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-google-auth>
       <Alert className="border-yellow-200 bg-yellow-50">
         <AlertTriangle className="h-4 w-4 text-yellow-600" />
         <AlertDescription className="text-yellow-800">
@@ -47,13 +47,11 @@ export default function BrowserSecureAuth({ onClose }: BrowserSecureAuthProps) {
         </div>
       </div>
 
-      {onClose && (
-        <div className="pt-2 border-t">
-          <Button variant="ghost" onClick={onClose} className="w-full text-sm">
-            Use Email/Password Instead
-          </Button>
-        </div>
-      )}
+      <div className="pt-2 border-t">
+        <Button variant="ghost" onClick={onClose} className="w-full text-sm">
+          Use Email/Password Instead
+        </Button>
+      </div>
     </div>
   );
 }

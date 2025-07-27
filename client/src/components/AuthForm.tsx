@@ -69,7 +69,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <BrowserSecureAuth />
+        <BrowserSecureAuth onClose={() => {
+          // Hide Google OAuth section and show email form
+          const googleSection = document.querySelector('[data-google-auth]');
+          if (googleSection) {
+            (googleSection as HTMLElement).style.display = 'none';
+          }
+        }} />
         
         <Form {...loginForm}>
           <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
