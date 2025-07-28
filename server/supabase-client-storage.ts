@@ -3009,7 +3009,7 @@ export class SupabaseClientStorage implements IStorage {
         sessionType: data.session_type,
         metadata: data.metadata,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.created_at
       } as ChatSession;
     } catch (error) {
       console.error('Error getting chat session:', error);
@@ -3023,7 +3023,7 @@ export class SupabaseClientStorage implements IStorage {
         .from('chat_sessions')
         .select('*')
         .eq('user_id', userId)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error getting user chat sessions:', error);
@@ -3037,7 +3037,7 @@ export class SupabaseClientStorage implements IStorage {
         sessionType: session.session_type,
         metadata: session.metadata,
         createdAt: session.created_at,
-        updatedAt: session.updated_at
+        updatedAt: session.created_at
       })) as ChatSession[];
     } catch (error) {
       console.error('Error getting user chat sessions:', error);
@@ -3053,8 +3053,7 @@ export class SupabaseClientStorage implements IStorage {
         thread_id: session.threadId,
         session_type: session.sessionType,
         metadata: session.metadata || {},
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: new Date()
       };
 
       const { data, error } = await supabase
@@ -3075,7 +3074,7 @@ export class SupabaseClientStorage implements IStorage {
         sessionType: data.session_type,
         metadata: data.metadata,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.created_at
       } as ChatSession;
     } catch (error) {
       console.error('Error creating chat session:', error);
@@ -3103,7 +3102,7 @@ export class SupabaseClientStorage implements IStorage {
         sessionType: data.session_type,
         metadata: data.metadata,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.created_at
       } as ChatSession;
     } catch (error) {
       console.error('Error getting chat session by thread ID:', error);
