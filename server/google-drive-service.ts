@@ -1,6 +1,4 @@
 import { google } from 'googleapis';
-import fs from 'fs';
-import path from 'path';
 
 export interface DriveFile {
   id: string;
@@ -24,7 +22,7 @@ export interface CourseMaterial {
   uploadedAt: string;
 }
 
-class GoogleDriveService {
+export class GoogleDriveService {
   private drive: any;
   private auth: any;
 
@@ -34,7 +32,6 @@ class GoogleDriveService {
 
   private async initializeAuth() {
     try {
-      // Use service account credentials for server-to-server access
       const credentials = {
         type: "service_account",
         project_id: process.env.GOOGLE_PROJECT_ID,
@@ -67,9 +64,78 @@ class GoogleDriveService {
     }
   }
 
+  async createCourseFolder(courseId: number, courseName: string, parentFolderId?: string) {
+    if (!this.drive) {
+      console.error('Google Drive not configured');
+      return { success: false, folderId: null };
+    }
+
+    try {
+      const folderMetadata = {
+        name: `${courseName} - Course Materials`,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents: parentFolderId ? [parentFolderId] : undefined
+      };
+
+      const response = await this.drive.files.create({
+        requestBody: folderMetadata,
+        fields: 'id,name,webViewLink'
+      });
+
+      console.log(`Created course folder: ${response.data.name} (${response.data.id})`);
+      return { 
+        success: true, 
+        folderId: response.data.id,
+        name: response.data.name,
+        webViewLink: response.data.webViewLink 
+      };
+    } catch (error) {
+      console.error('Error creating course folder:', error);
+      return { success: false, folderId: null };
+    }
+  }
+
+  async uploadFile(fileName: string, fileBuffer: Buffer, mimeType: string, parentFolderId: string) {
+    if (!this.drive || !parentFolderId) {
+      console.error('Google Drive not configured or folder ID missing');
+      return null;
+    }
+
+    try {
+      const fileMetadata = {
+        name: fileName,
+        parents: [parentFolderId]
+      };
+
+      const media = {
+        mimeType: mimeType,
+        body: fileBuffer,
+      };
+
+      const response = await this.drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: 'id,name,size,createdTime,mimeType,thumbnailLink,webViewLink',
+      });
+
+      return {
+        id: response.data.id,
+        name: response.data.name,
+        type: this.getFileType(response.data.mimeType),
+        url: response.data.webViewLink,
+        thumbnailUrl: response.data.thumbnailLink,
+        size: response.data.size ? this.formatFileSize(parseInt(response.data.size)) : undefined,
+        uploadedAt: response.data.createdTime
+      };
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      return null;
+    }
+  }
+
   async listCourseFiles(folderId: string): Promise<CourseMaterial[]> {
     if (!this.drive || !folderId) {
-      return this.getMockCourseMaterials();
+      return [];
     }
 
     try {
@@ -92,197 +158,10 @@ class GoogleDriveService {
       }));
     } catch (error) {
       console.error('Error fetching course files from Google Drive:', error);
-      return this.getMockCourseMaterials();
+      return [];
     }
   }
 
-  async getCourseFolder(courseId: number): Promise<string | null> {
-    // Course folder mapping - in production, this would be stored in database
-    const courseFolders: Record<number, string> = {
-      1: process.env.COURSE_1_DRIVE_FOLDER_ID || '', // Introduction to Wellness Coaching
-      2: process.env.COURSE_2_DRIVE_FOLDER_ID || '', // Advanced Nutrition Fundamentals  
-      3: process.env.COURSE_3_DRIVE_FOLDER_ID || ''  // Relationship Counseling Fundamentals
-    };
-
-    return courseFolders[courseId] || null;
-  }
-
-  async uploadCourseFile(
-    folderId: string, 
-    fileName: string, 
-    fileBuffer: Buffer, 
-    mimeType: string
-  ): Promise<CourseMaterial | null> {
-    if (!this.drive || !folderId) {
-      console.error('Google Drive not configured or folder ID missing');
-      return null;
-    }
-
-    try {
-      const fileMetadata = {
-        name: fileName,
-        parents: [folderId]
-      };
-
-      const media = {
-        mimeType: mimeType,
-        body: fileBuffer,
-      };
-
-      const response = await this.drive.files.create({
-        requestBody: fileMetadata,
-        media: media,
-        fields: 'id,name,size,createdTime,mimeType,thumbnailLink',
-      });
-
-      return {
-        id: response.data.id,
-        name: response.data.name,
-        type: this.getFileType(response.data.mimeType),
-        url: `https://drive.google.com/file/d/${response.data.id}/view`,
-        thumbnailUrl: response.data.thumbnailLink,
-        size: response.data.size ? this.formatFileSize(parseInt(response.data.size)) : undefined,
-        uploadedAt: response.data.createdTime
-      };
-    } catch (error) {
-      console.error('Error uploading course file:', error);
-      return null;
-    }
-  }
-
-  async uploadFile(fileName: string, fileBuffer: Buffer, mimeType: string, parentFolderId: string) {
-    return this.uploadCourseFile(parentFolderId, fileName, fileBuffer, mimeType);
-
-      const media = {
-        mimeType,
-        body: fileBuffer
-      };
-
-      const response = await this.drive.files.create({
-        resource: fileMetadata,
-        media,
-        fields: 'id,name,mimeType,size,createdTime,webViewLink,thumbnailLink'
-      });
-
-      const file = response.data;
-      
-      return {
-        id: file.id,
-        name: file.name,
-        type: this.getFileType(file.mimeType),
-        url: file.webViewLink,
-        thumbnailUrl: file.thumbnailLink,
-        size: file.size ? this.formatFileSize(parseInt(file.size)) : undefined,
-        uploadedAt: file.createdTime
-      };
-    } catch (error) {
-      console.error('Error uploading file to Google Drive:', error);
-      return null;
-    }
-  }
-
-  async createCourseFolder(courseName: string, parentFolderId?: string): Promise<string | null> {
-    if (!this.drive) {
-      console.error('Google Drive not configured');
-      return null;
-    }
-
-    try {
-      const folderMetadata = {
-        name: `${courseName} - Course Materials`,
-        mimeType: 'application/vnd.google-apps.folder',
-        parents: parentFolderId ? [parentFolderId] : undefined
-      };
-
-      const response = await this.drive.files.create({
-        resource: folderMetadata,
-        fields: 'id,name,webViewLink'
-      });
-
-      console.log(`Created course folder: ${response.data.name} (${response.data.id})`);
-      return response.data.id;
-    } catch (error) {
-      console.error('Error creating course folder:', error);
-      return null;
-    }
-  }
-
-  async shareFolder(folderId: string, email?: string): Promise<boolean> {
-    if (!this.drive || !folderId) {
-      return false;
-    }
-
-    try {
-      // Make folder publicly viewable for course access
-      await this.drive.permissions.create({
-        fileId: folderId,
-        resource: {
-          role: 'reader',
-          type: email ? 'user' : 'anyone',
-          emailAddress: email
-        }
-      });
-
-      console.log(`Shared folder ${folderId} with ${email || 'public access'}`);
-      return true;
-    } catch (error) {
-      console.error('Error sharing folder:', error);
-      return false;
-    }
-  }
-
-  private getFileType(mimeType: string): 'video' | 'document' | 'image' | 'other' {
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.includes('document') || mimeType.includes('pdf') || mimeType.includes('text')) return 'document';
-    return 'other';
-  }
-
-  private formatFileSize(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  }
-
-  private getMockCourseMaterials(): CourseMaterial[] {
-    // Mock data when Google Drive is not configured
-    return [
-      {
-        id: 'mock-video-1',
-        name: 'Course Introduction Video',
-        type: 'video',
-        url: '#',
-        thumbnailUrl: 'https://via.placeholder.com/300x200/4CAF50/white?text=Video',
-        size: '45.2 MB',
-        uploadedAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-doc-1',
-        name: 'Course Handbook.pdf',
-        type: 'document',
-        url: '#',
-        size: '2.1 MB',
-        uploadedAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-doc-2',
-        name: 'Practice Exercises Worksheet',
-        type: 'document',
-        url: '#',
-        size: '856 KB',
-        uploadedAt: new Date().toISOString()
-      }
-    ];
-  }
-
-  // Health check method
   async testConnection(): Promise<boolean> {
     if (!this.drive) {
       return false;
@@ -296,6 +175,19 @@ class GoogleDriveService {
       return false;
     }
   }
-}
 
-export const googleDriveService = new GoogleDriveService();
+  private getFileType(mimeType: string): 'video' | 'document' | 'image' | 'other' {
+    if (mimeType.includes('video')) return 'video';
+    if (mimeType.includes('document') || mimeType.includes('pdf') || mimeType.includes('text')) return 'document';
+    if (mimeType.includes('image')) return 'image';
+    return 'other';
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+}

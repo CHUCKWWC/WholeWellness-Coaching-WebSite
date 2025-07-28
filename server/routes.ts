@@ -53,7 +53,7 @@ import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 // Admin auth now uses OAuth only - no password login exports
 import { onboardingService } from "./onboarding-service";
-import { googleDriveService } from "./google-drive-service";
+// Google Drive service initialized below
 import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
 import { recommendationEngine, type UserProfile, type RecommendationContext } from './recommendation-engine';
@@ -61,7 +61,7 @@ import { createTestCoach } from './create-coach-endpoint';
 import passport from "passport";
 import session from "express-session";
 import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
-import { googleDriveService, type DriveFile, type DriveFolder } from "./google-drive-service";
+import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./google-drive-service";
 import { googleDriveDemoService } from "./google-drive-demo";
 import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
@@ -87,6 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup Google OAuth
   setupGoogleAuth();
+  
+  // Initialize Google Drive service
+  const googleDriveService = new GoogleDriveService();
   
   // Initialize Stripe (if key exists)
   let stripe: Stripe | null = null;
