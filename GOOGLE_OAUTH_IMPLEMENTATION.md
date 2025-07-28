@@ -107,8 +107,10 @@ SESSION_SECRET=wholewellness-oauth-secret
 
 ### Domain Configuration
 OAuth redirect URLs configured for:
-- Production: `https://wholewellnesscoaching.org/auth/google/callback`
+- Production: `https://wholewellnesscoaching.org/auth/google/callback` ✅
 - Development: `https://whole-wellness-coaching.replit.app/auth/google/callback`
+
+**Current Configuration**: Using custom domain for production OAuth
 
 ### Database Setup
 Run the following SQL to add OAuth fields:

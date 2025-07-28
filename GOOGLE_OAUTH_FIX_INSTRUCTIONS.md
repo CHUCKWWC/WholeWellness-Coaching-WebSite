@@ -14,11 +14,13 @@ Google OAuth is showing "Access blocked: invalid action" error because the redir
 2. Find your OAuth 2.0 Client ID (should start with `69500810131-`)
 3. Click on the credential name to edit it
 
-### Step 3: Add Authorized Redirect URI
-In the "Authorized redirect URIs" section, add this exact URI:
+### Step 3: Update Authorized Redirect URI
+In the "Authorized redirect URIs" section, ensure this exact URI is configured:
 ```
-https://whole-wellness-coaching.replit.app/auth/google/callback
+https://wholewellnesscoaching.org/auth/google/callback
 ```
+
+**Note**: The custom domain URI should now be used instead of the Replit domain.
 
 ### Step 4: Save Changes
 1. Click "Save" at the bottom of the page
@@ -26,7 +28,8 @@ https://whole-wellness-coaching.replit.app/auth/google/callback
 
 ## Current OAuth Configuration
 - **Client ID**: `69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com`
-- **Expected Callback URL**: `https://whole-wellness-coaching.replit.app/auth/google/callback`
+- **Expected Callback URL**: `https://wholewellnesscoaching.org/auth/google/callback`
+- **Status**: ✅ Updated for custom domain
 
 ## Alternative: Use Email/Password Authentication
 If Google OAuth continues to have issues, users can:

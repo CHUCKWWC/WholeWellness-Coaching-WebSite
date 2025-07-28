@@ -14,12 +14,12 @@ export default function BrowserSecureAuth({ onClose }: BrowserSecureAuthProps) {
 
   return (
     <div className="space-y-4" data-google-auth>
-      <Alert className="border-yellow-200 bg-yellow-50">
-        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        <AlertDescription className="text-yellow-800">
-          <strong>Google OAuth Setup Required</strong>
+      <Alert className="border-green-200 bg-green-50">
+        <Shield className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800">
+          <strong>Google OAuth Ready</strong>
           <br />
-          If you see "Access blocked" error, the admin needs to update the Google Cloud Console redirect URI to: <code className="text-xs">https://whole-wellness-coaching.replit.app/auth/google/callback</code>
+          Configured for custom domain: <code className="text-xs">wholewellnesscoaching.org</code>
         </AlertDescription>
       </Alert>
 
