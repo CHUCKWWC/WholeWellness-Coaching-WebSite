@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Coach certification progress endpoint (available to all authenticated users)
   app.get("/api/coach/certification-progress", requireAuth as any, async (req: any, res) => {
     try {
-      // Mock data that matches the original code's expected structure
+      // Comprehensive certification course materials with videos, lessons, and interactive content
       const certificationProgress = [
         {
           module_id: 1,
@@ -376,31 +376,411 @@ export async function registerRoutes(app: Express): Promise<Server> {
           modules: {
             id: 1,
             title: 'Introduction to Wellness Coaching',
-            content: '<h3>Module 1: Introduction to Wellness Coaching</h3><p>This module covers the fundamentals of wellness coaching, including key principles, methodologies, and best practices.</p><ul><li>Understanding client needs</li><li>Building rapport and trust</li><li>Setting realistic goals</li><li>Tracking progress effectively</li></ul>',
+            content: `
+              <div class="course-module">
+                <h2>Module 1: Introduction to Wellness Coaching</h2>
+                
+                <div class="video-section">
+                  <h3>📹 Video Lesson (45 minutes)</h3>
+                  <div class="video-placeholder" style="background: #f0f0f0; padding: 20px; border: 2px dashed #ccc; text-align: center; margin: 10px 0;">
+                    <p><strong>🎥 Foundations of Wellness Coaching</strong></p>
+                    <p>Interactive video content covering core coaching principles, client engagement strategies, and ethical considerations</p>
+                    <button style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">▶ Play Video</button>
+                  </div>
+                </div>
+
+                <div class="learning-objectives">
+                  <h3>🎯 Learning Objectives</h3>
+                  <ul>
+                    <li>Understand the core principles of wellness coaching</li>
+                    <li>Master effective client communication techniques</li>
+                    <li>Learn goal-setting and progress tracking methodologies</li>
+                    <li>Identify signs of emotional distress and appropriate referral protocols</li>
+                    <li>Apply ethical coaching standards in practice</li>
+                  </ul>
+                </div>
+
+                <div class="course-content">
+                  <h3>📚 Course Content</h3>
+                  
+                  <h4>1. What is Wellness Coaching?</h4>
+                  <p>Wellness coaching is a collaborative partnership that empowers individuals to make sustainable lifestyle changes. Unlike therapy, which often focuses on healing past wounds, coaching is future-focused and action-oriented.</p>
+                  
+                  <div class="key-concepts">
+                    <h4>🔑 Key Concepts:</h4>
+                    <ul>
+                      <li><strong>Client-Centered Approach:</strong> The client is the expert on their own life</li>
+                      <li><strong>Strength-Based:</strong> Focus on existing strengths and resources</li>
+                      <li><strong>Solution-Focused:</strong> Emphasis on solutions rather than problems</li>
+                      <li><strong>Holistic Perspective:</strong> Address physical, mental, emotional, and spiritual wellness</li>
+                    </ul>
+                  </div>
+
+                  <h4>2. Building Rapport and Trust</h4>
+                  <p>Establishing a strong coaching relationship is fundamental to success. This section covers:</p>
+                  <ul>
+                    <li>Active listening techniques</li>
+                    <li>Empathetic communication</li>
+                    <li>Creating a safe, non-judgmental space</li>
+                    <li>Setting clear boundaries and expectations</li>
+                  </ul>
+
+                  <h4>3. The SMART Goal Framework</h4>
+                  <p>Learn to help clients set <strong>Specific, Measurable, Achievable, Relevant, Time-bound</strong> goals:</p>
+                  <div class="example-box" style="background: #e8f5e8; padding: 15px; border-left: 4px solid #4CAF50; margin: 10px 0;">
+                    <h5>Example Transformation:</h5>
+                    <p><strong>Vague Goal:</strong> "I want to be healthier"</p>
+                    <p><strong>SMART Goal:</strong> "I will walk 30 minutes daily, 5 days per week, for the next 6 weeks to improve my cardiovascular health"</p>
+                  </div>
+
+                  <h4>4. Tracking Progress Effectively</h4>
+                  <ul>
+                    <li>Weekly check-ins and accountability</li>
+                    <li>Celebrating small wins</li>
+                    <li>Adjusting goals when needed</li>
+                    <li>Using progress metrics and journaling</li>
+                  </ul>
+                </div>
+
+                <div class="interactive-exercises">
+                  <h3>🔧 Interactive Exercises</h3>
+                  <div class="exercise" style="background: #fff3cd; padding: 15px; border: 1px solid #ffc107; border-radius: 5px; margin: 10px 0;">
+                    <h4>Exercise 1: Practice Active Listening</h4>
+                    <p>Role-play scenario: Your client says "I've tried everything and nothing works." Practice reflective listening responses.</p>
+                    <p><strong>Try this:</strong> Instead of giving advice, reflect back what you hear and ask open-ended questions.</p>
+                  </div>
+                  
+                  <div class="exercise" style="background: #d4edda; padding: 15px; border: 1px solid #28a745; border-radius: 5px; margin: 10px 0;">
+                    <h4>Exercise 2: SMART Goal Creation</h4>
+                    <p>Transform these vague goals into SMART goals:</p>
+                    <ol>
+                      <li>"I want to lose weight"</li>
+                      <li>"I need to exercise more"</li>
+                      <li>"I should eat better"</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div class="resources">
+                  <h3>📖 Additional Resources</h3>
+                  <ul>
+                    <li>📄 <strong>ICF Core Competencies Guide</strong> - Professional coaching standards</li>
+                    <li>🎧 <strong>Podcast:</strong> "The Coaching Habit" episodes 1-3</li>
+                    <li>📱 <strong>App Recommendation:</strong> MyFitnessPal for tracking client progress</li>
+                    <li>📚 <strong>Recommended Reading:</strong> "The Coaching Habit" by Michael Bungay Stanier</li>
+                  </ul>
+                </div>
+
+                <div class="quiz-intro">
+                  <h3>✅ Knowledge Check</h3>
+                  <p>Complete the quiz below to test your understanding of wellness coaching fundamentals. You need 80% or higher to pass this module.</p>
+                  <div style="background: #d1ecf1; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                    <p><strong>💡 Tip:</strong> Review the video content and key concepts above before taking the quiz.</p>
+                  </div>
+                </div>
+              </div>
+            `,
             module_order: 1
           }
         },
         {
           module_id: 2,
-          status: 'coming_soon',
+          status: 'not_started',
           score: null,
           answers: {},
           modules: {
             id: 2,
             title: 'Advanced Nutrition Fundamentals',
-            content: '<h3>Coming Soon</h3><p>This module is currently under development and will be available soon. It will cover advanced nutritional science and practical application for coaching clients.</p>',
+            content: `
+              <div class="course-module">
+                <h2>Module 2: Advanced Nutrition Fundamentals</h2>
+                
+                <div class="video-section">
+                  <h3>📹 Video Lesson (60 minutes)</h3>
+                  <div class="video-placeholder" style="background: #f0f0f0; padding: 20px; border: 2px dashed #ccc; text-align: center; margin: 10px 0;">
+                    <p><strong>🎥 Nutritional Science for Coaches</strong></p>
+                    <p>Comprehensive overview of macronutrients, micronutrients, and evidence-based nutrition principles</p>
+                    <button style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">▶ Play Video</button>
+                  </div>
+                </div>
+
+                <div class="learning-objectives">
+                  <h3>🎯 Learning Objectives</h3>
+                  <ul>
+                    <li>Understand macronutrient roles and optimal ratios</li>
+                    <li>Identify key micronutrients and their functions</li>
+                    <li>Learn sustainable meal planning strategies</li>
+                    <li>Recognize nutritional myths vs. evidence-based facts</li>
+                    <li>Apply nutrition coaching within scope of practice</li>
+                  </ul>
+                </div>
+
+                <div class="course-content">
+                  <h3>📚 Course Content</h3>
+                  
+                  <h4>1. Macronutrients Deep Dive</h4>
+                  
+                  <div class="macronutrient-section">
+                    <h5>🍖 Proteins (4 calories/gram)</h5>
+                    <p><strong>Functions:</strong> Muscle building, repair, immune function, hormone production</p>
+                    <p><strong>Recommended Intake:</strong> 0.8-1.2g per kg body weight (higher for active individuals)</p>
+                    <p><strong>Quality Sources:</strong> Complete proteins (eggs, fish, poultry) vs. incomplete proteins (plants)</p>
+                    
+                    <h5>🍞 Carbohydrates (4 calories/gram)</h5>
+                    <p><strong>Functions:</strong> Primary energy source, brain fuel, muscle glycogen</p>
+                    <p><strong>Types:</strong> Simple vs. Complex carbs, Glycemic Index considerations</p>
+                    <p><strong>Timing:</strong> Pre/post workout nutrition strategies</p>
+                    
+                    <h5>🥑 Fats (9 calories/gram)</h5>
+                    <p><strong>Functions:</strong> Hormone production, vitamin absorption, cell membrane health</p>
+                    <p><strong>Types:</strong> Saturated, monounsaturated, polyunsaturated, trans fats</p>
+                    <p><strong>Omega-3/Omega-6 Balance:</strong> Anti-inflammatory considerations</p>
+                  </div>
+
+                  <h4>2. Essential Micronutrients</h4>
+                  <div class="micronutrients-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                      <h6>Vitamin D</h6>
+                      <p>Bone health, immune function, mood regulation</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                      <h6>B-Complex Vitamins</h6>
+                      <p>Energy metabolism, nervous system function</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                      <h6>Iron</h6>
+                      <p>Oxygen transport, energy levels</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                      <h6>Magnesium</h6>
+                      <p>Muscle function, sleep quality, stress management</p>
+                    </div>
+                  </div>
+
+                  <h4>3. Meal Planning Strategies</h4>
+                  <ul>
+                    <li><strong>Plate Method:</strong> 1/2 vegetables, 1/4 protein, 1/4 complex carbs</li>
+                    <li><strong>Batch Cooking:</strong> Time-saving preparation techniques</li>
+                    <li><strong>Flexible Dieting:</strong> 80/20 rule for sustainable habits</li>
+                    <li><strong>Special Considerations:</strong> Food allergies, cultural preferences, budget constraints</li>
+                  </ul>
+
+                  <h4>4. Debunking Common Myths</h4>
+                  <div class="myth-fact-box" style="background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 10px 0;">
+                    <p><strong>❌ Myth:</strong> "Carbs are bad for weight loss"</p>
+                    <p><strong>✅ Fact:</strong> Complex carbs provide sustained energy and are part of a balanced diet</p>
+                  </div>
+                  <div class="myth-fact-box" style="background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 10px 0;">
+                    <p><strong>❌ Myth:</strong> "Supplements can replace a healthy diet"</p>
+                    <p><strong>✅ Fact:</strong> Whole foods provide nutrients in bioavailable forms with synergistic compounds</p>
+                  </div>
+                </div>
+
+                <div class="interactive-case-study">
+                  <h3>📋 Case Study Analysis</h3>
+                  <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                    <h4>Client Profile: Sarah, 35, Working Mother</h4>
+                    <p><strong>Goals:</strong> Increase energy, lose 15 lbs, improve family nutrition</p>
+                    <p><strong>Challenges:</strong> Limited cooking time, picky children, stress eating</p>
+                    <p><strong>Current Diet:</strong> Skip breakfast, fast food lunches, late dinner</p>
+                    
+                    <h5>Your Task:</h5>
+                    <p>Create a realistic 3-day meal plan addressing Sarah's goals and constraints. Consider prep time, family-friendly options, and sustainable changes.</p>
+                  </div>
+                </div>
+
+                <div class="resources">
+                  <h3>📖 Additional Resources</h3>
+                  <ul>
+                    <li>📊 <strong>Nutrition Calculator:</strong> MyPlate.gov for personalized recommendations</li>
+                    <li>🔬 <strong>Research Database:</strong> PubMed nutrition studies</li>
+                    <li>📱 <strong>App:</strong> Cronometer for detailed nutrient tracking</li>
+                    <li>📚 <strong>Book:</strong> "Precision Nutrition" certification materials</li>
+                    <li>🎓 <strong>Continuing Education:</strong> Academy of Nutrition and Dietetics courses</li>
+                  </ul>
+                </div>
+              </div>
+            `,
             module_order: 2
           }
         },
         {
           module_id: 3,
-          status: 'coming_soon',
+          status: 'not_started',
           score: null,
           answers: {},
           modules: {
             id: 3,
             title: 'Relationship Counseling Fundamentals',
-            content: '<h3>Coming Soon</h3><p>This module is currently under development and will be available soon. It will cover essential relationship counseling techniques and communication strategies.</p>',
+            content: `
+              <div class="course-module">
+                <h2>Module 3: Relationship Counseling Fundamentals</h2>
+                
+                <div class="video-section">
+                  <h3>📹 Video Lessons (90 minutes total)</h3>
+                  <div class="video-playlist">
+                    <div class="video-placeholder" style="background: #f0f0f0; padding: 15px; border: 2px dashed #ccc; text-align: center; margin: 10px 0;">
+                      <p><strong>🎥 Part 1: Communication Foundations (30 min)</strong></p>
+                      <p>Active listening, emotional validation, and creating safe spaces</p>
+                      <button style="background: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">▶ Play</button>
+                    </div>
+                    <div class="video-placeholder" style="background: #f0f0f0; padding: 15px; border: 2px dashed #ccc; text-align: center; margin: 10px 0;">
+                      <p><strong>🎥 Part 2: Conflict Resolution Techniques (30 min)</strong></p>
+                      <p>De-escalation strategies and finding common ground</p>
+                      <button style="background: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">▶ Play</button>
+                    </div>
+                    <div class="video-placeholder" style="background: #f0f0f0; padding: 15px; border: 2px dashed #ccc; text-align: center; margin: 10px 0;">
+                      <p><strong>🎥 Part 3: Building Intimacy & Trust (30 min)</strong></p>
+                      <p>Emotional intimacy, rebuilding after betrayal, maintaining connection</p>
+                      <button style="background: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">▶ Play</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="learning-objectives">
+                  <h3>🎯 Learning Objectives</h3>
+                  <ul>
+                    <li>Master effective communication techniques for couples</li>
+                    <li>Learn evidence-based conflict resolution strategies</li>
+                    <li>Understand attachment styles and their impact on relationships</li>
+                    <li>Identify when to refer to specialized therapy</li>
+                    <li>Practice boundary-setting and expectation management</li>
+                  </ul>
+                </div>
+
+                <div class="course-content">
+                  <h3>📚 Course Content</h3>
+                  
+                  <h4>1. Communication Foundations</h4>
+                  
+                  <div class="communication-skills">
+                    <h5>🎯 The 4 Pillars of Effective Communication</h5>
+                    <ol>
+                      <li><strong>Active Listening:</strong> Full attention, minimal interruptions, reflective responses</li>
+                      <li><strong>Emotional Validation:</strong> Acknowledging feelings without judgment</li>
+                      <li><strong>Clear Expression:</strong> "I" statements, specific examples, solution-focused</li>
+                      <li><strong>Timing & Environment:</strong> Choosing appropriate moments and settings</li>
+                    </ol>
+                  </div>
+
+                  <div class="example-box" style="background: #e8f5e8; padding: 15px; border-left: 4px solid #4CAF50; margin: 15px 0;">
+                    <h5>Communication Transformation Example:</h5>
+                    <p><strong>❌ Ineffective:</strong> "You never help with housework! You're so lazy!"</p>
+                    <p><strong>✅ Effective:</strong> "I feel overwhelmed when I handle most household tasks alone. Could we discuss how to share responsibilities more evenly?"</p>
+                  </div>
+
+                  <h4>2. Understanding Attachment Styles</h4>
+                  <div class="attachment-styles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                      <h6>🔒 Secure Attachment (60%)</h6>
+                      <p><strong>Traits:</strong> Comfortable with intimacy, effective communication, trusting</p>
+                      <p><strong>In Relationships:</strong> Supportive, able to resolve conflicts constructively</p>
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px;">
+                      <h6>😰 Anxious Attachment (20%)</h6>
+                      <p><strong>Traits:</strong> Fear of abandonment, seeks reassurance, emotional intensity</p>
+                      <p><strong>In Relationships:</strong> Clingy behavior, jealousy, overthinking</p>
+                    </div>
+                    <div style="background: #d4edda; padding: 15px; border-radius: 8px;">
+                      <h6>🚪 Avoidant Attachment (15%)</h6>
+                      <p><strong>Traits:</strong> Values independence, uncomfortable with closeness</p>
+                      <p><strong>In Relationships:</strong> Emotional distance, difficulty expressing feelings</p>
+                    </div>
+                    <div style="background: #f8d7da; padding: 15px; border-radius: 8px;">
+                      <h6>🌪️ Disorganized Attachment (5%)</h6>
+                      <p><strong>Traits:</strong> Inconsistent behavior, fear of intimacy and abandonment</p>
+                      <p><strong>In Relationships:</strong> Push-pull dynamics, emotional volatility</p>
+                    </div>
+                  </div>
+
+                  <h4>3. The Gottman Method Principles</h4>
+                  <div class="gottman-principles">
+                    <h5>🏠 The Four Pillars of Strong Relationships:</h5>
+                    <ul>
+                      <li><strong>Build Love Maps:</strong> Deep knowledge of partner's inner world</li>
+                      <li><strong>Nurture Fondness & Admiration:</strong> Focus on positive qualities</li>
+                      <li><strong>Turn Towards, Not Away:</strong> Respond to bids for connection</li>
+                      <li><strong>Accept Influence:</strong> Be open to partner's input and perspectives</li>
+                    </ul>
+                    
+                    <h5>⚠️ The Four Horsemen to Avoid:</strong>
+                    <div style="background: #f8d7da; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                      <ol>
+                        <li><strong>Criticism:</strong> Attacking character vs. addressing specific behavior</li>
+                        <li><strong>Contempt:</strong> Sarcasm, eye-rolling, name-calling (most toxic)</li>
+                        <li><strong>Defensiveness:</strong> Playing victim, counter-attacking</li>
+                        <li><strong>Stonewalling:</strong> Shutting down, silent treatment</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <h4>4. Conflict Resolution Framework</h4>
+                  <div class="conflict-resolution">
+                    <h5>📋 The PREP Method:</h5>
+                    <ul>
+                      <li><strong>P - Pause:</strong> Take time to cool down if emotions are high</li>
+                      <li><strong>R - Reflect:</strong> Consider your partner's perspective</li>
+                      <li><strong>E - Express:</strong> Share your feelings using "I" statements</li>
+                      <li><strong>P - Problem-solve:</strong> Work together toward solutions</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="interactive-exercises">
+                  <h3>🔧 Interactive Exercises</h3>
+                  
+                  <div class="exercise" style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                    <h4>Scenario Practice: The Overloaded Partner</h4>
+                    <p><strong>Situation:</strong> Jamie works full-time and handles most childcare/household duties. Partner Alex works but doesn't contribute equally to home responsibilities.</p>
+                    
+                    <h5>Practice Questions:</h5>
+                    <ol>
+                      <li>How would you help Jamie express their needs without blame?</li>
+                      <li>What communication techniques would help Alex understand the impact?</li>
+                      <li>How could they negotiate a fair division of responsibilities?</li>
+                    </ol>
+                  </div>
+
+                  <div class="exercise" style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                    <h4>Attachment Style Assessment</h4>
+                    <p>Practice identifying attachment styles from client descriptions and learning appropriate coaching strategies for each type.</p>
+                  </div>
+                </div>
+
+                <div class="red-flags">
+                  <h3>🚨 When to Refer to Therapy</h3>
+                  <div style="background: #f8d7da; padding: 20px; border: 1px solid #dc3545; border-radius: 8px; margin: 15px 0;">
+                    <h4>Immediate Referral Situations:</h4>
+                    <ul>
+                      <li>Any form of domestic violence or abuse</li>
+                      <li>Substance abuse issues</li>
+                      <li>Mental health crises (suicidal ideation, severe depression)</li>
+                      <li>Infidelity requiring specialized therapy</li>
+                      <li>Trauma processing needs</li>
+                      <li>Personality disorders</li>
+                    </ul>
+                    <p><strong>Remember:</strong> As a relationship coach, your role is to support healthy relationships. Complex clinical issues require licensed therapists.</p>
+                  </div>
+                </div>
+
+                <div class="resources">
+                  <h3>📖 Additional Resources</h3>
+                  <ul>
+                    <li>📚 <strong>Books:</strong> "The Seven Principles for Making Marriage Work" by John Gottman</li>
+                    <li>🎓 <strong>Certification:</strong> Gottman Institute Couples Therapy Training</li>
+                    <li>📱 <strong>Apps:</strong> Gottman Card Decks, Love Nudge (5 Love Languages)</li>
+                    <li>🎧 <strong>Podcast:</strong> "Where Should We Begin?" by Esther Perel</li>
+                    <li>🔗 <strong>Assessment Tools:</strong> Relationship Assessment Scale, Attachment Style Quiz</li>
+                    <li>📞 <strong>Crisis Resources:</strong> National Domestic Violence Hotline: 1-800-799-7233</li>
+                  </ul>
+                </div>
+
+                <div class="quiz-intro">
+                  <h3>✅ Comprehensive Assessment</h3>
+                  <p>This module includes both theoretical questions and practical scenario-based assessments. You'll need to demonstrate understanding of communication techniques and appropriate intervention strategies.</p>
+                </div>
+              </div>
+            `,
             module_order: 3
           }
         }
