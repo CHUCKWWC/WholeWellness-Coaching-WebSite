@@ -77,25 +77,30 @@ export default function CertificationDashboard() {
   const fetchCourseMaterials = async (courseId: number) => {
     setMaterialsLoading(true);
     try {
-      const response = await apiRequest("GET", `/api/course-materials/${courseId}`);
-      if (response.success) {
+      const response = await apiRequest("GET", `/api/public/course-materials/${courseId}`);
+      if (response.success && response.folderUrl) {
+        // Open user's shared Google Drive folder directly
+        window.open(response.folderUrl, '_blank');
+        toast({
+          title: "Course Materials",
+          description: `Opening ${response.courseTitle || 'course'} materials in Google Drive`,
+          variant: "default",
+        });
         setCourseMaterials(response.materials || []);
       } else {
         setCourseMaterials([]);
-        if (response.message === "No Google Drive folder configured for this course") {
-          toast({
-            title: "Google Drive Not Configured",
-            description: "No Google Drive folder is set up for this course. Contact administrator to configure course materials.",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Materials Access",
+          description: response.message || "Course materials are being prepared.",
+          variant: "default",
+        });
       }
     } catch (error) {
-      console.error('Error fetching course materials:', error);
+      console.error('Error accessing course materials:', error);
       setCourseMaterials([]);
       toast({
         title: "Error Loading Materials",
-        description: "Failed to load course materials. Please try again.",
+        description: "Failed to access course materials. Please try again.",
         variant: "destructive",
       });
     }

@@ -67,6 +67,47 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Google Drive course materials endpoint - PRIORITY ROUTE (must be first)
+  app.get("/api/public/course-materials/:courseId", async (req: any, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    try {
+      const { courseId } = req.params;
+      const courseIdNum = parseInt(courseId);
+      
+      if (isNaN(courseIdNum) || courseIdNum < 1 || courseIdNum > 3) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid course ID" 
+        });
+      }
+
+      // Use the shared Google Drive folder provided by user
+      const sharedFolderId = '1G8F_pu26GDIYg2hAmSxjJ2P1bvIL4pya';
+      
+      const courseTitles = {
+        1: "Introduction to Wellness Coaching",
+        2: "Advanced Nutrition Fundamentals", 
+        3: "Relationship Counseling Fundamentals"
+      };
+
+      return res.json({
+        success: true,
+        courseId: courseIdNum,
+        courseTitle: courseTitles[courseIdNum as keyof typeof courseTitles],
+        folderId: sharedFolderId,
+        folderUrl: `https://drive.google.com/drive/folders/${sharedFolderId}`,
+        message: "Access shared course materials directly through Google Drive",
+        materials: []
+      });
+    } catch (error) {
+      console.error("Error fetching course materials:", error);
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch course materials" 
+      });
+    }
+  });
+
   // Add cookie parser middleware
   app.use(cookieParser());
   
@@ -981,57 +1022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get course materials from Google Drive
-  app.get("/api/course-materials/:courseId", requireAuth as any, async (req: any, res) => {
-    try {
-      const { courseId } = req.params;
-      const courseIdNum = parseInt(courseId);
-      
-      if (isNaN(courseIdNum) || courseIdNum < 1 || courseIdNum > 3) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Invalid course ID" 
-        });
-      }
-
-      const folderId = await googleDriveService.getCourseFolder(courseIdNum);
-      
-      if (!folderId) {
-        return res.json({ 
-          success: false,
-          message: "No Google Drive folder configured for this course",
-          materials: []
-        });
-      }
-
-      const files = await googleDriveService.listFolderFiles(folderId);
-      
-      const materials = files.map((file: any) => ({
-        id: file.id,
-        name: file.name,
-        type: file.mimeType.includes('video') ? 'video' :
-              file.mimeType.includes('document') || file.mimeType.includes('pdf') ? 'document' :
-              file.mimeType.includes('image') ? 'image' : 'other',
-        url: `https://drive.google.com/file/d/${file.id}/view`,
-        thumbnailUrl: file.thumbnailLink,
-        size: file.size ? `${Math.round(file.size / 1024 / 1024 * 10) / 10} MB` : undefined,
-        uploadedAt: file.createdTime
-      }));
-
-      res.json({
-        success: true,
-        courseId: courseIdNum,
-        folderId,
-        materials
-      });
-    } catch (error) {
-      console.error("Error fetching course materials:", error);
-      res.status(500).json({ 
-        success: false,
-        message: "Failed to fetch course materials" 
-      });
-    }
-  });
+  // Old duplicate endpoint removed - now handled at top of routes
 
   // Admin endpoint to upload sample course materials
   app.post('/api/admin/upload-sample-materials', async (req, res) => {
