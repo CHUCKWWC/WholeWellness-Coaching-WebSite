@@ -2513,10 +2513,10 @@ export class SupabaseClientStorage implements IStorage {
         query = query.eq('resource_type', filters.resourceType);
       }
       if (filters?.isEmergency !== undefined) {
-        query = query.eq('is_emergency', filters.isEmergency);
+        query = query.eq('emergency', filters.isEmergency);
       }
 
-      const { data, error } = await query.order('is_featured', { ascending: false }).order('rating', { ascending: false });
+      const { data, error } = await query.order('featured', { ascending: false }).order('id', { ascending: false });
       
       if (error) {
         console.error('Error getting mental wellness resources:', error);
