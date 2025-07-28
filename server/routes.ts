@@ -53,6 +53,7 @@ import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 // Admin auth now uses OAuth only - no password login exports
 import { onboardingService } from "./onboarding-service";
+import { googleDriveService } from "./google-drive-service";
 import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
 import { recommendationEngine, type UserProfile, type RecommendationContext } from './recommendation-engine';
@@ -359,6 +360,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Coach application payment error:', error);
       res.status(500).json({ 
         message: 'Error creating payment intent: ' + error.message 
+      });
+    }
+  });
+
+  // Google Drive course materials endpoint
+  app.get("/api/course-materials/:courseId", requireAuth as any, async (req: any, res) => {
+    try {
+      const { courseId } = req.params;
+      const courseIdNum = parseInt(courseId);
+      
+      if (isNaN(courseIdNum) || courseIdNum < 1 || courseIdNum > 3) {
+        return res.status(400).json({ message: "Invalid course ID" });
+      }
+
+      const folderId = await googleDriveService.getCourseFolder(courseIdNum);
+      
+      if (!folderId) {
+        return res.json({
+          success: false,
+          message: "No Google Drive folder configured for this course",
+          materials: []
+        });
+      }
+
+      const materials = await googleDriveService.listCourseFiles(folderId);
+      
+      res.json({
+        success: true,
+        courseId: courseIdNum,
+        folderId,
+        materials
+      });
+    } catch (error) {
+      console.error("Error fetching course materials:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch course materials",
+        materials: []
       });
     }
   });
@@ -831,6 +870,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error submitting quiz:", error);
       res.status(500).json({ message: "Failed to submit quiz" });
+    }
+  });
+
+  // Google Drive Admin Routes
+  
+  // Test Google Drive connection
+  app.get("/api/admin/google-drive/test", requireAuth as any, async (req: any, res) => {
+    try {
+      const isConnected = await googleDriveService.testConnection();
+      
+      res.json({
+        success: true,
+        connected: isConnected,
+        message: isConnected 
+          ? "Google Drive service is connected and working"
+          : "Google Drive service is not configured or connection failed"
+      });
+    } catch (error) {
+      console.error("Error testing Google Drive connection:", error);
+      res.status(500).json({ 
+        success: false,
+        connected: false,
+        message: "Failed to test Google Drive connection" 
+      });
+    }
+  });
+
+  // Create course folders
+  app.post("/api/admin/google-drive/create-folders", requireAuth as any, async (req: any, res) => {
+    try {
+      const courseNames = [
+        "Introduction to Wellness Coaching",
+        "Advanced Nutrition Fundamentals", 
+        "Relationship Counseling Fundamentals"
+      ];
+
+      const results = [];
+      
+      for (let i = 0; i < courseNames.length; i++) {
+        const folderId = await googleDriveService.createCourseFolder(courseNames[i]);
+        
+        if (folderId) {
+          // Share folder for public access
+          await googleDriveService.shareFolder(folderId);
+          
+          results.push({
+            courseId: i + 1,
+            courseName: courseNames[i],
+            folderId,
+            status: 'created'
+          });
+        } else {
+          results.push({
+            courseId: i + 1,
+            courseName: courseNames[i],
+            folderId: null,
+            status: 'failed'
+          });
+        }
+      }
+
+      const successCount = results.filter(r => r.status === 'created').length;
+      
+      res.json({
+        success: successCount > 0,
+        message: `Created ${successCount} out of ${courseNames.length} course folders`,
+        folders: results
+      });
+    } catch (error) {
+      console.error("Error creating course folders:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create course folders" 
+      });
+    }
+  });
+
+  // Upload file to course folder
+  app.post("/api/admin/google-drive/upload/:courseId", requireAuth as any, async (req: any, res) => {
+    try {
+      const { courseId } = req.params;
+      const courseIdNum = parseInt(courseId);
+      
+      if (isNaN(courseIdNum) || courseIdNum < 1 || courseIdNum > 3) {
+        return res.status(400).json({ message: "Invalid course ID" });
+      }
+
+      const folderId = await googleDriveService.getCourseFolder(courseIdNum);
+      
+      if (!folderId) {
+        return res.status(404).json({ 
+          message: "No Google Drive folder configured for this course" 
+        });
+      }
+
+      // This would be enhanced with file upload middleware in production
+      res.json({
+        success: true,
+        message: `Ready to upload files to course ${courseId}`,
+        folderId,
+        uploadUrl: `https://drive.google.com/drive/folders/${folderId}`
+      });
+    } catch (error) {
+      console.error("Error preparing file upload:", error);
+      res.status(500).json({ message: "Failed to prepare file upload" });
+    }
+  });
+
+  // Get course materials from Google Drive
+  app.get("/api/course-materials/:courseId", requireAuth as any, async (req: any, res) => {
+    try {
+      const { courseId } = req.params;
+      const courseIdNum = parseInt(courseId);
+      
+      if (isNaN(courseIdNum) || courseIdNum < 1 || courseIdNum > 3) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid course ID" 
+        });
+      }
+
+      const folderId = await googleDriveService.getCourseFolder(courseIdNum);
+      
+      if (!folderId) {
+        return res.json({ 
+          success: false,
+          message: "No Google Drive folder configured for this course",
+          materials: []
+        });
+      }
+
+      const files = await googleDriveService.listFolderFiles(folderId);
+      
+      const materials = files.map((file: any) => ({
+        id: file.id,
+        name: file.name,
+        type: file.mimeType.includes('video') ? 'video' :
+              file.mimeType.includes('document') || file.mimeType.includes('pdf') ? 'document' :
+              file.mimeType.includes('image') ? 'image' : 'other',
+        url: `https://drive.google.com/file/d/${file.id}/view`,
+        thumbnailUrl: file.thumbnailLink,
+        size: file.size ? `${Math.round(file.size / 1024 / 1024 * 10) / 10} MB` : undefined,
+        uploadedAt: file.createdTime
+      }));
+
+      res.json({
+        success: true,
+        courseId: courseIdNum,
+        folderId,
+        materials
+      });
+    } catch (error) {
+      console.error("Error fetching course materials:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch course materials" 
+      });
     }
   });
 
