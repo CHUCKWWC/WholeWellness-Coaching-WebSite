@@ -446,8 +446,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Coach certification progress endpoint (available to all authenticated users)
-  app.get("/api/coach/certification-progress", requireAuth as any, async (req: any, res) => {
+  // Coach certification progress endpoint (available to all users for demo)
+  app.get("/api/coach/certification-progress", async (req: any, res) => {
     try {
       // Comprehensive certification course materials with videos, lessons, and interactive content
       const certificationProgress = [
@@ -3846,8 +3846,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
   // Coach Certification Course Management Routes
   
-  // Get all available certification courses (available to all authenticated users)
-  app.get("/api/coach/certification-courses", requireAuth as any, async (req, res) => {
+  // Get all available certification courses (available to all users for demo)  
+  app.get("/api/coach/certification-courses", async (req, res) => {
     try {
       // Mock certification courses for demo
       const courses = [
