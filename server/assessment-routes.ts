@@ -61,7 +61,18 @@ router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get user's completed assessments
+// Get current user's completed assessments (no userId param needed)
+router.get("/user", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const assessments = await storage.getUserAssessments(req.user.id);
+    res.json(assessments);
+  } catch (error) {
+    console.error("Error fetching user assessments:", error);
+    res.status(500).json({ error: "Failed to fetch assessments" });
+  }
+});
+
+// Get specific user's completed assessments (for admin access)
 router.get("/user/:userId", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { userId } = req.params;
