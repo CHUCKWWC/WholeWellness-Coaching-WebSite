@@ -81,10 +81,13 @@ export function setupGoogleAuth() {
 }
 
 export function generateGoogleAuthToken(user: any) {
-  const authService = new AuthService();
-  return authService.generateToken({
+  return AuthService.generateToken({
     id: user.id,
     email: user.email,
-    role: user.role || 'user'
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    role: user.role || 'user',
+    membershipLevel: user.membershipLevel || 'free',
+    isActive: user.isActive !== false
   });
 }

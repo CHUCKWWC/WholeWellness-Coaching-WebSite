@@ -32,10 +32,10 @@ import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
 import { 
-  requireAuth, 
-  requireCoachRole,
-  optionalAuth,
-  type AuthenticatedRequest 
+  requireAuth as auth1, 
+  requireCoachRole as coach1,
+  optionalAuth as opt1,
+  type AuthenticatedRequest as AuthReq1 
 } from "./auth";
 import { donationStorage } from "./donation-storage";
 import { registerAIChatRoutes } from "./ai-chat-routes";
