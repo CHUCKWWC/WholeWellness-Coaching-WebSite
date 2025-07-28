@@ -1030,6 +1030,263 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to upload sample course materials
+  app.post('/api/admin/upload-sample-materials', async (req, res) => {
+    try {
+      if (!googleDriveService) {
+        return res.status(500).json({ 
+          success: false,
+          message: "Google Drive service not configured" 
+        });
+      }
+
+      // Sample materials data
+      const sampleMaterials = [
+        {
+          courseId: 1,
+          courseName: "Introduction to Wellness Coaching",
+          materials: [
+            {
+              name: "Welcome to Wellness Coaching.pdf",
+              content: `# Welcome to Wellness Coaching
+
+## Course Overview
+This comprehensive introduction to wellness coaching covers the fundamental principles, ethics, and core competencies needed to become an effective wellness coach.
+
+## Learning Objectives
+- Understand the role and scope of wellness coaching
+- Learn ICF core competencies and ethical guidelines
+- Develop foundational coaching skills and techniques
+- Practice creating a safe, supportive coaching environment
+
+## Module Content
+This module provides essential knowledge for beginning wellness coaches, including theoretical foundations and practical applications.`,
+              mimeType: "text/plain"
+            },
+            {
+              name: "Coaching Ethics and Boundaries.pdf", 
+              content: `# Coaching Ethics and Professional Boundaries
+
+## Ethical Guidelines
+Professional wellness coaches must maintain clear ethical standards and appropriate boundaries with clients.
+
+## Key Principles
+- Confidentiality and privacy protection
+- Informed consent and clear agreements
+- Professional competence and continuing education
+- Respect for client autonomy and self-determination
+
+## Boundary Management
+Establishing and maintaining appropriate professional boundaries is essential for effective coaching relationships.`,
+              mimeType: "text/plain"
+            },
+            {
+              name: "ICF Core Competencies Overview.pdf",
+              content: `# ICF Core Competencies for Wellness Coaches
+
+## Foundation
+1. Demonstrates Ethical Practice
+2. Embodies a Coaching Mindset
+
+## Co-creating the Relationship
+3. Establishes and Maintains Agreements
+4. Cultivates Trust and Safety
+5. Maintains Presence
+
+## Communicating Effectively
+6. Listens Actively
+7. Evokes Awareness
+
+## Facilitating Learning and Results
+8. Facilitates Client Growth
+
+These competencies form the foundation of professional coaching practice.`,
+              mimeType: "text/plain"
+            }
+          ]
+        },
+        {
+          courseId: 2,
+          courseName: "Advanced Nutrition Fundamentals",
+          materials: [
+            {
+              name: "Macronutrient Guidelines.pdf",
+              content: `# Advanced Macronutrient Guidelines
+
+## Protein Requirements
+- Calculate individual protein needs based on activity level
+- Quality protein sources and amino acid profiles
+- Timing protein intake for optimal results
+
+## Carbohydrate Management
+- Understanding glycemic index and load
+- Carb cycling for different goals
+- Pre and post-workout nutrition
+
+## Healthy Fats
+- Essential fatty acids and their functions
+- Omega-3 to omega-6 ratios
+- Fat-soluble vitamin absorption`,
+              mimeType: "text/plain"
+            },
+            {
+              name: "Meal Planning Templates.pdf",
+              content: `# Professional Meal Planning Templates
+
+## Client Assessment
+Use these templates to create personalized meal plans based on:
+- Individual caloric needs
+- Dietary preferences and restrictions
+- Lifestyle and schedule considerations
+- Health goals and medical conditions
+
+## Weekly Planning Templates
+- Breakfast options and variations
+- Lunch combinations for busy schedules
+- Dinner planning for families
+- Healthy snack alternatives
+
+## Shopping Lists and Prep Guides
+Organized templates to streamline meal preparation and grocery shopping.`,
+              mimeType: "text/plain"
+            },
+            {
+              name: "Client Nutrition Assessment Tools.pdf",
+              content: `# Comprehensive Nutrition Assessment Tools
+
+## Initial Client Intake
+- Current eating patterns and habits
+- Medical history and medications
+- Food allergies and intolerances
+- Previous diet attempts and outcomes
+
+## Ongoing Progress Tracking
+- Weekly check-in questionnaires
+- Body composition monitoring
+- Energy level and mood assessments
+- Goal achievement metrics
+
+## Professional Documentation
+Templates for maintaining client records and tracking progress over time.`,
+              mimeType: "text/plain"
+            }
+          ]
+        },
+        {
+          courseId: 3,
+          courseName: "Relationship Counseling Fundamentals", 
+          materials: [
+            {
+              name: "Attachment Theory in Practice.pdf",
+              content: `# Attachment Theory in Relationship Coaching
+
+## Four Attachment Styles
+1. Secure Attachment - healthy relationship patterns
+2. Anxious Attachment - fear of abandonment
+3. Avoidant Attachment - discomfort with intimacy
+4. Disorganized Attachment - inconsistent patterns
+
+## Practical Applications
+- Identifying attachment patterns in clients
+- Helping clients understand their relationship behaviors
+- Developing secure attachment strategies
+- Working with couples with different attachment styles
+
+## Therapeutic Interventions
+Evidence-based approaches for addressing attachment issues in coaching relationships.`,
+              mimeType: "text/plain"
+            },
+            {
+              name: "Communication Techniques Workbook.pdf",
+              content: `# Advanced Communication Techniques
+
+## Active Listening Skills
+- Reflective listening techniques
+- Nonverbal communication awareness
+- Asking powerful questions
+- Creating safe spaces for sharing
+
+## Conflict Resolution
+- De-escalation strategies
+- Finding common ground
+- Negotiation and compromise
+- Repair and reconciliation processes
+
+## Gottman Method Applications
+- The Four Horsemen warning signs
+- Building love maps
+- Nurturing fondness and admiration
+- Turning toward instead of away`,
+              mimeType: "text/plain"
+            },
+            {
+              name: "Conflict Resolution Strategies.pdf",
+              content: `# Professional Conflict Resolution Strategies
+
+## Assessment Phase
+- Understanding the conflict dynamics
+- Identifying underlying needs and interests
+- Recognizing emotional patterns
+- Mapping relationship history
+
+## Intervention Techniques
+- Structured communication exercises
+- Emotional regulation strategies
+- Compromise and solution-building
+- Long-term relationship maintenance
+
+## Crisis Intervention
+When to refer to licensed therapists and emergency resources for relationship crises.`,
+              mimeType: "text/plain"
+            }
+          ]
+        }
+      ];
+
+      let uploadedFiles = 0;
+      let errors = [];
+
+      for (const course of sampleMaterials) {
+        try {
+          // Create course folder if it doesn't exist
+          const folder = await googleDriveService.createCourseFolder(course.courseId, course.courseName);
+          
+          // Upload materials to the folder
+          for (const material of course.materials) {
+            try {
+              const fileBuffer = Buffer.from(material.content, 'utf8');
+              await googleDriveService.uploadFile(
+                material.name,
+                fileBuffer,
+                material.mimeType,
+                folder.folderId
+              );
+              uploadedFiles++;
+            } catch (error) {
+              errors.push(`Failed to upload ${material.name}: ${error.message}`);
+            }
+          }
+        } catch (error) {
+          errors.push(`Failed to process course ${course.courseName}: ${error.message}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Successfully uploaded ${uploadedFiles} course materials`,
+        uploadedFiles,
+        errors: errors.length > 0 ? errors : undefined
+      });
+
+    } catch (error) {
+      console.error("Error uploading sample materials:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to upload course materials" 
+      });
+    }
+  });
+
   // Admin route to update user role (temporary for testing)
   app.post('/api/auth/update-coach-role', async (req, res) => {
     try {

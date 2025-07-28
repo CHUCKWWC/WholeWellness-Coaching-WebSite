@@ -125,6 +125,35 @@ class GoogleDriveService {
       };
 
       const media = {
+        mimeType: mimeType,
+        body: fileBuffer,
+      };
+
+      const response = await this.drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: 'id,name,size,createdTime,mimeType,thumbnailLink',
+      });
+
+      return {
+        id: response.data.id,
+        name: response.data.name,
+        type: this.getFileType(response.data.mimeType),
+        url: `https://drive.google.com/file/d/${response.data.id}/view`,
+        thumbnailUrl: response.data.thumbnailLink,
+        size: response.data.size ? this.formatFileSize(parseInt(response.data.size)) : undefined,
+        uploadedAt: response.data.createdTime
+      };
+    } catch (error) {
+      console.error('Error uploading course file:', error);
+      return null;
+    }
+  }
+
+  async uploadFile(fileName: string, fileBuffer: Buffer, mimeType: string, parentFolderId: string) {
+    return this.uploadCourseFile(parentFolderId, fileName, fileBuffer, mimeType);
+
+      const media = {
         mimeType,
         body: fileBuffer
       };
