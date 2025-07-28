@@ -36,6 +36,192 @@ type CourseMaterial = {
   uploadedAt: string;
 };
 
+const generateModuleContent = (courseTitle: string, moduleTitle: string, duration: number): string => {
+  const contentMap: { [key: string]: string } = {
+    "Advanced Coaching Techniques": `
+## Module Overview
+Master advanced coaching methodologies that transform client outcomes through evidence-based practices and innovative approaches.
+
+### Learning Objectives
+- Implement solution-focused coaching strategies
+- Apply motivational interviewing techniques
+- Design personalized coaching frameworks
+- Master active listening and powerful questioning
+
+### Key Topics Covered
+**1. Solution-Focused Coaching (${Math.floor(duration * 0.3)} hours)**
+- Identifying client strengths and resources
+- Goal-setting frameworks that drive results
+- Scaling questions and miracle questions
+- Building on existing client competencies
+
+**2. Motivational Interviewing Techniques (${Math.floor(duration * 0.3)} hours)**
+- Understanding stages of change
+- Resolving ambivalence and resistance
+- Using reflective listening effectively
+- Enhancing client motivation and commitment
+
+**3. Advanced Communication Skills (${Math.floor(duration * 0.4)} hours)**
+- Powerful questioning techniques
+- Creating safe spaces for vulnerability
+- Managing challenging conversations
+- Non-verbal communication mastery
+
+### Practical Applications
+- Role-playing exercises with feedback
+- Case study analysis and discussion
+- Technique demonstration videos
+- Self-assessment tools and reflection exercises
+
+### Professional Development
+This module contributes **${duration} CE credits** toward your professional certification and meets ICF core competency requirements.
+    `,
+    
+    "Behavior Change Psychology": `
+## Module Overview
+Deep dive into the psychology of behavior change, habit formation, and sustainable transformation methodologies.
+
+### Learning Objectives
+- Understand neuroplasticity and behavior modification
+- Apply evidence-based change models
+- Design effective intervention strategies
+- Support clients through change resistance
+
+### Key Topics Covered
+**1. Psychology of Change (${Math.floor(duration * 0.25)} hours)**
+- Transtheoretical Model of behavior change
+- Cognitive-behavioral principles
+- Neuroplasticity and brain adaptation
+- Understanding change resistance
+
+**2. Habit Formation Science (${Math.floor(duration * 0.25)} hours)**
+- The habit loop: cue, routine, reward
+- Keystone habits and behavior stacking
+- Environmental design for success
+- Breaking unwanted patterns
+
+**3. Motivational Psychology (${Math.floor(duration * 0.25)} hours)**
+- Self-Determination Theory
+- Intrinsic vs. extrinsic motivation
+- Goal-setting psychology
+- Building self-efficacy
+
+**4. Practical Applications (${Math.floor(duration * 0.25)} hours)**
+- Behavior change assessments
+- Intervention design workshop
+- Client case study analysis
+- Progress tracking methodologies
+
+### Professional Resources
+- Behavior change assessment tools
+- Client handouts and worksheets
+- Research articles and evidence base
+- Professional development resources
+    `,
+    
+    "Wellness Assessment Methods": `
+## Module Overview
+Comprehensive training in holistic wellness assessment techniques, measurement tools, and client evaluation methodologies.
+
+### Learning Objectives
+- Conduct comprehensive wellness assessments
+- Interpret assessment results effectively
+- Design personalized wellness plans
+- Track and measure client progress
+
+### Key Topics Covered
+**1. Holistic Assessment Frameworks (${Math.floor(duration * 0.3)} hours)**
+- Physical wellness indicators
+- Mental and emotional health markers
+- Social and relationship wellness
+- Spiritual and purpose alignment
+- Environmental and lifestyle factors
+
+**2. Assessment Tools and Techniques (${Math.floor(duration * 0.3)} hours)**
+- Validated wellness questionnaires
+- Biometric and physical assessments
+- Lifestyle and habit inventories
+- Stress and resilience measures
+- Values and purpose assessments
+
+**3. Data Interpretation and Planning (${Math.floor(duration * 0.4)} hours)**
+- Analyzing assessment results
+- Identifying priority areas for improvement
+- Creating personalized wellness plans
+- Setting SMART wellness goals
+- Tracking progress and outcomes
+
+### Hands-On Practice
+- Complete wellness assessments on yourself
+- Practice with volunteer clients
+- Interpret sample assessment results
+- Design personalized wellness plans
+
+### Professional Toolkit
+Access to professional-grade assessment tools, scoring guides, and interpretation resources used by certified wellness coaches.
+    `,
+    
+    "Client Relationship Management": `
+## Module Overview
+Master the art of building, maintaining, and optimizing client relationships for maximum coaching effectiveness and satisfaction.
+
+### Learning Objectives
+- Establish professional coaching relationships
+- Maintain appropriate boundaries
+- Handle challenging client situations
+- Optimize client engagement and retention
+
+### Key Topics Covered
+**1. Relationship Foundation (${Math.floor(duration * 0.25)} hours)**
+- Creating psychological safety
+- Establishing trust and rapport
+- Setting clear expectations
+- Professional boundary management
+
+**2. Communication Excellence (${Math.floor(duration * 0.25)} hours)**
+- Active listening mastery
+- Empathetic responding
+- Difficult conversation navigation
+- Cultural competency awareness
+
+**3. Client Engagement Strategies (${Math.floor(duration * 0.25)} hours)**
+- Motivation and accountability systems
+- Session structure optimization
+- Between-session support
+- Progress celebration methods
+
+**4. Challenge Management (${Math.floor(duration * 0.25)} hours)**
+- Handling resistance and setbacks
+- Managing client expectations
+- Ethical dilemma resolution
+- Professional referral processes
+
+### Real-World Applications
+- Client onboarding best practices
+- Session planning templates
+- Communication scripts and frameworks
+- Challenge resolution case studies
+
+This module prepares you for the complexities of professional coaching relationships while maintaining the highest ethical standards.
+    `
+  };
+  
+  return contentMap[moduleTitle] || `
+## ${moduleTitle}
+Professional certification module covering ${moduleTitle.toLowerCase()} with comprehensive learning objectives, practical applications, and hands-on exercises.
+
+**Duration:** ${duration} hours of intensive training
+**Format:** Interactive online learning with assessments
+**Certification:** Contributes toward professional coaching credentials
+
+### Module Content
+This comprehensive module includes theoretical foundations, practical applications, case studies, and assessment components designed to enhance your professional coaching capabilities.
+
+### Learning Outcomes
+Upon completion, you will have mastered essential skills in ${moduleTitle.toLowerCase()} and be prepared to apply these techniques with confidence in your coaching practice.
+  `;
+};
+
 export default function CertificationDashboard() {
   const [progress, setProgress] = useState<Certification[]>([])
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
@@ -58,17 +244,39 @@ export default function CertificationDashboard() {
     setError(null);
 
     try {
-      // Using API request instead of direct supabase calls for security
-      const data = await apiRequest("GET", "/api/coach/certification-progress");
-      if (data && Array.isArray(data)) {
-        setProgress(data as Certification[]);
+      // Get available certification courses
+      const courses = await apiRequest("GET", "/api/coach/certification-courses");
+      if (courses && Array.isArray(courses)) {
+        // Transform courses into module progress format
+        const moduleProgress: Certification[] = [];
+        
+        courses.forEach((course: any, courseIndex: number) => {
+          if (course.syllabus && course.syllabus.modules) {
+            course.syllabus.modules.forEach((module: any, moduleIndex: number) => {
+              moduleProgress.push({
+                module_id: courseIndex * 100 + moduleIndex + 1,
+                status: moduleIndex === 0 ? 'not_started' : 'coming_soon', // First module available, others coming soon
+                score: null,
+                answers: {},
+                modules: {
+                  id: courseIndex * 100 + moduleIndex + 1,
+                  title: module.title,
+                  content: generateModuleContent(course.title, module.title, module.duration),
+                  module_order: moduleIndex + 1
+                }
+              });
+            });
+          }
+        });
+        
+        setProgress(moduleProgress);
       } else {
-        console.error('API returned non-array data:', data);
+        console.error('API returned non-array data:', courses);
         setProgress([]);
       }
     } catch (error) {
-      console.error('Error fetching progress:', error)
-      setError('Could not fetch certification progress.');
+      console.error('Error fetching courses:', error)
+      setError('Could not fetch certification courses.');
       setProgress([]); // Ensure progress is always an array
     }
     setLoading(false);
