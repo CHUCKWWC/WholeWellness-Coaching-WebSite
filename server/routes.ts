@@ -53,6 +53,7 @@ import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 // Admin auth now uses OAuth only - no password login exports
 import { onboardingService } from "./onboarding-service";
+import { registerAdminCertificationRoutes } from "./admin-certification-routes";
 // Google Drive service initialized below
 import { supabase } from "./supabase";
 import bcrypt from 'bcrypt';
@@ -3406,6 +3407,9 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
   // Mount comprehensive route modules
   app.use('/api/admin', adminRoutes);
+  
+  // Register admin certification routes
+  registerAdminCertificationRoutes(app);
   app.use('/api/coach', coachRoutes);
   app.use('/api/donation', donationRoutes);
   app.use('/api/onboarding', onboardingRoutes);

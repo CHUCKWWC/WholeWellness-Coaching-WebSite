@@ -156,6 +156,14 @@ export interface IStorage {
   createProgram(program: InsertProgram): Promise<Program>;
   updateProgram(id: string, program: Partial<InsertProgram>): Promise<Program | undefined>;
 
+  // Certification Management
+  getAllCertificationEnrollments(): Promise<any[]>;
+  getCertificationEnrollmentsByCourse(courseId: string): Promise<any[]>;
+  createCertificationEnrollment(enrollment: any): Promise<any>;
+  updateCertificationEnrollment(enrollmentId: string, updates: any): Promise<any>;
+  createModuleProgress(progress: any): Promise<any>;
+  getCertificationCourses(): Promise<any[]>;
+
   // Chat Sessions
   getChatSession(id: string): Promise<ChatSession | undefined>;
   getUserChatSessions(userId: string): Promise<ChatSession[]>;
@@ -3716,6 +3724,117 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error creating chat message:', error);
       throw error;
+    }
+  }
+
+  // Certification Management Implementation
+  async getAllCertificationEnrollments(): Promise<any[]> {
+    try {
+      // For now, return mock data based on enrolled coaches
+      const users = await this.getAllUsers();
+      const coaches = users.filter(user => user.role === 'coach');
+      
+      return coaches.map(coach => ({
+        id: `${coach.id}_course-1`,
+        userId: coach.id,
+        courseId: 'course-1',
+        enrollmentDate: new Date().toISOString(),
+        status: 'active',
+        progress: Math.floor(Math.random() * 100),
+        completedModules: [],
+        certificateIssued: false
+      }));
+    } catch (error) {
+      console.error('Error fetching certification enrollments:', error);
+      return [];
+    }
+  }
+
+  async getCertificationEnrollmentsByCourse(courseId: string): Promise<any[]> {
+    try {
+      const allEnrollments = await this.getAllCertificationEnrollments();
+      return allEnrollments.filter(enrollment => enrollment.courseId === courseId);
+    } catch (error) {
+      console.error('Error fetching enrollments by course:', error);
+      return [];
+    }
+  }
+
+  async createCertificationEnrollment(enrollment: any): Promise<any> {
+    try {
+      // In a real implementation, this would save to a certifications table
+      console.log('Creating certification enrollment:', enrollment);
+      return {
+        id: `${enrollment.userId}_${enrollment.courseId}`,
+        ...enrollment
+      };
+    } catch (error) {
+      console.error('Error creating certification enrollment:', error);
+      throw error;
+    }
+  }
+
+  async updateCertificationEnrollment(enrollmentId: string, updates: any): Promise<any> {
+    try {
+      // In a real implementation, this would update the certifications table
+      console.log('Updating certification enrollment:', enrollmentId, updates);
+      return { id: enrollmentId, ...updates };
+    } catch (error) {
+      console.error('Error updating certification enrollment:', error);
+      throw error;
+    }
+  }
+
+  async createModuleProgress(progress: any): Promise<any> {
+    try {
+      // In a real implementation, this would save to a module_progress table
+      console.log('Creating module progress:', progress);
+      return { id: `${progress.enrollmentId}_${progress.moduleId}`, ...progress };
+    } catch (error) {
+      console.error('Error creating module progress:', error);
+      throw error;
+    }
+  }
+
+  async getCertificationCourses(): Promise<any[]> {
+    try {
+      // Return the hardcoded certification courses from the API
+      return [
+        {
+          id: "course-1",
+          title: "Advanced Wellness Coaching Certification",
+          description: "Comprehensive training in holistic wellness coaching techniques, covering nutrition, fitness, mental health, and lifestyle optimization strategies.",
+          category: "wellness",
+          level: "intermediate",
+          duration: 40,
+          creditHours: "35.0",
+          price: "799.00",
+          instructorName: "Dr. Sarah Mitchell",
+          instructorBio: "Licensed therapist with 15+ years in wellness coaching",
+          courseImageUrl: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400",
+          previewVideoUrl: null,
+          requirements: ["Basic coaching certification", "1+ year experience"],
+          learningObjectives: ["Master advanced coaching techniques", "Understand wellness psychology", "Develop personalized wellness plans"],
+          accreditation: "International Coach Federation (ICF)",
+          tags: ["wellness", "holistic", "lifestyle"],
+          isActive: true,
+          enrollmentLimit: 50,
+          startDate: "2025-08-01T00:00:00Z",
+          endDate: "2025-12-15T00:00:00Z",
+          syllabus: {
+            driveFolder: "1G8F_pu26GDIYg2hAmSxjJ2P1bvIL4pya",
+            modules: [
+              { title: "Advanced Coaching Techniques", duration: 8 },
+              { title: "Behavior Change Psychology", duration: 10 },
+              { title: "Wellness Assessment Methods", duration: 12 },
+              { title: "Client Relationship Management", duration: 10 }
+            ]
+          }
+        }
+      ];
+    } catch (error) {
+      console.error('Error fetching certification courses:', error);
+      return [];
     }
   }
 }
