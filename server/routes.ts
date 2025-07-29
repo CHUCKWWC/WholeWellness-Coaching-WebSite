@@ -62,6 +62,8 @@ import { recommendationEngine, type UserProfile, type RecommendationContext } fr
 import { createTestCoach } from './create-coach-endpoint';
 import passport from "passport";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import crypto from "crypto";
 import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
 import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./google-drive-service";
 import { googleDriveDemoService } from "./google-drive-demo";
@@ -169,8 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
   
-  // Session configuration for OAuth - optimized for deployment
-  app.use(session({
+  // Session configuration for OAuth - production-ready with PostgreSQL store
+  const sessionConfig: any = {
     secret: process.env.SESSION_SECRET || 'wholewellness-oauth-secret',
     resave: false,
     saveUninitialized: false,
@@ -178,12 +180,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: process.env.NODE_ENV === 'production', // Auto-configure based on environment
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     },
-    // Don't create sessions for health check endpoints
     name: 'wholewellness.sid',
     genid: () => {
-      return require('crypto').randomBytes(16).toString('hex');
+      return crypto.randomBytes(16).toString('hex');
     }
-  }));
+  };
+
+  // Use production-compatible session store
+  if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+    const pgSession = connectPgSimple(session);
+    sessionConfig.store = new pgSession({
+      conString: process.env.DATABASE_URL,
+      tableName: 'session',
+      createTableIfMissing: true
+    });
+    console.log('✓ Using PostgreSQL session store for production');
+  } else {
+    console.log('✓ Using memory session store for development');
+  }
+
+  app.use(session(sessionConfig));
   
   // Initialize Passport and session
   app.use(passport.initialize());
