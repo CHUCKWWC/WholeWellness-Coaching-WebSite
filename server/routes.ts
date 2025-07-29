@@ -29,7 +29,7 @@ import {
   insertCoachClientCommunicationSchema
 } from "@shared/schema";
 import { z } from "zod";
-import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
+// import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
 import { 
   requireAuth as auth1, 
@@ -1948,12 +1948,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   
-  // Initialize Wix Integration
-  const wixConfig = getWixConfig();
-  const wixIntegration = new WixIntegration(wixConfig);
+  // Initialize Wix Integration - DISABLED FOR DEPLOYMENT
+  // const wixConfig = getWixConfig();
+  // const wixIntegration = new WixIntegration(wixConfig);
   
-  // Setup Wix webhooks
-  setupWixWebhooks(app, wixIntegration);
+  // Setup Wix webhooks - DISABLED FOR DEPLOYMENT
+  // setupWixWebhooks(app, wixIntegration);
   
   // Bookings
   app.post("/api/bookings", async (req, res) => {
@@ -2069,7 +2069,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
     res.json(null);
   });
 
-  // Wix integration endpoints
+  // Wix integration endpoints - DISABLED FOR DEPLOYMENT
+  /*
   app.get("/api/wix/sync/users", async (req, res) => {
     try {
       await wixIntegration.syncUsers();
@@ -2205,6 +2206,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.status(500).json({ error: "Failed to sync all data" });
     }
   });
+  */
 
   // Impact metrics endpoints
   app.get("/api/impact/metrics", async (req, res) => {
