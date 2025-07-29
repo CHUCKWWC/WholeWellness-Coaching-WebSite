@@ -38,35 +38,72 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
-  
-  // Admin routes are handled in registerRoutes
+  try {
+    // Add startup timeout for Cloud Run deployment
+    const startupTimeout = setTimeout(() => {
+      console.error('Server startup timeout - terminating');
+      process.exit(1);
+    }, 30000); // 30 second timeout for startup
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const server = await registerRoutes(app);
+    
+    // Clear startup timeout once routes are registered
+    clearTimeout(startupTimeout);
+    
+    // Global error handler - improved for production
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
 
-    res.status(status).json({ message });
-    throw err;
-  });
+      console.error('Server error:', err);
+      res.status(status).json({ message });
+    });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    // Setup Vite or static files based on environment
+    if (process.env.NODE_ENV === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
+    // Cloud Run optimized server configuration
+    const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+    const host = process.env.HOST || "0.0.0.0";
+    
+    server.listen({
+      port,
+      host,
+      // Remove reusePort for Cloud Run compatibility
+      ...(process.env.NODE_ENV === 'development' && { reusePort: true })
+    }, () => {
+      log(`Server ready on ${host}:${port} (${process.env.NODE_ENV || 'development'})`);
+      
+      // Signal that server is ready for health checks
+      if (process.send) {
+        process.send('ready');
+      }
+    });
+
+    // Graceful shutdown handling for Cloud Run
+    const gracefulShutdown = (signal: string) => {
+      log(`${signal} received, shutting down gracefully`);
+      server.close(() => {
+        log('HTTP server closed');
+        process.exit(0);
+      });
+      
+      // Force shutdown after 10 seconds
+      setTimeout(() => {
+        log('Forced shutdown');
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
   }
-
-  // Use PORT environment variable for Cloud Run deployment, fallback to 5000 for development
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    // Remove reusePort for Cloud Run compatibility
-    ...(process.env.NODE_ENV === 'development' && { reusePort: true })
-  }, () => {
-    log(`serving on port ${port}`);
-  });
 })();

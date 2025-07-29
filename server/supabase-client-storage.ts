@@ -316,6 +316,9 @@ export interface IStorage {
   getJourneyAnalytics(userId: string): Promise<any>;
   generateJourneyAdaptations(journeyId: string, reason: string, feedback?: string): Promise<any[]>;
   completeMilestone(milestoneId: string, userId: string, reflection?: string, difficultyRating?: number, satisfactionRating?: number): Promise<any>;
+  
+  // Health check for deployment monitoring
+  healthCheck(): Promise<boolean>;
 }
 
 export class SupabaseClientStorage implements IStorage {
@@ -3835,6 +3838,27 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching certification courses:', error);
       return [];
+    }
+  }
+
+  // Health check for deployment monitoring
+  async healthCheck(): Promise<boolean> {
+    try {
+      // Simple query to test database connectivity with timeout
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .limit(1);
+      
+      if (error) {
+        console.error('Health check failed:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Health check error:', error);
+      return false;
     }
   }
 }

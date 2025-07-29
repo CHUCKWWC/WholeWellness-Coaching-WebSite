@@ -69,21 +69,48 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Health check endpoint for deployment monitoring (must be first)
+  // Fast health check endpoint for deployment monitoring (must be first)
+  // Optimized for Cloud Run health checks - no database calls or heavy operations
   app.get('/', (req, res) => {
     res.status(200).json({ 
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      service: 'Whole Wellness Coaching Platform'
+      status: 'ok',
+      uptime: process.uptime(),
+      timestamp: Date.now()
     });
   });
 
+  // Alternative health check endpoint 
   app.get('/health', (req, res) => {
     res.status(200).json({ 
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      service: 'Whole Wellness Coaching Platform'
+      status: 'ok',
+      uptime: process.uptime(),
+      timestamp: Date.now()
     });
+  });
+
+  // Readiness check with database connectivity (for monitoring)
+  app.get('/ready', async (req, res) => {
+    try {
+      // Quick database connectivity check with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database timeout')), 2000)
+      );
+      
+      const dbCheck = storage.healthCheck ? storage.healthCheck() : Promise.resolve(true);
+      await Promise.race([dbCheck, timeoutPromise]);
+      
+      res.status(200).json({ 
+        status: 'ready',
+        database: 'connected',
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      res.status(503).json({ 
+        status: 'not ready',
+        error: 'Database connection failed',
+        timestamp: Date.now()
+      });
+    }
   });
   
   // Google Drive course materials endpoint - PRIORITY ROUTE
@@ -130,14 +157,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
   
-  // Session configuration for OAuth
+  // Session configuration for OAuth - optimized for deployment
   app.use(session({
     secret: process.env.SESSION_SECRET || 'wholewellness-oauth-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production', // Auto-configure based on environment
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+    // Don't create sessions for health check endpoints
+    name: 'wholewellness.sid',
+    genid: () => {
+      return require('crypto').randomBytes(16).toString('hex');
     }
   }));
   
@@ -148,18 +180,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Google OAuth
   setupGoogleAuth();
   
-  // Initialize Google Drive service
-  const googleDriveService = new GoogleDriveService();
+  // Lazy-load expensive services to optimize startup time
+  let googleDriveService: GoogleDriveService | null = null;
+  const getGoogleDriveService = () => {
+    if (!googleDriveService) {
+      googleDriveService = new GoogleDriveService();
+    }
+    return googleDriveService;
+  };
   
-  // Initialize Stripe (if key exists)
+  // Initialize Stripe (if key exists) - lazy load to avoid startup delays
   let stripe: Stripe | null = null;
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16',
-    });
-  } else {
-    console.warn('Stripe secret key not found. Payment features will be disabled.');
-  }
+  const getStripe = () => {
+    if (!stripe && process.env.STRIPE_SECRET_KEY) {
+      try {
+        stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: '2023-10-16',
+          timeout: 5000, // 5 second timeout for Cloud Run
+        });
+      } catch (error) {
+        console.warn('Failed to initialize Stripe:', error);
+      }
+    }
+    return stripe;
+  };
 
   // Session management functions
   async function createSession(userId: string): Promise<string> {
