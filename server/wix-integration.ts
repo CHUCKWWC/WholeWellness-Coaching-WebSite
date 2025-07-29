@@ -1,8 +1,8 @@
 import type { Express } from "express";
-// Wix integration temporarily disabled for deployment
-// import { createClient, OAuthStrategy } from '@wix/sdk';
-// import { items } from '@wix/data';
-// import { bookings, services } from '@wix/bookings';
+import { createClient, OAuthStrategy } from '@wix/sdk';
+import { items } from '@wix/data';
+import { bookings, services } from '@wix/bookings';
+// Temporarily disabled to fix dependency conflicts
 // import { products } from '@wix/stores';
 // import { plans } from '@wix/pricing-plans';
 
@@ -58,8 +58,9 @@ export class WixIntegration {
     this.wixClient = createClient({
       modules: { 
         services, 
-        products, 
-        plans, 
+        // Temporarily disabled due to dependency conflicts
+        // products, 
+        // plans, 
         items, 
         bookings 
       },
@@ -89,8 +90,12 @@ export class WixIntegration {
     }
   }
 
+  // Temporarily disabled due to dependency conflicts
   // Fetch products from Wix using SDK
   async getProducts(): Promise<WixProduct[]> {
+    console.warn('Products module temporarily disabled due to dependency conflicts');
+    return [];
+    /*
     try {
       const productList = await this.wixClient.products.queryProducts().find();
       
@@ -108,10 +113,15 @@ export class WixIntegration {
       console.error('Error fetching products from Wix:', error);
       return [];
     }
+    */
   }
 
+  // Temporarily disabled due to dependency conflicts
   // Fetch pricing plans from Wix using SDK
   async getPlans(): Promise<any[]> {
+    console.warn('Plans module temporarily disabled due to dependency conflicts');
+    return [];
+    /*
     try {
       const plansList = await this.wixClient.plans.listPublicPlans();
       
@@ -123,6 +133,7 @@ export class WixIntegration {
       console.error('Error fetching plans from Wix:', error);
       return [];
     }
+    */
   }
 
   // Fetch data items from Wix collections using SDK

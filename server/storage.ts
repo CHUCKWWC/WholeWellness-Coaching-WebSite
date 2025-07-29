@@ -3,11 +3,7 @@ import {
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
   type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
   type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting,
-  type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage,
-  type AssessmentType, type InsertAssessmentType, type UserAssessment, type InsertUserAssessment,
-  type CoachInteraction, type InsertCoachInteraction, type AssessmentForm, type InsertAssessmentForm,
-  type CoachingPlan, type InsertCoachingPlan, type UserSubscription, type InsertUserSubscription,
-  type CoachingSessionUsage, type InsertCoachingSessionUsage, type PlanFeature, type InsertPlanFeature
+  type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -102,48 +98,6 @@ export interface IStorage {
   getChatMessage(id: string): Promise<ChatMessage | undefined>;
   getChatMessagesBySessionId(sessionId: string): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
-
-  // Assessment System
-  getAssessmentType(id: string): Promise<AssessmentType | undefined>;
-  getAllAssessmentTypes(): Promise<AssessmentType[]>;
-  getActiveAssessmentTypes(): Promise<AssessmentType[]>;
-  createAssessmentType(assessmentType: InsertAssessmentType): Promise<AssessmentType>;
-  
-  getUserAssessment(id: string): Promise<UserAssessment | undefined>;
-  getUserAssessments(userId: string): Promise<UserAssessment[]>;
-  getAssessmentsForCoach(userId: string, coachType: string): Promise<UserAssessment[]>;
-  createUserAssessment(assessment: InsertUserAssessment): Promise<UserAssessment>;
-  
-  getCoachInteraction(id: string): Promise<CoachInteraction | undefined>;
-  getCoachInteractionsByUser(userId: string): Promise<CoachInteraction[]>;
-  createCoachInteraction(interaction: InsertCoachInteraction): Promise<CoachInteraction>;
-  
-  getAssessmentForm(id: string): Promise<AssessmentForm | undefined>;
-  getAssessmentFormsByType(assessmentTypeId: string): Promise<AssessmentForm[]>;
-  createAssessmentForm(form: InsertAssessmentForm): Promise<AssessmentForm>;
-
-  // Subscription System
-  getCoachingPlan(id: string): Promise<CoachingPlan | undefined>;
-  getAllCoachingPlans(): Promise<CoachingPlan[]>;
-  getActiveCoachingPlans(): Promise<CoachingPlan[]>;
-  createCoachingPlan(plan: InsertCoachingPlan): Promise<CoachingPlan>;
-  updateCoachingPlan(id: string, plan: Partial<InsertCoachingPlan>): Promise<CoachingPlan | undefined>;
-  
-  getUserSubscription(id: string): Promise<UserSubscription | undefined>;
-  getUserActiveSubscription(userId: string): Promise<UserSubscription | undefined>;
-  getUserSubscriptions(userId: string): Promise<UserSubscription[]>;
-  createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
-  updateUserSubscription(id: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription | undefined>;
-  updateStripeCustomerId(userId: string, stripeCustomerId: string): Promise<User | undefined>;
-  updateUserStripeInfo(userId: string, stripeInfo: { customerId: string; subscriptionId: string }): Promise<User | undefined>;
-  
-  getCoachingSessionUsage(id: string): Promise<CoachingSessionUsage | undefined>;
-  getUserSessionUsage(userId: string, billingPeriod?: string): Promise<CoachingSessionUsage[]>;
-  createCoachingSessionUsage(usage: InsertCoachingSessionUsage): Promise<CoachingSessionUsage>;
-  
-  getPlanFeature(id: string): Promise<PlanFeature | undefined>;
-  getPlanFeatures(planId: string): Promise<PlanFeature[]>;
-  createPlanFeature(feature: InsertPlanFeature): Promise<PlanFeature>;
 }
 
 export class MemoryStorage implements IStorage {

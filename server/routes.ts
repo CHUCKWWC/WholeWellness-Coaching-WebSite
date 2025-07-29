@@ -29,8 +29,7 @@ import {
   insertCoachClientCommunicationSchema
 } from "@shared/schema";
 import { z } from "zod";
-// Wix integration temporarily disabled for deployment
-// import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
+import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
 import { 
   requireAuth as auth1, 
@@ -1911,12 +1910,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   
-  // Wix Integration temporarily disabled for deployment
-  // const wixConfig = getWixConfig();
-  // const wixIntegration = new WixIntegration(wixConfig);
+  // Initialize Wix Integration
+  const wixConfig = getWixConfig();
+  const wixIntegration = new WixIntegration(wixConfig);
   
   // Setup Wix webhooks
-  // setupWixWebhooks(app, wixIntegration);
+  setupWixWebhooks(app, wixIntegration);
   
   // Bookings
   app.post("/api/bookings", async (req, res) => {
@@ -2032,53 +2031,141 @@ When to refer to licensed therapists and emergency resources for relationship cr
     res.json(null);
   });
 
-  // Wix integration endpoints - temporarily disabled for deployment
+  // Wix integration endpoints
   app.get("/api/wix/sync/users", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      await wixIntegration.syncUsers();
+      res.json({ success: true, message: "Users synchronized from Wix" });
+    } catch (error) {
+      console.error("Error syncing users:", error);
+      res.status(500).json({ error: "Failed to sync users" });
+    }
   });
 
   app.get("/api/wix/sync/services", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      await wixIntegration.syncServices();
+      res.json({ success: true, message: "Services synchronized from Wix" });
+    } catch (error) {
+      console.error("Error syncing services:", error);
+      res.status(500).json({ error: "Failed to sync services" });
+    }
   });
 
   app.get("/api/wix/services", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const services = await wixIntegration.getServices();
+      res.json(services);
+    } catch (error) {
+      console.error("Error fetching Wix services:", error);
+      res.status(500).json({ error: "Failed to fetch services" });
+    }
   });
 
   app.get("/api/wix/products", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const products = await wixIntegration.getProducts();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching Wix products:", error);
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
   });
 
   app.get("/api/wix/plans", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const plans = await wixIntegration.getPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching Wix plans:", error);
+      res.status(500).json({ error: "Failed to fetch plans" });
+    }
   });
 
   app.get("/api/wix/bookings", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const bookings = await wixIntegration.getBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching Wix bookings:", error);
+      res.status(500).json({ error: "Failed to fetch bookings" });
+    }
   });
 
+  // Create a new booking
   app.post("/api/wix/bookings", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const bookingData = req.body;
+      const booking = await wixIntegration.createBooking(bookingData);
+      res.json(booking);
+    } catch (error) {
+      console.error("Error creating Wix booking:", error);
+      res.status(500).json({ error: "Failed to create booking" });
+    }
   });
 
+  // Get available time slots for a service
   app.get("/api/wix/services/:serviceId/slots", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const { serviceId } = req.params;
+      const { date } = req.query;
+      
+      if (!date) {
+        return res.status(400).json({ error: "Date parameter is required" });
+      }
+      
+      const slots = await wixIntegration.getAvailableSlots(serviceId, date as string);
+      res.json(slots);
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      res.status(500).json({ error: "Failed to fetch available slots" });
+    }
   });
 
+  // Cancel a booking
   app.delete("/api/wix/bookings/:bookingId", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const { bookingId } = req.params;
+      const result = await wixIntegration.cancelBooking(bookingId);
+      res.json({ success: result });
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      res.status(500).json({ error: "Failed to cancel booking" });
+    }
   });
 
+  // Reschedule a booking
   app.put("/api/wix/bookings/:bookingId/reschedule", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const { bookingId } = req.params;
+      const { newSlot } = req.body;
+      const result = await wixIntegration.rescheduleBooking(bookingId, newSlot);
+      res.json({ success: result });
+    } catch (error) {
+      console.error("Error rescheduling booking:", error);
+      res.status(500).json({ error: "Failed to reschedule booking" });
+    }
   });
 
   app.get("/api/wix/data/:collectionId", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      const { collectionId } = req.params;
+      const dataItems = await wixIntegration.getDataItems(collectionId);
+      res.json(dataItems);
+    } catch (error) {
+      console.error("Error fetching Wix data items:", error);
+      res.status(500).json({ error: "Failed to fetch data items" });
+    }
   });
 
   app.post("/api/wix/sync/all", async (req, res) => {
-    res.status(503).json({ error: "Wix integration temporarily disabled" });
+    try {
+      await wixIntegration.syncAllData();
+      res.json({ success: true, message: "All data synchronized from Wix" });
+    } catch (error) {
+      console.error("Error syncing all data:", error);
+      res.status(500).json({ error: "Failed to sync all data" });
+    }
   });
 
   // Impact metrics endpoints
