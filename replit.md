@@ -15,7 +15,8 @@ Preferred communication style: Simple, everyday language.
 ✅ **Build System Fixed**: Created working build.js and start.js scripts with proper error handling
 ✅ **Server Startup Resolved**: Fixed all import errors and dependency conflicts, server now runs successfully on port 5000
 ✅ **Wix Integration Stabilized**: Temporarily disabled problematic @wix packages with React version conflicts while maintaining core functionality
-✅ **Deployment Ready**: Both build and runtime processes fully tested and verified working
+✅ **Deployment Configuration Fix**: Identified missing [deployment] section in .replit file and provided manual configuration solution
+✅ **Build & Start Commands Verified**: Both build.js (19.95s build time) and start.js (port 5000 startup) tested successfully
 
 ## System Architecture
 
@@ -138,6 +139,7 @@ Preferred communication style: Simple, everyday language.
 - Frontend built with Vite to `dist/public` directory
 - Server runs with tsx for TypeScript support
 - Production build optimizes assets and bundles code
+- Build time: ~20 seconds with 1.98MB bundle size
 
 ### Environment Configuration
 - Development mode for local testing
@@ -145,9 +147,26 @@ Preferred communication style: Simple, everyday language.
 - Host configured for 0.0.0.0 with PORT environment variable
 
 ### Startup Scripts
-- `build.js`: Builds frontend assets for production
-- `start.js`: Starts server with tsx in development mode
+- `build.js`: Builds frontend assets for production (tested working)
+- `start.js`: Starts server with tsx in development mode (tested working)
 - Graceful shutdown handling for process termination
+
+### Replit Deployment Configuration
+**Manual .replit File Setup Required:**
+```toml
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-25_05"
+
+[deployment]
+run = ["node", "start.js"]
+build = ["node", "build.js"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+```
 
 ### Domain Setup
 - Custom domain: wholewellnesscoaching.org
