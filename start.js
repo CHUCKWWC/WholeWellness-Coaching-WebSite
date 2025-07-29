@@ -3,8 +3,9 @@
 // Production startup script for Replit deployment
 import { spawn } from 'child_process';
 
-// Set production environment
-process.env.NODE_ENV = 'production';
+// Set development environment to avoid vite.ts path resolution issues
+// The frontend is already built and ready for production
+process.env.NODE_ENV = 'development';
 
 // Use PORT from environment or default to 5000
 const port = process.env.PORT || 5000;

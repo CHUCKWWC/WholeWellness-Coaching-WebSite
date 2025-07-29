@@ -119,10 +119,14 @@ Preferred communication style: Simple, everyday language.
 
 ### Replit-Optimized Deployment
 - **Build Process**: Frontend-only build with Vite, server runs with TSX
-- **Environment Configuration**: Production-ready environment variables
+- **Environment Configuration**: Development mode to avoid vite.ts path resolution issues
 - **Port Configuration**: Dynamic port assignment (PORT environment variable)
 - **Host Binding**: 0.0.0.0 for Replit compatibility
 - **Startup Script**: Node.js execution with proper error handling
+- **Deployment Commands**:
+  - Build: `node build.js` (builds frontend to dist/public)
+  - Start: `node start.js` (runs server with tsx in development mode)
+- **Status**: ✅ Successfully configured and tested
 
 ### Database Management
 - **Migration Strategy**: SQL schema files for database initialization
