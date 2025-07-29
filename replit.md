@@ -6,6 +6,15 @@ WholeWellness is a comprehensive nonprofit digital wellness platform designed to
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+**Deployment Fixes Applied (July 29, 2025):**
+✓ Created production startup scripts (start.js, build.js, deploy.js) for Replit deployment
+✓ Fixed missing @tailwindcss/typography dependency causing build failures  
+✓ Corrected file import case sensitivity issue (assessments.tsx)
+✓ Updated static file serving path to match build output directory
+✓ Temporarily disabled Wix integration to resolve React version conflicts
+✓ Confirmed server properly configured for 0.0.0.0:PORT cloud deployment
+
 ## System Architecture
 
 ### Frontend Architecture

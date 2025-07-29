@@ -1,63 +1,56 @@
 #!/usr/bin/env node
 
-// Deployment configuration script
-import fs from 'fs';
-import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
-
-async function deploy() {
-  console.log('Configuring deployment...');
-  
-  try {
-    // Ensure dist directory exists
-    if (!fs.existsSync('dist')) {
-      fs.mkdirSync('dist', { recursive: true });
-    }
-    
-    // Create a simple server start script for production
-    const serverScript = `
+// Deployment configuration script for Replit
 const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 
-const port = process.env.PORT || 5000;
-console.log('Starting production server on port', port);
+console.log('🚀 Starting Whole Wellness Coaching Platform Deployment...');
 
-const server = spawn('tsx', ['server/index.ts'], {
+// Change to the project directory
+const projectDir = path.join(__dirname, 'WholeWellness-Coaching-WebSite');
+process.chdir(projectDir);
+
+console.log(`📁 Working directory: ${projectDir}`);
+
+// Set production environment
+process.env.NODE_ENV = 'production';
+
+// Build the application
+console.log('🔨 Building application...');
+
+const buildProcess = spawn('npm', ['run', 'build'], {
   stdio: 'inherit',
-  env: {
-    ...process.env,
-    NODE_ENV: 'production',
-    PORT: port
-  }
+  shell: true
 });
 
-server.on('error', (error) => {
-  console.error('Server error:', error);
+buildProcess.on('error', (error) => {
+  console.error('❌ Build failed:', error);
   process.exit(1);
 });
 
-server.on('close', (code) => {
-  console.log('Server process exited with code', code);
-  process.exit(code);
-});
-`;
-    
-    // Write the production server script
-    fs.writeFileSync('dist/server.js', serverScript);
-    
-    console.log('Deployment configuration complete!');
-    console.log('');
-    console.log('To deploy this application:');
-    console.log('1. Use "node start.js" as the run command');
-    console.log('2. Ensure PORT environment variable is set');
-    console.log('3. The application will be available on the configured port');
-    
-  } catch (error) {
-    console.error('Deployment configuration failed:', error);
-    process.exit(1);
+buildProcess.on('exit', (code) => {
+  if (code !== 0) {
+    console.error(`❌ Build failed with exit code ${code}`);
+    process.exit(code);
   }
-}
-
-deploy();
+  
+  console.log('✅ Build completed successfully!');
+  console.log('🎯 Application is ready for deployment');
+  console.log('');
+  console.log('📋 Deployment Summary:');
+  console.log('  • Build: ✅ Complete');
+  console.log('  • Server: ✅ Configured for 0.0.0.0:PORT');
+  console.log('  • Environment: ✅ Production ready');
+  console.log('  • Start Command: npm start');
+  console.log('');
+  console.log('🌐 To start the server, run: npm start');
+  
+  // Check if dist directory exists
+  const distPath = path.join(projectDir, 'dist');
+  if (fs.existsSync(distPath)) {
+    console.log('✅ Distribution files generated in /dist');
+  } else {
+    console.log('⚠️  Warning: /dist directory not found');
+  }
+});

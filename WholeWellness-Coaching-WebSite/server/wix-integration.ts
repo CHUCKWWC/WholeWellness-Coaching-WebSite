@@ -1,9 +1,10 @@
 import type { Express } from "express";
-import { createClient, OAuthStrategy } from '@wix/sdk';
-import { items } from '@wix/data';
-import { bookings, services } from '@wix/bookings';
-import { products } from '@wix/stores';
-import { plans } from '@wix/pricing-plans';
+// Wix integration temporarily disabled for deployment
+// import { createClient, OAuthStrategy } from '@wix/sdk';
+// import { items } from '@wix/data';
+// import { bookings, services } from '@wix/bookings';
+// import { products } from '@wix/stores';
+// import { plans } from '@wix/pricing-plans';
 
 // Wix API configuration
 interface WixConfig {
