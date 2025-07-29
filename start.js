@@ -18,11 +18,11 @@ console.log(`Environment: ${process.env.NODE_ENV}`);
 console.log(`Port: ${port}`);
 console.log(`Host: ${process.env.HOST}`);
 
-// Health check endpoint timeout for Cloud Run
+// Health check endpoint timeout for Cloud Run - increased to 60 seconds
 const startupTimeout = setTimeout(() => {
   console.error('Application startup timeout - Cloud Run health check failed');
   process.exit(1);
-}, 25000); // 25 seconds to allow for Cloud Run health checks
+}, 60000); // 60 seconds to allow for Cloud Run health checks
 
 // Start the application using tsx with optimized settings
 const child = spawn('npx', ['tsx', 'server/index.ts'], {
@@ -51,7 +51,7 @@ child.on('exit', (code) => {
 child.on('message', (message) => {
   if (message === 'ready') {
     clearTimeout(startupTimeout);
-    console.log('Server is ready for health checks');
+    console.log('✓ Server is ready for health checks - startup timeout cleared');
   }
 });
 

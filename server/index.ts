@@ -1,4 +1,4 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 // Admin routes are included in main routes file
 import { setupVite, serveStatic, log } from "./vite";
@@ -39,16 +39,7 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    // Add startup timeout for Cloud Run deployment
-    const startupTimeout = setTimeout(() => {
-      console.error('Server startup timeout - terminating');
-      process.exit(1);
-    }, 30000); // 30 second timeout for startup
-
     const server = await registerRoutes(app);
-    
-    // Clear startup timeout once routes are registered
-    clearTimeout(startupTimeout);
     
     // Global error handler - improved for production
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -76,11 +67,13 @@ app.use((req, res, next) => {
       // Remove reusePort for Cloud Run compatibility
       ...(process.env.NODE_ENV === 'development' && { reusePort: true })
     }, () => {
-      log(`Server ready on ${host}:${port} (${process.env.NODE_ENV || 'development'})`);
+      log(`✓ Server ready on ${host}:${port} (${process.env.NODE_ENV || 'development'})`);
+      log(`✓ Health check endpoint available at http://${host}:${port}/`);
       
       // Signal that server is ready for health checks
       if (process.send) {
         process.send('ready');
+        log('✓ Ready signal sent to parent process');
       }
     });
 

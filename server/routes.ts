@@ -72,6 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fast health check endpoint for deployment monitoring (must be first)
   // Optimized for Cloud Run health checks - no database calls or heavy operations
   app.get('/', (req, res) => {
+    console.log('✓ Health check requested - responding immediately');
     res.status(200).json({ 
       status: 'ok',
       uptime: process.uptime(),
@@ -81,6 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Alternative health check endpoint 
   app.get('/health', (req, res) => {
+    console.log('✓ Health check (/health) requested - responding immediately');
     res.status(200).json({ 
       status: 'ok',
       uptime: process.uptime(),
