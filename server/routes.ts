@@ -72,21 +72,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fast health check endpoint for deployment monitoring (must be first)
   // Optimized for Cloud Run health checks - no database calls or heavy operations
   app.get('/', (req, res) => {
-    console.log('✓ Health check requested - responding immediately');
+    const timestamp = Date.now();
+    console.log(`✓ Health check requested at ${new Date(timestamp).toISOString()} - responding immediately with 200 OK`);
+    
+    // Immediate response without any async operations
     res.status(200).json({ 
       status: 'ok',
-      uptime: process.uptime(),
-      timestamp: Date.now()
+      service: 'whole-wellness-coaching',
+      uptime: Math.floor(process.uptime()),
+      timestamp,
+      ready: true
     });
   });
 
   // Alternative health check endpoint 
   app.get('/health', (req, res) => {
-    console.log('✓ Health check (/health) requested - responding immediately');
+    const timestamp = Date.now();
+    console.log(`✓ Health check (/health) requested at ${new Date(timestamp).toISOString()} - responding immediately with 200 OK`);
+    
+    // Immediate response without any async operations
     res.status(200).json({ 
       status: 'ok',
-      uptime: process.uptime(),
-      timestamp: Date.now()
+      service: 'whole-wellness-coaching',
+      uptime: Math.floor(process.uptime()),
+      timestamp,
+      ready: true
     });
   });
 

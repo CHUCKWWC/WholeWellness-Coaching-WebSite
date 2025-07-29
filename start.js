@@ -13,47 +13,69 @@ process.env.PORT = port;
 // Cloud Run specific optimizations
 process.env.HOST = '0.0.0.0';
 
-console.log('Starting Whole Wellness Coaching Platform...');
-console.log(`Environment: ${process.env.NODE_ENV}`);
-console.log(`Port: ${port}`);
-console.log(`Host: ${process.env.HOST}`);
+console.log('🚀 Starting Whole Wellness Coaching Platform...');
+console.log(`📋 Environment: ${process.env.NODE_ENV}`);
+console.log(`🌐 Port: ${port}`);
+console.log(`🏠 Host: ${process.env.HOST}`);
+console.log(`⏰ Startup timeout: 120 seconds`);
+console.log(`📅 Started at: ${new Date().toISOString()}`);
 
-// Health check endpoint timeout for Cloud Run - increased to 60 seconds
+// Health check endpoint timeout for Cloud Run - increased to 120 seconds for better reliability
 const startupTimeout = setTimeout(() => {
-  console.error('Application startup timeout - Cloud Run health check failed');
+  console.error('Application startup timeout - Cloud Run health check failed after 120 seconds');
+  console.log('This may indicate server initialization issues or slow dependency loading');
   process.exit(1);
-}, 60000); // 60 seconds to allow for Cloud Run health checks
+}, 120000); // 120 seconds to allow for Cloud Run health checks and slow startups
 
 // Start the application using tsx with optimized settings
+console.log('🔧 Spawning server process with tsx...');
 const child = spawn('npx', ['tsx', 'server/index.ts'], {
-  stdio: 'inherit',
+  stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
   shell: true,
   env: {
     ...process.env,
-    // Optimize for faster startup
-    NODE_OPTIONS: '--max-old-space-size=512'
+    // Optimize for faster startup and stability
+    NODE_OPTIONS: '--max-old-space-size=512 --experimental-modules'
   }
 });
 
+console.log(`📋 Child process PID: ${child.pid}`);
+
 child.on('error', (error) => {
   clearTimeout(startupTimeout);
-  console.error('Failed to start application:', error);
+  console.error('❌ Failed to start application:', error);
+  console.error('This could indicate tsx not found or server file issues');
   process.exit(1);
 });
 
-child.on('exit', (code) => {
+child.on('exit', (code, signal) => {
   clearTimeout(startupTimeout);
-  console.log(`Application exited with code ${code}`);
-  process.exit(code);
+  if (signal) {
+    console.log(`📤 Application terminated by signal ${signal}`);
+  } else {
+    console.log(`📤 Application exited with code ${code}`);
+  }
+  process.exit(code || 0);
 });
 
 // Listen for ready signal from server
 child.on('message', (message) => {
   if (message === 'ready') {
+    readySignalReceived = true;
     clearTimeout(startupTimeout);
-    console.log('✓ Server is ready for health checks - startup timeout cleared');
+    console.log('✅ Server is ready for health checks - startup timeout cleared');
+    console.log('✅ Application successfully initialized and ready to handle requests');
+    console.log('🌐 Cloud Run health checks should now pass');
   }
 });
+
+// Add timeout for ready signal
+let readySignalReceived = false;
+setTimeout(() => {
+  if (!readySignalReceived) {
+    console.warn('⚠️  No ready signal received within 90 seconds - server may be slow to initialize');
+  }
+}, 90000);
 
 // Handle process termination gracefully for Cloud Run
 const gracefulShutdown = (signal) => {
