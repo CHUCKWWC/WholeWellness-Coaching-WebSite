@@ -23,10 +23,24 @@ buildProcess.on('exit', (code) => {
   }
   
   console.log('✅ Frontend build completed successfully!');
+  
+  // Copy built files to server/public directory for production serving
+  try {
+    const { execSync } = require('child_process');
+    console.log('📁 Copying built files to server/public...');
+    execSync('mkdir -p server/public', { stdio: 'inherit' });
+    execSync('cp -r dist/public/* server/public/', { stdio: 'inherit' });
+    console.log('✅ Static files copied to server/public');
+  } catch (error) {
+    console.error('❌ Failed to copy static files:', error.message);
+    process.exit(1);
+  }
+  
   console.log('✅ Application is ready for deployment');
   console.log('');
   console.log('📋 Deployment Configuration:');
   console.log('  • Frontend: ✅ Built and ready');
+  console.log('  • Static Files: ✅ Copied to server/public');
   console.log('  • Server: ✅ Will run with tsx (production compatible)');
   console.log('  • Host: ✅ Configured for 0.0.0.0:PORT');
   console.log('  • Start Command: node start.js');

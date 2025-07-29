@@ -69,7 +69,24 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Google Drive course materials endpoint - PRIORITY ROUTE (must be first)
+  // Health check endpoint for deployment monitoring (must be first)
+  app.get('/', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'Whole Wellness Coaching Platform'
+    });
+  });
+
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'Whole Wellness Coaching Platform'
+    });
+  });
+  
+  // Google Drive course materials endpoint - PRIORITY ROUTE
   app.get("/api/public/course-materials/:courseId", async (req: any, res) => {
     res.setHeader('Content-Type', 'application/json');
     try {
