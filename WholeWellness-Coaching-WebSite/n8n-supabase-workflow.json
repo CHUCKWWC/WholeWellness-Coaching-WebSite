@@ -1,0 +1,517 @@
+{
+  "name": "Whole Wellness Coaching - Supabase Admin Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "webhook",
+        "httpMethod": "POST",
+        "path": "wix-admin-trigger",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Wix Admin Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "admin-automation-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process Wix admin automation requests\nconst action = $json.action;\nconst data = $json.data;\n\n// Route different automation actions\nswitch (action) {\n  case 'sync-users':\n    return {\n      action: 'sync-users',\n      endpoint: '/api/admin/users',\n      method: 'GET'\n    };\n  \n  case 'process-donations':\n    return {\n      action: 'process-donations',\n      endpoint: '/api/admin/workflows/process-pending-donations',\n      method: 'POST'\n    };\n  \n  case 'assign-coaches':\n    return {\n      action: 'assign-coaches',\n      endpoint: '/api/admin/workflows/assign-coaches-to-bookings',\n      method: 'POST'\n    };\n  \n  case 'send-emails':\n    return {\n      action: 'send-emails',\n      endpoint: '/api/admin/workflows/send-follow-up-emails',\n      method: 'POST'\n    };\n  \n  case 'generate-reports':\n    return {\n      action: 'generate-reports',\n      endpoint: '/api/admin/reports',\n      method: 'GET',\n      params: data\n    };\n  \n  case 'bulk-update':\n    return {\n      action: 'bulk-update',\n      endpoint: '/api/admin/bulk-operations',\n      method: 'POST',\n      data: data\n    };\n  \n  default:\n    throw new Error(`Unknown action: ${action}`);\n}"
+      },
+      "id": "process-request",
+      "name": "Process Admin Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.endpoint.startsWith('http') ? $json.endpoint : 'https://your-replit-domain.replit.app' + $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "={{ $json.method }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.adminApiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "jsonBody": "={{ $json.data ? JSON.stringify($json.data) : '{}' }}",
+        "options": {}
+      },
+      "id": "api-request",
+      "name": "Platform API Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        640,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "platform-admin-auth",
+          "name": "Platform Admin Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "host": "pwuwmnivvdvdxdewynbo.supabase.co",
+        "database": "postgres",
+        "user": "postgres",
+        "password": "={{ $credentials.supabasePassword }}",
+        "ssl": true,
+        "operation": "executeQuery",
+        "query": "-- Log admin action\nINSERT INTO admin_activity_log (admin_email, action, details, timestamp, ip_address)\nVALUES (\n  '{{ $json.adminEmail || \"system@wholewellness.org\" }}',\n  '{{ $json.action }}',\n  '{{ JSON.stringify($json) }}',\n  NOW(),\n  '{{ $json.ipAddress || \"n8n-automation\" }}'\n);\n\n-- Update sync status\nINSERT INTO sync_status (last_sync_time, sync_type, status, details)\nVALUES (\n  NOW(),\n  '{{ $json.action }}',\n  'completed',\n  '{{ JSON.stringify($json) }}'\n)\nON CONFLICT (sync_type) \nDO UPDATE SET \n  last_sync_time = NOW(),\n  status = 'completed',\n  details = '{{ JSON.stringify($json) }}';"
+      },
+      "id": "log-activity",
+      "name": "Log to Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        840,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process successful automation response\nconst originalAction = $('Process Admin Request').first().$json.action;\nconst apiResponse = $('Platform API Request').first().$json;\nconst timestamp = new Date().toISOString();\n\nreturn {\n  success: true,\n  action: originalAction,\n  timestamp: timestamp,\n  response: apiResponse,\n  message: `Successfully executed ${originalAction}`\n};"
+      },
+      "id": "format-success",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Handle automation errors\nconst error = $json.error || $json;\nconst originalAction = $('Process Admin Request').first().$json.action || 'unknown';\nconst timestamp = new Date().toISOString();\n\nreturn {\n  success: false,\n  action: originalAction,\n  timestamp: timestamp,\n  error: error.message || error,\n  message: `Failed to execute ${originalAction}: ${error.message || error}`\n};"
+      },
+      "id": "format-error",
+      "name": "Format Error Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "schedule",
+        "interval": 300000,
+        "timezone": "America/New_York"
+      },
+      "id": "scheduled-trigger",
+      "name": "Scheduled Automation",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Scheduled automation tasks\nconst scheduledTasks = [\n  {\n    action: 'process-donations',\n    endpoint: '/api/admin/workflows/process-pending-donations',\n    method: 'POST'\n  },\n  {\n    action: 'assign-coaches',\n    endpoint: '/api/admin/workflows/assign-coaches-to-bookings',\n    method: 'POST'\n  },\n  {\n    action: 'send-emails',\n    endpoint: '/api/admin/workflows/send-follow-up-emails',\n    method: 'POST'\n  },\n  {\n    action: 'update-segments',\n    endpoint: '/api/admin/workflows/update-user-segments',\n    method: 'POST'\n  }\n];\n\nreturn scheduledTasks.map(task => ({\n  ...task,\n  scheduledAt: new Date().toISOString()\n}));"
+      },
+      "id": "scheduled-tasks",
+      "name": "Generate Scheduled Tasks",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        440,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-tasks",
+      "name": "Split Tasks",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://your-replit-domain.replit.app{{ $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "{{ $json.method }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.adminApiKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "scheduled-api-request",
+      "name": "Execute Scheduled Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        840,
+        600
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "platform-admin-auth",
+          "name": "Platform Admin Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "host": "pwuwmnivvdvdxdewynbo.supabase.co",
+        "database": "postgres",
+        "user": "postgres",
+        "password": "={{ $credentials.supabasePassword }}",
+        "ssl": true,
+        "operation": "executeQuery",
+        "query": "-- Log scheduled task\nINSERT INTO scheduled_task_log (task_name, execution_time, status, result)\nVALUES (\n  '{{ $json.action }}',\n  NOW(),\n  CASE WHEN {{ $json.success || false }} THEN 'success' ELSE 'failed' END,\n  '{{ JSON.stringify($json) }}'\n);\n\n-- Update automation metrics\nINSERT INTO automation_metrics (metric_name, metric_value, recorded_at)\nVALUES (\n  'scheduled_tasks_executed',\n  1,\n  NOW()\n);"
+      },
+      "id": "log-scheduled-task",
+      "name": "Log Scheduled Task",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1040,
+        600
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "webhook",
+        "httpMethod": "POST",
+        "path": "user-action-trigger",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "user-action-webhook",
+      "name": "User Action Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        900
+      ],
+      "webhookId": "user-action-automation"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process user action triggers\nconst userAction = $json.action;\nconst userData = $json.user;\nconst metadata = $json.metadata || {};\n\nswitch (userAction) {\n  case 'new_donation':\n    return {\n      action: 'process_new_donation',\n      userId: userData.id,\n      donationAmount: metadata.amount,\n      donationType: metadata.type,\n      endpoint: '/api/admin/workflows/process-pending-donations',\n      method: 'POST',\n      data: {\n        userId: userData.id,\n        amount: metadata.amount,\n        type: metadata.type\n      }\n    };\n  \n  case 'new_booking':\n    return {\n      action: 'assign_coach',\n      userId: userData.id,\n      coachingArea: metadata.coachingArea,\n      endpoint: '/api/admin/workflows/assign-coaches-to-bookings',\n      method: 'POST',\n      data: {\n        userId: userData.id,\n        coachingArea: metadata.coachingArea\n      }\n    };\n  \n  case 'user_milestone':\n    return {\n      action: 'award_points',\n      userId: userData.id,\n      milestone: metadata.milestone,\n      endpoint: '/api/admin/bulk-operations',\n      method: 'POST',\n      data: {\n        operation: 'add-reward-points',\n        userIds: [userData.id],\n        data: {\n          points: metadata.points || 100,\n          reason: `Milestone: ${metadata.milestone}`\n        }\n      }\n    };\n  \n  default:\n    throw new Error(`Unknown user action: ${userAction}`);\n}"
+      },
+      "id": "process-user-action",
+      "name": "Process User Action",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        440,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://your-replit-domain.replit.app{{ $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpMethod": "{{ $json.method }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.adminApiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "jsonBody": "={{ JSON.stringify($json.data) }}",
+        "options": {}
+      },
+      "id": "user-action-api",
+      "name": "Execute User Action",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        640,
+        900
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "platform-admin-auth",
+          "name": "Platform Admin Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "to": "admin@wholewellnesscoaching.org",
+        "subject": "User Action Automation: {{ $json.action }}",
+        "emailType": "html",
+        "message": "<!DOCTYPE html>\n<html>\n<head>\n    <title>User Action Notification</title>\n</head>\n<body>\n    <h2>User Action Automation Executed</h2>\n    <p><strong>Action:</strong> {{ $('Process User Action').first().$json.action }}</p>\n    <p><strong>User ID:</strong> {{ $('Process User Action').first().$json.userId }}</p>\n    <p><strong>Timestamp:</strong> {{ new Date().toISOString() }}</p>\n    <p><strong>Status:</strong> {{ $json.success ? 'Success' : 'Failed' }}</p>\n    \n    <h3>Details:</h3>\n    <pre>{{ JSON.stringify($json, null, 2) }}</pre>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "notify-admin",
+      "name": "Notify Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        900
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "email-config",
+          "name": "SMTP Email"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"action\": \"{{ $('Process User Action').first().$json.action }}\",\n  \"userId\": \"{{ $('Process User Action').first().$json.userId }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\",\n  \"message\": \"User action processed successfully\"\n}"
+      },
+      "id": "user-action-response",
+      "name": "User Action Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        900
+      ]
+    }
+  ],
+  "connections": {
+    "Wix Admin Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Admin Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Admin Request": {
+      "main": [
+        [
+          {
+            "node": "Platform API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Platform API Request": {
+      "main": [
+        [
+          {
+            "node": "Log to Supabase",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "Format Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Response": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scheduled Automation": {
+      "main": [
+        [
+          {
+            "node": "Generate Scheduled Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Scheduled Tasks": {
+      "main": [
+        [
+          {
+            "node": "Split Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Tasks": {
+      "main": [
+        [
+          {
+            "node": "Execute Scheduled Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Scheduled Task": {
+      "main": [
+        [
+          {
+            "node": "Log Scheduled Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Action Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process User Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process User Action": {
+      "main": [
+        [
+          {
+            "node": "Execute User Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute User Action": {
+      "main": [
+        [
+          {
+            "node": "Notify Admin",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "User Action Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "whole-wellness-automation",
+  "tags": []
+}

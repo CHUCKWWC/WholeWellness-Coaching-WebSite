@@ -1,8 +1,8 @@
-# WholeWellness Coaching Platform
+# Whole Wellness Coaching Platform
 
 ## Overview
 
-WholeWellness is a comprehensive nonprofit wellness coaching platform that combines AI-powered coaching with human expertise. The platform provides personalized wellness guidance, assessment tools, certification programs, and a complete administrative system for managing coaches, users, and operations.
+This is a comprehensive nonprofit wellness coaching platform designed to serve underserved communities, particularly women who have survived domestic violence. The platform combines AI-powered coaching, professional human coaches, mental health resources, and donation management into a unified solution.
 
 ## User Preferences
 
@@ -11,140 +11,138 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Styling**: Tailwind CSS with Radix UI components
-- **Routing**: Wouter for client-side routing
-- **State Management**: TanStack Query (React Query) for server state
-- **Build Tool**: Vite for development and production builds
-- **UI Components**: Shadcn/ui component library with Radix UI primitives
+- **Framework**: React 18 with TypeScript for type safety and modern development
+- **Build System**: Vite for fast development and optimized production builds
+- **UI Framework**: Radix UI components styled with Tailwind CSS
+- **State Management**: TanStack Query v5 for server state management
+- **Routing**: Wouter for lightweight client-side routing
+- **Forms**: React Hook Form with Zod validation for type-safe form handling
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js framework
-- **Language**: TypeScript with ES modules
-- **Authentication**: Passport.js with local strategy and JWT tokens
-- **API Design**: RESTful API with role-based access control
-- **File Processing**: TSX for TypeScript execution in production
+- **Runtime**: Node.js with Express.js server
+- **Language**: TypeScript with ES modules for modern JavaScript features
+- **Authentication**: JWT-based tokens with bcrypt password hashing
+- **Database ORM**: Drizzle for type-safe database operations
+- **File Upload**: Multer for handling file uploads
+- **Email Service**: Gmail API with OAuth2 for reliable email delivery
 
-### Data Storage Solutions
-- **Primary Database**: Supabase (PostgreSQL)
-- **Database ORM**: Direct SQL queries with Supabase client
-- **File Storage**: Google Drive integration for document uploads
-- **Session Storage**: JWT-based stateless authentication
-- **Analytics**: Built-in admin dashboard with metrics tracking
-
-### Authentication and Authorization
-- **User Authentication**: JWT tokens with secure HTTP-only cookies
-- **Admin Authentication**: Separate admin auth system with role-based permissions
-- **Role System**: Multi-tier roles (user, coach, admin, super_admin)
-- **Permission Management**: Granular permissions for different admin functions
-- **Coach Certification**: Automatic role upgrades based on earnings ($99 threshold)
+### Database Strategy
+- **Primary Database**: PostgreSQL hosted on Supabase
+- **Schema Management**: Drizzle ORM with TypeScript schema definitions
+- **Data Storage**: Persistent storage for user profiles, assessments, coaching sessions, and donations
+- **Security**: Row Level Security (RLS) policies for data protection
 
 ## Key Components
 
-### AI Coaching System
-- **AI Provider**: OpenAI GPT-4 with specialized coaching prompts
-- **Assistant Integration**: Pre-configured weight loss coaching assistant
-- **Template System**: Evidence-based coaching templates as fallback
-- **Chat Management**: Real-time chat sessions with thread continuity
-- **Personalization**: Assessment-driven coaching recommendations
+### 1. Authentication System
+- Traditional email/password registration and login
+- Google OAuth social login integration
+- JWT token-based session management
+- Role-based access control (user, coach, admin)
+- Password reset functionality with email verification
 
-### Assessment Platform
-- **Multi-Assessment System**: Weight loss, relationship, mental health forms
-- **Dynamic Forms**: JSON-based form configurations with validation
-- **Progress Tracking**: User assessment history and analytics
-- **Coach Integration**: Assessment results accessible to assigned coaches
+### 2. AI Coaching Platform
+- Six specialized AI coaches (Nutritionist, Fitness Trainer, Behavior Coach, etc.)
+- Chat interface with persistent conversation history
+- OpenAI GPT-4 integration via n8n workflow automation
+- Real-time responses with coach-specific personalities
+- Mobile-optimized chat experience
 
-### Coach Certification System
-- **Module-Based Learning**: Structured certification courses
-- **Progress Tracking**: Completion status and scoring system
-- **Certificate Generation**: Automated certificate issuance
-- **Admin Management**: Full admin oversight of certification programs
+### 3. Professional Coach Management
+- Comprehensive coach onboarding with profile creation
+- Client assignment and management system
+- Session scheduling with Google Meet integration
+- Banking information collection for payments
+- Availability management and booking system
 
-### Payment Processing
-- **Provider**: Stripe integration for secure payments
-- **Donation System**: Nonprofit donation processing with tracking
-- **Earnings Tracking**: Coach earnings system with automatic role upgrades
-- **Subscription Management**: Membership level handling
+### 4. Assessment Programs
+- Multiple assessment types (wellness, nutrition, fitness, mental health)
+- Freemium model: 3 free results, then payment required
+- Stripe payment integration for premium assessments
+- Progress tracking and results storage
+- Payment validation before accessing premium content
 
-### Admin Dashboard
-- **Comprehensive Analytics**: User metrics, donation tracking, booking management
-- **Role Management**: Admin user creation and permission assignment
-- **Content Management**: System-wide content and settings control
-- **Database Management**: Direct database operations and maintenance tools
+### 5. Certification System
+- Professional certification courses for coaches
+- Module-based learning with progress tracking
+- Quiz system with 80% pass rate requirement
+- Google Drive integration for course materials
+- Certificate generation upon completion
+
+### 6. Mental Wellness Hub
+- Crisis intervention resources and emergency contacts
+- Mental health screening tools
+- Resource library with categorized content
+- Safety planning tools for domestic violence survivors
 
 ## Data Flow
 
-### User Onboarding
-1. User registration with email/password authentication
-2. Comprehensive intake assessment completion
-3. AI-powered coach matching based on assessment results
-4. Personalized coaching plan generation
-5. Session scheduling and payment processing
+### User Registration Flow
+1. User visits registration page
+2. Submits email, password, and basic information
+3. System creates account with bcrypt-hashed password
+4. Email verification sent via Gmail API
+5. User confirms email and gains platform access
 
-### Coaching Sessions
-1. Real-time chat interface with AI or human coaches
-2. Session data storage in Supabase with thread management
-3. Progress tracking and goal adjustment
-4. Follow-up recommendations and resource sharing
+### AI Coaching Flow
+1. User selects AI coach type
+2. Chat interface loads with conversation history
+3. User sends message to backend API
+4. Backend forwards message to n8n webhook
+5. n8n processes with OpenAI GPT-4
+6. Response returned and stored in database
+7. Frontend displays response in chat interface
 
-### Admin Operations
-1. Centralized dashboard for all platform metrics
-2. User and coach management with role assignments
-3. Financial tracking and donation processing
-4. Content moderation and system maintenance
+### Payment Processing Flow
+1. User initiates donation or assessment purchase
+2. Frontend creates Stripe payment intent
+3. User completes payment with Stripe
+4. Webhook confirms payment success
+5. System updates user account and access permissions
 
 ## External Dependencies
 
-### Third-Party Services
-- **Supabase**: Database, authentication, and real-time features
-- **OpenAI**: AI coaching capabilities
-- **Stripe**: Payment processing and subscription management
-- **SendGrid**: Email delivery and notifications
-- **Google APIs**: Drive storage and calendar integration
-- **Wix**: External booking system integration
+### Payment Processing
+- **Stripe**: Payment processing for donations and assessment purchases
+- **Environment Variables**: STRIPE_SECRET_KEY, VITE_STRIPE_PUBLIC_KEY
 
-### Development Tools
-- **TypeScript**: Type safety and development experience
-- **Vite**: Fast development server and optimized builds
-- **Tailwind CSS**: Utility-first styling framework
-- **Radix UI**: Accessible component primitives
-- **ESBuild**: Production bundling and optimization
+### AI Services
+- **OpenAI**: GPT-4 for AI coaching responses
+- **n8n**: Workflow automation for AI coach routing
+- **Webhook**: External n8n workflow for AI processing
 
-### Automation and Integration
-- **N8N**: Workflow automation and external integrations
-- **Google Sheets**: Data export and reporting
-- **OAuth**: Secure third-party authentication flows
+### Database & Storage
+- **Supabase**: PostgreSQL database hosting with real-time features
+- **Environment Variables**: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+
+### Authentication & Social Login
+- **Google OAuth**: Social login integration
+- **Environment Variables**: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+
+### Communication Services
+- **Gmail API**: Email sending for notifications and verification
+- **Google Meet**: Video conferencing for coaching sessions
 
 ## Deployment Strategy
 
-### Replit-Optimized Deployment
-- **Build Process**: Frontend-only build with Vite, server runs with TSX
-- **Environment Configuration**: Development mode to avoid vite.ts path resolution issues
-- **Port Configuration**: Dynamic port assignment (PORT environment variable)
-- **Host Binding**: 0.0.0.0 for Replit compatibility
-- **Startup Script**: Node.js execution with proper error handling
-- **Deployment Commands**:
-  - Build: `node build.js` (builds frontend to dist/public)
-  - Start: `node start.js` (runs server with tsx in development mode)
-- **Status**: ✅ Successfully configured and tested
+### Build Process
+- Frontend built with Vite to `dist/public` directory
+- Server runs with tsx for TypeScript support
+- Production build optimizes assets and bundles code
 
-### Database Management
-- **Migration Strategy**: SQL schema files for database initialization
-- **Connection Pooling**: Optimized Supabase connection management
-- **Backup Strategy**: Supabase automated backups
-- **Schema Evolution**: Version-controlled database updates
+### Environment Configuration
+- Development mode for local testing
+- Production deployment with environment-specific variables
+- Host configured for 0.0.0.0 with PORT environment variable
 
-### Security Considerations
-- **Environment Variables**: Secure storage of API keys and secrets
-- **CORS Configuration**: Restricted origin policies
-- **Rate Limiting**: API endpoint protection
-- **Input Validation**: Zod schema validation for all inputs
-- **SQL Injection Prevention**: Parameterized queries throughout
+### Startup Scripts
+- `build.js`: Builds frontend assets for production
+- `start.js`: Starts server with tsx in development mode
+- Graceful shutdown handling for process termination
 
-### Monitoring and Maintenance
-- **Health Checks**: Automated system health monitoring
-- **Error Logging**: Comprehensive error tracking and reporting
-- **Performance Monitoring**: Database query optimization
-- **Admin Tools**: Built-in database management and maintenance utilities
+### Domain Setup
+- Custom domain: wholewellnesscoaching.org
+- SSL certificate handling via hosting provider
+- OAuth redirect URIs configured for custom domain
 
-The platform is designed for scalability and maintainability, with clear separation of concerns and comprehensive admin tools for ongoing management. The Replit deployment strategy ensures smooth operation in the cloud environment while maintaining development flexibility.
+The platform is designed to be deployable on Replit with automatic dependency installation and can scale to serve multiple coaches and hundreds of clients while maintaining data security and performance.
