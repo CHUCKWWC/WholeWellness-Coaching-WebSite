@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
-// Build script for Replit deployment
-const { spawn } = require('child_process');
-const path = require('path');
+// Build script for Replit deployment  
+import { spawn } from 'child_process';
 
 console.log('🔨 Building Whole Wellness Coaching Platform...');
-
-// Change to the project directory
-process.chdir(path.join(__dirname, 'WholeWellness-Coaching-WebSite'));
 
 // Build frontend only - server will run with tsx
 const buildProcess = spawn('npx', ['vite', 'build'], {

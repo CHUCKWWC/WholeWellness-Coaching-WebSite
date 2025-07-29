@@ -52,7 +52,7 @@ import Subscribe from "@/pages/Subscribe";
 import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import VolunteerApplication from "@/pages/VolunteerApplication";
 import WixBooking from "@/pages/WixBooking";
-import Assessments from "@/pages/Assessments";
+import Assessments from "@/pages/assessments";
 import UserProfile from "@/pages/UserProfile";
 import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import CoachCertifications from "@/pages/CoachCertifications";
@@ -60,6 +60,7 @@ import ModuleLearning from "@/pages/ModuleLearning";
 import CertificationDashboard from "@/pages/CertificationDashboard";
 import CertificationGuide from "@/pages/CertificationGuide";
 import AdminSecurity from "@/pages/AdminSecurity";
+import AdminCoupons from "@/pages/AdminCoupons";
 import WellnessJourneyRecommender from "@/pages/WellnessJourneyRecommender";
 import AdminCertifications from "@/pages/AdminCertifications";
 import NotFound from "@/pages/not-found";
@@ -92,6 +93,7 @@ function Router() {
           <Route path="/admin-login" component={AdminLogin} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/admin-security" component={AdminSecurity} />
+          <Route path="/admin-coupons" component={AdminCoupons} />
           <Route path="/admin-certifications" component={AdminCertifications} />
           <Route path="/donation-portal" component={DonationPortal} />
           <Route path="/coach-portal" component={CoachPortal} />
@@ -118,8 +120,26 @@ function Router() {
           <Route path="/coach-certifications" component={CoachCertifications} />
           <Route path="/module-learning" component={() => {
             const params = new URLSearchParams(window.location.search);
-            const courseId = params.get('courseId') || '';
-            const enrollmentId = params.get('enrollmentId') || '';
+            const courseId = params.get('courseId');
+            const enrollmentId = params.get('enrollmentId');
+            
+            // Validate required parameters
+            if (!courseId || !enrollmentId) {
+              return (
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Missing Parameters</h1>
+                    <p className="text-gray-600 mb-4">
+                      Course ID and Enrollment ID are required to access module learning.
+                    </p>
+                    <a href="/coach-certifications" className="text-blue-600 hover:underline">
+                      Return to Certifications
+                    </a>
+                  </div>
+                </div>
+              );
+            }
+            
             return <ModuleLearning courseId={courseId} enrollmentId={enrollmentId} />;
           }} />
           <Route path="/certification-dashboard" component={CertificationDashboard} />

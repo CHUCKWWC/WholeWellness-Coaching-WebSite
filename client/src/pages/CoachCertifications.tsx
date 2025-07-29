@@ -23,18 +23,22 @@ import {
   Download,
   ExternalLink
 } from "lucide-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import GoogleDriveCourseFiles from "@/components/GoogleDriveCourseFiles";
+import CouponEnrollmentFlow from "@/components/CouponEnrollmentFlow";
 
 export default function CoachCertifications() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLevel, setSelectedLevel] = useState("all");
+  const [showEnrollmentFlow, setShowEnrollmentFlow] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch available certification courses
   const { data: courses = [], isLoading: coursesLoading } = useQuery({
@@ -54,24 +58,23 @@ export default function CoachCertifications() {
     enabled: isAuthenticated
   });
 
-  // Enroll in a course
-  const enrollMutation = useMutation({
-    mutationFn: (courseId: string) => 
-      apiRequest("POST", "/api/coach/enroll-course", { courseId }),
-    onSuccess: () => {
-      toast({
-        title: "Enrollment Successful",
-        description: "You have been enrolled in the certification course.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Enrollment Failed",
-        description: "There was an error enrolling in the course.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Handle enrollment flow
+  const handleEnrollClick = (course: any) => {
+    setSelectedCourse(course);
+    setShowEnrollmentFlow(true);
+  };
+
+  const handleEnrollmentSuccess = (enrollment: any) => {
+    // Refresh enrollments data
+    queryClient.invalidateQueries({ queryKey: ["/api/coach/my-enrollments"] });
+    setShowEnrollmentFlow(false);
+    setSelectedCourse(null);
+  };
+
+  const handleEnrollmentCancel = () => {
+    setShowEnrollmentFlow(false);
+    setSelectedCourse(null);
+  };
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -202,12 +205,11 @@ export default function CoachCertifications() {
           <div className="flex gap-2">
             {!enrollment && !certificate && (
               <Button 
-                onClick={() => enrollMutation.mutate(course.id)}
-                disabled={enrollMutation.isPending}
+                onClick={() => handleEnrollClick(course)}
                 className="flex-1"
                 style={{ backgroundColor: "#0D7377" }}
               >
-                {enrollMutation.isPending ? "Enrolling..." : `Enroll - $${course.price}`}
+                Enroll - ${course.price}
               </Button>
             )}
             
@@ -215,7 +217,10 @@ export default function CoachCertifications() {
               <Button 
                 className="flex-1"
                 style={{ backgroundColor: "#5E9A62" }}
-                onClick={() => window.open(`/module-learning?courseId=${course.id}&enrollmentId=${enrollment.id}`, '_blank')}
+                onClick={() => {
+                  const url = `/module-learning?courseId=${course.id}&enrollmentId=${enrollment.id}`;
+                  window.location.href = url;
+                }}
               >
                 <Play className="h-4 w-4 mr-2" />
                 Continue Learning
@@ -253,6 +258,30 @@ export default function CoachCertifications() {
             </CardDescription>
           </CardHeader>
         </Card>
+      </div>
+    );
+  }
+
+  // Show enrollment flow if selected
+  if (showEnrollmentFlow && selectedCourse) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Enroll in Course
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Complete your enrollment with payment or coupon code.
+            </p>
+          </div>
+          
+          <CouponEnrollmentFlow
+            course={selectedCourse}
+            onEnrollmentSuccess={handleEnrollmentSuccess}
+            onCancel={handleEnrollmentCancel}
+          />
+        </div>
       </div>
     );
   }

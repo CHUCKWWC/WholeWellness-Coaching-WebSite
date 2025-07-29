@@ -10,8 +10,12 @@ import {
   type AuthenticatedAdminRequest 
 } from "./admin-auth";
 import { z } from "zod";
+import adminDashboardRoutes from "./admin-dashboard-routes.js";
 
 const router = Router();
+
+// Mount the admin dashboard routes
+router.use('/', adminDashboardRoutes);
 
 // Dashboard statistics
 router.get('/dashboard/stats', requireAdminAuth, requirePermission(PERMISSIONS.VIEW_DASHBOARD), async (req: AuthenticatedAdminRequest, res) => {

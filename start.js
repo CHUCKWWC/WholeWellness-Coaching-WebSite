@@ -1,11 +1,7 @@
 #!/usr/bin/env node
 
 // Production startup script for Replit deployment
-const { spawn } = require('child_process');
-const path = require('path');
-
-// Change to the project directory
-process.chdir(path.join(__dirname, 'WholeWellness-Coaching-WebSite'));
+import { spawn } from 'child_process';
 
 // Set production environment
 process.env.NODE_ENV = 'production';

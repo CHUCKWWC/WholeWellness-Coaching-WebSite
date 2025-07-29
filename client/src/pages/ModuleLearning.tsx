@@ -101,13 +101,13 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
 
   // Fetch course modules
   const { data: modules = [], isLoading: modulesLoading } = useQuery({
-    queryKey: ["/api/coach/courses", courseId, "modules"],
+    queryKey: [`/api/coach/courses/${courseId}/modules`],
     enabled: !!courseId
   });
 
   // Fetch module progress
   const { data: progress = [], isLoading: progressLoading } = useQuery({
-    queryKey: ["/api/coach/module-progress", enrollmentId],
+    queryKey: [`/api/coach/module-progress/${enrollmentId}`],
     enabled: !!enrollmentId
   });
 
@@ -116,7 +116,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
     mutationFn: (moduleId: string) => 
       apiRequest("POST", "/api/coach/start-module", { enrollmentId, moduleId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/coach/module-progress", enrollmentId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coach/module-progress/${enrollmentId}`] });
       setStartTime(new Date());
     },
     onError: () => {
@@ -145,7 +145,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
           : `You scored ${result.score}%. You need ${selectedModule?.quiz?.passingScore}% to pass.`,
         variant: result.passed ? "default" : "destructive",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/coach/module-progress", enrollmentId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coach/module-progress/${enrollmentId}`] });
       setSelectedModule(null);
       setQuizAnswers({});
       setCurrentQuestionIndex(0);
@@ -173,7 +173,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
         title: "Assignment Submitted",
         description: "Your assignment has been submitted for review.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/coach/module-progress", enrollmentId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coach/module-progress/${enrollmentId}`] });
       setSelectedModule(null);
       setAssignmentSubmission("");
     },
@@ -423,15 +423,49 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
     );
   };
 
-  if (!isAuthenticated || user?.role !== "coach") {
+  // Verify payment/enrollment status
+  const { data: enrollmentVerification, isLoading: verificationLoading } = useQuery({
+    queryKey: [`/api/courses/verify-enrollment/${courseId}/${enrollmentId}`],
+    enabled: !!courseId && !!enrollmentId && isAuthenticated
+  });
+
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardHeader className="text-center">
-            <CardTitle>Access Restricted</CardTitle>
+            <CardTitle>Authentication Required</CardTitle>
             <CardDescription>
-              Module learning is only available to registered coaches.
+              Please sign in to access course modules.
             </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (verificationLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (enrollmentVerification && !enrollmentVerification.hasAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader className="text-center">
+            <CardTitle>Payment Required</CardTitle>
+            <CardDescription>
+              {enrollmentVerification.message || "You need to complete payment or have a valid enrollment to access this course."}
+            </CardDescription>
+            <div className="mt-4">
+              <Button onClick={() => window.location.href = '/coach-certifications'}>
+                Return to Courses
+              </Button>
+            </div>
           </CardHeader>
         </Card>
       </div>

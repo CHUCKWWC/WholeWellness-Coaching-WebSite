@@ -29,6 +29,7 @@ import {
   insertCoachClientCommunicationSchema
 } from "@shared/schema";
 import { z } from "zod";
+// Wix integration temporarily disabled for deployment
 // import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
 import { 
@@ -48,6 +49,7 @@ import { CoachEarningsSystem } from "./coach-earnings-system";
 import { coachRoutes } from "./coach-routes";
 import { donationRoutes } from "./donation-routes";
 import { onboardingRoutes } from "./onboarding-routes";
+import { setupCouponRoutes } from "./coupon-routes";
 import { onboardingNewRoutes } from "./onboarding-new-routes";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
@@ -877,46 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start module endpoint (available to all authenticated users)
-  app.post("/api/coach/start-module", requireAuth as any, async (req: any, res) => {
-    try {
-      const { moduleId, status } = req.body;
-      
-      // In a real implementation, this would update the database
-      // For now, we return success to match the original code behavior
-      res.json({ 
-        success: true,
-        message: `Module ${moduleId} status updated to ${status}`,
-        moduleId,
-        status 
-      });
-    } catch (error) {
-      console.error("Error starting module:", error);
-      res.status(500).json({ message: "Failed to start module" });
-    }
-  });
-
-  // Submit quiz endpoint (matching original scoring logic)
-  app.post("/api/coach/submit-quiz", requireCoachRole as any, async (req: any, res) => {
-    try {
-      const { moduleId, score, answers, status } = req.body;
-      
-      // In a real implementation, this would update the database
-      // For now, we return the submitted data to match the original code behavior
-      res.json({ 
-        success: true,
-        message: `Quiz for module ${moduleId} submitted successfully`,
-        moduleId,
-        score,
-        answers,
-        status,
-        passed: status === 'completed'
-      });
-    } catch (error) {
-      console.error("Error submitting quiz:", error);
-      res.status(500).json({ message: "Failed to submit quiz" });
-    }
-  });
+  // Removed duplicate start-module and submit-quiz endpoints - using newer implementations below
 
   // Google Drive Admin Routes
   
@@ -1948,11 +1911,11 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   
-  // Initialize Wix Integration - DISABLED FOR DEPLOYMENT
+  // Wix Integration temporarily disabled for deployment
   // const wixConfig = getWixConfig();
   // const wixIntegration = new WixIntegration(wixConfig);
   
-  // Setup Wix webhooks - DISABLED FOR DEPLOYMENT
+  // Setup Wix webhooks
   // setupWixWebhooks(app, wixIntegration);
   
   // Bookings
@@ -2069,144 +2032,54 @@ When to refer to licensed therapists and emergency resources for relationship cr
     res.json(null);
   });
 
-  // Wix integration endpoints - DISABLED FOR DEPLOYMENT
-  /*
+  // Wix integration endpoints - temporarily disabled for deployment
   app.get("/api/wix/sync/users", async (req, res) => {
-    try {
-      await wixIntegration.syncUsers();
-      res.json({ success: true, message: "Users synchronized from Wix" });
-    } catch (error) {
-      console.error("Error syncing users:", error);
-      res.status(500).json({ error: "Failed to sync users" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.get("/api/wix/sync/services", async (req, res) => {
-    try {
-      await wixIntegration.syncServices();
-      res.json({ success: true, message: "Services synchronized from Wix" });
-    } catch (error) {
-      console.error("Error syncing services:", error);
-      res.status(500).json({ error: "Failed to sync services" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.get("/api/wix/services", async (req, res) => {
-    try {
-      const services = await wixIntegration.getServices();
-      res.json(services);
-    } catch (error) {
-      console.error("Error fetching Wix services:", error);
-      res.status(500).json({ error: "Failed to fetch services" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.get("/api/wix/products", async (req, res) => {
-    try {
-      const products = await wixIntegration.getProducts();
-      res.json(products);
-    } catch (error) {
-      console.error("Error fetching Wix products:", error);
-      res.status(500).json({ error: "Failed to fetch products" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.get("/api/wix/plans", async (req, res) => {
-    try {
-      const plans = await wixIntegration.getPlans();
-      res.json(plans);
-    } catch (error) {
-      console.error("Error fetching Wix plans:", error);
-      res.status(500).json({ error: "Failed to fetch plans" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.get("/api/wix/bookings", async (req, res) => {
-    try {
-      const bookings = await wixIntegration.getBookings();
-      res.json(bookings);
-    } catch (error) {
-      console.error("Error fetching Wix bookings:", error);
-      res.status(500).json({ error: "Failed to fetch bookings" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
-  // Create a new booking
   app.post("/api/wix/bookings", async (req, res) => {
-    try {
-      const bookingData = req.body;
-      const booking = await wixIntegration.createBooking(bookingData);
-      res.json(booking);
-    } catch (error) {
-      console.error("Error creating Wix booking:", error);
-      res.status(500).json({ error: "Failed to create booking" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
-  // Get available time slots for a service
   app.get("/api/wix/services/:serviceId/slots", async (req, res) => {
-    try {
-      const { serviceId } = req.params;
-      const { date } = req.query;
-      
-      if (!date) {
-        return res.status(400).json({ error: "Date parameter is required" });
-      }
-      
-      const slots = await wixIntegration.getAvailableSlots(serviceId, date as string);
-      res.json(slots);
-    } catch (error) {
-      console.error("Error fetching available slots:", error);
-      res.status(500).json({ error: "Failed to fetch available slots" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
-  // Cancel a booking
   app.delete("/api/wix/bookings/:bookingId", async (req, res) => {
-    try {
-      const { bookingId } = req.params;
-      const result = await wixIntegration.cancelBooking(bookingId);
-      res.json({ success: result });
-    } catch (error) {
-      console.error("Error cancelling booking:", error);
-      res.status(500).json({ error: "Failed to cancel booking" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
-  // Reschedule a booking
   app.put("/api/wix/bookings/:bookingId/reschedule", async (req, res) => {
-    try {
-      const { bookingId } = req.params;
-      const { newSlot } = req.body;
-      const result = await wixIntegration.rescheduleBooking(bookingId, newSlot);
-      res.json({ success: result });
-    } catch (error) {
-      console.error("Error rescheduling booking:", error);
-      res.status(500).json({ error: "Failed to reschedule booking" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.get("/api/wix/data/:collectionId", async (req, res) => {
-    try {
-      const { collectionId } = req.params;
-      const dataItems = await wixIntegration.getDataItems(collectionId);
-      res.json(dataItems);
-    } catch (error) {
-      console.error("Error fetching Wix data items:", error);
-      res.status(500).json({ error: "Failed to fetch data items" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
 
   app.post("/api/wix/sync/all", async (req, res) => {
-    try {
-      await wixIntegration.syncAllData();
-      res.json({ success: true, message: "All data synchronized from Wix" });
-    } catch (error) {
-      console.error("Error syncing all data:", error);
-      res.status(500).json({ error: "Failed to sync all data" });
-    }
+    res.status(503).json({ error: "Wix integration temporarily disabled" });
   });
-  */
 
   // Impact metrics endpoints
   app.get("/api/impact/metrics", async (req, res) => {
@@ -3417,6 +3290,9 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.use('/api/onboarding', onboardingRoutes);
   app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);
+  
+  // Setup coupon routes
+  setupCouponRoutes(app);
 
   // Register wellness journey routes
   registerWellnessJourneyRoutes(app);
@@ -3853,7 +3729,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Coach Certification Course Management Routes
   
   // Get all available certification courses (available to all users for demo)  
-  app.get("/api/coach/certification-courses", async (req, res) => {
+  app.get("/api/coach/certification-courses", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       // Mock certification courses for demo
       const courses = [
@@ -4004,7 +3880,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Get user's current enrollments (available to all authenticated users)
-  app.get("/api/coach/my-enrollments", requireAuth as any, async (req, res) => {
+  app.get("/api/coach/my-enrollments", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       // Mock enrollments for demo
       const enrollments = [
@@ -4031,7 +3907,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Get user's earned certificates (available to all authenticated users)
-  app.get("/api/coach/my-certificates", requireAuth as any, async (req, res) => {
+  app.get("/api/coach/my-certificates", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       // Mock certificates for demo
       const certificates = [
@@ -4057,8 +3933,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  // Enroll user in a certification course (available to all authenticated users)
-  app.post("/api/coach/enroll-course", requireAuth as any, async (req, res) => {
+  // Legacy enrollment endpoint - redirects to new payment-verified enrollment
+  app.post("/api/coach/enroll-course", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { courseId } = req.body;
       
@@ -4066,28 +3942,34 @@ When to refer to licensed therapists and emergency resources for relationship cr
         return res.status(400).json({ message: "Course ID is required" });
       }
       
-      // Mock enrollment creation
-      const enrollment = {
-        id: `enrollment-${Date.now()}`,
-        coachId: "current-coach", // In production, get from authenticated user
-        courseId,
-        enrollmentDate: new Date().toISOString(),
-        status: "enrolled",
-        progress: "0",
-        currentModule: 1,
-        completedModules: [],
-        paymentStatus: "pending"
-      };
+      // Check if user already has valid enrollment
+      const existingEnrollments = await storage.query(`
+        SELECT * FROM course_enrollment_payments 
+        WHERE user_id = $1 AND course_id = $2 AND payment_status = 'succeeded'
+      `, [req.user.id, courseId]);
       
-      res.json({ success: true, enrollment });
+      if (existingEnrollments.rows.length > 0) {
+        return res.status(409).json({ 
+          error: "Already enrolled in this course",
+          enrollmentId: existingEnrollments.rows[0].enrollment_id
+        });
+      }
+      
+      // Return payment required response
+      res.status(402).json({ 
+        error: "Payment required",
+        message: "Please complete payment or apply a coupon to enroll in this course",
+        redirectTo: "/checkout",
+        courseId
+      });
     } catch (error) {
-      console.error("Error enrolling in course:", error);
-      res.status(500).json({ message: "Failed to enroll in course" });
+      console.error("Error checking enrollment:", error);
+      res.status(500).json({ message: "Failed to process enrollment request" });
     }
   });
 
   // Get course modules for learning (available to all authenticated users)
-  app.get("/api/coach/courses/:courseId/modules", requireAuth as any, async (req, res) => {
+  app.get("/api/coach/courses/:courseId/modules", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { courseId } = req.params;
       
@@ -4213,7 +4095,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Get module progress for enrollment (available to all authenticated users)
-  app.get("/api/coach/module-progress/:enrollmentId", requireAuth as any, async (req, res) => {
+  app.get("/api/coach/module-progress/:enrollmentId", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { enrollmentId } = req.params;
       
@@ -4250,7 +4132,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Start a module (available to all authenticated users)
-  app.post("/api/coach/start-module", requireAuth as any, async (req, res) => {
+  app.post("/api/coach/start-module", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { enrollmentId, moduleId } = req.body;
       
@@ -4277,7 +4159,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Submit quiz answers (available to all authenticated users)
-  app.post("/api/coach/submit-quiz", requireAuth as any, async (req, res) => {
+  app.post("/api/coach/submit-quiz", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { enrollmentId, moduleId, answers, timeSpent } = req.body;
       
@@ -4316,7 +4198,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Submit assignment (available to all authenticated users)
-  app.post("/api/coach/submit-assignment", requireAuth as any, async (req, res) => {
+  app.post("/api/coach/submit-assignment", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { enrollmentId, moduleId, submission, timeSpent } = req.body;
       
