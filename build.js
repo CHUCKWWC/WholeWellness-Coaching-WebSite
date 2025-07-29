@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Build script for Replit deployment  
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 
 console.log('🔨 Building Whole Wellness Coaching Platform...');
 
@@ -26,7 +26,6 @@ buildProcess.on('exit', (code) => {
   
   // Copy built files to server/public directory for production serving
   try {
-    const { execSync } = require('child_process');
     console.log('📁 Copying built files to server/public...');
     execSync('mkdir -p server/public', { stdio: 'inherit' });
     execSync('cp -r dist/public/* server/public/', { stdio: 'inherit' });
