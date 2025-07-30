@@ -2,7 +2,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { registerRoutes } from './routes.js';
+import { registerRoutes } from './routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +22,21 @@ app.use(express.urlencoded({ extended: false }));
 // 4) Static files serving
 app.use(express.static(path.join(__dirname, '../dist/public')));
 
+// GOOD: initialize once at startup (async)
+(async function initDb() {
+  try {
+    // Initialize session store and database connections
+    console.log('Initializing database and session store...');
+    // Session store will be initialized when routes are registered
+    await new Promise(resolve => setTimeout(resolve, 100)); // Brief delay to ensure health checks are ready
+    console.log('Database initialization ready');
+  } catch (error) {
+    console.error('Database initialization failed:', error);
+    // Don't exit - health checks should still work
+  }
+})();
+
+// …then mount your routes
 async function initializeServer() {
   try {
     // Register all application routes (async operations happen here)

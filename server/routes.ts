@@ -158,18 +158,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Use production-compatible session store
-  if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
-    const pgSession = connectPgSimple(session);
-    sessionConfig.store = new pgSession({
-      conString: process.env.DATABASE_URL,
-      tableName: 'session',
-      createTableIfMissing: true
-    });
-    console.log('✓ Using PostgreSQL session store for production');
-  } else {
-    console.log('✓ Using memory session store for development');
-  }
+  // GOOD: initialize session store once at startup (async)
+  (async function initSessionStore() {
+    try {
+      if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+        const pgSession = connectPgSimple(session);
+        sessionConfig.store = new pgSession({
+          conString: process.env.DATABASE_URL,
+          tableName: 'session',
+          createTableIfMissing: true
+        });
+        console.log('✓ PostgreSQL session store initialized');
+      } else {
+        console.log('✓ Using memory session store for development');
+      }
+    } catch (error) {
+      console.error('Session store initialization failed:', error);
+      // Continue without session store - health checks still work
+    }
+  })();
 
   app.use(session(sessionConfig));
   

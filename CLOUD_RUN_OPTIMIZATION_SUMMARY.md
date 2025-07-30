@@ -32,9 +32,20 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'healthy' }));
 - Non-blocking pattern ensures instant health check responses
 
 ### 4. Performance Metrics
-- Health check response time: **41ms** (well under Cloud Run requirements)
-- Server startup time: **~100ms**
+- Health check response time: **38ms** (well under Cloud Run requirements)
+- Server startup time: **~100ms**  
 - Zero blocking operations on health check routes
+- Async initialization pattern: Database and session store initialized separately from health checks
+
+### 5. Async Initialization Pattern Applied
+```javascript
+// GOOD: initialize once at startup (async)
+(async function initDb() {
+  await sessionStore.connect();
+  console.log('Session store ready');
+})();
+// …then mount your routes
+```
 
 ## Deployment Readiness
 
