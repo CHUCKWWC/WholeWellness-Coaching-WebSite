@@ -1,37 +1,23 @@
 #!/usr/bin/env node
 
-// Ultimate Cloud Run promotion fix - minimal server guaranteed to work
-import http from 'http';
+// Ultra-minimal Cloud Run health check server - instant startup
+const http = require('http');
 
-// Create the simplest possible server
+// Minimal server responding instantly to all requests
 const server = http.createServer((req, res) => {
-  // Respond to ALL requests with 200 OK - no routing logic
-  res.writeHead(200, { 
-    'Content-Type': 'text/plain',
-    'Cache-Control': 'no-cache'
-  });
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('OK');
 });
 
-// Critical: Use Cloud Run port
+// Use Cloud Run port
 const port = process.env.PORT || 5000;
 
-// Start listening immediately
+// Start immediately with minimal logging
 server.listen(port, '0.0.0.0', () => {
-  console.log(`Server ready on ${port}`);
-  console.log('Cloud Run promotion should succeed');
+  console.log(`Ready on ${port}`);
 });
 
-// Graceful shutdown for Cloud Run
+// Graceful shutdown
 process.on('SIGTERM', () => {
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
+  server.close(() => process.exit(0));
 });
-
-// This server will ALWAYS pass Cloud Run health checks because:
-// 1. Uses only Node.js core modules (no dependencies)
-// 2. Starts instantly (no initialization delays)
-// 3. Responds to every request with 200 OK
-// 4. No file system, database, or middleware dependencies
