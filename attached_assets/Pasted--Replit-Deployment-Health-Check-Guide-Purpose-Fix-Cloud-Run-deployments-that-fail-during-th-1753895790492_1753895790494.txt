@@ -1,0 +1,84 @@
+# Replit Deployment Health‑Check Guide
+
+**Purpose:** Fix Cloud Run deployments that fail during the promotion phase because the `/` health‑check endpoint doesn’t return a fast `200 OK`.
+
+---
+
+## 1 – Verify Port Binding
+
+```js
+// server/index.js (or start.js)
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`Listening on ${port}`));
+```
+
+✅ **Key:** Always read `process.env.PORT`. Do **not** hard‑code `5000`.
+
+---
+
+## 2 – Add a Trivial Root Route **First**
+
+```js
+// MUST be the very first route
+app.get('/', (req, res) => res.status(200).send('OK'));
+```
+
+* No DB calls, no session middleware, no file I/O.
+* Responds in `<10 ms`, satisfying Cloud Run probes.
+
+---
+
+## 3 – Optional Dedicated Health Route
+
+```js
+app.get('/health', (req, res) => res.status(200).json({ status: 'healthy' }));
+```
+
+If you’d rather keep `/` for your SPA, point Cloud Run’s **Health Check Path** to `/health` in the Replit Deploy settings.
+
+---
+
+## 4 – Defer Heavy Initialization
+
+Move long‑running tasks **outside** request handlers:
+
+```js
+// GOOD – runs once at startup
+(async () => {
+  await sessionStore.connect();
+  console.log('Session store ready');
+})();
+```
+
+---
+
+## 5 – Quick Curl Test (inside Repl shell)
+
+```bash
+curl -w "%{time_total}s\n" -o /dev/null -s http://0.0.0.0:${PORT:-5000}/
+# Expect ~0.01s and HTTP 200
+```
+
+---
+
+## 6 – Adjust Health‑Check Settings (last resort)
+
+| Setting               | Suggested Value |
+| --------------------- | --------------- |
+| **Initial delay**     | 60 – 90 s       |
+| **Timeout**           | 10 s            |
+| **Failure threshold** | 3 probes        |
+| **Success threshold** | 1 probe         |
+
+Only tweak these if you truly need more startup time.
+
+---
+
+### Checklist Before Redeploying
+
+* [ ] Root `GET /` returns `200 OK` instantly.
+* [ ] App listens on `process.env.PORT`.
+* [ ] No blocking logic inside health routes.
+* [ ] Cloud Run Health Check Path set correctly (`/` or `/health`).
+
+Deploy again → Promotion should succeed. 🎉
