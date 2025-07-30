@@ -70,8 +70,17 @@ externalPort = 80
 
 2. **Health Check Verification**:
 ```bash
-curl -i http://your-domain.replit.app/
+curl -i http://0.0.0.0:${PORT:-5000}/
 # Should return: HTTP/1.1 200 OK
+```
+
+3. **Local Testing Commands**:
+```bash
+# Test default port
+curl -i http://0.0.0.0:5000/
+
+# Test with Cloud Run PORT environment variable
+PORT=8080 curl -i http://0.0.0.0:8080/
 ```
 
 ## Guarantee
