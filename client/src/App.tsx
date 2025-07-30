@@ -63,6 +63,10 @@ import AdminSecurity from "@/pages/AdminSecurity";
 import AdminCoupons from "@/pages/AdminCoupons";
 import WellnessJourneyRecommender from "@/pages/WellnessJourneyRecommender";
 import AdminCertifications from "@/pages/AdminCertifications";
+import RoleBasedRegistration from "@/pages/RoleBasedRegistration";
+import CoachPendingApproval from "@/pages/CoachPendingApproval";
+import RoleBasedAdminPanel from "@/pages/RoleBasedAdminPanel";
+import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -158,6 +162,10 @@ function Router() {
           <Route path="/certification-dashboard" component={CertificationDashboard} />
           <Route path="/certification-guide" component={CertificationGuide} />
           <Route path="/wellness-journey" component={WellnessJourneyRecommender} />
+          <Route path="/register" component={RoleBasedRegistration} />
+          <Route path="/login" component={Login} />
+          <Route path="/coach-pending-approval" component={CoachPendingApproval} />
+          <Route path="/admin-role-management" component={RoleBasedAdminPanel} />
           <Route component={NotFound} />
         </Switch>
       </main>

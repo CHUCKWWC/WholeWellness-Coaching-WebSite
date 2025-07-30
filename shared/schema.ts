@@ -14,6 +14,43 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Content resources with role-based visibility
+export const contentResources = pgTable("content_resources", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  slug: varchar("slug").unique().notNull(),
+  description: text("description"),
+  content: text("content"),
+  contentType: varchar("content_type").notNull(), // page, article, video, course, assessment
+  visibility: varchar("visibility").default("public"), // public, client_free, client_paid, coach, admin
+  category: varchar("category"), // wellness, coaching, resources, tools
+  tags: text("tags").array(),
+  isActive: boolean("is_active").default(true),
+  authorId: varchar("author_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Coaching packages available for registration
+export const coachingPackages = pgTable("coaching_packages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  type: varchar("type").notNull(), // free_starter, ai_coaching, live_coaching, combined
+  price: decimal("price").notNull(),
+  features: text("features").array().notNull(),
+  duration: integer("duration"), // in months
+  sessionCount: integer("session_count"), // number of sessions included
+  aiCoachAccess: boolean("ai_coach_access").default(false),
+  liveCoachAccess: boolean("live_coach_access").default(false),
+  assessmentLimit: integer("assessment_limit"), // null = unlimited
+  prioritySupport: boolean("priority_support").default(false),
+  isActive: boolean("is_active").default(true),
+  orderIndex: integer("order_index").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Main users table (consolidated from donation schema)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey(),
@@ -21,7 +58,10 @@ export const users = pgTable("users", {
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
-  membershipLevel: varchar("membership_level").default("free"), // free, supporter, champion, guardian
+  membershipLevel: varchar("membership_level").default("free"), // free, paid, premium
+  packageType: varchar("package_type"), // free_starter, coaching_package, ai_coaching, combined_coaching
+  coachingSpecialty: varchar("coaching_specialty"), // weight_loss, relationship, behavior, wellness, accountability, empowerment
+  approvalStatus: varchar("approval_status").default("approved"), // approved, pending, rejected (for coaches)
   donationTotal: decimal("donation_total").default("0"),
   rewardPoints: integer("reward_points").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
@@ -34,7 +74,7 @@ export const users = pgTable("users", {
   preferredCoach: varchar("preferred_coach"),
   googleId: varchar("google_id"),
   provider: varchar("provider").default("local"), // local, google, facebook, apple
-  role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
+  role: varchar("role").default("client_free"), // client_free, client_paid, coach, admin, super_admin
   permissions: jsonb("permissions"), // JSON array of permission strings
   isActive: boolean("is_active").default(true),
   joinDate: timestamp("join_date").defaultNow(),
