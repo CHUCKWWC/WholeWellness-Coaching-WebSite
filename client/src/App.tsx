@@ -68,8 +68,21 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <div className="min-h-screen flex flex-col">
-      <SmartNavigation />
-      <main className="flex-1">
+      {/* Skip to Content Link for Screen Readers */}
+      <a 
+        href="#main-content" 
+        className="skip-link"
+        onFocus={(e) => e.target.classList.add('focus:top-0')}
+        onBlur={(e) => e.target.classList.remove('focus:top-0')}
+      >
+        Skip to main content
+      </a>
+      
+      <header role="banner">
+        <SmartNavigation />
+      </header>
+      
+      <main id="main-content" role="main" className="flex-1" tabIndex={-1}>
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/about" component={About} />
@@ -148,7 +161,10 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      <Footer />
+      
+      <footer role="contentinfo">
+        <Footer />
+      </footer>
       <Chatbot />
       <HelpSystem />
       <FeatureSpotlight />

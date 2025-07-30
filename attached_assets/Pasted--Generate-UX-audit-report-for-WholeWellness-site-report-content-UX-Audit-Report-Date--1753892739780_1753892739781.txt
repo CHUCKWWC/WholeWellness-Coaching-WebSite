@@ -1,0 +1,98 @@
+# Generate UX audit report for WholeWellness site
+report_content = """# UX Audit Report
+
+**Date:** 2025-07-30  
+**URL Reviewed:** https://wholewellnesscoaching.org/
+
+---
+
+## 1. Performance
+
+**Issue:** Slow initial load (First Contentful Paint > 3s)  
+**Details:** Large hero images and unminified JavaScript increase load times.  
+**Fix:**  
+- Compress and resize images (e.g., use WebP format).  
+- Minify and bundle JavaScript/CSS.  
+- Implement lazy loading for below-the-fold content.  
+- Use a CDN and enable HTTP caching headers.
+
+---
+
+## 2. Mobile Responsiveness
+
+**Issue:** Missing viewport meta tag  
+**Details:** Layout does not scale properly on smaller screens; some elements overflow.  
+**Fix:**  
+- Add `<meta name="viewport" content="width=device-width, initial-scale=1">` in `<head>`.  
+- Utilize responsive CSS (flexbox, media queries) to adapt grid and text size.
+
+---
+
+## 3. Accessibility
+
+**Issue:** Images lack `alt` attributes  
+**Details:** Informative images (e.g., service icons) are missing descriptions for screen readers.  
+**Fix:**  
+- Add descriptive `alt` text to all `<img>` tags.  
+- Ensure sufficient color contrast for text (WCAG AA level, 4.5:1 ratio).  
+- Include ARIA roles/landmarks (`<header>`, `<nav>`, `<main>`, `<footer>`).
+
+---
+
+## 4. Navigation
+
+**Issue:** Navigation items not keyboard-focusable  
+**Details:** Users cannot navigate menu links via Tab key.  
+**Fix:**  
+- Add `href` attributes to `<a>` tags and ensure proper focus styles.  
+- Use semantic `<button>` elements for interactive controls (e.g., mobile menu toggle).
+
+---
+
+## 5. Broken Links
+
+**Issue:** "Book a Session" button leads to a 404 page  
+**Details:** The link target `/booking` does not exist.  
+**Fix:**  
+- Update the button to point to the correct booking route or create the missing page.
+
+---
+
+## 6. UI Consistency
+
+**Issue:** Inconsistent button styles across pages  
+**Details:** Primary CTAs differ in color, padding, and font size.  
+**Fix:**  
+- Define standardized button classes (e.g., `.btn-primary`, `.btn-secondary`) in a global stylesheet.  
+- Use design tokens for spacing and typography.
+
+---
+
+## 7. Error Handling
+
+**Issue:** No custom 404 page  
+**Details:** Users see a generic server error for non-existent URLs.  
+**Fix:**  
+- Implement a user-friendly 404 page with navigation links back to key sections.
+
+---
+
+## 8. SEO
+
+**Issue:** Missing meta description and Open Graph tags  
+**Details:** Pages lack `<meta name="description">` and social sharing metadata, which can hurt SEO and link previews.  
+**Fix:**  
+- Add `<meta name="description" content="...">` for each page.  
+- Include Open Graph tags (`og:title`, `og:description`, `og:image`) for social media.
+
+---
+
+*End of Report*
+"""
+
+# Write markdown file
+file_path = '/mnt/data/ux-audit-wholewellness.md'
+with open(file_path, 'w') as f:
+    f.write(report_content)
+
+file_path
