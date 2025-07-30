@@ -35,7 +35,9 @@ const child = spawn('npx', ['tsx', 'server/cloud-run-optimized.js'], {
   env: {
     ...process.env,
     // Optimize for faster startup and stability
-    NODE_OPTIONS: '--max-old-space-size=512'
+    NODE_OPTIONS: '--max-old-space-size=512',
+    // Cloud Run deployment guide optimizations
+    DEPLOYMENT_HEALTH_CHECK: 'enabled'
   }
 });
 
