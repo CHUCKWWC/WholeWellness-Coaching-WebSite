@@ -76,11 +76,11 @@
   
   /* Standardized Button Classes for UI Consistency */
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg shadow-sm transition-all duration-200 inline-flex items-center justify-center;
+    @apply bg-primary text-primary-foreground hover:bg-primary hover:opacity-90 focus:ring-2 focus:ring-primary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg shadow-sm transition-all duration-200 inline-flex items-center justify-center;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 focus:ring-2 focus:ring-secondary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg shadow-sm transition-all duration-200 inline-flex items-center justify-center;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary hover:opacity-90 focus:ring-2 focus:ring-secondary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg shadow-sm transition-all duration-200 inline-flex items-center justify-center;
   }
   
   .btn-outline {
@@ -124,7 +124,6 @@
       transition-duration: 0.01ms !important;
     }
   }
-}
 }
 
 /* Coming Soon button styling */
