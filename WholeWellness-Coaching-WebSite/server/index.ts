@@ -2,8 +2,20 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 // Admin routes are included in main routes file
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http";
 
 const app = express();
+
+// Add immediate health check endpoint for Cloud Run
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Add health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -37,36 +49,62 @@ app.use((req, res, next) => {
   next();
 });
 
+// Create HTTP server first
+const server = createServer(app);
+
+// Use PORT environment variable for Cloud Run deployment, fallback to 5000 for development
+const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+
+// Start server immediately for health checks
+server.listen(port, "0.0.0.0", () => {
+  log(`serving on port ${port}`);
+});
+
+// Initialize routes asynchronously after server is listening
 (async () => {
-  const server = await registerRoutes(app);
-  
-  // Admin routes are handled in registerRoutes
+  try {
+    // Register routes but don't wait for complex initialization
+    await registerRoutes(app);
+    
+    // Admin routes are handled in registerRoutes
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
-  });
+      res.status(status).json({ message });
+      throw err;
+    });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
+    log("Application fully initialized");
+  } catch (error) {
+    log(`Error during initialization: ${error}`);
+    // Don't exit the process - keep server running for health checks
   }
-
-  // Use PORT environment variable for Cloud Run deployment, fallback to 5000 for development
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    // Remove reusePort for Cloud Run compatibility
-    ...(process.env.NODE_ENV === 'development' && { reusePort: true })
-  }, () => {
-    log(`serving on port ${port}`);
-  });
 })();
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    log('Server closed');
+    process.exit(0);
+  });
+});

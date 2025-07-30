@@ -52,7 +52,7 @@ import Subscribe from "@/pages/Subscribe";
 import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import VolunteerApplication from "@/pages/VolunteerApplication";
 import WixBooking from "@/pages/WixBooking";
-import Assessments from "@/pages/Assessments";
+import Assessments from "@/pages/assessments";
 import UserProfile from "@/pages/UserProfile";
 import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import CoachCertifications from "@/pages/CoachCertifications";
