@@ -5,20 +5,28 @@ import { spawn } from 'child_process';
 
 // Set development environment
 process.env.NODE_ENV = 'development';
-process.env.PORT = process.env.PORT || '5000';
+const port = process.env.PORT || 5000;
+process.env.PORT = port;
 process.env.HOST = '0.0.0.0';
 
-console.log('🚀 Starting Whole Wellness Coaching Platform in development mode...');
+console.log('🚀 Starting Whole Wellness Coaching Platform (Development)...');
 console.log(`📋 Environment: ${process.env.NODE_ENV}`);
-console.log(`🌐 Port: ${process.env.PORT}`);
+console.log(`🌐 Port: ${port}`);
 console.log(`🏠 Host: ${process.env.HOST}`);
+console.log(`📅 Started at: ${new Date().toISOString()}`);
 
-// Start the development server
+// Start the application using tsx for development with hot reload
+console.log('🔧 Starting development server with tsx...');
 const child = spawn('npx', ['tsx', 'server/index.ts'], {
   stdio: 'inherit',
   shell: true,
-  env: process.env
+  env: {
+    ...process.env,
+    NODE_OPTIONS: '--max-old-space-size=512'
+  }
 });
+
+console.log(`📋 Child process PID: ${child.pid}`);
 
 child.on('error', (error) => {
   console.error('❌ Failed to start development server:', error);
@@ -41,6 +49,6 @@ process.on('SIGINT', () => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n🛑 Shutting down development server...');
+  console.log('🛑 Received SIGTERM, shutting down development server...');
   child.kill('SIGTERM');
 });
