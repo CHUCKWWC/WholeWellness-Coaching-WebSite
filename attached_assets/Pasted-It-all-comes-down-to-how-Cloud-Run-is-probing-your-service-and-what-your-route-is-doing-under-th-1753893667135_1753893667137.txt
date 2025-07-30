@@ -1,0 +1,109 @@
+It all comes down to how Cloud Run is probing your service and what your `/` route is doing under the hood. Even though your server logs show a sub‑200 ms startup, Cloud Run will repeatedly hit `GET /` and mark the container unhealthy if it:
+
+1. Doesn’t return **HTTP 200** instantly
+2. Blocks on long initialization (DB, session store, file I/O)
+3. Isn’t listening on the expected port
+
+Here’s how to fix it:
+
+---
+
+## 1. Make your `/` handler truly trivial
+
+Early in your server entry (before you mount any heavy middleware or static file serving), add:
+
+```js
+// server/start.js (or index.js)
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// 1) Immediate, zero‐cost health check
+app.get('/', (req, res) => res.status(200).send('OK'));
+
+// 2) Dedicated health endpoint (optional)
+app.get('/health', (req, res) => res.status(200).json({ status: 'healthy' }));
+
+// 3) Now mount real routes & static assets
+app.use(express.static(path.join(__dirname, 'public')));
+// ... your session store, DB, auth, other routes here ...
+
+// 4) Listen on the port Cloud Run expects
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`Listening on ${port}`));
+```
+
+**Why?**
+This guarantees that any probe of `/` returns **200 OK** in microseconds—even if your database or session store isn’t ready yet.
+
+---
+
+## 2. Ensure you’re binding to `process.env.PORT`
+
+Cloud Run will map its external port (80) to whatever port your app listens on. If you hard‑code `5000` instead of using `process.env.PORT`, probes can’t reach it:
+
+```js
+const port = process.env.PORT || 5000;
+app.listen(port, …);
+```
+
+---
+
+## 3. Offload expensive initialization
+
+If you have code like:
+
+```js
+// BAD: runs on every request to /
+app.use(session({ store: new PostgresStore(/* blocks until ready */) }));
+```
+
+or any synchronous DB connection in a route, move it **outside** of your routes:
+
+```js
+// GOOD: initialize once at startup (async)…
+(async function initDb() {
+  await sessionStore.connect();
+  console.log('Session store ready');
+})();
+// …then mount your routes
+```
+
+This keeps your health checks lightning-fast.
+
+---
+
+## 4. Point Cloud Run at `/health` instead of `/` (optional)
+
+If you’d rather keep `/` serving your full SPA and only use `/health` for probes, go into your Replit (Cloud Run) deployment settings and set the health‐check path to `/health`. That way your SPA load time won’t block readiness.
+
+---
+
+## 5. Verify with `curl` in production
+
+After deploying, open a Replit shell and run:
+
+```bash
+curl -i http://0.0.0.0:${PORT:-5000}/
+```
+
+You should get:
+
+```
+HTTP/1.1 200 OK
+...
+OK
+```
+
+in < 10 ms. If that passes, Cloud Run will mark your instance healthy and “promotion” will succeed.
+
+---
+
+### TL;DR
+
+1. **Add a trivial `/` route** that returns 200 immediately.
+2. **Bind** to `process.env.PORT`.
+3. **Initialize everything else asynchronously** outside of your health‐check route.
+4. (Opt) **Switch health check** to `/health`.
+
+Implement these, redeploy, and your promotion should sail through. Let me know if you hit any snags!

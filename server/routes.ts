@@ -71,34 +71,19 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Fast health check endpoint for deployment monitoring (must be first)
-  // Optimized for Cloud Run health checks - no database calls or heavy operations
+  // Instant health check endpoint for Cloud Run probes (must be first)
+  // Returns 200 OK in microseconds - no DB, no async, no complex logic
   app.get('/', (req, res) => {
-    const timestamp = Date.now();
-    console.log(`✓ Health check requested at ${new Date(timestamp).toISOString()} - responding immediately with 200 OK`);
-    
-    // Immediate response without any async operations
-    res.status(200).json({ 
-      status: 'ok',
-      service: 'whole-wellness-coaching',
-      uptime: Math.floor(process.uptime()),
-      timestamp,
-      ready: true
-    });
+    res.status(200).send('OK');
   });
 
-  // Alternative health check endpoint 
+  // Detailed health check endpoint with service info
   app.get('/health', (req, res) => {
-    const timestamp = Date.now();
-    console.log(`✓ Health check (/health) requested at ${new Date(timestamp).toISOString()} - responding immediately with 200 OK`);
-    
-    // Immediate response without any async operations
     res.status(200).json({ 
-      status: 'ok',
+      status: 'healthy',
       service: 'whole-wellness-coaching',
       uptime: Math.floor(process.uptime()),
-      timestamp,
-      ready: true
+      timestamp: Date.now()
     });
   });
 
