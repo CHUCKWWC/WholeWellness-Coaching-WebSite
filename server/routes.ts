@@ -71,21 +71,8 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Instant health check endpoint for Cloud Run probes (must be first)
-  // Returns 200 OK in microseconds - no DB, no async, no complex logic
-  app.get('/', (req, res) => {
-    res.status(200).send('OK');
-  });
-
-  // Detailed health check endpoint with service info
-  app.get('/health', (req, res) => {
-    res.status(200).json({ 
-      status: 'healthy',
-      service: 'whole-wellness-coaching',
-      uptime: Math.floor(process.uptime()),
-      timestamp: Date.now()
-    });
-  });
+  // Health check endpoints are now handled in cloud-run-optimized.js
+  // This ensures they're registered FIRST before any heavy middleware
 
   // Readiness check with database connectivity (for monitoring)
   app.get('/ready', async (req, res) => {

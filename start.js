@@ -27,15 +27,15 @@ const startupTimeout = setTimeout(() => {
   process.exit(1);
 }, 120000); // 120 seconds to allow for Cloud Run health checks and slow startups
 
-// Start the application using tsx with optimized settings
-console.log('🔧 Spawning server process with tsx...');
-const child = spawn('npx', ['tsx', 'server/index.ts'], {
+// Start the application using the Cloud Run optimized server
+console.log('🔧 Starting Cloud Run optimized server...');
+const child = spawn('npx', ['tsx', 'server/cloud-run-optimized.js'], {
   stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
   shell: true,
   env: {
     ...process.env,
     // Optimize for faster startup and stability
-    NODE_OPTIONS: '--max-old-space-size=512 --experimental-modules'
+    NODE_OPTIONS: '--max-old-space-size=512'
   }
 });
 
