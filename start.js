@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Ultimate Cloud Run promotion fix - minimal server guaranteed to work
-const http = require('http');
+import http from 'http';
 
 // Create the simplest possible server
 const server = http.createServer((req, res) => {
