@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X, Heart, MessageCircle, Lightbulb, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'wouter';
 
 interface HelpBubbleProps {
   context: string;
@@ -20,7 +21,7 @@ interface HelpContent {
   message: string;
   tone: 'supportive' | 'encouraging' | 'informative' | 'celebratory';
   actionSuggestions?: string[];
-  relatedTopics?: string[];
+  relatedTopics?: Array<{name: string; link: string}>;
   icon: React.ReactNode;
 }
 
@@ -30,7 +31,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Taking the first step toward wellness shows incredible courage. You're joining a supportive community that believes in your strength and potential.",
     tone: 'supportive',
     actionSuggestions: ['Complete your profile to get personalized recommendations', 'Explore our coaching specialties'],
-    relatedTopics: ['Getting Started', 'Finding Your Coach'],
+    relatedTopics: [
+      {name: 'Getting Started', link: '/digital-onboarding'},
+      {name: 'Finding Your Coach', link: '/coach-signup'}
+    ],
     icon: <Heart className="w-5 h-5 text-pink-500" />
   },
   'donation-first-time': {
@@ -38,7 +42,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Every contribution, no matter the size, helps create a world where wellness support is accessible to everyone. Your kindness is deeply appreciated.",
     tone: 'encouraging',
     actionSuggestions: ['Choose a donation amount that feels right for you', 'Learn about our impact stories'],
-    relatedTopics: ['Our Mission', 'Community Impact'],
+    relatedTopics: [
+      {name: 'Our Mission', link: '/about'},
+      {name: 'Community Impact', link: '/impact'}
+    ],
     icon: <Heart className="w-5 h-5 text-green-500" />
   },
   'coaching-selection': {
@@ -46,7 +53,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Choosing the right coaching specialty is about honoring where you are right now. Trust your instincts - you know what feels right for your journey.",
     tone: 'supportive',
     actionSuggestions: ['Take our specialty quiz', 'Read coach profiles', 'Start with what feels most urgent'],
-    relatedTopics: ['Coaching Specialties', 'Getting Started'],
+    relatedTopics: [
+      {name: 'Coaching Specialties', link: '/ai-coaching'},
+      {name: 'Getting Started', link: '/digital-onboarding'}
+    ],
     icon: <Lightbulb className="w-5 h-5 text-blue-500" />
   },
   'first-session-booking': {
@@ -54,7 +64,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Booking your first session is a brave step. Remember, our coaches are here to support you without judgment. You're in a safe space to grow and heal.",
     tone: 'encouraging',
     actionSuggestions: ['Prepare a few questions for your coach', 'Choose a comfortable, private space'],
-    relatedTopics: ['What to Expect', 'Session Preparation'],
+    relatedTopics: [
+      {name: 'What to Expect', link: '/resources'},
+      {name: 'Session Preparation', link: '/wix-booking'}
+    ],
     icon: <MessageCircle className="w-5 h-5 text-purple-500" />
   },
   'progress-tracking': {
@@ -62,7 +75,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Every small step forward is worth celebrating. Healing and growth aren't linear - be patient and kind with yourself as you navigate this journey.",
     tone: 'celebratory',
     actionSuggestions: ['Review your recent achievements', 'Set a small, achievable goal'],
-    relatedTopics: ['Progress Tracking', 'Self-Care Tips'],
+    relatedTopics: [
+      {name: 'Progress Tracking', link: '/wellness-journey'},
+      {name: 'Self-Care Tips', link: '/mental-wellness'}
+    ],
     icon: <ArrowRight className="w-5 h-5 text-orange-500" />
   },
   'difficult-moment': {
@@ -70,7 +86,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Difficult moments are part of the healing process. Your strength has brought you this far, and you have the support you need to continue forward.",
     tone: 'supportive',
     actionSuggestions: ['Reach out to your coach', 'Practice a breathing exercise', 'Connect with our community'],
-    relatedTopics: ['Crisis Support', 'Coping Strategies'],
+    relatedTopics: [
+      {name: 'Crisis Support', link: '/contact'},
+      {name: 'Coping Strategies', link: '/mental-wellness'}
+    ],
     icon: <Heart className="w-5 h-5 text-red-500" />
   },
   'membership-benefits': {
@@ -78,7 +97,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Membership isn't just about access - it's about investing in your wellbeing and joining a community that truly cares about your success.",
     tone: 'informative',
     actionSuggestions: ['Explore membership benefits', 'See what other members say'],
-    relatedTopics: ['Membership Tiers', 'Community Benefits'],
+    relatedTopics: [
+      {name: 'Membership Tiers', link: '/subscribe'},
+      {name: 'Community Benefits', link: '/about'}
+    ],
     icon: <Lightbulb className="w-5 h-5 text-indigo-500" />
   },
   'onboarding-overwhelmed': {
@@ -86,7 +108,10 @@ const contextualHelp: Record<string, HelpContent> = {
     message: "Feeling overwhelmed is completely normal. You don't have to do everything at once. Focus on one small step, and we'll be here to guide you through the rest.",
     tone: 'supportive',
     actionSuggestions: ['Start with just one specialty', 'Take breaks when needed'],
-    relatedTopics: ['Getting Started', 'Self-Paced Learning'],
+    relatedTopics: [
+      {name: 'Getting Started', link: '/digital-onboarding'},
+      {name: 'Self-Paced Learning', link: '/resources'}
+    ],
     icon: <Heart className="w-5 h-5 text-teal-500" />
   }
 };
@@ -220,13 +245,14 @@ export function HelpBubble({
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {helpContent.relatedTopics.map((topic, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="text-xs px-2 py-1"
-                        >
-                          {topic}
-                        </Badge>
+                        <Link key={index} href={topic.link}>
+                          <Badge
+                            variant="secondary"
+                            className="text-xs px-2 py-1 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer transition-colors"
+                          >
+                            {topic.name}
+                          </Badge>
+                        </Link>
                       ))}
                     </div>
                   </div>
