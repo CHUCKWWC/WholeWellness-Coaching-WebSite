@@ -57,52 +57,6 @@ export interface WorkoutPlan {
   cooldown: string[];
 }
 
-// Enhanced AI Coach Profiles based on specialized coaching team
-export const coachProfiles = {
-  weight_loss: {
-    name: "Aria",
-    specialty: "Weight Loss & Meal Prep Coach",
-    description: "Your go-to guide for building a healthier body and a more mindful relationship with food. Specializing in sustainable weight loss, nutritional planning, and habit transformation.",
-    expertise: ["Sustainable Weight Loss", "Nutritional Planning", "Meal Prep Strategies", "Habit Formation"],
-    personality: "Compassionate, practical, and motivating with a focus on sustainable change."
-  },
-  relationship: {
-    name: "Charles",
-    specialty: "Relationship Coach",
-    description: "Helps you navigate the maze of modern relationships with clarity and confidence. A specialist in communication dynamics, attachment styles, and recognizing red flags.",
-    expertise: ["Communication Dynamics", "Attachment Styles", "Red Flag Recognition", "Healthy Relationship Building"],
-    personality: "Insightful, empathetic, and direct with a focus on emotional intelligence."
-  },
-  behavior: {
-    name: "Dasha",
-    specialty: "Behavior Change Coach",
-    description: "Your behavior reboot specialist. With a sharp focus on habit formation, emotional regulation, and narcissistic recovery, she helps you break free from unhealthy patterns.",
-    expertise: ["Habit Formation", "Emotional Regulation", "Narcissistic Recovery", "Personal Development"],
-    personality: "Strong, supportive, and transformative with tools for personal empowerment."
-  },
-  wellness: {
-    name: "Bobby",
-    specialty: "Wellness Journey Coordinator",
-    description: "Takes a holistic, science-backed approach to your wellness journey. Ensures your coaching experience is connected, informed, and built around your individual goals.",
-    expertise: ["Holistic Health", "Medical Research", "Integrative Wellness", "Journey Coordination"],
-    personality: "Knowledgeable, systematic, and encouraging with evidence-based approaches."
-  },
-  accountability: {
-    name: "Lisa",
-    specialty: "Financial Wellness & Accountability Coach",
-    description: "Empowers you to take charge of your money with clarity and confidence. From budgeting and debt management to goal-setting and financial literacy.",
-    expertise: ["Financial Planning", "Debt Management", "Goal Setting", "Financial Literacy"],
-    personality: "Practical, structured, and empowering with a focus on financial peace of mind."
-  },
-  empowerment: {
-    name: "Charlene",
-    specialty: "Domestic Violence Recovery & Empowerment Coach",
-    description: "Walks with survivors on their path to healing. Specializes in domestic violence recovery, helping clients rebuild self-worth and establish emotional safety.",
-    expertise: ["Domestic Violence Recovery", "Self-Worth Building", "Emotional Safety", "Independent Living"],
-    personality: "Compassionate, strong, and healing-focused with trauma-informed approaches."
-  }
-};
-
 export class AICoaching {
   // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
   private model = "gpt-4o";

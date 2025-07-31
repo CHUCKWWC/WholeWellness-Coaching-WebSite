@@ -52,7 +52,7 @@ import Subscribe from "@/pages/Subscribe";
 import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import VolunteerApplication from "@/pages/VolunteerApplication";
 import WixBooking from "@/pages/WixBooking";
-import Assessments from "@/pages/Assessments";
+import Assessments from "@/pages/assessments";
 import UserProfile from "@/pages/UserProfile";
 import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
 import CoachCertifications from "@/pages/CoachCertifications";
@@ -63,30 +63,13 @@ import AdminSecurity from "@/pages/AdminSecurity";
 import AdminCoupons from "@/pages/AdminCoupons";
 import WellnessJourneyRecommender from "@/pages/WellnessJourneyRecommender";
 import AdminCertifications from "@/pages/AdminCertifications";
-import RoleBasedRegistration from "@/pages/RoleBasedRegistration";
-import CoachPendingApproval from "@/pages/CoachPendingApproval";
-import RoleBasedAdminPanel from "@/pages/RoleBasedAdminPanel";
-import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Skip to Content Link for Screen Readers */}
-      <a 
-        href="#main-content" 
-        className="skip-link"
-        onFocus={(e) => e.target.classList.add('focus:top-0')}
-        onBlur={(e) => e.target.classList.remove('focus:top-0')}
-      >
-        Skip to main content
-      </a>
-      
-      <header role="banner">
-        <SmartNavigation />
-      </header>
-      
-      <main id="main-content" role="main" className="flex-1" tabIndex={-1}>
+      <SmartNavigation />
+      <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/about" component={About} />
@@ -162,17 +145,10 @@ function Router() {
           <Route path="/certification-dashboard" component={CertificationDashboard} />
           <Route path="/certification-guide" component={CertificationGuide} />
           <Route path="/wellness-journey" component={WellnessJourneyRecommender} />
-          <Route path="/register" component={RoleBasedRegistration} />
-          <Route path="/login" component={Login} />
-          <Route path="/coach-pending-approval" component={CoachPendingApproval} />
-          <Route path="/admin-role-management" component={RoleBasedAdminPanel} />
           <Route component={NotFound} />
         </Switch>
       </main>
-      
-      <footer role="contentinfo">
-        <Footer />
-      </footer>
+      <Footer />
       <Chatbot />
       <HelpSystem />
       <FeatureSpotlight />

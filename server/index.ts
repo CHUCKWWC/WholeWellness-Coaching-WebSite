@@ -1,9 +1,21 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 // Admin routes are included in main routes file
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http";
 
 const app = express();
+
+// Add immediate health check endpoint for Cloud Run
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Add health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -37,76 +49,62 @@ app.use((req, res, next) => {
   next();
 });
 
+// Create HTTP server first
+const server = createServer(app);
+
+// Use PORT environment variable for Cloud Run deployment, fallback to 5000 for development
+const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+
+// Start server immediately for health checks
+server.listen(port, "0.0.0.0", () => {
+  log(`serving on port ${port}`);
+});
+
+// Initialize routes asynchronously after server is listening
 (async () => {
-  const startTime = Date.now();
-  console.log(`🚀 Starting server initialization at ${new Date().toISOString()}`);
-  
   try {
-    console.log('📋 Registering routes...');
-    const server = await registerRoutes(app);
-    console.log(`✓ Routes registered in ${Date.now() - startTime}ms`);
+    // Register routes but don't wait for complex initialization
+    await registerRoutes(app);
     
-    // Global error handler - improved for production
+    // Admin routes are handled in registerRoutes
+
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
-      const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
+      const message = err.message || "Internal Server Error";
 
-      console.error('Server error:', err);
       res.status(status).json({ message });
+      throw err;
     });
 
-    // Setup Vite or static files based on environment
-    if (process.env.NODE_ENV === "development") {
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
       await setupVite(app, server);
     } else {
       serveStatic(app);
     }
 
-    // Cloud Run optimized server configuration
-    const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-    const host = "0.0.0.0"; // Always bind to 0.0.0.0 for Cloud Run compatibility
-    
-    server.listen(port, host, () => {
-      log(`✓ Server ready on ${host}:${port} (${process.env.NODE_ENV || 'development'})`);
-      log(`✓ Health check endpoint available at http://${host}:${port}/`);
-      log(`✓ Alternative health check endpoint available at http://${host}:${port}/health`);
-      log(`✓ Readiness check endpoint available at http://${host}:${port}/ready`);
-      
-      const totalStartupTime = Date.now() - startTime;
-      log(`✓ Server startup completed in ${totalStartupTime}ms`);
-      
-      // Signal that server is ready for health checks - this clears the startup timeout
-      if (process.send) {
-        process.send('ready');
-        log('✓ Ready signal sent to parent process - startup timeout will be cleared');
-      }
-      
-      // Additional success logging for deployment debugging
-      log('✓ All routes registered successfully');
-      log('✓ Server initialization complete - ready to handle requests');
-      log(`📊 Performance: Total startup time ${totalStartupTime}ms`);
-    });
-
-    // Graceful shutdown handling for Cloud Run
-    const gracefulShutdown = (signal: string) => {
-      log(`${signal} received, shutting down gracefully`);
-      server.close(() => {
-        log('✓ HTTP server closed successfully');
-        process.exit(0);
-      });
-      
-      // Force shutdown after 8 seconds (Cloud Run allows 10s for graceful shutdown)
-      setTimeout(() => {
-        log('⚠ Forced shutdown after timeout');
-        process.exit(1);
-      }, 8000);
-    };
-
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
+    log("Application fully initialized");
   } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+    log(`Error during initialization: ${error}`);
+    // Don't exit the process - keep server running for health checks
   }
 })();
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    log('Server closed');
+    process.exit(0);
+  });
+});

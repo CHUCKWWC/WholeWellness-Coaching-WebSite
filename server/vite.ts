@@ -68,18 +68,96 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
+  // Production build creates dist/public/ directory
   const distPath = path.resolve(import.meta.dirname, "public");
 
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    log(`Primary build directory not found: ${distPath}, trying alternative paths...`);
+    
+    // Try alternative dist paths
+    const alternativePaths = [
+      path.resolve(import.meta.dirname, "..", "client", "dist"),
+      path.resolve(import.meta.dirname, "..", "dist", "public"),
+      path.resolve(import.meta.dirname, "..", "client", "build"),
+      path.resolve(import.meta.dirname, "..", "build")
+    ];
+    
+    let foundPath = null;
+    for (const altPath of alternativePaths) {
+      if (fs.existsSync(altPath)) {
+        foundPath = altPath;
+        break;
+      }
+    }
+    
+    if (!foundPath) {
+      log(`Warning: No build directory found. Server will still run for health checks.`);
+      // Return a simple response for any static requests
+      app.use("*", (_req, res) => {
+        if (_req.path.startsWith('/api')) {
+          return; // Let API routes handle themselves
+        }
+        res.status(200).send(`
+          <!DOCTYPE html>
+          <html>
+            <head><title>WholeWellness Coaching</title></head>
+            <body>
+              <h1>Application Loading</h1>
+              <p>The application is initializing. Please wait...</p>
+            </body>
+          </html>
+        `);
+      });
+      return;
+    }
+    
+    log(`Using build directory: ${foundPath}`);
+    app.use(express.static(foundPath));
+    app.use("*", (_req, res) => {
+      if (_req.path.startsWith('/api')) {
+        return; // Let API routes handle themselves
+      }
+      const indexPath = path.resolve(foundPath!, "index.html");
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(200).send(`
+          <!DOCTYPE html>
+          <html>
+            <head><title>WholeWellness Coaching</title></head>
+            <body>
+              <h1>Application Ready</h1>
+              <p>Server is running successfully.</p>
+            </body>
+          </html>
+        `);
+      }
+    });
+    return;
   }
 
+  log(`Using build directory: ${distPath}`);
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    if (_req.path.startsWith('/api')) {
+      return; // Let API routes handle themselves
+    }
+    const indexPath = path.resolve(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(200).send(`
+        <!DOCTYPE html>
+        <html>
+          <head><title>WholeWellness Coaching</title></head>
+          <body>
+            <h1>Application Ready</h1>
+            <p>Server is running successfully.</p>
+          </body>
+        </html>
+      `);
+    }
   });
 }

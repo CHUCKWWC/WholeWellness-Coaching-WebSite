@@ -62,9 +62,6 @@ import { recommendationEngine, type UserProfile, type RecommendationContext } fr
 import { createTestCoach } from './create-coach-endpoint';
 import passport from "passport";
 import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
-import crypto from "crypto";
-import { initializeSessionStore } from './production-session-config';
 import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
 import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./google-drive-service";
 import { googleDriveDemoService } from "./google-drive-demo";
@@ -72,22 +69,7 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // CRITICAL: Ultra-simple health check endpoints FIRST - must respond instantly
-  // Cloud Run health checks require immediate response with zero dependencies
-  app.get('/', (req, res) => {
-    res.status(200).send('OK');
-  });
-
-  app.get('/health', (req, res) => {
-    res.status(200).send('OK');
-  });
-
-  // Simplified readiness check (non-blocking)
-  app.get('/ready', (req, res) => {
-    res.status(200).send('READY');
-  });
-  
-  // Google Drive course materials endpoint - PRIORITY ROUTE
+  // Google Drive course materials endpoint - PRIORITY ROUTE (must be first)
   app.get("/api/public/course-materials/:courseId", async (req: any, res) => {
     res.setHeader('Content-Type', 'application/json');
     try {
@@ -128,61 +110,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create HTTP server first to enable health checks immediately
-  const httpServer = createServer(app);
-
-  // Add essential middleware immediately (non-blocking)
+  // Add cookie parser middleware
   app.use(cookieParser());
   
-  // Initialize session middleware AFTER server starts listening to avoid blocking health checks
-  const initializeSessionMiddleware = () => {
-    setTimeout(async () => {
-      try {
-        console.log('🔧 Initializing session middleware post-startup...');
-        
-        // Use production session configuration (non-blocking)
-        const sessionConfig = initializeSessionStore();
-        app.use(session(sessionConfig));
-        
-        // Initialize Passport and session
-        app.use(passport.initialize());
-        app.use(passport.session());
-        
-        // Setup Google OAuth
-        setupGoogleAuth();
-        
-        console.log('✓ Session middleware initialized successfully');
-      } catch (error) {
-        console.error('Error initializing session middleware:', error);
-        // Continue without sessions if there's an error
-      }
-    }, 100); // Minimal delay to ensure server is listening first
-  };
-  
-  // Lazy-load expensive services to optimize startup time
-  let googleDriveService: GoogleDriveService | null = null;
-  const getGoogleDriveService = () => {
-    if (!googleDriveService) {
-      googleDriveService = new GoogleDriveService();
+  // Session configuration for OAuth
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'wholewellness-oauth-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
-    return googleDriveService;
-  };
+  }));
   
-  // Initialize Stripe (if key exists) - lazy load to avoid startup delays
+  // Initialize Passport and session
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
+  // Setup Google OAuth
+  setupGoogleAuth();
+  
+  // Initialize Google Drive service
+  const googleDriveService = new GoogleDriveService();
+  
+  // Initialize Stripe (if key exists)
   let stripe: Stripe | null = null;
-  const getStripe = () => {
-    if (!stripe && process.env.STRIPE_SECRET_KEY) {
-      try {
-        stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2023-10-16',
-          timeout: 5000, // 5 second timeout for Cloud Run
-        });
-      } catch (error) {
-        console.warn('Failed to initialize Stripe:', error);
-      }
-    }
-    return stripe;
-  };
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+    });
+  } else {
+    console.warn('Stripe secret key not found. Payment features will be disabled.');
+  }
 
   // Session management functions
   async function createSession(userId: string): Promise<string> {
@@ -212,175 +172,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return AuthService.hashPassword(password);
   }
   
-  // Coaching Packages endpoint
-  app.get('/api/coaching-packages', async (req, res) => {
-    try {
-      const packages = [
-        {
-          id: "free_starter",
-          name: "Free Coaching Starter",
-          description: "Get started with basic AI coaching and assessments",
-          type: "free_starter",
-          price: "0",
-          features: ["3 Free AI Coaching Sessions", "Basic Health Assessments", "Community Support", "Resource Library Access"],
-          duration: null,
-          sessionCount: 3,
-          aiCoachAccess: true,
-          liveCoachAccess: false,
-          assessmentLimit: 3,
-          prioritySupport: false,
-          isActive: true,
-          orderIndex: 1
-        },
-        {
-          id: "ai_coaching",
-          name: "AI Coaching Plus",
-          description: "Unlimited AI coaching with all specialties",
-          type: "ai_coaching",
-          price: "29",
-          features: ["Unlimited AI Coaching", "All 6 AI Coach Specialties", "Advanced Assessments", "Progress Tracking", "Priority Support"],
-          duration: 1,
-          sessionCount: null,
-          aiCoachAccess: true,
-          liveCoachAccess: false,
-          assessmentLimit: null,
-          prioritySupport: true,
-          isActive: true,
-          orderIndex: 2
-        },
-        {
-          id: "live_coaching",
-          name: "Live Coaching Premium",
-          description: "Personal coaching sessions with certified professionals",
-          type: "live_coaching",
-          price: "99",
-          features: ["4 Live Coaching Sessions", "Certified Professional Coaches", "Personalized Action Plans", "Weekly Check-ins", "Priority Booking"],
-          duration: 1,
-          sessionCount: 4,
-          aiCoachAccess: false,
-          liveCoachAccess: true,
-          assessmentLimit: null,
-          prioritySupport: true,
-          isActive: true,
-          orderIndex: 3
-        },
-        {
-          id: "combined_coaching",
-          name: "Complete Wellness Package",
-          description: "Full access to AI and live coaching",
-          type: "combined",
-          price: "149",
-          features: ["Unlimited AI Coaching", "6 Live Coaching Sessions", "All Assessment Tools", "Personal Wellness Coordinator", "24/7 Support"],
-          duration: 1,
-          sessionCount: 6,
-          aiCoachAccess: true,
-          liveCoachAccess: true,
-          assessmentLimit: null,
-          prioritySupport: true,
-          isActive: true,
-          orderIndex: 4
-        }
-      ];
-      
-      res.json(packages);
-    } catch (error: any) {
-      console.error('Error fetching coaching packages:', error);
-      res.status(500).json({ message: 'Failed to fetch coaching packages' });
-    }
-  });
-
-  // Enhanced role-based registration
+  // Authentication Routes
   app.post('/api/auth/register', async (req, res) => {
     try {
-      const {
-        email,
-        password,
-        confirmPassword,
-        firstName,
-        lastName,
-        role = 'client_free',
-        packageType,
-        coachingSpecialty,
-        bio,
-        credentials,
-        termsAccepted,
-        ...otherData
-      } = req.body;
-
-      // Validate required fields
-      if (!email || !password || !firstName || !lastName || !termsAccepted) {
-        return res.status(400).json({ message: 'Missing required fields' });
-      }
-
-      if (password !== confirmPassword) {
-        return res.status(400).json({ message: 'Passwords do not match' });
-      }
-
+      const userData = registerSchema.parse(req.body);
+      
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(email);
+      const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: 'Email already registered' });
       }
-
-      // Determine membership level and approval status based on role
-      let membershipLevel = 'free';
-      let approvalStatus = 'approved';
       
-      if (role === 'client_paid') {
-        membershipLevel = 'paid';
-      } else if (role === 'coach') {
-        membershipLevel = 'coach';
-        approvalStatus = 'pending'; // Coaches need manual approval
-      }
-
       // Hash password and create user
-      const passwordHash = await hashPassword(password);
+      const passwordHash = await hashPassword(userData.password);
+      const { phone, onboardingData, ...createUserData } = req.body;
       const user = await storage.createUser({
-        email,
-        firstName,
-        lastName,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
         passwordHash,
         id: uuidv4(),
-        role,
-        membershipLevel,
-        packageType: packageType || null,
-        coachingSpecialty: coachingSpecialty || null,
-        approvalStatus,
-        bio: bio || null,
+        membershipLevel: 'free',
         donationTotal: '0',
         rewardPoints: 0,
-        ...otherData
+        phone: phone || null,
       });
 
-      // For coaches, store additional credentials
-      if (role === 'coach' && credentials) {
-        // Store credentials in a separate field or table
-        await storage.updateUser(user.id, {
-          keywords: credentials.split('\n').slice(0, 5) // Store up to 5 credential lines as keywords
-        });
+      // Save onboarding data if provided
+      if (onboardingData) {
+        // TODO: Implement onboarding data saving
+        // await onboardingService.saveOnboardingData(user.id, onboardingData);
       }
-
-      // Create session only if approved (immediate for clients, pending for coaches)
-      if (approvalStatus === 'approved') {
-        const sessionToken = await createSession(user.id);
-        res.cookie('session_token', sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-      }
-
+      
+      // Create session
+      const sessionToken = await createSession(user.id);
+      res.cookie('session_token', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      
       res.json({ 
         id: user.id, 
         email: user.email, 
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
         membershipLevel: user.membershipLevel,
-        approvalStatus: user.approvalStatus,
-        packageType: user.packageType,
-        coachingSpecialty: user.coachingSpecialty,
-        rewardPoints: user.rewardPoints || 0
+        rewardPoints: user.rewardPoints 
       });
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -447,11 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
         membershipLevel: user.membershipLevel,
-        packageType: user.packageType,
-        coachingSpecialty: user.coachingSpecialty,
-        approvalStatus: user.approvalStatus,
         rewardPoints: user.rewardPoints,
         donationTotal: user.donationTotal
       });
@@ -466,153 +300,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: 'Logged out successfully' });
   });
 
-  // Get current user profile
-  app.get('/api/auth/user', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-    try {
-      const user = await storage.getUser(req.user.id);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Return user profile with role information
-      res.json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role || 'client_free',
-        membershipLevel: user.membershipLevel,
-        packageType: user.packageType,
-        coachingSpecialty: user.coachingSpecialty,
-        approvalStatus: user.approvalStatus,
-        isActive: user.isActive !== false,
-        rewardPoints: user.rewardPoints || 0,
-        donationTotal: user.donationTotal || '0'
-      });
-    } catch (error: any) {
-      console.error('Error fetching user profile:', error);
-      res.status(500).json({ message: 'Failed to fetch user profile' });
-    }
-  });
-
   // Create test coach account endpoint
   app.post('/api/create-test-coach', createTestCoach);
-
-  // Role-based Admin API endpoints
-  app.get('/api/admin/users', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-    try {
-      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-      }
-
-      const users = await storage.getAllUsers();
-      res.json(users);
-    } catch (error: any) {
-      console.error('Error fetching users:', error);
-      res.status(500).json({ message: 'Failed to fetch users' });
-    }
-  });
-
-  app.patch('/api/admin/users/:userId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-    try {
-      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-      }
-
-      const { userId } = req.params;
-      const updates = req.body;
-
-      const updatedUser = await storage.updateUser(userId, updates);
-      if (!updatedUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      res.json(updatedUser);
-    } catch (error: any) {
-      console.error('Error updating user:', error);
-      res.status(500).json({ message: 'Failed to update user' });
-    }
-  });
-
-  app.get('/api/admin/content-resources', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-    try {
-      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-      }
-
-      // Mock content resources for demonstration - replace with real data from storage
-      const contentResources = [
-        {
-          id: '1',
-          title: 'AI Coaching Dashboard',
-          slug: 'ai-coaching',
-          contentType: 'page',
-          visibility: 'client_free',
-          category: 'coaching',
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          title: 'Premium Assessments',
-          slug: 'assessments',
-          contentType: 'assessment',
-          visibility: 'client_paid',
-          category: 'wellness',
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '3',
-          title: 'Coach Certification Portal',
-          slug: 'coach-certifications',
-          contentType: 'course',
-          visibility: 'coach',
-          category: 'professional',
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '4',
-          title: 'Admin Security Panel',
-          slug: 'admin-security',
-          contentType: 'page',
-          visibility: 'admin',
-          category: 'administration',
-          isActive: true,
-          createdAt: new Date().toISOString()
-        }
-      ];
-
-      res.json(contentResources);
-    } catch (error: any) {
-      console.error('Error fetching content resources:', error);
-      res.status(500).json({ message: 'Failed to fetch content resources' });
-    }
-  });
-
-  app.patch('/api/admin/content-resources/:contentId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-    try {
-      if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-        return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-      }
-
-      const { contentId } = req.params;
-      const updates = req.body;
-
-      // Mock update for demonstration - replace with real storage update
-      const updatedContent = {
-        id: contentId,
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-
-      res.json(updatedContent);
-    } catch (error: any) {
-      console.error('Error updating content resource:', error);
-      res.status(500).json({ message: 'Failed to update content resource' });
-    }
-  });
 
   // Coach earnings tracking and management endpoints
   app.post('/api/coach/track-earnings', requireAuth, async (req: any, res) => {
@@ -3695,6 +3384,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Register wellness journey routes
   registerWellnessJourneyRoutes(app);
 
+  const httpServer = createServer(app);
   // Mental Wellness Resource Hub Routes
   app.get("/api/mental-wellness/resources", async (req, res) => {
     try {
@@ -5027,11 +4717,6 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
   // AI Chat Routes with Memory - Direct Implementation
   registerAIChatRoutes(app);
-
-  // Set up session initialization to run after server starts listening
-  httpServer.on('listening', () => {
-    initializeSessionMiddleware();
-  });
 
   return httpServer;
 }

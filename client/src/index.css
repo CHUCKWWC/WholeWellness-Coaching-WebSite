@@ -73,57 +73,6 @@
   .border-warm {
     border-color: hsl(var(--warm));
   }
-  
-  /* Standardized Button Classes for UI Consistency */
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary hover:opacity-90 focus:ring-2 focus:ring-primary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg shadow-sm transition-all duration-200 inline-flex items-center justify-center;
-  }
-  
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary hover:opacity-90 focus:ring-2 focus:ring-secondary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg shadow-sm transition-all duration-200 inline-flex items-center justify-center;
-  }
-  
-  .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 font-medium px-6 py-3 rounded-lg transition-all duration-200 inline-flex items-center justify-center;
-  }
-  
-  .btn-ghost {
-    @apply text-foreground hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-accent focus:ring-offset-2 font-medium px-6 py-3 rounded-lg transition-all duration-200 inline-flex items-center justify-center;
-  }
-  
-  .btn-small {
-    @apply px-4 py-2 text-sm rounded-md;
-  }
-  
-  .btn-large {
-    @apply px-8 py-4 text-lg rounded-xl;
-  }
-  
-  /* Focus Management for Accessibility */
-  .focus-visible {
-    @apply ring-2 ring-primary ring-offset-2 outline-none;
-  }
-  
-  /* Skip to Content Link for Screen Readers */
-  .skip-link {
-    @apply absolute left-0 -top-40 focus:top-0 bg-primary text-primary-foreground p-4 z-50 transition-all duration-200;
-  }
-  
-  /* High Contrast Mode Support */
-  @media (prefers-contrast: high) {
-    .btn-primary, .btn-secondary {
-      @apply border-2 border-current;
-    }
-  }
-  
-  /* Reduced Motion Support */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
 }
 
 /* Coming Soon button styling */

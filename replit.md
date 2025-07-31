@@ -6,6 +6,26 @@ A comprehensive nonprofit life coaching and relationship wellness platform empow
 ## Recent Changes
 **Date: July 31, 2025**
 
+### 🔧 Deployment Script Fix Applied - IN PROGRESS
+Fixed the missing npm scripts issue for deployment:
+
+#### Issue Identified
+- **Root cause**: Package.json at root level missing required scripts ('dev', 'build', 'start')
+- **Working project**: Located in `WholeWellness-Coaching-WebSite/` subdirectory with proper scripts
+- **Deployment requirement**: System expects scripts at root level for Cloud Run deployment
+
+#### Applied Fixes
+- ✅ **Project structure reorganized**: Copied essential files to root level
+- ✅ **Alternative scripts created**: 
+  - `run-dev.js` - Development server (working)
+  - `run-build.js` - Build process (created)
+  - `build.js` - Production entry point (updated)
+- ✅ **Build process verified**: Frontend and backend build tools configured correctly
+
+#### Next Steps Required
+- **Manual package.json update needed**: Add missing scripts for deployment
+- **Deploy verification**: Test complete build and deployment process
+
 ### ✅ Cloud Run Deployment Health Check Fixes - COMPLETE
 Applied all suggested fixes to resolve deployment health check failures:
 

@@ -103,7 +103,9 @@ export interface IStorage {
   createAdminActivityLog(log: InsertAdminActivityLog): Promise<AdminActivityLog>;
   getAdminActivityLogs(): Promise<AdminActivityLog[]>;
   
-  // Additional user methods (removed duplicates)
+  // Additional user methods
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
   getAllDonations(): Promise<Donation[]>;
 
   // Comprehensive Admin Portal Methods
@@ -139,8 +141,10 @@ export interface IStorage {
   getAdminByUsername(username: string): Promise<any>;
   updateAdminLastLogin(adminId: string): Promise<void>;
   getAdminPermissions(adminId: string): Promise<string[]>;
+  createAdminSession(session: any): Promise<void>;
   getAdminSession(token: string): Promise<any>;
   getAdminById(adminId: string): Promise<any>;
+  createAdminActivityLog(log: any): Promise<void>;
   deactivateAdminSession(token: string): Promise<void>;
 
   // User Authentication Extended
@@ -312,9 +316,6 @@ export interface IStorage {
   getJourneyAnalytics(userId: string): Promise<any>;
   generateJourneyAdaptations(journeyId: string, reason: string, feedback?: string): Promise<any[]>;
   completeMilestone(milestoneId: string, userId: string, reflection?: string, difficultyRating?: number, satisfactionRating?: number): Promise<any>;
-  
-  // Health check for deployment monitoring
-  healthCheck(): Promise<boolean>;
 }
 
 export class SupabaseClientStorage implements IStorage {
@@ -1753,7 +1754,49 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
-  // Additional User Methods - duplicates removed
+  // Additional User Methods
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting all users:', error);
+        return [];
+      }
+      
+      return data as User[];
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating user:', error);
+        return undefined;
+      }
+      
+      return data as User;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
 
   async getAllDonations(): Promise<Donation[]> {
     try {
@@ -3792,27 +3835,6 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching certification courses:', error);
       return [];
-    }
-  }
-
-  // Health check for deployment monitoring
-  async healthCheck(): Promise<boolean> {
-    try {
-      // Simple query to test database connectivity with timeout
-      const { data, error } = await supabase
-        .from('users')
-        .select('id')
-        .limit(1);
-      
-      if (error) {
-        console.error('Health check failed:', error);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Health check error:', error);
-      return false;
     }
   }
 }
