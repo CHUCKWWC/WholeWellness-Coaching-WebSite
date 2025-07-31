@@ -443,6 +443,7 @@
     "victory-vendor": "^36.9.2",
     "vite": "^5.4.19",
     "web-streams-polyfill": "^4.0.0-beta.3",
+
     "webidl-conversions": "^3.0.1",
     "whatwg-url": "^5.0.0",
     "which": "^2.0.2",
@@ -456,8 +457,12 @@
     "zod": "^3.25.76",
     "zod-validation-error": "^3.4.0"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+     "scripts": {
+      "dev": "NODE_ENV=development tsx server/index.ts",
+      "build": "npm install && vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist", 
+      "start": "NODE_ENV=production node build.js",
+      "db:push": "drizzle-kit push"
+    }
   },
   "keywords": [],
   "author": "",
