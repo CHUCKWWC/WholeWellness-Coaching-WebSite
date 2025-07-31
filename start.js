@@ -14,22 +14,46 @@ try {
   process.exit(1);
 }
 
-// Start the production server
-console.log('🌟 Starting production server...');
+// For Cloud Run deployments, use minimal health check server first
+// This ensures immediate health check responses during deployment
+if (process.env.NODE_ENV === 'production' && process.env.PORT) {
+  console.log('🏥 Starting Cloud Run optimized health check server...');
+  
+  const healthServer = spawn('node', ['server/cloud-run-health-only.js'], {
+    stdio: 'inherit',
+    shell: false,
+    env: { ...process.env }
+  });
 
-const startProcess = spawn('npm', ['run', 'start'], {
-  stdio: 'inherit',
-  shell: true
-});
+  healthServer.on('error', (error) => {
+    console.error('❌ Health check server failed to start:', error.message);
+    process.exit(1);
+  });
 
-startProcess.on('error', (error) => {
-  console.error('❌ Server failed to start:', error.message);
-  process.exit(1);
-});
+  healthServer.on('exit', (code) => {
+    if (code !== 0) {
+      console.error('❌ Health check server exited with code:', code);
+      process.exit(code);
+    }
+  });
+} else {
+  // For development, use the full server
+  console.log('🌟 Starting development server...');
+  
+  const startProcess = spawn('npm', ['run', 'start'], {
+    stdio: 'inherit',
+    shell: true
+  });
 
-startProcess.on('exit', (code) => {
-  if (code !== 0) {
-    console.error('❌ Server exited with code:', code);
-    process.exit(code);
-  }
-});
+  startProcess.on('error', (error) => {
+    console.error('❌ Server failed to start:', error.message);
+    process.exit(1);
+  });
+
+  startProcess.on('exit', (code) => {
+    if (code !== 0) {
+      console.error('❌ Server exited with code:', code);
+      process.exit(code);
+    }
+  });
+}

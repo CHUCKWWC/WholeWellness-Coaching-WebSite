@@ -64,6 +64,7 @@ import passport from "passport";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import crypto from "crypto";
+import { initializeSessionStore } from './production-session-config';
 import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
 import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./google-drive-service";
 import { googleDriveDemoService } from "./google-drive-demo";
@@ -143,40 +144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
   
-  // Session configuration for OAuth - production-ready with PostgreSQL store
-  const sessionConfig: any = {
-    secret: process.env.SESSION_SECRET || 'wholewellness-oauth-secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // Auto-configure based on environment
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    },
-    name: 'wholewellness.sid',
-    genid: () => {
-      return crypto.randomBytes(16).toString('hex');
-    }
-  };
-
-  // GOOD: initialize session store once at startup (async)
-  (async function initSessionStore() {
-    try {
-      if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
-        const pgSession = connectPgSimple(session);
-        sessionConfig.store = new pgSession({
-          conString: process.env.DATABASE_URL,
-          tableName: 'session',
-          createTableIfMissing: true
-        });
-        console.log('✓ PostgreSQL session store initialized');
-      } else {
-        console.log('✓ Using memory session store for development');
-      }
-    } catch (error) {
-      console.error('Session store initialization failed:', error);
-      // Continue without session store - health checks still work
-    }
-  })();
+  // Use production session configuration
+  const sessionConfig = initializeSessionStore();
 
   app.use(session(sessionConfig));
   

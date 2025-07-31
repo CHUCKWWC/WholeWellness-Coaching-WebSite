@@ -103,9 +103,7 @@ export interface IStorage {
   createAdminActivityLog(log: InsertAdminActivityLog): Promise<AdminActivityLog>;
   getAdminActivityLogs(): Promise<AdminActivityLog[]>;
   
-  // Additional user methods
-  getAllUsers(): Promise<User[]>;
-  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  // Additional user methods (removed duplicates)
   getAllDonations(): Promise<Donation[]>;
 
   // Comprehensive Admin Portal Methods
@@ -141,10 +139,8 @@ export interface IStorage {
   getAdminByUsername(username: string): Promise<any>;
   updateAdminLastLogin(adminId: string): Promise<void>;
   getAdminPermissions(adminId: string): Promise<string[]>;
-  createAdminSession(session: any): Promise<void>;
   getAdminSession(token: string): Promise<any>;
   getAdminById(adminId: string): Promise<any>;
-  createAdminActivityLog(log: any): Promise<void>;
   deactivateAdminSession(token: string): Promise<void>;
 
   // User Authentication Extended
@@ -1757,49 +1753,7 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
-  // Additional User Methods
-  async getAllUsers(): Promise<User[]> {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error getting all users:', error);
-        return [];
-      }
-      
-      return data as User[];
-    } catch (error) {
-      console.error('Error getting all users:', error);
-      return [];
-    }
-  }
-
-  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error updating user:', error);
-        return undefined;
-      }
-      
-      return data as User;
-    } catch (error) {
-      console.error('Error updating user:', error);
-      return undefined;
-    }
-  }
+  // Additional User Methods - duplicates removed
 
   async getAllDonations(): Promise<Donation[]> {
     try {
