@@ -64,21 +64,17 @@ export class OpenAIAssistantsService {
     }
 
     const threadId = await this.getOrCreateThread(sessionId);
-
     // Add tone instruction to the message if specified
     let enhancedMessage = message;
     if (tone) {
       const toneInstructions = {
-        supportive: "Please respond in a warm, empathetic, and encouraging tone. Provide your response as plain text, not json.",
-        motivational: "Please respond in an energetic, inspiring, and goal-focused tone. Provide your response as plain text, not json.",
-        analytical: "Please provide a data-driven, logical response with clear solutions. Provide your response as plain text, not json.",
-        gentle: "Please use calm, patient language with a nurturing approach. Provide your response as plain text, not json."
+        supportive: "Please respond in a warm, empathetic, and encouraging tone.",
+        motivational: "Please respond in an energetic, inspiring, and goal-focused tone.",
+        analytical: "Please provide a data-driven, logical response with clear solutions.",
+        gentle: "Please use calm, patient language with a nurturing approach."
       };
       
       enhancedMessage = `${toneInstructions[tone as keyof typeof toneInstructions] || ''}\n\n${message}`;
-    } else {
-      // Add json keyword to satisfy assistant requirements
-      enhancedMessage = `Please provide a helpful response as plain text, not json format.\n\n${message}`;
     }
 
     // Add message to thread
@@ -87,14 +83,18 @@ export class OpenAIAssistantsService {
       content: enhancedMessage
     });
 
-    // Run the assistant - Add instructions to satisfy JSON requirement
+    // Run the assistant
     const run = await openai.beta.threads.runs.create(threadId, {
-      assistant_id: coach.assistantId,
-      instructions: `Please respond to the user's message. Format your response as plain conversational text, not JSON format. However, acknowledge that you understand JSON formatting.`
+      assistant_id: coach.assistantId
     });
+    
+    if (!run || !run.id) {
+      throw new Error('Invalid run object returned from OpenAI');
+    }
 
     // Wait for completion
-    let runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
+    const runId = run.id;
+    let runStatus = await openai.beta.threads.runs.retrieve(runId, { thread_id: threadId });
     
     while (runStatus.status !== 'completed') {
       if (runStatus.status === 'failed' || runStatus.status === 'cancelled' || runStatus.status === 'expired') {
@@ -102,7 +102,7 @@ export class OpenAIAssistantsService {
       }
       
       await new Promise(resolve => setTimeout(resolve, 1000));
-      runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
+      runStatus = await openai.beta.threads.runs.retrieve(runId, { thread_id: threadId });
     }
 
     // Get messages

@@ -108,11 +108,7 @@ export function registerAIChatRoutes(app: Express) {
           threadId: chatResponse.threadId 
         });
       } catch (openAIError: any) {
-        console.error("OpenAI Assistant error:", openAIError);
-        console.error("Error details:", openAIError.message, openAIError.stack);
-        
         // Fallback to template-based response
-        console.log(`Falling back to template response for coach: ${coachType}`);
         const fallbackResponse = generateAIResponse(message, coachType, persona, conversationContext);
         
         if (sessionId) {
