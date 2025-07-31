@@ -6,12 +6,7 @@ import { createServer } from "http";
 
 const app = express();
 
-// Add immediate health check endpoint for Cloud Run
-app.get('/', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-// Add health check endpoint
+// Add health check endpoint - only /health, not root
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
