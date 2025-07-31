@@ -64,14 +64,9 @@ app.use((req, res, next) => {
 
     // Cloud Run optimized server configuration
     const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-    const host = process.env.HOST || "0.0.0.0";
+    const host = "0.0.0.0"; // Always bind to 0.0.0.0 for Cloud Run compatibility
     
-    server.listen({
-      port,
-      host,
-      // Remove reusePort for Cloud Run compatibility
-      ...(process.env.NODE_ENV === 'development' && { reusePort: true })
-    }, () => {
+    server.listen(port, host, () => {
       log(`✓ Server ready on ${host}:${port} (${process.env.NODE_ENV || 'development'})`);
       log(`✓ Health check endpoint available at http://${host}:${port}/`);
       log(`✓ Alternative health check endpoint available at http://${host}:${port}/health`);

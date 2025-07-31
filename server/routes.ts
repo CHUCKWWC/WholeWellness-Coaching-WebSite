@@ -72,8 +72,23 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Health check endpoints are now handled in cloud-run-optimized.js
-  // This ensures they're registered FIRST before any heavy middleware
+  // Register immediate health check endpoints FIRST before any middleware
+  // These must respond instantly for Cloud Run promotion
+  app.get('/', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      service: 'Whole Wellness Coaching Platform'
+    });
+  });
+
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      service: 'Whole Wellness Coaching Platform'
+    });
+  });
 
   // Readiness check with database connectivity (for monitoring)
   app.get('/ready', async (req, res) => {
@@ -141,20 +156,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add cookie parser middleware
-  app.use(cookieParser());
-  
-  // Use production session configuration
-  const sessionConfig = initializeSessionStore();
+  // Create HTTP server first to enable health checks immediately
+  const httpServer = createServer(app);
 
-  app.use(session(sessionConfig));
-  
-  // Initialize Passport and session
-  app.use(passport.initialize());
-  app.use(passport.session());
-  
-  // Setup Google OAuth
-  setupGoogleAuth();
+  // Initialize session configuration asynchronously after server is created
+  setImmediate(async () => {
+    try {
+      console.log('🔧 Initializing session middleware asynchronously...');
+      
+      // Add cookie parser middleware
+      app.use(cookieParser());
+      
+      // Use production session configuration
+      const sessionConfig = initializeSessionStore();
+      app.use(session(sessionConfig));
+      
+      // Initialize Passport and session
+      app.use(passport.initialize());
+      app.use(passport.session());
+      
+      // Setup Google OAuth
+      setupGoogleAuth();
+      
+      console.log('✓ Session middleware initialized successfully');
+    } catch (error) {
+      console.error('Error initializing session middleware:', error);
+      // Continue without sessions if there's an error
+    }
+  });
   
   // Lazy-load expensive services to optimize startup time
   let googleDriveService: GoogleDriveService | null = null;
@@ -3692,7 +3721,6 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Register wellness journey routes
   registerWellnessJourneyRoutes(app);
 
-  const httpServer = createServer(app);
   // Mental Wellness Resource Hub Routes
   app.get("/api/mental-wellness/resources", async (req, res) => {
     try {
