@@ -226,6 +226,26 @@
 
 
 
+    "@wix/bookings": "^1.0.977",
+
+
+
+    "@wix/data": "^1.0.270",
+
+
+
+    "@wix/pricing-plans": "^1.0.211",
+
+
+
+    "@wix/sdk": "^1.15.26",
+
+
+
+    "@wix/stores": "^1.0.498",
+
+
+
     "bcrypt": "^6.0.0",
 
 
@@ -342,15 +362,15 @@
 
 
 
-    "react": "^18.3.1",
+    "react": "^19.1.1",
 
 
 
-    "react-day-picker": "^8.10.1",
+    "react-day-picker": "^9.8.1",
 
 
 
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.1.1",
 
 
 
@@ -458,11 +478,11 @@
 
 
 
-    "@types/react": "^18.3.11",
+    "@types/react": "^19.1.9",
 
 
 
-    "@types/react-dom": "^18.3.1",
+    "@types/react-dom": "^19.1.7",
 
 
 

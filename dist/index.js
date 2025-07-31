@@ -15891,9 +15891,6 @@ function serveStatic(app2) {
 // server/index.ts
 import { createServer as createServer2 } from "http";
 var app = express3();
-app.get("/", (req, res) => {
-  res.status(200).json({ status: "healthy", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
-});
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "healthy", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
 });
