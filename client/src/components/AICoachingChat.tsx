@@ -96,7 +96,14 @@ export default function AICoachingChat({ selectedAgent, onAgentChange }: AICoach
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest"
+      });
+    }, 100);
+    return () => clearTimeout(timer);
   };
 
   useEffect(() => {
@@ -315,8 +322,8 @@ export default function AICoachingChat({ selectedAgent, onAgentChange }: AICoach
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-96 p-4">
+            <CardContent className="p-0 flex flex-col overflow-hidden">
+              <ScrollArea className="flex-1 p-4" style={{ height: '400px', maxHeight: '70vh' }}>
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div

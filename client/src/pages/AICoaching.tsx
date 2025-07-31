@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export default function AICoaching() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   // Persona configurations with brand colors
   const personaConfig = {
     supportive: {
@@ -140,6 +141,24 @@ export default function AICoaching() {
       description: `Now using ${config.name} approach`,
     });
   };
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100); // Small delay to ensure DOM is updated
+    return () => clearTimeout(timer);
+  }, [messages]);
 
   const handlePromptClick = (prompt: string) => {
     setInputMessage(prompt);
@@ -382,9 +401,16 @@ export default function AICoaching() {
               </div>
             </CardHeader>
 
-            {/* Messages Area - Mobile Optimized */}
-            <CardContent className="flex-1 flex flex-col p-0">
-              <div className={`flex-1 overflow-y-auto ${isMobile ? 'p-2' : 'p-4'} ${isMobile ? 'space-y-2' : 'space-y-4'} bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-800/50 dark:to-gray-900`}>
+            {/* Messages Area - Mobile Optimized with Fixed Scrolling */}
+            <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+              <div 
+                className={`flex-1 overflow-y-auto scroll-smooth ${isMobile ? 'p-2' : 'p-4'} ${isMobile ? 'space-y-2' : 'space-y-4'} bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-800/50 dark:to-gray-900`}
+                style={{
+                  maxHeight: isMobile ? 'calc(90vh - 180px)' : 'calc(700px - 180px)',
+                  minHeight: '300px'
+                }}
+                ref={messagesContainerRef}
+              >
                 {messages.map((message: any) => {
                   // Handle system messages differently
                   if (message.isSystem) {

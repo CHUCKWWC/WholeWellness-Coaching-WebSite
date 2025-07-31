@@ -267,9 +267,14 @@ export default function Chatbot({
 
       {!isMinimized && (
         <CardContent className="flex flex-col h-full p-0">
-          {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
+          {/* Messages Area with Fixed Height */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea 
+              className="h-full p-4" 
+              ref={scrollAreaRef}
+              style={{ maxHeight: '400px' }}
+            >
+              <div className="space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -304,8 +309,9 @@ export default function Chatbot({
                 </div>
               )}
               <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+              </div>
+            </ScrollArea>
+          </div>
 
           {/* Quick Actions */}
           {messages.length <= 2 && (
