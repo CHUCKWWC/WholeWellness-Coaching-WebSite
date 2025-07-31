@@ -22,6 +22,7 @@ interface DonationPreset {
   description: string;
   icon: string;
   isPopular: boolean;
+  isAdminOnly?: boolean;
 }
 
 interface Campaign {
@@ -60,7 +61,7 @@ export default function Donate() {
 
   // Fetch donation presets
   const { data: presets = [] } = useQuery<DonationPreset[]>({
-    queryKey: ["/api/donations/presets"],
+    queryKey: ["/api/donations/donation-presets"],
   });
 
   // Fetch active campaigns

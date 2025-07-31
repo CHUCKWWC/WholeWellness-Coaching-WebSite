@@ -15,10 +15,25 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 
 // Get donation presets
-router.get('/donation-presets', async (req, res) => {
+router.get('/donation-presets', optionalAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const presets = await storage.getDonationPresets();
-    res.json(presets);
+    
+    // Add admin test item if user is authenticated and is admin
+    let finalPresets = [...presets];
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+      finalPresets.unshift({
+        id: 'admin-test-1',
+        amount: 1,
+        label: 'Admin Test',
+        description: 'Test payment for $1.00 - Admin Only',
+        icon: 'test',
+        isPopular: false,
+        isAdminOnly: true
+      });
+    }
+    
+    res.json(finalPresets);
   } catch (error) {
     console.error('Error fetching donation presets:', error);
     res.status(500).json({ error: 'Failed to fetch donation presets' });
@@ -415,6 +430,44 @@ router.delete('/subscriptions/:subscriptionId', requireAuth, async (req: Authent
   } catch (error) {
     console.error('Error cancelling subscription:', error);
     res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+});
+
+// Admin test payment endpoint
+router.post('/admin-test-payment', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const user = req.user!;
+    
+    // Check if user is admin
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    if (!stripe) {
+      return res.status(500).json({ error: 'Stripe not configured' });
+    }
+
+    // Create a $1.00 test payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 100, // $1.00 in cents
+      currency: 'usd',
+      description: 'Admin Test Payment - $1.00',
+      metadata: {
+        isTestPayment: 'true',
+        adminId: user.id,
+        adminEmail: user.email
+      },
+    });
+
+    res.json({ 
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+      amount: 1.00,
+      description: 'Admin Test Payment - $1.00'
+    });
+  } catch (error: any) {
+    console.error('Error creating admin test payment:', error);
+    res.status(500).json({ error: error.message || 'Failed to create test payment' });
   }
 });
 

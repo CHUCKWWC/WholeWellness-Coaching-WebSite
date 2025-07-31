@@ -63,6 +63,7 @@ import AdminSecurity from "@/pages/AdminSecurity";
 import AdminCoupons from "@/pages/AdminCoupons";
 import WellnessJourneyRecommender from "@/pages/WellnessJourneyRecommender";
 import AdminCertifications from "@/pages/AdminCertifications";
+import AdminTestPayment from "@/pages/AdminTestPayment";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -145,6 +146,7 @@ function Router() {
           <Route path="/certification-dashboard" component={CertificationDashboard} />
           <Route path="/certification-guide" component={CertificationGuide} />
           <Route path="/wellness-journey" component={WellnessJourneyRecommender} />
+          <Route path="/admin/test-payment" component={AdminTestPayment} />
           <Route component={NotFound} />
         </Switch>
       </main>
