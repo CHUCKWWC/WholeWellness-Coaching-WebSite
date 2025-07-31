@@ -3374,7 +3374,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Register admin certification routes
   registerAdminCertificationRoutes(app);
   app.use('/api/coach', coachRoutes);
-  app.use('/api/donation', donationRoutes);
+  app.use('/api/donations', donationRoutes);
   app.use('/api/onboarding', onboardingRoutes);
   app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);

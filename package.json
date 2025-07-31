@@ -178,11 +178,11 @@
 
 
 
-    "@stripe/react-stripe-js": "^3.7.0",
+    "@stripe/react-stripe-js": "^3.8.1",
 
 
 
-    "@stripe/stripe-js": "^7.4.0",
+    "@stripe/stripe-js": "^7.7.0",
 
 
 
@@ -390,7 +390,7 @@
 
 
 
-    "stripe": "^18.3.0",
+    "stripe": "^18.4.0",
 
 
 
