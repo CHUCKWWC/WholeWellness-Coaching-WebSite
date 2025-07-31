@@ -20,26 +20,28 @@ export function createProductionSessionConfig() {
     }
   };
 
-  // Use PostgreSQL session store in production (non-blocking initialization)
+  // Use PostgreSQL session store in production with lazy initialization
   if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
     try {
+      // Initialize PostgreSQL session store with minimal blocking
       sessionConfig.store = new PgSession({
         conString: process.env.DATABASE_URL,
         tableName: 'session',
-        createTableIfMissing: true,
-        pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
+        createTableIfMissing: false, // Don't block on table creation
+        pruneSessionInterval: false, // Disable auto-pruning to prevent blocking
         ttl: 24 * 60 * 60, // Session TTL in seconds (24 hours)
         connect: {
-          // Connection timeout settings to prevent startup blocking
-          connectionTimeoutMillis: 1000,
-          idleTimeoutMillis: 30000,
-          max: 5 // Limit concurrent connections for startup
+          connectionTimeoutMillis: 500, // Very short timeout
+          idleTimeoutMillis: 10000,
+          max: 2, // Minimal connection pool for startup
+          application_name: 'wellness_app_sessions'
         }
       });
-      console.log('✓ PostgreSQL session store initialized for production (non-blocking)');
+      console.log('✓ PostgreSQL session store configured (lazy initialization)');
     } catch (error) {
-      console.error('Failed to initialize PostgreSQL session store:', error);
-      console.log('Falling back to memory store (not recommended for production)');
+      console.error('Failed to configure PostgreSQL session store:', error);
+      console.log('✓ Falling back to memory store');
+      // Fallback to memory store on any configuration error
     }
   } else {
     console.log('✓ Using memory session store for development');

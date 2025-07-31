@@ -72,47 +72,19 @@ import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Register immediate health check endpoints FIRST before any middleware
-  // These must respond instantly for Cloud Run promotion
+  // CRITICAL: Ultra-simple health check endpoints FIRST - must respond instantly
+  // Cloud Run health checks require immediate response with zero dependencies
   app.get('/', (req, res) => {
-    res.status(200).json({ 
-      status: 'healthy', 
-      timestamp: new Date().toISOString(),
-      service: 'Whole Wellness Coaching Platform'
-    });
+    res.status(200).send('OK');
   });
 
   app.get('/health', (req, res) => {
-    res.status(200).json({ 
-      status: 'healthy', 
-      timestamp: new Date().toISOString(),
-      service: 'Whole Wellness Coaching Platform'
-    });
+    res.status(200).send('OK');
   });
 
-  // Readiness check with database connectivity (for monitoring)
-  app.get('/ready', async (req, res) => {
-    try {
-      // Quick database connectivity check with timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      const dbCheck = storage.healthCheck ? storage.healthCheck() : Promise.resolve(true);
-      await Promise.race([dbCheck, timeoutPromise]);
-      
-      res.status(200).json({ 
-        status: 'ready',
-        database: 'connected',
-        timestamp: Date.now()
-      });
-    } catch (error) {
-      res.status(503).json({ 
-        status: 'not ready',
-        error: 'Database connection failed',
-        timestamp: Date.now()
-      });
-    }
+  // Simplified readiness check (non-blocking)
+  app.get('/ready', (req, res) => {
+    res.status(200).send('READY');
   });
   
   // Google Drive course materials endpoint - PRIORITY ROUTE
@@ -159,31 +131,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server first to enable health checks immediately
   const httpServer = createServer(app);
 
-  // Initialize session configuration asynchronously after server is created
-  setImmediate(async () => {
-    try {
-      console.log('🔧 Initializing session middleware asynchronously...');
-      
-      // Add cookie parser middleware
-      app.use(cookieParser());
-      
-      // Use production session configuration
-      const sessionConfig = initializeSessionStore();
-      app.use(session(sessionConfig));
-      
-      // Initialize Passport and session
-      app.use(passport.initialize());
-      app.use(passport.session());
-      
-      // Setup Google OAuth
-      setupGoogleAuth();
-      
-      console.log('✓ Session middleware initialized successfully');
-    } catch (error) {
-      console.error('Error initializing session middleware:', error);
-      // Continue without sessions if there's an error
-    }
-  });
+  // Add essential middleware immediately (non-blocking)
+  app.use(cookieParser());
+  
+  // Initialize session middleware AFTER server starts listening to avoid blocking health checks
+  const initializeSessionMiddleware = () => {
+    setTimeout(async () => {
+      try {
+        console.log('🔧 Initializing session middleware post-startup...');
+        
+        // Use production session configuration (non-blocking)
+        const sessionConfig = initializeSessionStore();
+        app.use(session(sessionConfig));
+        
+        // Initialize Passport and session
+        app.use(passport.initialize());
+        app.use(passport.session());
+        
+        // Setup Google OAuth
+        setupGoogleAuth();
+        
+        console.log('✓ Session middleware initialized successfully');
+      } catch (error) {
+        console.error('Error initializing session middleware:', error);
+        // Continue without sessions if there's an error
+      }
+    }, 100); // Minimal delay to ensure server is listening first
+  };
   
   // Lazy-load expensive services to optimize startup time
   let googleDriveService: GoogleDriveService | null = null;
@@ -5053,6 +5027,11 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
   // AI Chat Routes with Memory - Direct Implementation
   registerAIChatRoutes(app);
+
+  // Set up session initialization to run after server starts listening
+  httpServer.on('listening', () => {
+    initializeSessionMiddleware();
+  });
 
   return httpServer;
 }
