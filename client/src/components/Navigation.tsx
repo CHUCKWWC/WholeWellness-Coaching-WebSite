@@ -11,7 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AuthForm from "@/components/AuthForm";
 import Logo from "@/components/Logo";
-import AdminAccess from "@/components/AdminAccess";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,7 +124,6 @@ export default function Navigation() {
           <div className="hidden md:flex items-center space-x-2">
             {isAuthenticated ? (
               <>
-                <AdminAccess />
                 <Link href="/donate">
                   <Button variant="outline" className="whitespace-nowrap">
                     Donate
@@ -280,7 +279,6 @@ export default function Navigation() {
                   <div className="pt-4 space-y-3">
                     {isAuthenticated ? (
                       <>
-                        <AdminAccess />
                         <Link href="/donate" onClick={() => setIsOpen(false)}>
                           <Button variant="outline" className="w-full">
                             Donate

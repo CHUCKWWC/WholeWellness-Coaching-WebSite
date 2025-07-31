@@ -7,12 +7,13 @@ import { Menu, User, LogOut, ChevronDown, Sparkles, Star, Clock, Search } from "
 import SmartSearch from "@/components/SmartSearch";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AuthForm from "@/components/AuthForm";
 import Logo from "@/components/Logo";
-import AdminAccess from "@/components/AdminAccess";
+
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -104,6 +105,7 @@ export default function SmartNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const { isAdminAuthenticated, adminUser } = useAdminAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -253,6 +255,19 @@ export default function SmartNavigation() {
                       </Link>
                     ))}
                     
+                    {/* Admin Dashboard Access - Only show to authenticated admin users */}
+                    {isAdminAuthenticated && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <Link href="/admin-dashboard">
+                          <DropdownMenuItem className="flex items-center gap-3 cursor-pointer text-blue-600">
+                            <span className="text-lg">🛡️</span>
+                            Admin Dashboard
+                          </DropdownMenuItem>
+                        </Link>
+                      </>
+                    )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => logoutMutation.mutate()}
@@ -323,13 +338,32 @@ export default function SmartNavigation() {
                             ))}
                           </div>
                         ))}
+                        
+                        {/* Admin Dashboard Access in Mobile - Only show to authenticated admin users */}
+                        {isAdminAuthenticated && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                              Administration
+                            </h4>
+                            <Link href="/admin-dashboard">
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start gap-3 mb-1 text-blue-600"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <span>🛡️</span>
+                                Admin Dashboard
+                              </Button>
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </SheetContent>
                 </Sheet>
               </div>
 
-              <AdminAccess />
+
             </div>
           </div>
         </div>
