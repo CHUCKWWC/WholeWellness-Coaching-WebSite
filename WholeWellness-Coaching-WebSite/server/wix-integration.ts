@@ -1,9 +1,55 @@
 import type { Express } from "express";
-import { createClient, OAuthStrategy } from '@wix/sdk';
-import { items } from '@wix/data';
-import { bookings, services } from '@wix/bookings';
-import { products } from '@wix/stores';
-import { plans } from '@wix/pricing-plans';
+
+// Error handling for missing Wix modules - use dynamic imports
+let wixModules: {
+  createClient?: any;
+  OAuthStrategy?: any;
+  items?: any;
+  bookings?: any;
+  services?: any;
+  products?: any;
+  plans?: any;
+} = {};
+
+// Initialize Wix modules with error handling
+async function initializeWixModules() {
+  try {
+    const wixSdk = await import('@wix/sdk');
+    wixModules.createClient = wixSdk.createClient;
+    wixModules.OAuthStrategy = wixSdk.OAuthStrategy;
+  } catch (error) {
+    console.error('Failed to import @wix/sdk:', error);
+  }
+
+  try {
+    const wixData = await import('@wix/data');
+    wixModules.items = wixData.items;
+  } catch (error) {
+    console.error('Failed to import @wix/data:', error);
+  }
+
+  try {
+    const wixBookings = await import('@wix/bookings');
+    wixModules.bookings = wixBookings.bookings;
+    wixModules.services = wixBookings.services;
+  } catch (error) {
+    console.error('Failed to import @wix/bookings:', error);
+  }
+
+  try {
+    const wixStores = await import('@wix/stores');
+    wixModules.products = wixStores.products;
+  } catch (error) {
+    console.error('Failed to import @wix/stores:', error);
+  }
+
+  try {
+    const wixPricingPlans = await import('@wix/pricing-plans');
+    wixModules.plans = wixPricingPlans.plans;
+  } catch (error) {
+    console.error('Failed to import @wix/pricing-plans:', error);
+  }
+}
 
 // Wix API configuration
 interface WixConfig {
@@ -49,25 +95,60 @@ interface WixBooking {
 export class WixIntegration {
   private config: WixConfig;
   private wixClient: any;
+  private initialized: boolean = false;
 
   constructor(config: WixConfig) {
     this.config = config;
+    this.wixClient = null;
+  }
+
+  // Initialize Wix client with error handling
+  private async initialize() {
+    if (this.initialized) return;
     
-    // Create Wix client with all modules
-    this.wixClient = createClient({
-      modules: { 
-        services, 
-        products, 
-        plans, 
-        items, 
-        bookings 
-      },
-      auth: OAuthStrategy({ clientId: this.config.clientId }),
-    });
+    try {
+      await initializeWixModules();
+      
+      if (!wixModules.createClient || !wixModules.OAuthStrategy) {
+        console.error('Wix SDK modules not available - running in fallback mode');
+        this.initialized = true;
+        return;
+      }
+
+      // Create Wix client with all modules
+      this.wixClient = wixModules.createClient({
+        modules: { 
+          services: wixModules.services, 
+          products: wixModules.products, 
+          plans: wixModules.plans, 
+          items: wixModules.items, 
+          bookings: wixModules.bookings 
+        },
+        auth: wixModules.OAuthStrategy({ clientId: this.config.clientId }),
+      });
+      
+      this.initialized = true;
+      console.log('Wix integration initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize Wix integration:', error);
+      this.initialized = true; // Set to true to prevent retry loops
+    }
+  }
+
+  // Check if Wix integration is available
+  private isAvailable(): boolean {
+    return this.wixClient !== null;
   }
 
   // Fetch services from Wix using SDK
   async getServices(): Promise<WixService[]> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - returning empty services list');
+      return [];
+    }
+
     try {
       const serviceList = await this.wixClient.services.queryServices().find();
       
@@ -90,6 +171,13 @@ export class WixIntegration {
 
   // Fetch products from Wix using SDK
   async getProducts(): Promise<WixProduct[]> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - returning empty products list');
+      return [];
+    }
+
     try {
       const productList = await this.wixClient.products.queryProducts().find();
       
@@ -111,6 +199,13 @@ export class WixIntegration {
 
   // Fetch pricing plans from Wix using SDK
   async getPlans(): Promise<any[]> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - returning empty plans list');
+      return [];
+    }
+
     try {
       const plansList = await this.wixClient.plans.listPublicPlans();
       
@@ -126,6 +221,13 @@ export class WixIntegration {
 
   // Fetch data items from Wix collections using SDK
   async getDataItems(collectionId: string): Promise<any[]> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn(`Wix integration not available - returning empty data items for ${collectionId}`);
+      return [];
+    }
+
     try {
       const dataItemsList = await this.wixClient.items.queryDataItems({
         dataCollectionId: collectionId
@@ -200,6 +302,13 @@ export class WixIntegration {
     };
     notes?: string;
   }): Promise<WixBooking> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.error('Wix integration not available - cannot create booking');
+      throw new Error('Wix integration not available');
+    }
+
     try {
       // Create booking using data collection API
       const bookingId = `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -272,6 +381,13 @@ export class WixIntegration {
 
   // Cancel a booking
   async cancelBooking(bookingId: string): Promise<boolean> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - cannot cancel booking');
+      return false;
+    }
+
     try {
       await this.wixClient.data.updateDataItem({
         dataCollectionId: 'Bookings',
@@ -296,6 +412,13 @@ export class WixIntegration {
     startDateTime: string;
     endDateTime: string;
   }): Promise<boolean> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - cannot reschedule booking');
+      return false;
+    }
+
     try {
       await this.wixClient.data.updateDataItem({
         dataCollectionId: 'Bookings',
@@ -319,18 +442,39 @@ export class WixIntegration {
 
   // Sync user data with local database
   async syncUsers(): Promise<void> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - skipping user sync');
+      return;
+    }
+
     const wixUsers = await this.getUsers();
     console.log(`Synced ${wixUsers.length} users from Wix`);
   }
 
   // Sync services/pricing with local database
   async syncServices(): Promise<void> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - skipping service sync');
+      return;
+    }
+
     const wixServices = await this.getServices();
     console.log(`Synced ${wixServices.length} services from Wix`);
   }
 
   // Sync all data types
   async syncAllData(): Promise<void> {
+    await this.initialize();
+    
+    if (!this.isAvailable()) {
+      console.warn('Wix integration not available - skipping full data sync');
+      return;
+    }
+
     try {
       await Promise.all([
         this.syncUsers(),
