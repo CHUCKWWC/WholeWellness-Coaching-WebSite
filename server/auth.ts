@@ -111,11 +111,11 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      membershipLevel: user.membershipLevel,
-      isActive: user.isActive
+      firstName: user.firstName || undefined,
+      lastName: user.lastName || undefined,
+      role: user.role || undefined,
+      membershipLevel: user.membershipLevel || undefined,
+      isActive: user.isActive !== false
     };
   }
 
@@ -140,11 +140,11 @@ export class AuthService {
       return {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        membershipLevel: user.membershipLevel,
-        isActive: user.isActive
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        role: user.role || undefined,
+        membershipLevel: user.membershipLevel || undefined,
+        isActive: true
       };
     } catch (error) {
       console.error('User authentication error:', error);
@@ -173,8 +173,8 @@ export class AuthService {
       return {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
         role: user.role || 'user',
         membershipLevel: user.membershipLevel || 'free',
         isActive: isActive
