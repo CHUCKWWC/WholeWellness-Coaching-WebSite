@@ -3068,7 +3068,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.use('/uploads', express.static(uploadDir));
 
   // AI Coaching Chat Endpoint with Persona Support
-  app.post("/api/ai-coaching/chat", async (req, res) => {
+  // NOTE: This route is commented out because it's handled by registerAIChatRoutes with OpenAI assistants
+  /* app.post("/api/ai-coaching/chat", async (req, res) => {
     try {
       const { message, coachType, persona = "supportive" } = req.body;
       
@@ -3145,7 +3146,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
       console.error('Error processing AI chat:', error);
       res.status(500).json({ message: error.message || "Failed to process chat message" });
     }
-  });
+  }); */
 
 
 

@@ -22,7 +22,7 @@ Preferred communication style: Simple, everyday language.
 - **API**: RESTful API with modular route organization, CORS, JSON parsing, and centralized error handling.
 
 ### Key Features
-- **AI Coaching System**: Features 6 specialized AI coaches (Nutritionist, Fitness Trainer, Behavior Coach, Wellness Coordinator, Accountability Partner, Meal Prep Assistant) integrated with OpenAI GPT-4 via n8n for real-time responses and persistent chat sessions. Includes suggested prompts and coach-specific data filtering.
+- **AI Coaching System**: Features 6 specialized AI coaches (Charlene - Mindfulness, Lisa - Behavior, Dasha - Wellness, Charles - Relationship, Bobby - Mental Health, Aria - Weight Loss) integrated with OpenAI Assistants API for persistent conversations. Each coach has a unique assistant ID and customizable tone/persona (supportive, motivational, analytical, gentle). Currently using fallback templates due to assistant JSON format configuration.
 - **Professional Coach Management**: Supports coach onboarding, profile management, scheduling, client assignment, progress tracking, and Google Meet integration for sessions.
 - **Donation & Membership System**: Integrates Stripe for donation processing, manages membership tiers, and includes a points-based reward system and campaign management.
 - **Admin Dashboard**: Provides role-based access for admins, super admins, and coaches with analytics, user management, and dynamic content updates.

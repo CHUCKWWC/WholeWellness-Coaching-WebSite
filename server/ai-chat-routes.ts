@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { storage } from "./supabase-client-storage";
+import { assistantsService } from "./openai-assistants-service";
+import { getCoachById } from "./ai-coaches-config";
 
 export function registerAIChatRoutes(app: Express) {
   // Create or get chat session
@@ -74,42 +76,67 @@ export function registerAIChatRoutes(app: Express) {
         }
       }
 
-      // Build persona-aware prompt
-      const personaPrompts = {
-        supportive: "Respond with warmth, empathy, and encouragement. Use supportive language and acknowledge emotions.",
-        motivational: "Be energetic, inspiring, and goal-focused. Use motivational language and actionable advice.",
-        analytical: "Provide data-driven, logical responses. Break down problems systematically and offer clear solutions.",
-        gentle: "Use calm, patient language. Take a nurturing approach and emphasize that progress takes time."
-      };
+      try {
+        // Use OpenAI Assistants API
+        const chatResponse = await assistantsService.sendMessage(
+          coachType,
+          message,
+          sessionId || `temp_${Date.now()}`,
+          persona
+        );
 
-      const systemPrompt = `You are ${coachType} AI coach providing ${persona} guidance. ${personaPrompts[persona as keyof typeof personaPrompts] || personaPrompts.supportive}
+        // Save both user message and AI response
+        if (sessionId) {
+          await storage.saveChatMessage({
+            sessionId,
+            text: message,
+            isUser: true,
+            context: { persona, coachType }
+          });
 
-Previous conversation context:
-${conversationContext}
+          await storage.saveChatMessage({
+            sessionId,
+            text: chatResponse.response,
+            isUser: false,
+            context: { persona, coachType, threadId: chatResponse.threadId }
+          });
+        }
 
-Respond to the user's message in character as their ${coachType} coach with the ${persona} personality style.`;
-
-      // Simulate AI response (replace with actual OpenAI call)
-      const aiResponse = generateAIResponse(message, coachType, persona, conversationContext);
-
-      // Save both user message and AI response
-      if (sessionId) {
-        await storage.saveChatMessage({
+        res.json({ 
+          response: chatResponse.response, 
           sessionId,
-          text: message,
-          isUser: true,
-          context: { persona, coachType }
+          threadId: chatResponse.threadId 
         });
+      } catch (openAIError: any) {
+        console.error("OpenAI Assistant error:", openAIError);
+        console.error("Error details:", openAIError.message, openAIError.stack);
+        
+        // Fallback to template-based response
+        console.log(`Falling back to template response for coach: ${coachType}`);
+        const fallbackResponse = generateAIResponse(message, coachType, persona, conversationContext);
+        
+        if (sessionId) {
+          await storage.saveChatMessage({
+            sessionId,
+            text: message,
+            isUser: true,
+            context: { persona, coachType }
+          });
 
-        await storage.saveChatMessage({
+          await storage.saveChatMessage({
+            sessionId,
+            text: fallbackResponse,
+            isUser: false,
+            context: { persona, coachType, fallback: true }
+          });
+        }
+
+        res.json({ 
+          response: fallbackResponse, 
           sessionId,
-          text: aiResponse,
-          isUser: false,
-          context: { persona, coachType }
+          fallback: true 
         });
       }
-
-      res.json({ response: aiResponse, sessionId });
     } catch (error) {
       console.error("Error in AI coaching chat:", error);
       res.status(500).json({ message: "Failed to process AI coaching request" });
@@ -120,7 +147,29 @@ Respond to the user's message in character as their ${coachType} coach with the 
 // Enhanced AI response generator with memory and persona awareness
 function generateAIResponse(message: string, coachType: string, persona: string, context: string): string {
   const responses = {
-    "nutritionist": {
+    "mindfulness": {
+      supportive: [
+        "I sense you're seeking peace and clarity. Let's explore this together with compassion and understanding.",
+        "Your journey to mindfulness is sacred. I'm here to guide you gently through whatever you're experiencing.",
+        "Take a deep breath with me. Whatever brought you here today, we'll navigate it mindfully together."
+      ],
+      motivational: [
+        "Ready to transform your inner world? Let's harness the power of mindfulness to create the life you desire!",
+        "Your mind is your most powerful tool - let's unlock its full potential through mindfulness practice!",
+        "Every moment is an opportunity for growth. What mindfulness breakthrough are we creating today?"
+      ],
+      analytical: [
+        "Research shows mindfulness practice restructures the brain positively. Let's design a systematic approach for you.",
+        "Let's analyze your current stress patterns and create evidence-based mindfulness strategies.",
+        "Studies demonstrate measurable benefits from consistent practice. What specific outcomes are you targeting?"
+      ],
+      gentle: [
+        "There's no rush on this journey. Let's explore mindfulness at a pace that feels comfortable for you.",
+        "Be kind to yourself as you learn. What gentle practice would feel most nurturing right now?",
+        "Your path to peace unfolds naturally. What small mindful moment can we create together?"
+      ]
+    },
+    "behavior": {
       supportive: [
         "I understand nutrition can feel overwhelming. Let's take this one step at a time. What specific area would you like to focus on first?",
         "Your willingness to improve your nutrition shows real self-care. I'm here to support you through every step of this journey.",
@@ -142,51 +191,7 @@ function generateAIResponse(message: string, coachType: string, persona: string,
         "Remember, every small step toward better nutrition is worth celebrating. What would feel nurturing for you today?"
       ]
     },
-    "fitness-trainer": {
-      supportive: [
-        "I believe in your strength, even when you don't feel it yourself. Every movement is a step toward a healthier you.",
-        "Your body is capable of amazing things. Let's find ways to move that feel good and sustainable for you.",
-        "Fitness is a journey of self-discovery. I'm here to cheer you on every step of the way!"
-      ],
-      motivational: [
-        "Time to unleash your inner warrior! Your body is ready for this challenge - let's make it happen!",
-        "Champions aren't made in comfort zones. Ready to push your limits and discover what you're capable of?",
-        "Your strongest self is waiting to be unleashed. What fitness goal are we conquering today?"
-      ],
-      analytical: [
-        "Let's assess your current fitness level and create a progressive training plan. What activities do you currently engage in?",
-        "Based on exercise science, we can design a program that maximizes your results efficiently. What are your primary fitness objectives?",
-        "Research shows consistent movement patterns lead to sustainable fitness gains. Let's structure your routine strategically."
-      ],
-      gentle: [
-        "Listen to your body - it knows what it needs. Let's find gentle movements that bring you joy and energy.",
-        "Fitness should enhance your life, not stress you. What types of movement make you feel good?",
-        "Your pace is perfect. Every gentle step toward movement is nurturing your overall wellbeing."
-      ]
-    },
-    "behavior-coach": {
-      supportive: [
-        "Change is challenging, and recognizing that takes courage. I'm here to support you through every step of your growth journey.",
-        "Your awareness of wanting change is already a huge step forward. Let's explore what patterns you'd like to shift together.",
-        "You have the inner wisdom to create positive change. Sometimes we just need support to access it."
-      ],
-      motivational: [
-        "You have the power to rewrite your story! Let's identify the behaviors that will catapult you toward your dreams!",
-        "Break free from limiting patterns! Your breakthrough moment is closer than you think - let's make it happen!",
-        "Transform your habits, transform your life! What behavior change will create your biggest impact?"
-      ],
-      analytical: [
-        "Let's examine your behavior patterns systematically. What triggers typically precede the behaviors you want to change?",
-        "Behavioral science shows that understanding our patterns is key to sustainable change. What specific behaviors concern you?",
-        "We can create a structured approach to behavior modification. What's your primary behavioral goal?"
-      ],
-      gentle: [
-        "Change happens naturally when we're ready. What small shift feels achievable and kind to yourself right now?",
-        "Be patient with yourself as you grow. What behavior change would feel most nurturing to explore?",
-        "Your journey of change is uniquely yours. Let's honor your pace and celebrate every small victory."
-      ]
-    },
-    "wellness-coordinator": {
+    "wellness": {
       supportive: [
         "Your whole-person wellness matters deeply. I'm here to help you create a life that feels balanced and fulfilling.",
         "Wellness is about finding what works uniquely for you. Let's explore all dimensions of your wellbeing together.",
@@ -206,6 +211,72 @@ function generateAIResponse(message: string, coachType: string, persona: string,
         "Wellness unfolds naturally when we listen to our needs. What would feel most nourishing for your wellbeing right now?",
         "Your wellness journey is sacred and personal. Let's explore gentle practices that honor where you are today.",
         "True wellness includes being kind to yourself. What aspect of self-care would feel most supportive?"
+      ]
+    },
+    "relationship": {
+      supportive: [
+        "Building healthy relationships takes courage and vulnerability. I'm here to support you through every step.",
+        "Your relationships reflect your growth journey. Let's explore how to create deeper, more meaningful connections.",
+        "Every relationship teaches us something valuable. What would you like to work on in your connections with others?"
+      ],
+      motivational: [
+        "Transform your relationships, transform your life! Let's build the meaningful connections you deserve!",
+        "You have the power to create extraordinary relationships! What relationship goal are we achieving today?",
+        "Break through barriers and build bridges! Your best relationships are waiting to be discovered!"
+      ],
+      analytical: [
+        "Let's analyze your relationship patterns objectively. What recurring themes do you notice in your interactions?",
+        "Research shows specific communication techniques improve relationship satisfaction. Which areas need the most attention?",
+        "Healthy relationships follow predictable patterns. Let's identify where improvements can create the biggest impact."
+      ],
+      gentle: [
+        "Relationships heal at their own pace. What gentle step toward connection feels right for you today?",
+        "Be patient with yourself and others. What relationship aspect would you like to explore with compassion?",
+        "Every small gesture of connection matters. What feels most nurturing in your relationships right now?"
+      ]
+    },
+    "mentalhealth": {
+      supportive: [
+        "Your mental health is precious, and seeking support shows incredible strength. I'm here to listen and help.",
+        "Whatever you're going through, you don't have to face it alone. Let's work through this together.",
+        "Your feelings are valid and important. I'm here to provide a safe space for whatever you need to express."
+      ],
+      motivational: [
+        "You are stronger than you know! Let's harness that inner strength to overcome any challenge!",
+        "Every day is a new opportunity for mental wellness! What positive change are we creating today?",
+        "Your resilience is remarkable! Let's build on it to create the mental wellbeing you deserve!"
+      ],
+      analytical: [
+        "Let's examine your mental health patterns systematically. What specific symptoms or challenges are you experiencing?",
+        "Research indicates various evidence-based approaches for mental wellness. What strategies have you tried?",
+        "Understanding your triggers and patterns is key. Let's create a structured approach to improving your mental health."
+      ],
+      gentle: [
+        "Healing happens in its own time. What small, comforting step can we take together today?",
+        "Be gentle with yourself on difficult days. What would feel most soothing for your mind right now?",
+        "Your journey is unique and valid. Let's find the softest path forward together."
+      ]
+    },
+    "weightloss": {
+      supportive: [
+        "Your weight loss journey is about so much more than numbers. I'm here to support your whole-person transformation.",
+        "Every body is different, and your path will be unique. Let's find what works sustainably for you.",
+        "You're taking a brave step toward better health. I'll be with you every step of this journey."
+      ],
+      motivational: [
+        "You've got the power to transform your body and life! Let's make those weight loss goals a reality!",
+        "Every healthy choice is a victory! Ready to crush your weight loss goals and feel amazing?",
+        "Your healthiest, happiest self is waiting! What breakthrough are we creating today?"
+      ],
+      analytical: [
+        "Let's analyze your current habits and create a data-driven weight loss plan. What's your typical daily routine?",
+        "Science shows sustainable weight loss requires specific strategies. What are your primary obstacles?",
+        "Effective weight management follows proven principles. Let's design a systematic approach for your success."
+      ],
+      gentle: [
+        "Weight loss is a journey of self-love, not punishment. What kind approach feels right for you today?",
+        "Your body deserves patience and care. What gentle change would feel manageable right now?",
+        "Progress comes in many forms. Let's celebrate every positive step, no matter how small."
       ]
     }
   };

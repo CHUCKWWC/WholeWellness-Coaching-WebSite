@@ -74,7 +74,7 @@ export default function AICoaching() {
 
   // AI Chat mutation with memory
   const sendMessage = useMutation({
-    mutationFn: async (data: { message: string; coachType: string }) => {
+    mutationFn: async (data: { message: string; coachType: string; persona?: string; sessionId?: string | null }) => {
       const response = await apiRequest("POST", "/api/ai-coaching/chat", data);
       return response.json();
     },
@@ -113,7 +113,9 @@ export default function AICoaching() {
     // Send to AI with persona context
     sendMessage.mutate({
       message: message,
-      coachType: selectedCoach.id
+      coachType: selectedCoach.id,
+      persona: currentPersona,
+      sessionId: currentSessionId
     });
 
     setInputMessage("");
@@ -189,29 +191,61 @@ export default function AICoaching() {
 
   const aiCoaches = [
     {
-      id: "weight-loss",
-      name: "Weight Loss Coach",
-      description: "AI-powered weight loss coaching with personalized meal plans, fitness routines, and motivation",
-      color: "bg-emerald-100 text-emerald-800",
-      specialties: ["Meal Planning", "Fitness Guidance", "Nutrition Education", "Motivation Support"],
-      avatar: "🏃‍♀️",
-      coach: "Dasha - weight loss specialist",
+      id: "mindfulness",
+      name: "Mindfulness Coach",
+      description: "Helping you find peace and clarity through meditation and mindful living",
+      color: "bg-purple-100 text-purple-800",
+      specialties: ["Meditation", "Stress Reduction", "Mindful Living", "Breathing Techniques"],
+      avatar: "🧘‍♀️",
+      coach: "Charlene - Mindfulness Coach",
       suggestedPrompts: [
-        "Create a personalized meal plan for my goals",
-        "Design a workout routine for beginners",
-        "Help me overcome emotional eating",
-        "Track my progress and provide motivation",
-        "Suggest healthy snacks for busy days"
+        "Guide me through a 5-minute meditation",
+        "How can I manage stress at work?",
+        "Teach me mindful breathing techniques",
+        "Help me develop a daily mindfulness practice",
+        "Ways to stay present throughout the day"
+      ]
+    },
+    {
+      id: "behavior",
+      name: "Behavior Coach",
+      description: "Supporting positive behavior change and habit formation",
+      color: "bg-blue-100 text-blue-800",
+      specialties: ["Habit Formation", "Goal Setting", "Behavior Modification", "Accountability"],
+      avatar: "🎯",
+      coach: "Lisa - Behavior Coach",
+      suggestedPrompts: [
+        "Help me break a bad habit",
+        "Create a morning routine for productivity",
+        "How to stay consistent with my goals",
+        "Strategies for overcoming procrastination",
+        "Building healthy lifestyle habits"
+      ]
+    },
+    {
+      id: "wellness",
+      name: "Wellness Coach",
+      description: "Your guide to holistic health and well-being",
+      color: "bg-green-100 text-green-800",
+      specialties: ["Holistic Health", "Lifestyle Balance", "Self-Care", "Energy Management"],
+      avatar: "✨",
+      coach: "Dasha - Wellness Coach",
+      suggestedPrompts: [
+        "Create a balanced wellness plan for me",
+        "How to improve my sleep quality",
+        "Natural ways to boost energy",
+        "Developing a self-care routine",
+        "Balancing work and personal life"
       ]
     },
     {
       id: "relationship",
-      name: "Relationship Coach", 
-      description: "Expert relationship guidance for building stronger, healthier connections with others",
+      name: "Relationship Coach",
+      description: "Building stronger, healthier connections",
       color: "bg-pink-100 text-pink-800",
-      specialties: ["Communication Skills", "Conflict Resolution", "Trust Building", "Intimacy Enhancement"],
+      specialties: ["Communication Skills", "Conflict Resolution", "Trust Building", "Intimacy"],
       avatar: "💕",
-      coach: "Charles - Relationship Specialist",
+      coach: "Charles - Relationship Coach",
       suggestedPrompts: [
         "How to improve communication with my partner",
         "Dealing with trust issues in relationships",
@@ -221,35 +255,35 @@ export default function AICoaching() {
       ]
     },
     {
-      id: "wellness",
-      name: "Wellness Coordinator",
-      description: "Holistic wellness guidance focusing on mental health, stress management, and life balance",
-      color: "bg-blue-100 text-blue-800", 
-      specialties: ["Stress Management", "Mental Health", "Work-Life Balance", "Mindfulness"],
-      avatar: "🧘‍♀️",
-      coach: "Maya - Wellness Coordinator",
+      id: "mentalhealth",
+      name: "Mental Health Support",
+      description: "Compassionate support for your emotional well-being",
+      color: "bg-indigo-100 text-indigo-800",
+      specialties: ["Emotional Support", "Coping Strategies", "Mental Wellness", "Crisis Support"],
+      avatar: "🤗",
+      coach: "Bobby - Mental Health Support",
       suggestedPrompts: [
-        "Help me manage stress and anxiety",
-        "Create a mindfulness routine",
-        "Improve my work-life balance", 
-        "Develop healthy coping strategies",
-        "Build resilience and mental strength"
+        "I'm feeling overwhelmed today",
+        "Coping strategies for anxiety",
+        "How to deal with negative thoughts",
+        "Building emotional resilience",
+        "Finding motivation when feeling down"
       ]
     },
     {
-      id: "behavior",
-      name: "Behavior Coach",
-      description: "Support for building positive habits, breaking negative patterns, and personal development",
-      color: "bg-purple-100 text-purple-800",
-      specialties: ["Habit Formation", "Behavior Change", "Goal Setting", "Personal Growth"],
-      avatar: "🎯",
-      coach: "Alex - Behavior Specialist",
+      id: "weightloss",
+      name: "Weight Loss Coach",
+      description: "Personalized guidance for sustainable weight management",
+      color: "bg-emerald-100 text-emerald-800",
+      specialties: ["Meal Planning", "Fitness Guidance", "Nutrition Education", "Motivation"],
+      avatar: "🏃‍♀️",
+      coach: "Aria - Weight Loss Coach",
       suggestedPrompts: [
-        "Help me build better daily habits",
-        "Break negative thought patterns",
-        "Set and achieve meaningful goals",
-        "Overcome procrastination",
-        "Develop self-discipline"
+        "Create a personalized meal plan for my goals",
+        "Design a workout routine for beginners",
+        "Help me overcome emotional eating",
+        "Track my progress and provide motivation",
+        "Suggest healthy snacks for busy days"
       ]
     }
   ];
