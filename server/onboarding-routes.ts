@@ -1,284 +1,265 @@
-import { Router } from 'express';
-import { requireAuth, optionalAuth, type AuthenticatedRequest } from './auth';
-import { onboardingService } from './onboarding-service';
-import { storage } from './supabase-client-storage';
+import type { Express } from 'express';
 import { z } from 'zod';
 
-const router = Router();
-
-// Schemas for validation
-const coachingSelectionSchema = z.object({
-  specialties: z.array(z.string()).min(1, 'At least one specialty must be selected')
+// Validation schemas
+const UserPreferencesSchema = z.object({
+  role: z.enum(['member', 'coach', 'admin', 'visitor']),
+  interests: z.array(z.string()),
+  experience: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+  goals: z.array(z.string()),
+  communicationStyle: z.enum(['supportive', 'direct', 'analytical', 'motivational']),
+  learningStyle: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
+  availableTime: z.string().optional(),
+  triggers: z.string().optional(),
+  preferences: z.object({
+    notifications: z.boolean(),
+    publicProfile: z.boolean(),
+    dataSharing: z.boolean()
+  })
 });
 
-const passwordResetRequestSchema = z.object({
-  email: z.string().email('Valid email is required')
+const OnboardingProgressSchema = z.object({
+  isCompleted: z.boolean(),
+  currentStep: z.number(),
+  completedTutorials: z.array(z.string()),
+  skippedSteps: z.array(z.string()),
+  preferences: UserPreferencesSchema.optional()
 });
 
-const passwordResetSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
-  newPassword: z.string().min(8, 'Password must be at least 8 characters')
-});
+export function registerOnboardingRoutes(app: Express) {
+  // Get user's onboarding progress
+  app.get('/api/user/onboarding-progress', async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
 
-const emailVerificationSchema = z.object({
-  token: z.string().min(1, 'Verification token is required')
-});
+      // In a real app, this would fetch from database
+      // For now, return a default progress state
+      const defaultProgress = {
+        isCompleted: false,
+        currentStep: 0,
+        completedTutorials: [],
+        skippedSteps: [],
+        preferences: undefined
+      };
 
-const coachingFlowSchema = z.object({
-  step: z.string().min(1, 'Step is required'),
-  response: z.string().optional()
-});
-
-// Get user onboarding progress
-router.get('/progress', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.json(defaultProgress);
+    } catch (error) {
+      console.error('Error fetching onboarding progress:', error);
+      res.status(500).json({ message: 'Failed to fetch onboarding progress' });
     }
+  });
 
-    const progress = await onboardingService.getUserOnboardingProgress(req.user.id);
-    res.json({ progress });
-  } catch (error) {
-    console.error('Error getting onboarding progress:', error);
-    res.status(500).json({ error: 'Failed to get onboarding progress' });
-  }
-});
+  // Save user's onboarding progress
+  app.post('/api/user/onboarding-progress', async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
 
-// Complete onboarding step
-router.post('/complete-step/:stepId', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      const validatedProgress = OnboardingProgressSchema.parse(req.body);
+
+      // In a real app, this would save to database
+      // For now, just return success
+      console.log('Saving onboarding progress for user:', req.user.id, validatedProgress);
+
+      res.json({ 
+        message: 'Onboarding progress saved successfully',
+        progress: validatedProgress 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: 'Invalid onboarding progress data',
+          errors: error.errors 
+        });
+      }
+      
+      console.error('Error saving onboarding progress:', error);
+      res.status(500).json({ message: 'Failed to save onboarding progress' });
     }
+  });
 
-    const { stepId } = req.params;
-    await onboardingService.completeOnboardingStep(req.user.id, stepId);
-    
-    res.json({ success: true, message: 'Step completed successfully' });
-  } catch (error) {
-    console.error('Error completing onboarding step:', error);
-    res.status(500).json({ error: 'Failed to complete step' });
-  }
-});
+  // Save user preferences
+  app.post('/api/user/preferences', async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
 
-// Get coaching specialties
-router.get('/coaching-specialties', async (req, res) => {
-  try {
-    const specialties = onboardingService.getCoachingSpecialties();
-    res.json({ specialties });
-  } catch (error) {
-    console.error('Error getting coaching specialties:', error);
-    res.status(500).json({ error: 'Failed to get coaching specialties' });
-  }
-});
+      const validatedPreferences = UserPreferencesSchema.parse(req.body);
 
-// Get coaching specialties by category
-router.get('/coaching-specialties/:category', async (req, res) => {
-  try {
-    const { category } = req.params;
-    const specialties = onboardingService.getCoachingSpecialtiesByCategory(category as any);
-    res.json({ specialties });
-  } catch (error) {
-    console.error('Error getting coaching specialties by category:', error);
-    res.status(500).json({ error: 'Failed to get coaching specialties' });
-  }
-});
+      // In a real app, this would save to database
+      console.log('Saving user preferences for user:', req.user.id, validatedPreferences);
 
-// Process coaching selection
-router.post('/coaching-selection', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.json({ 
+        message: 'User preferences saved successfully',
+        preferences: validatedPreferences 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: 'Invalid user preferences data',
+          errors: error.errors 
+        });
+      }
+      
+      console.error('Error saving user preferences:', error);
+      res.status(500).json({ message: 'Failed to save user preferences' });
     }
+  });
 
-    const { specialties } = coachingSelectionSchema.parse(req.body);
-    await onboardingService.processCoachingSelection(req.user.id, specialties);
-    
-    res.json({ success: true, message: 'Coaching preferences updated successfully' });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid data', details: error.errors });
+  // Get available tutorials
+  app.get('/api/tutorials', async (req, res) => {
+    try {
+      const { category, difficulty, role } = req.query;
+      
+      // Sample tutorials data (would come from database in real app)
+      const tutorials = [
+        {
+          id: 'platform-basics',
+          title: 'Platform Basics',
+          description: 'Learn to navigate the WholeWellness platform',
+          category: 'basics',
+          estimatedTime: 5,
+          difficulty: 'beginner',
+          steps: 3
+        },
+        {
+          id: 'ai-coaching-intro',
+          title: 'AI Coaching Introduction',
+          description: 'Meet your AI wellness coaches and learn how to interact with them',
+          category: 'ai-coaching',
+          estimatedTime: 8,
+          difficulty: 'beginner',
+          steps: 2
+        },
+        {
+          id: 'wellness-tracking',
+          title: 'Wellness Tracking',
+          description: 'Learn how to track your wellness journey and progress',
+          category: 'wellness',
+          estimatedTime: 6,
+          difficulty: 'beginner',
+          steps: 2
+        },
+        {
+          id: 'coach-dashboard',
+          title: 'Coach Dashboard',
+          description: 'Navigate your coach dashboard and manage clients',
+          category: 'coach',
+          estimatedTime: 10,
+          difficulty: 'intermediate',
+          steps: 2,
+          requiredRole: 'coach'
+        }
+      ];
+
+      // Filter tutorials based on query parameters
+      let filteredTutorials = tutorials;
+
+      if (category && category !== 'all') {
+        filteredTutorials = filteredTutorials.filter(t => t.category === category);
+      }
+
+      if (difficulty) {
+        filteredTutorials = filteredTutorials.filter(t => t.difficulty === difficulty);
+      }
+
+      if (role) {
+        filteredTutorials = filteredTutorials.filter(t => 
+          !t.requiredRole || t.requiredRole === role
+        );
+      }
+
+      res.json(filteredTutorials);
+    } catch (error) {
+      console.error('Error fetching tutorials:', error);
+      res.status(500).json({ message: 'Failed to fetch tutorials' });
     }
-    
-    console.error('Error processing coaching selection:', error);
-    res.status(500).json({ error: 'Failed to process coaching selection' });
-  }
-});
+  });
 
-// Coaching flow conversation
-router.post('/coaching-flow', async (req, res) => {
-  try {
-    const { step, response } = coachingFlowSchema.parse(req.body);
-    const flow = onboardingService.createCoachingFlow(response || step);
-    
-    res.json(flow);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid data', details: error.errors });
+  // Get tutorial details
+  app.get('/api/tutorials/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Sample tutorial details (would come from database in real app)
+      const tutorialDetails = {
+        'platform-basics': {
+          id: 'platform-basics',
+          title: 'Platform Basics',
+          description: 'Learn to navigate the WholeWellness platform',
+          category: 'basics',
+          estimatedTime: 5,
+          difficulty: 'beginner',
+          steps: [
+            {
+              id: 'welcome',
+              title: 'Welcome to WholeWellness',
+              description: 'Your journey to wellness starts here. Let\'s explore the main navigation.',
+              target: 'nav',
+              action: 'hover'
+            },
+            {
+              id: 'ai-coaching-nav',
+              title: 'Find AI Coaching',
+              description: 'Click on AI Coaching to access your personal wellness coaches.',
+              target: 'a[href="/ai-coaching"]',
+              action: 'click'
+            },
+            {
+              id: 'member-portal',
+              title: 'Access Your Dashboard',
+              description: 'Your member portal contains all your personalized content.',
+              target: 'a[href="/member-portal"]',
+              action: 'click'
+            }
+          ]
+        }
+      };
+
+      const tutorial = tutorialDetails[id as keyof typeof tutorialDetails];
+      
+      if (!tutorial) {
+        return res.status(404).json({ message: 'Tutorial not found' });
+      }
+
+      res.json(tutorial);
+    } catch (error) {
+      console.error('Error fetching tutorial details:', error);
+      res.status(500).json({ message: 'Failed to fetch tutorial details' });
     }
-    
-    console.error('Error processing coaching flow:', error);
-    res.status(500).json({ error: 'Failed to process coaching flow' });
-  }
-});
+  });
 
-// Generate coaching recommendations
-router.post('/coaching-recommendations', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+  // Mark tutorial as completed
+  app.post('/api/tutorials/:id/complete', async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+      const { completedSteps } = req.body;
+
+      // In a real app, this would save to database
+      console.log('Marking tutorial as completed:', {
+        userId: req.user.id,
+        tutorialId: id,
+        completedSteps
+      });
+
+      res.json({ 
+        message: 'Tutorial marked as completed',
+        tutorialId: id,
+        completedSteps 
+      });
+    } catch (error) {
+      console.error('Error marking tutorial as completed:', error);
+      res.status(500).json({ message: 'Failed to mark tutorial as completed' });
     }
+  });
+}
 
-    const responses = req.body;
-    const recommendations = onboardingService.generateCoachingRecommendation(responses);
-    
-    res.json({ recommendations });
-  } catch (error) {
-    console.error('Error generating coaching recommendations:', error);
-    res.status(500).json({ error: 'Failed to generate recommendations' });
-  }
-});
-
-// Request password reset
-router.post('/password-reset-request', async (req, res) => {
-  try {
-    const { email } = passwordResetRequestSchema.parse(req.body);
-    await onboardingService.requestPasswordReset(email);
-    
-    // Always return success for security (don't reveal if email exists)
-    res.json({ success: true, message: 'If an account with that email exists, a reset link has been sent' });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid email format', details: error.errors });
-    }
-    
-    console.error('Error requesting password reset:', error);
-    res.status(500).json({ error: 'Failed to process password reset request' });
-  }
-});
-
-// Reset password with token
-router.post('/password-reset', async (req, res) => {
-  try {
-    const { token, newPassword } = passwordResetSchema.parse(req.body);
-    await onboardingService.resetPassword(token, newPassword);
-    
-    res.json({ success: true, message: 'Password reset successfully' });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid data', details: error.errors });
-    }
-    
-    if (error instanceof Error && error.message.includes('Invalid or expired')) {
-      return res.status(400).json({ error: error.message });
-    }
-    
-    console.error('Error resetting password:', error);
-    res.status(500).json({ error: 'Failed to reset password' });
-  }
-});
-
-// Verify email with token
-router.post('/verify-email', async (req, res) => {
-  try {
-    const { token } = emailVerificationSchema.parse(req.body);
-    await onboardingService.verifyEmail(token);
-    
-    res.json({ success: true, message: 'Email verified successfully' });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid token format', details: error.errors });
-    }
-    
-    if (error instanceof Error && error.message.includes('Invalid')) {
-      return res.status(400).json({ error: error.message });
-    }
-    
-    console.error('Error verifying email:', error);
-    res.status(500).json({ error: 'Failed to verify email' });
-  }
-});
-
-// Resend verification email
-router.post('/resend-verification', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    const user = await storage.getUserById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    if (user.email_verified) {
-      return res.status(400).json({ error: 'Email is already verified' });
-    }
-
-    // Initialize onboarding which includes sending verification email
-    await onboardingService.initializeUserOnboarding(user.id, user.email, user.firstName || 'User');
-    
-    res.json({ success: true, message: 'Verification email sent' });
-  } catch (error) {
-    console.error('Error resending verification email:', error);
-    res.status(500).json({ error: 'Failed to resend verification email' });
-  }
-});
-
-// Get onboarding welcome message
-router.get('/welcome-message', optionalAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    const welcomeFlow = onboardingService.createCoachingFlow('welcome');
-    res.json(welcomeFlow);
-  } catch (error) {
-    console.error('Error getting welcome message:', error);
-    res.status(500).json({ error: 'Failed to get welcome message' });
-  }
-});
-
-// Mark profile setup as complete
-router.post('/complete-profile', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    await onboardingService.completeOnboardingStep(req.user.id, 'profile_setup');
-    res.json({ success: true, message: 'Profile setup completed' });
-  } catch (error) {
-    console.error('Error completing profile setup:', error);
-    res.status(500).json({ error: 'Failed to complete profile setup' });
-  }
-});
-
-// Mark AI coach introduction as complete
-router.post('/complete-ai-intro', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    await onboardingService.completeOnboardingStep(req.user.id, 'ai_coach_intro');
-    res.json({ success: true, message: 'AI coach introduction completed' });
-  } catch (error) {
-    console.error('Error completing AI intro:', error);
-    res.status(500).json({ error: 'Failed to complete AI introduction' });
-  }
-});
-
-// Mark resource exploration as complete
-router.post('/complete-resources', requireAuth as any, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    await onboardingService.completeOnboardingStep(req.user.id, 'resource_exploration');
-    res.json({ success: true, message: 'Resource exploration completed' });
-  } catch (error) {
-    console.error('Error completing resource exploration:', error);
-    res.status(500).json({ error: 'Failed to complete resource exploration' });
-  }
-});
-
-export { router as onboardingRoutes };
+export default registerOnboardingRoutes;

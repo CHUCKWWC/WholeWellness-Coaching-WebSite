@@ -74,6 +74,7 @@ const AdminCoupons = lazy(() => import("@/pages/AdminCoupons"));
 const WellnessJourneyRecommender = lazy(() => import("@/pages/WellnessJourneyRecommender"));
 const AdminCertifications = lazy(() => import("@/pages/AdminCertifications"));
 const AdminTestPayment = lazy(() => import("@/pages/AdminTestPayment"));
+const CustomOnboarding = lazy(() => import("@/pages/CustomOnboarding"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -185,6 +186,7 @@ function Router() {
           <Route path="/certification-guide" component={(props) => <LazyRoute component={CertificationGuide} loadingText="Loading certification guide..." {...props} />} />
           <Route path="/wellness-journey" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Creating your wellness journey..." {...props} />} />
           <Route path="/admin/test-payment" component={(props) => <LazyRoute component={AdminTestPayment} loadingText="Loading payment test..." {...props} />} />
+          <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
           <Route component={NotFound} />
         </Switch>
       </main>

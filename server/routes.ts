@@ -47,7 +47,7 @@ import { adminRoutes } from "./admin-routes";
 import { CoachEarningsSystem } from "./coach-earnings-system";
 import { coachRoutes } from "./coach-routes";
 import { donationRoutes } from "./donation-routes";
-import { onboardingRoutes } from "./onboarding-routes";
+import registerOnboardingRoutes from "./onboarding-routes";
 import { setupCouponRoutes } from "./coupon-routes";
 import { onboardingNewRoutes } from "./onboarding-new-routes";
 import { assessmentRoutes } from "./assessment-routes";
@@ -3375,7 +3375,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   registerAdminCertificationRoutes(app);
   app.use('/api/coach', coachRoutes);
   app.use('/api/donations', donationRoutes);
-  app.use('/api/onboarding', onboardingRoutes);
+  // Onboarding routes handled by registerOnboardingRoutes() at end of file
   app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);
   
@@ -4718,6 +4718,9 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
   // AI Chat Routes with Memory - Direct Implementation
   registerAIChatRoutes(app);
+
+  // Onboarding Routes
+  registerOnboardingRoutes(app);
 
   return httpServer;
 }
