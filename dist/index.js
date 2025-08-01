@@ -9323,7 +9323,8 @@ var securityHeaders = helmet({
         // Required for Vite in development
         "js.stripe.com",
         "*.google.com",
-        "*.googletagmanager.com"
+        "*.googletagmanager.com",
+        "replit.com"
       ],
       styleSrc: [
         "'self'",
@@ -10147,221 +10148,222 @@ router4.post("/webhook", async (req, res) => {
 });
 
 // server/onboarding-routes.ts
-import { Router as Router5 } from "express";
 import { z as z5 } from "zod";
-var router5 = Router5();
-var coachingSelectionSchema = z5.object({
-  specialties: z5.array(z5.string()).min(1, "At least one specialty must be selected")
+var UserPreferencesSchema = z5.object({
+  role: z5.enum(["member", "coach", "admin", "visitor"]),
+  interests: z5.array(z5.string()),
+  experience: z5.enum(["beginner", "intermediate", "advanced"]).optional(),
+  goals: z5.array(z5.string()),
+  communicationStyle: z5.enum(["supportive", "direct", "analytical", "motivational"]),
+  learningStyle: z5.enum(["visual", "auditory", "kinesthetic", "reading"]).optional(),
+  availableTime: z5.string().optional(),
+  triggers: z5.string().optional(),
+  preferences: z5.object({
+    notifications: z5.boolean(),
+    publicProfile: z5.boolean(),
+    dataSharing: z5.boolean()
+  })
 });
-var passwordResetRequestSchema = z5.object({
-  email: z5.string().email("Valid email is required")
+var OnboardingProgressSchema = z5.object({
+  isCompleted: z5.boolean(),
+  currentStep: z5.number(),
+  completedTutorials: z5.array(z5.string()),
+  skippedSteps: z5.array(z5.string()),
+  preferences: UserPreferencesSchema.optional()
 });
-var passwordResetSchema = z5.object({
-  token: z5.string().min(1, "Reset token is required"),
-  newPassword: z5.string().min(8, "Password must be at least 8 characters")
-});
-var emailVerificationSchema = z5.object({
-  token: z5.string().min(1, "Verification token is required")
-});
-var coachingFlowSchema = z5.object({
-  step: z5.string().min(1, "Step is required"),
-  response: z5.string().optional()
-});
-router5.get("/progress", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
+function registerOnboardingRoutes(app2) {
+  app2.get("/api/user/onboarding-progress", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const defaultProgress = {
+        isCompleted: false,
+        currentStep: 0,
+        completedTutorials: [],
+        skippedSteps: [],
+        preferences: void 0
+      };
+      res.json(defaultProgress);
+    } catch (error) {
+      console.error("Error fetching onboarding progress:", error);
+      res.status(500).json({ message: "Failed to fetch onboarding progress" });
     }
-    const progress = await onboardingService.getUserOnboardingProgress(req.user.id);
-    res.json({ progress });
-  } catch (error) {
-    console.error("Error getting onboarding progress:", error);
-    res.status(500).json({ error: "Failed to get onboarding progress" });
-  }
-});
-router5.post("/complete-step/:stepId", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
+  });
+  app2.post("/api/user/onboarding-progress", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const validatedProgress = OnboardingProgressSchema.parse(req.body);
+      console.log("Saving onboarding progress for user:", req.user.id, validatedProgress);
+      res.json({
+        message: "Onboarding progress saved successfully",
+        progress: validatedProgress
+      });
+    } catch (error) {
+      if (error instanceof z5.ZodError) {
+        return res.status(400).json({
+          message: "Invalid onboarding progress data",
+          errors: error.errors
+        });
+      }
+      console.error("Error saving onboarding progress:", error);
+      res.status(500).json({ message: "Failed to save onboarding progress" });
     }
-    const { stepId } = req.params;
-    await onboardingService.completeOnboardingStep(req.user.id, stepId);
-    res.json({ success: true, message: "Step completed successfully" });
-  } catch (error) {
-    console.error("Error completing onboarding step:", error);
-    res.status(500).json({ error: "Failed to complete step" });
-  }
-});
-router5.get("/coaching-specialties", async (req, res) => {
-  try {
-    const specialties = onboardingService.getCoachingSpecialties();
-    res.json({ specialties });
-  } catch (error) {
-    console.error("Error getting coaching specialties:", error);
-    res.status(500).json({ error: "Failed to get coaching specialties" });
-  }
-});
-router5.get("/coaching-specialties/:category", async (req, res) => {
-  try {
-    const { category } = req.params;
-    const specialties = onboardingService.getCoachingSpecialtiesByCategory(category);
-    res.json({ specialties });
-  } catch (error) {
-    console.error("Error getting coaching specialties by category:", error);
-    res.status(500).json({ error: "Failed to get coaching specialties" });
-  }
-});
-router5.post("/coaching-selection", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
+  });
+  app2.post("/api/user/preferences", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const validatedPreferences = UserPreferencesSchema.parse(req.body);
+      console.log("Saving user preferences for user:", req.user.id, validatedPreferences);
+      res.json({
+        message: "User preferences saved successfully",
+        preferences: validatedPreferences
+      });
+    } catch (error) {
+      if (error instanceof z5.ZodError) {
+        return res.status(400).json({
+          message: "Invalid user preferences data",
+          errors: error.errors
+        });
+      }
+      console.error("Error saving user preferences:", error);
+      res.status(500).json({ message: "Failed to save user preferences" });
     }
-    const { specialties } = coachingSelectionSchema.parse(req.body);
-    await onboardingService.processCoachingSelection(req.user.id, specialties);
-    res.json({ success: true, message: "Coaching preferences updated successfully" });
-  } catch (error) {
-    if (error instanceof z5.ZodError) {
-      return res.status(400).json({ error: "Invalid data", details: error.errors });
+  });
+  app2.get("/api/tutorials", async (req, res) => {
+    try {
+      const { category, difficulty, role } = req.query;
+      const tutorials = [
+        {
+          id: "platform-basics",
+          title: "Platform Basics",
+          description: "Learn to navigate the WholeWellness platform",
+          category: "basics",
+          estimatedTime: 5,
+          difficulty: "beginner",
+          steps: 3
+        },
+        {
+          id: "ai-coaching-intro",
+          title: "AI Coaching Introduction",
+          description: "Meet your AI wellness coaches and learn how to interact with them",
+          category: "ai-coaching",
+          estimatedTime: 8,
+          difficulty: "beginner",
+          steps: 2
+        },
+        {
+          id: "wellness-tracking",
+          title: "Wellness Tracking",
+          description: "Learn how to track your wellness journey and progress",
+          category: "wellness",
+          estimatedTime: 6,
+          difficulty: "beginner",
+          steps: 2
+        },
+        {
+          id: "coach-dashboard",
+          title: "Coach Dashboard",
+          description: "Navigate your coach dashboard and manage clients",
+          category: "coach",
+          estimatedTime: 10,
+          difficulty: "intermediate",
+          steps: 2,
+          requiredRole: "coach"
+        }
+      ];
+      let filteredTutorials = tutorials;
+      if (category && category !== "all") {
+        filteredTutorials = filteredTutorials.filter((t) => t.category === category);
+      }
+      if (difficulty) {
+        filteredTutorials = filteredTutorials.filter((t) => t.difficulty === difficulty);
+      }
+      if (role) {
+        filteredTutorials = filteredTutorials.filter(
+          (t) => !t.requiredRole || t.requiredRole === role
+        );
+      }
+      res.json(filteredTutorials);
+    } catch (error) {
+      console.error("Error fetching tutorials:", error);
+      res.status(500).json({ message: "Failed to fetch tutorials" });
     }
-    console.error("Error processing coaching selection:", error);
-    res.status(500).json({ error: "Failed to process coaching selection" });
-  }
-});
-router5.post("/coaching-flow", async (req, res) => {
-  try {
-    const { step, response } = coachingFlowSchema.parse(req.body);
-    const flow = onboardingService.createCoachingFlow(response || step);
-    res.json(flow);
-  } catch (error) {
-    if (error instanceof z5.ZodError) {
-      return res.status(400).json({ error: "Invalid data", details: error.errors });
+  });
+  app2.get("/api/tutorials/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const tutorialDetails = {
+        "platform-basics": {
+          id: "platform-basics",
+          title: "Platform Basics",
+          description: "Learn to navigate the WholeWellness platform",
+          category: "basics",
+          estimatedTime: 5,
+          difficulty: "beginner",
+          steps: [
+            {
+              id: "welcome",
+              title: "Welcome to WholeWellness",
+              description: "Your journey to wellness starts here. Let's explore the main navigation.",
+              target: "nav",
+              action: "hover"
+            },
+            {
+              id: "ai-coaching-nav",
+              title: "Find AI Coaching",
+              description: "Click on AI Coaching to access your personal wellness coaches.",
+              target: 'a[href="/ai-coaching"]',
+              action: "click"
+            },
+            {
+              id: "member-portal",
+              title: "Access Your Dashboard",
+              description: "Your member portal contains all your personalized content.",
+              target: 'a[href="/member-portal"]',
+              action: "click"
+            }
+          ]
+        }
+      };
+      const tutorial = tutorialDetails[id];
+      if (!tutorial) {
+        return res.status(404).json({ message: "Tutorial not found" });
+      }
+      res.json(tutorial);
+    } catch (error) {
+      console.error("Error fetching tutorial details:", error);
+      res.status(500).json({ message: "Failed to fetch tutorial details" });
     }
-    console.error("Error processing coaching flow:", error);
-    res.status(500).json({ error: "Failed to process coaching flow" });
-  }
-});
-router5.post("/coaching-recommendations", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
+  });
+  app2.post("/api/tutorials/:id/complete", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { id } = req.params;
+      const { completedSteps } = req.body;
+      console.log("Marking tutorial as completed:", {
+        userId: req.user.id,
+        tutorialId: id,
+        completedSteps
+      });
+      res.json({
+        message: "Tutorial marked as completed",
+        tutorialId: id,
+        completedSteps
+      });
+    } catch (error) {
+      console.error("Error marking tutorial as completed:", error);
+      res.status(500).json({ message: "Failed to mark tutorial as completed" });
     }
-    const responses = req.body;
-    const recommendations = onboardingService.generateCoachingRecommendation(responses);
-    res.json({ recommendations });
-  } catch (error) {
-    console.error("Error generating coaching recommendations:", error);
-    res.status(500).json({ error: "Failed to generate recommendations" });
-  }
-});
-router5.post("/password-reset-request", async (req, res) => {
-  try {
-    const { email } = passwordResetRequestSchema.parse(req.body);
-    await onboardingService.requestPasswordReset(email);
-    res.json({ success: true, message: "If an account with that email exists, a reset link has been sent" });
-  } catch (error) {
-    if (error instanceof z5.ZodError) {
-      return res.status(400).json({ error: "Invalid email format", details: error.errors });
-    }
-    console.error("Error requesting password reset:", error);
-    res.status(500).json({ error: "Failed to process password reset request" });
-  }
-});
-router5.post("/password-reset", async (req, res) => {
-  try {
-    const { token, newPassword } = passwordResetSchema.parse(req.body);
-    await onboardingService.resetPassword(token, newPassword);
-    res.json({ success: true, message: "Password reset successfully" });
-  } catch (error) {
-    if (error instanceof z5.ZodError) {
-      return res.status(400).json({ error: "Invalid data", details: error.errors });
-    }
-    if (error instanceof Error && error.message.includes("Invalid or expired")) {
-      return res.status(400).json({ error: error.message });
-    }
-    console.error("Error resetting password:", error);
-    res.status(500).json({ error: "Failed to reset password" });
-  }
-});
-router5.post("/verify-email", async (req, res) => {
-  try {
-    const { token } = emailVerificationSchema.parse(req.body);
-    await onboardingService.verifyEmail(token);
-    res.json({ success: true, message: "Email verified successfully" });
-  } catch (error) {
-    if (error instanceof z5.ZodError) {
-      return res.status(400).json({ error: "Invalid token format", details: error.errors });
-    }
-    if (error instanceof Error && error.message.includes("Invalid")) {
-      return res.status(400).json({ error: error.message });
-    }
-    console.error("Error verifying email:", error);
-    res.status(500).json({ error: "Failed to verify email" });
-  }
-});
-router5.post("/resend-verification", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    const user = await storage.getUserById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    if (user.email_verified) {
-      return res.status(400).json({ error: "Email is already verified" });
-    }
-    await onboardingService.initializeUserOnboarding(user.id, user.email, user.firstName || "User");
-    res.json({ success: true, message: "Verification email sent" });
-  } catch (error) {
-    console.error("Error resending verification email:", error);
-    res.status(500).json({ error: "Failed to resend verification email" });
-  }
-});
-router5.get("/welcome-message", optionalAuth, async (req, res) => {
-  try {
-    const welcomeFlow = onboardingService.createCoachingFlow("welcome");
-    res.json(welcomeFlow);
-  } catch (error) {
-    console.error("Error getting welcome message:", error);
-    res.status(500).json({ error: "Failed to get welcome message" });
-  }
-});
-router5.post("/complete-profile", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    await onboardingService.completeOnboardingStep(req.user.id, "profile_setup");
-    res.json({ success: true, message: "Profile setup completed" });
-  } catch (error) {
-    console.error("Error completing profile setup:", error);
-    res.status(500).json({ error: "Failed to complete profile setup" });
-  }
-});
-router5.post("/complete-ai-intro", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    await onboardingService.completeOnboardingStep(req.user.id, "ai_coach_intro");
-    res.json({ success: true, message: "AI coach introduction completed" });
-  } catch (error) {
-    console.error("Error completing AI intro:", error);
-    res.status(500).json({ error: "Failed to complete AI introduction" });
-  }
-});
-router5.post("/complete-resources", requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    await onboardingService.completeOnboardingStep(req.user.id, "resource_exploration");
-    res.json({ success: true, message: "Resource exploration completed" });
-  } catch (error) {
-    console.error("Error completing resource exploration:", error);
-    res.status(500).json({ error: "Failed to complete resource exploration" });
-  }
-});
+  });
+}
+var onboarding_routes_default = registerOnboardingRoutes;
 
 // server/coupon-routes.ts
 import { z as z6 } from "zod";
@@ -10811,7 +10813,7 @@ function setupCouponRoutes(app2) {
 }
 
 // server/onboarding-new-routes.ts
-import { Router as Router6 } from "express";
+import { Router as Router5 } from "express";
 import { z as z7 } from "zod";
 
 // server/db.ts
@@ -10833,7 +10835,7 @@ var db2 = drizzle(client, { schema: schema_exports });
 
 // server/onboarding-new-routes.ts
 import { eq as eq2 } from "drizzle-orm";
-var router6 = Router6();
+var router5 = Router5();
 var onboardingDataSchema = z7.object({
   type: z7.enum(["client", "coach"]),
   step: z7.number(),
@@ -10844,7 +10846,7 @@ var completeOnboardingSchema = z7.object({
   type: z7.enum(["client", "coach"]),
   data: z7.any()
 });
-router6.get("/api/onboarding/progress", requireAuth, async (req, res) => {
+router5.get("/api/onboarding/progress", requireAuth, async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Authentication required" });
@@ -10867,7 +10869,7 @@ router6.get("/api/onboarding/progress", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to get onboarding progress" });
   }
 });
-router6.post("/api/onboarding/save-progress", requireAuth, async (req, res) => {
+router5.post("/api/onboarding/save-progress", requireAuth, async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Authentication required" });
@@ -10895,7 +10897,7 @@ router6.post("/api/onboarding/save-progress", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to save progress" });
   }
 });
-router6.post("/api/onboarding/complete", requireAuth, async (req, res) => {
+router5.post("/api/onboarding/complete", requireAuth, async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Authentication required" });
@@ -10952,7 +10954,7 @@ router6.post("/api/onboarding/complete", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to complete onboarding" });
   }
 });
-router6.get("/api/onboarding/coaching-specialties", async (req, res) => {
+router5.get("/api/onboarding/coaching-specialties", async (req, res) => {
   const specialties = [
     {
       id: "weight-loss",
@@ -10989,10 +10991,10 @@ router6.get("/api/onboarding/coaching-specialties", async (req, res) => {
 });
 
 // server/assessment-routes.ts
-import { Router as Router7 } from "express";
+import { Router as Router6 } from "express";
 import { z as z8 } from "zod";
-var router7 = Router7();
-router7.get("/assessment-types", async (req, res) => {
+var router6 = Router6();
+router6.get("/assessment-types", async (req, res) => {
   try {
     const assessmentTypes2 = await storage.getActiveAssessmentTypes();
     res.json(assessmentTypes2);
@@ -11001,7 +11003,7 @@ router7.get("/assessment-types", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch assessment types" });
   }
 });
-router7.get("/assessment-types/:id", async (req, res) => {
+router6.get("/assessment-types/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const assessmentType = await storage.getAssessmentTypeById(id);
@@ -11014,7 +11016,7 @@ router7.get("/assessment-types/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch assessment type" });
   }
 });
-router7.post("/submit", requireAuth, async (req, res) => {
+router6.post("/submit", requireAuth, async (req, res) => {
   try {
     const assessmentData = insertUserAssessmentSchema.parse({
       ...req.body,
@@ -11034,7 +11036,7 @@ router7.post("/submit", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to submit assessment" });
   }
 });
-router7.get("/user", requireAuth, async (req, res) => {
+router6.get("/user", requireAuth, async (req, res) => {
   try {
     const assessments = await storage.getUserAssessments(req.user.id);
     res.json(assessments);
@@ -11043,7 +11045,7 @@ router7.get("/user", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch assessments" });
   }
 });
-router7.get("/user/:userId", requireAuth, async (req, res) => {
+router6.get("/user/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     if (req.user.id !== userId && req.user.role !== "admin") {
@@ -11056,7 +11058,7 @@ router7.get("/user/:userId", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch assessments" });
   }
 });
-router7.get("/coach/:coachType/user/:userId", requireAuth, async (req, res) => {
+router6.get("/coach/:coachType/user/:userId", requireAuth, async (req, res) => {
   try {
     const { coachType, userId } = req.params;
     if (req.user.id !== userId && !["admin", "coach"].includes(req.user.role)) {
@@ -11076,7 +11078,7 @@ router7.get("/coach/:coachType/user/:userId", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch relevant assessments" });
   }
 });
-router7.get("/summary/user/:userId", requireAuth, async (req, res) => {
+router6.get("/summary/user/:userId", requireAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     if (!["admin", "coach"].includes(req.user.role)) {
@@ -11089,7 +11091,7 @@ router7.get("/summary/user/:userId", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch assessment summary" });
   }
 });
-router7.post("/assessment-types", requireAuth, async (req, res) => {
+router6.post("/assessment-types", requireAuth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ error: "Admin access required" });
@@ -11109,7 +11111,7 @@ router7.post("/assessment-types", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to create assessment type" });
   }
 });
-router7.post("/weight-loss-intake", requireAuth, async (req, res) => {
+router6.post("/weight-loss-intake", requireAuth, async (req, res) => {
   try {
     const weightLossAssessment = {
       userId: req.user.id,
@@ -15338,9 +15340,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
   registerAdminCertificationRoutes(app2);
   app2.use("/api/coach", router3);
   app2.use("/api/donations", router4);
-  app2.use("/api/onboarding", router5);
-  app2.use("/api/assessments", router7);
-  app2.use(router6);
+  app2.use("/api/assessments", router6);
+  app2.use(router5);
   setupCouponRoutes(app2);
   registerWellnessJourneyRoutes(app2);
   const httpServer = createServer(app2);
@@ -16465,6 +16466,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   registerAIChatRoutes(app2);
+  onboarding_routes_default(app2);
   return httpServer;
 }
 
