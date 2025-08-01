@@ -2,6 +2,7 @@ import { useStripe, Elements, PaymentElement, useElements } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -179,6 +180,7 @@ export default function Subscribe() {
   const [selectedPlan, setSelectedPlan] = useState(pricingPlans[0]);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, isLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Get selected plan from URL or default to first plan
@@ -194,6 +196,17 @@ export default function Subscribe() {
   }, []);
 
   const createSubscription = async () => {
+    // Check if user is authenticated first
+    if (!isAuthenticated) {
+      setError('Please log in to subscribe to a coaching plan');
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access subscription plans",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await apiRequest("POST", "/api/get-or-create-subscription", {
         planId: selectedPlan.id,
@@ -218,6 +231,53 @@ export default function Subscribe() {
       });
     }
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <Card className="border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-blue-600">Login Required</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-4">
+                Please log in to access our coaching subscription plans and start your wellness journey.
+              </p>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => window.location.href = '/login'}
+                  className="w-full"
+                >
+                  Log In
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/register'}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Create Account
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
