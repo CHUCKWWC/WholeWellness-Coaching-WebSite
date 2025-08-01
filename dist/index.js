@@ -408,8 +408,8 @@ import express3 from "express";
 import express from "express";
 import { createServer } from "http";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import path2 from "path";
+import fs2 from "fs";
 
 // server/supabase.ts
 import { createClient } from "@supabase/supabase-js";
@@ -1279,9 +1279,9 @@ var SupabaseClientStorage = class {
       return [];
     }
   }
-  async createAdminActivityLog(log2) {
+  async createAdminActivityLog(log3) {
     try {
-      const { data, error } = await supabase.from("admin_activity_log").insert(log2).select().single();
+      const { data, error } = await supabase.from("admin_activity_log").insert(log3).select().single();
       if (error) {
         console.error("Error creating admin activity log:", error);
         throw new Error("Failed to create admin activity log");
@@ -1802,9 +1802,9 @@ var SupabaseClientStorage = class {
       return null;
     }
   }
-  async createAdminActivityLog(log2) {
+  async createAdminActivityLog(log3) {
     try {
-      await supabase.from("admin_activity_log").insert(log2);
+      await supabase.from("admin_activity_log").insert(log3);
     } catch (error) {
       console.error("Error creating admin activity log:", error);
     }
@@ -5859,6 +5859,213 @@ var DonationMemoryStorage = class {
 };
 var donationStorage = new DonationMemoryStorage();
 
+// server/openai-assistants-service.ts
+import OpenAI from "openai";
+
+// server/ai-coaches-config.ts
+var AI_COACHES = {
+  mindfulness: {
+    id: "mindfulness",
+    name: "Charlene",
+    assistantId: "asst_hlVX0YPZB64kpfj7QTRxV5HW",
+    description: "Mindfulness Coach - Helping you find peace and clarity through meditation and mindful living",
+    specialties: ["Meditation", "Stress Reduction", "Mindful Living", "Breathing Techniques"],
+    avatar: "\u{1F9D8}\u200D\u2640\uFE0F",
+    color: "bg-purple-100 text-purple-800",
+    suggestedPrompts: [
+      "Guide me through a 5-minute meditation",
+      "How can I manage stress at work?",
+      "Teach me mindful breathing techniques",
+      "Help me develop a daily mindfulness practice",
+      "Ways to stay present throughout the day"
+    ]
+  },
+  behavior: {
+    id: "behavior",
+    name: "Lisa",
+    assistantId: "asst_FxvjSpXXdSDIMFbjHtOh2dCe",
+    description: "Behavior Coach - Supporting positive behavior change and habit formation",
+    specialties: ["Habit Formation", "Goal Setting", "Behavior Modification", "Accountability"],
+    avatar: "\u{1F3AF}",
+    color: "bg-blue-100 text-blue-800",
+    suggestedPrompts: [
+      "Help me break a bad habit",
+      "Create a morning routine for productivity",
+      "How to stay consistent with my goals",
+      "Strategies for overcoming procrastination",
+      "Building healthy lifestyle habits"
+    ]
+  },
+  wellness: {
+    id: "wellness",
+    name: "Dasha",
+    assistantId: "asst_um6HkqXCT9VdkDRHr1zXUib4",
+    description: "Wellness Coach - Your guide to holistic health and well-being",
+    specialties: ["Holistic Health", "Lifestyle Balance", "Self-Care", "Energy Management"],
+    avatar: "\u2728",
+    color: "bg-green-100 text-green-800",
+    suggestedPrompts: [
+      "Create a balanced wellness plan for me",
+      "How to improve my sleep quality",
+      "Natural ways to boost energy",
+      "Developing a self-care routine",
+      "Balancing work and personal life"
+    ]
+  },
+  relationship: {
+    id: "relationship",
+    name: "Charles",
+    assistantId: "asst_gXDWUtr5ax4oUM9ab1ofs5oG",
+    description: "Relationship Coach - Building stronger, healthier connections",
+    specialties: ["Communication Skills", "Conflict Resolution", "Trust Building", "Intimacy"],
+    avatar: "\u{1F495}",
+    color: "bg-pink-100 text-pink-800",
+    suggestedPrompts: [
+      "How to improve communication with my partner",
+      "Dealing with trust issues in relationships",
+      "Setting healthy boundaries",
+      "Resolving conflicts constructively",
+      "Building emotional intimacy"
+    ]
+  },
+  mentalhealth: {
+    id: "mentalhealth",
+    name: "Bobby",
+    assistantId: "asst_9a6WjS8dNl3HD8rRZVMSHm6h",
+    description: "Mental Health Support - Compassionate support for your emotional well-being",
+    specialties: ["Emotional Support", "Coping Strategies", "Mental Wellness", "Crisis Support"],
+    avatar: "\u{1F917}",
+    color: "bg-indigo-100 text-indigo-800",
+    suggestedPrompts: [
+      "I'm feeling overwhelmed today",
+      "Coping strategies for anxiety",
+      "How to deal with negative thoughts",
+      "Building emotional resilience",
+      "Finding motivation when feeling down"
+    ]
+  },
+  weightloss: {
+    id: "weightloss",
+    name: "Aria",
+    assistantId: "asst_tgbv3k3i8RHdB3jzFGab9AFR",
+    description: "Weight Loss Coach - Personalized guidance for sustainable weight management",
+    specialties: ["Meal Planning", "Fitness Guidance", "Nutrition Education", "Motivation"],
+    avatar: "\u{1F3C3}\u200D\u2640\uFE0F",
+    color: "bg-emerald-100 text-emerald-800",
+    suggestedPrompts: [
+      "Create a personalized meal plan for my goals",
+      "Design a workout routine for beginners",
+      "Help me overcome emotional eating",
+      "Track my progress and provide motivation",
+      "Suggest healthy snacks for busy days"
+    ]
+  }
+};
+function getCoachById(coachId) {
+  return AI_COACHES[coachId];
+}
+
+// server/openai-assistants-service.ts
+var openai = null;
+if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith("sk-")) {
+  try {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+    console.log("OpenAI Assistants API initialized successfully");
+  } catch (error) {
+    console.error("OpenAI initialization failed:", error);
+  }
+}
+var OpenAIAssistantsService = class {
+  threads = /* @__PURE__ */ new Map();
+  // sessionId -> threadId mapping
+  async createThread() {
+    if (!openai) {
+      throw new Error("OpenAI client not initialized");
+    }
+    const thread = await openai.beta.threads.create();
+    return thread.id;
+  }
+  async getOrCreateThread(sessionId) {
+    let threadId = this.threads.get(sessionId);
+    if (!threadId) {
+      threadId = await this.createThread();
+      this.threads.set(sessionId, threadId);
+    }
+    return threadId;
+  }
+  async sendMessage(coachId, message, sessionId, tone) {
+    if (!openai) {
+      throw new Error("OpenAI client not initialized");
+    }
+    const coach = getCoachById(coachId);
+    if (!coach) {
+      throw new Error(`Coach not found: ${coachId}`);
+    }
+    const threadId = await this.getOrCreateThread(sessionId);
+    let enhancedMessage = message;
+    if (tone) {
+      const toneInstructions = {
+        supportive: "Please respond in a warm, empathetic, and encouraging tone.",
+        motivational: "Please respond in an energetic, inspiring, and goal-focused tone.",
+        analytical: "Please provide a data-driven, logical response with clear solutions.",
+        gentle: "Please use calm, patient language with a nurturing approach."
+      };
+      enhancedMessage = `${toneInstructions[tone] || ""}
+
+${message}`;
+    }
+    await openai.beta.threads.messages.create(threadId, {
+      role: "user",
+      content: enhancedMessage
+    });
+    const run = await openai.beta.threads.runs.create(threadId, {
+      assistant_id: coach.assistantId
+    });
+    if (!run || !run.id) {
+      throw new Error("Invalid run object returned from OpenAI");
+    }
+    const runId = run.id;
+    let runStatus = await openai.beta.threads.runs.retrieve(runId, { thread_id: threadId });
+    while (runStatus.status !== "completed") {
+      if (runStatus.status === "failed" || runStatus.status === "cancelled" || runStatus.status === "expired") {
+        throw new Error(`Assistant run ${runStatus.status}: ${runStatus.last_error?.message || "Unknown error"}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1e3));
+      runStatus = await openai.beta.threads.runs.retrieve(runId, { thread_id: threadId });
+    }
+    const messages = await openai.beta.threads.messages.list(threadId);
+    const lastMessage = messages.data[0];
+    if (!lastMessage || lastMessage.role !== "assistant") {
+      throw new Error("No assistant response found");
+    }
+    const responseContent = lastMessage.content[0];
+    if (responseContent.type !== "text") {
+      throw new Error("Unexpected response type");
+    }
+    return {
+      response: responseContent.text.value,
+      threadId,
+      runId: run.id
+    };
+  }
+  async getThreadMessages(threadId) {
+    if (!openai) {
+      throw new Error("OpenAI client not initialized");
+    }
+    const messages = await openai.beta.threads.messages.list(threadId);
+    return messages.data.reverse().map((msg) => ({
+      role: msg.role,
+      content: msg.content[0].type === "text" ? msg.content[0].text.value : ""
+    }));
+  }
+  clearThread(sessionId) {
+    this.threads.delete(sessionId);
+  }
+};
+var assistantsService = new OpenAIAssistantsService();
+
 // server/ai-chat-routes.ts
 function registerAIChatRoutes(app2) {
   app2.post("/api/chat/session", async (req, res) => {
@@ -5916,34 +6123,54 @@ function registerAIChatRoutes(app2) {
           conversationContext = history.slice(-10).map((msg) => `${msg.is_user === "true" ? "User" : "Coach"}: ${msg.message_text}`).join("\n");
         }
       }
-      const personaPrompts = {
-        supportive: "Respond with warmth, empathy, and encouragement. Use supportive language and acknowledge emotions.",
-        motivational: "Be energetic, inspiring, and goal-focused. Use motivational language and actionable advice.",
-        analytical: "Provide data-driven, logical responses. Break down problems systematically and offer clear solutions.",
-        gentle: "Use calm, patient language. Take a nurturing approach and emphasize that progress takes time."
-      };
-      const systemPrompt = `You are ${coachType} AI coach providing ${persona} guidance. ${personaPrompts[persona] || personaPrompts.supportive}
-
-Previous conversation context:
-${conversationContext}
-
-Respond to the user's message in character as their ${coachType} coach with the ${persona} personality style.`;
-      const aiResponse = generateAIResponse(message, coachType, persona, conversationContext);
-      if (sessionId) {
-        await storage.saveChatMessage({
+      try {
+        const chatResponse = await assistantsService.sendMessage(
+          coachType,
+          message,
+          sessionId || `temp_${Date.now()}`,
+          persona
+        );
+        if (sessionId) {
+          await storage.saveChatMessage({
+            sessionId,
+            text: message,
+            isUser: true,
+            context: { persona, coachType }
+          });
+          await storage.saveChatMessage({
+            sessionId,
+            text: chatResponse.response,
+            isUser: false,
+            context: { persona, coachType, threadId: chatResponse.threadId }
+          });
+        }
+        res.json({
+          response: chatResponse.response,
           sessionId,
-          text: message,
-          isUser: true,
-          context: { persona, coachType }
+          threadId: chatResponse.threadId
         });
-        await storage.saveChatMessage({
+      } catch (openAIError) {
+        const fallbackResponse = generateAIResponse(message, coachType, persona, conversationContext);
+        if (sessionId) {
+          await storage.saveChatMessage({
+            sessionId,
+            text: message,
+            isUser: true,
+            context: { persona, coachType }
+          });
+          await storage.saveChatMessage({
+            sessionId,
+            text: fallbackResponse,
+            isUser: false,
+            context: { persona, coachType, fallback: true }
+          });
+        }
+        res.json({
+          response: fallbackResponse,
           sessionId,
-          text: aiResponse,
-          isUser: false,
-          context: { persona, coachType }
+          fallback: true
         });
       }
-      res.json({ response: aiResponse, sessionId });
     } catch (error) {
       console.error("Error in AI coaching chat:", error);
       res.status(500).json({ message: "Failed to process AI coaching request" });
@@ -5952,7 +6179,29 @@ Respond to the user's message in character as their ${coachType} coach with the 
 }
 function generateAIResponse(message, coachType, persona, context) {
   const responses = {
-    "nutritionist": {
+    "mindfulness": {
+      supportive: [
+        "I sense you're seeking peace and clarity. Let's explore this together with compassion and understanding.",
+        "Your journey to mindfulness is sacred. I'm here to guide you gently through whatever you're experiencing.",
+        "Take a deep breath with me. Whatever brought you here today, we'll navigate it mindfully together."
+      ],
+      motivational: [
+        "Ready to transform your inner world? Let's harness the power of mindfulness to create the life you desire!",
+        "Your mind is your most powerful tool - let's unlock its full potential through mindfulness practice!",
+        "Every moment is an opportunity for growth. What mindfulness breakthrough are we creating today?"
+      ],
+      analytical: [
+        "Research shows mindfulness practice restructures the brain positively. Let's design a systematic approach for you.",
+        "Let's analyze your current stress patterns and create evidence-based mindfulness strategies.",
+        "Studies demonstrate measurable benefits from consistent practice. What specific outcomes are you targeting?"
+      ],
+      gentle: [
+        "There's no rush on this journey. Let's explore mindfulness at a pace that feels comfortable for you.",
+        "Be kind to yourself as you learn. What gentle practice would feel most nurturing right now?",
+        "Your path to peace unfolds naturally. What small mindful moment can we create together?"
+      ]
+    },
+    "behavior": {
       supportive: [
         "I understand nutrition can feel overwhelming. Let's take this one step at a time. What specific area would you like to focus on first?",
         "Your willingness to improve your nutrition shows real self-care. I'm here to support you through every step of this journey.",
@@ -5974,51 +6223,7 @@ function generateAIResponse(message, coachType, persona, context) {
         "Remember, every small step toward better nutrition is worth celebrating. What would feel nurturing for you today?"
       ]
     },
-    "fitness-trainer": {
-      supportive: [
-        "I believe in your strength, even when you don't feel it yourself. Every movement is a step toward a healthier you.",
-        "Your body is capable of amazing things. Let's find ways to move that feel good and sustainable for you.",
-        "Fitness is a journey of self-discovery. I'm here to cheer you on every step of the way!"
-      ],
-      motivational: [
-        "Time to unleash your inner warrior! Your body is ready for this challenge - let's make it happen!",
-        "Champions aren't made in comfort zones. Ready to push your limits and discover what you're capable of?",
-        "Your strongest self is waiting to be unleashed. What fitness goal are we conquering today?"
-      ],
-      analytical: [
-        "Let's assess your current fitness level and create a progressive training plan. What activities do you currently engage in?",
-        "Based on exercise science, we can design a program that maximizes your results efficiently. What are your primary fitness objectives?",
-        "Research shows consistent movement patterns lead to sustainable fitness gains. Let's structure your routine strategically."
-      ],
-      gentle: [
-        "Listen to your body - it knows what it needs. Let's find gentle movements that bring you joy and energy.",
-        "Fitness should enhance your life, not stress you. What types of movement make you feel good?",
-        "Your pace is perfect. Every gentle step toward movement is nurturing your overall wellbeing."
-      ]
-    },
-    "behavior-coach": {
-      supportive: [
-        "Change is challenging, and recognizing that takes courage. I'm here to support you through every step of your growth journey.",
-        "Your awareness of wanting change is already a huge step forward. Let's explore what patterns you'd like to shift together.",
-        "You have the inner wisdom to create positive change. Sometimes we just need support to access it."
-      ],
-      motivational: [
-        "You have the power to rewrite your story! Let's identify the behaviors that will catapult you toward your dreams!",
-        "Break free from limiting patterns! Your breakthrough moment is closer than you think - let's make it happen!",
-        "Transform your habits, transform your life! What behavior change will create your biggest impact?"
-      ],
-      analytical: [
-        "Let's examine your behavior patterns systematically. What triggers typically precede the behaviors you want to change?",
-        "Behavioral science shows that understanding our patterns is key to sustainable change. What specific behaviors concern you?",
-        "We can create a structured approach to behavior modification. What's your primary behavioral goal?"
-      ],
-      gentle: [
-        "Change happens naturally when we're ready. What small shift feels achievable and kind to yourself right now?",
-        "Be patient with yourself as you grow. What behavior change would feel most nurturing to explore?",
-        "Your journey of change is uniquely yours. Let's honor your pace and celebrate every small victory."
-      ]
-    },
-    "wellness-coordinator": {
+    "wellness": {
       supportive: [
         "Your whole-person wellness matters deeply. I'm here to help you create a life that feels balanced and fulfilling.",
         "Wellness is about finding what works uniquely for you. Let's explore all dimensions of your wellbeing together.",
@@ -6038,6 +6243,72 @@ function generateAIResponse(message, coachType, persona, context) {
         "Wellness unfolds naturally when we listen to our needs. What would feel most nourishing for your wellbeing right now?",
         "Your wellness journey is sacred and personal. Let's explore gentle practices that honor where you are today.",
         "True wellness includes being kind to yourself. What aspect of self-care would feel most supportive?"
+      ]
+    },
+    "relationship": {
+      supportive: [
+        "Building healthy relationships takes courage and vulnerability. I'm here to support you through every step.",
+        "Your relationships reflect your growth journey. Let's explore how to create deeper, more meaningful connections.",
+        "Every relationship teaches us something valuable. What would you like to work on in your connections with others?"
+      ],
+      motivational: [
+        "Transform your relationships, transform your life! Let's build the meaningful connections you deserve!",
+        "You have the power to create extraordinary relationships! What relationship goal are we achieving today?",
+        "Break through barriers and build bridges! Your best relationships are waiting to be discovered!"
+      ],
+      analytical: [
+        "Let's analyze your relationship patterns objectively. What recurring themes do you notice in your interactions?",
+        "Research shows specific communication techniques improve relationship satisfaction. Which areas need the most attention?",
+        "Healthy relationships follow predictable patterns. Let's identify where improvements can create the biggest impact."
+      ],
+      gentle: [
+        "Relationships heal at their own pace. What gentle step toward connection feels right for you today?",
+        "Be patient with yourself and others. What relationship aspect would you like to explore with compassion?",
+        "Every small gesture of connection matters. What feels most nurturing in your relationships right now?"
+      ]
+    },
+    "mentalhealth": {
+      supportive: [
+        "Your mental health is precious, and seeking support shows incredible strength. I'm here to listen and help.",
+        "Whatever you're going through, you don't have to face it alone. Let's work through this together.",
+        "Your feelings are valid and important. I'm here to provide a safe space for whatever you need to express."
+      ],
+      motivational: [
+        "You are stronger than you know! Let's harness that inner strength to overcome any challenge!",
+        "Every day is a new opportunity for mental wellness! What positive change are we creating today?",
+        "Your resilience is remarkable! Let's build on it to create the mental wellbeing you deserve!"
+      ],
+      analytical: [
+        "Let's examine your mental health patterns systematically. What specific symptoms or challenges are you experiencing?",
+        "Research indicates various evidence-based approaches for mental wellness. What strategies have you tried?",
+        "Understanding your triggers and patterns is key. Let's create a structured approach to improving your mental health."
+      ],
+      gentle: [
+        "Healing happens in its own time. What small, comforting step can we take together today?",
+        "Be gentle with yourself on difficult days. What would feel most soothing for your mind right now?",
+        "Your journey is unique and valid. Let's find the softest path forward together."
+      ]
+    },
+    "weightloss": {
+      supportive: [
+        "Your weight loss journey is about so much more than numbers. I'm here to support your whole-person transformation.",
+        "Every body is different, and your path will be unique. Let's find what works sustainably for you.",
+        "You're taking a brave step toward better health. I'll be with you every step of this journey."
+      ],
+      motivational: [
+        "You've got the power to transform your body and life! Let's make those weight loss goals a reality!",
+        "Every healthy choice is a victory! Ready to crush your weight loss goals and feel amazing?",
+        "Your healthiest, happiest self is waiting! What breakthrough are we creating today?"
+      ],
+      analytical: [
+        "Let's analyze your current habits and create a data-driven weight loss plan. What's your typical daily routine?",
+        "Science shows sustainable weight loss requires specific strategies. What are your primary obstacles?",
+        "Effective weight management follows proven principles. Let's design a systematic approach for your success."
+      ],
+      gentle: [
+        "Weight loss is a journey of self-love, not punishment. What kind approach feels right for you today?",
+        "Your body deserves patience and care. What gentle change would feel manageable right now?",
+        "Progress comes in many forms. Let's celebrate every positive step, no matter how small."
       ]
     }
   };
@@ -6062,7 +6333,7 @@ import Stripe3 from "stripe";
 import { v4 as uuidv42 } from "uuid";
 
 // server/ai-coaching.ts
-import OpenAI from "openai";
+import OpenAI2 from "openai";
 
 // server/coaching-templates.ts
 var CoachingTemplates = class {
@@ -6404,10 +6675,10 @@ var CoachingTemplates = class {
 };
 
 // server/ai-coaching.ts
-var openai = null;
+var openai2 = null;
 if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith("sk-")) {
   try {
-    openai = new OpenAI({
+    openai2 = new OpenAI2({
       apiKey: process.env.OPENAI_API_KEY
     });
   } catch (error) {
@@ -6418,7 +6689,7 @@ var AICoaching = class {
   // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
   model = "gpt-4o";
   async generatePersonalizedMealPlan(profile) {
-    if (!openai) {
+    if (!openai2) {
       const plan = CoachingTemplates.generatePersonalizedPlan(profile);
       return plan.mealPlan;
     }
@@ -6448,7 +6719,7 @@ var AICoaching = class {
       ]
     }`;
     try {
-      const response = await openai.chat.completions.create({
+      const response = await openai2.chat.completions.create({
         model: this.model,
         messages: [
           {
@@ -6504,12 +6775,12 @@ var AICoaching = class {
         }
       ]
     }`;
-    if (!openai) {
+    if (!openai2) {
       const plan = CoachingTemplates.generatePersonalizedPlan(profile);
       return plan.workoutPlan;
     }
     try {
-      const response = await openai.chat.completions.create({
+      const response = await openai2.chat.completions.create({
         model: this.model,
         messages: [
           {
@@ -6540,12 +6811,12 @@ var AICoaching = class {
     - ${progressContext}
     
     Create an encouraging, supportive message that acknowledges their efforts and provides motivation to continue. Keep it personal, authentic, and empowering. Focus on progress, not perfection.`;
-    if (!openai) {
+    if (!openai2) {
       const plan = CoachingTemplates.generatePersonalizedPlan(profile);
       return plan.motivation;
     }
     try {
-      const response = await openai.chat.completions.create({
+      const response = await openai2.chat.completions.create({
         model: this.model,
         messages: [
           {
@@ -6584,7 +6855,7 @@ var AICoaching = class {
       "recommendations": ["specific actionable recommendations"],
       "planAdjustments": ["specific plan modifications"]
     }`;
-    if (!openai) {
+    if (!openai2) {
       return {
         analysis: `${profile.name}, you're making excellent progress on your journey toward ${profile.goalWeight} lbs. Your commitment to healthy habits is showing results.`,
         recommendations: [
@@ -6601,7 +6872,7 @@ var AICoaching = class {
       };
     }
     try {
-      const response = await openai.chat.completions.create({
+      const response = await openai2.chat.completions.create({
         model: this.model,
         messages: [
           {
@@ -6650,7 +6921,7 @@ var AICoaching = class {
     
     Format as JSON: {"tips": ["tip1", "tip2", "tip3", "tip4", "tip5"]}`;
     try {
-      const response = await openai.chat.completions.create({
+      const response = await openai2.chat.completions.create({
         model: this.model,
         messages: [
           {
@@ -7259,13 +7530,13 @@ router.get("/activity", requireAdminAuth, requirePermission(PERMISSIONS.VIEW_LOG
     const { page = 1, limit = 50, userId, action, resource } = req.query;
     let logs = await storage.getAdminActivityLogs();
     if (userId) {
-      logs = logs.filter((log2) => log2.userId === userId);
+      logs = logs.filter((log3) => log3.userId === userId);
     }
     if (action) {
-      logs = logs.filter((log2) => log2.action === action);
+      logs = logs.filter((log3) => log3.action === action);
     }
     if (resource) {
-      logs = logs.filter((log2) => log2.resource === resource);
+      logs = logs.filter((log3) => log3.resource === resource);
     }
     logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     const startIndex = (Number(page) - 1) * Number(limit);
@@ -8490,11 +8761,11 @@ var AuthService = class {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      membershipLevel: user.membershipLevel,
-      isActive: user.isActive
+      firstName: user.firstName || void 0,
+      lastName: user.lastName || void 0,
+      role: user.role || void 0,
+      membershipLevel: user.membershipLevel || void 0,
+      isActive: user.isActive !== false
     };
   }
   // Authenticate user
@@ -8512,11 +8783,11 @@ var AuthService = class {
       return {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        membershipLevel: user.membershipLevel,
-        isActive: user.isActive
+        firstName: user.firstName || void 0,
+        lastName: user.lastName || void 0,
+        role: user.role || void 0,
+        membershipLevel: user.membershipLevel || void 0,
+        isActive: true
       };
     } catch (error) {
       console.error("User authentication error:", error);
@@ -8539,8 +8810,8 @@ var AuthService = class {
       return {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.firstName || void 0,
+        lastName: user.lastName || void 0,
         role: user.role || "user",
         membershipLevel: user.membershipLevel || "free",
         isActive
@@ -8985,6 +9256,457 @@ router3.get("/export/sessions", requireAuth, async (req, res) => {
 import { Router as Router4 } from "express";
 import Stripe from "stripe";
 import { z as z4 } from "zod";
+
+// server/security.ts
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import compression from "compression";
+import cors from "cors";
+var generalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 100,
+  // limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    return req.path === "/health";
+  }
+});
+var strictApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 5,
+  // limit each IP to 5 requests per windowMs
+  message: {
+    error: "Too many sensitive requests from this IP, please try again later.",
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+var paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 3,
+  // limit each IP to 3 payment requests per windowMs
+  message: {
+    error: "Too many payment attempts from this IP, please try again later.",
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+var authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 10,
+  // limit each IP to 10 auth requests per windowMs
+  message: {
+    error: "Too many authentication attempts from this IP, please try again later.",
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+var securityHeaders = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        // Required for Vite in development
+        "js.stripe.com",
+        "*.google.com",
+        "*.googletagmanager.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        // Required for CSS-in-JS libraries
+        "fonts.googleapis.com"
+      ],
+      fontSrc: [
+        "'self'",
+        "fonts.gstatic.com",
+        "data:"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "*.stripe.com",
+        "*.google.com",
+        "*.googleapis.com"
+      ],
+      connectSrc: [
+        "'self'",
+        "api.stripe.com",
+        "*.google.com",
+        "*.googleapis.com"
+      ],
+      frameSrc: [
+        "js.stripe.com",
+        "*.google.com"
+      ],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "data:", "blob:"],
+      workerSrc: ["'self'", "blob:"],
+      childSrc: ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  // Disable for Stripe compatibility
+  hsts: {
+    maxAge: 31536e3,
+    includeSubDomains: true,
+    preload: true
+  }
+});
+var corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://localhost:5000",
+      "http://localhost:5173",
+      "https://wholewellness-coaching-website.replit.app",
+      // Add your production domain here
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === "development") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]
+};
+var compressionMiddleware = compression({
+  filter: (req, res) => {
+    if (req.headers["x-no-compression"]) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6,
+  threshold: 1024
+});
+function setupSecurity(app2) {
+  app2.use(compressionMiddleware);
+  app2.use(cors(corsOptions));
+  app2.use(securityHeaders);
+  app2.use("/api", generalApiLimiter);
+  app2.set("trust proxy", 1);
+}
+var securityErrorHandler = (err, req, res, next) => {
+  if (err.status === 429) {
+    return res.status(429).json({
+      success: false,
+      error: "Rate limit exceeded",
+      message: err.message,
+      retryAfter: err.retryAfter
+    });
+  }
+  if (err.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      success: false,
+      error: "CORS policy violation",
+      message: "Origin not allowed"
+    });
+  }
+  next(err);
+};
+
+// server/logger.ts
+import winston from "winston";
+import fs from "fs";
+import path from "path";
+var logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: "wholewellness-api" },
+  transports: [
+    // Write all logs with importance level of `error` or less to `error.log`
+    new winston.transports.File({
+      filename: "logs/error.log",
+      level: "error",
+      maxsize: 5242880,
+      // 5MB
+      maxFiles: 5
+    }),
+    // Write all logs with importance level of `info` or less to `combined.log`
+    new winston.transports.File({
+      filename: "logs/combined.log",
+      maxsize: 5242880,
+      // 5MB
+      maxFiles: 5
+    })
+  ]
+});
+if (process.env.NODE_ENV !== "production") {
+  logger.add(new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    )
+  }));
+}
+var logsDir = path.join(process.cwd(), "logs");
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
+var requestLogger = (req, res, next) => {
+  const start = performance.now();
+  logger.info("Request started", {
+    method: req.method,
+    url: req.url,
+    userAgent: req.get("User-Agent"),
+    ip: req.ip,
+    userId: req.user?.id
+  });
+  const originalJson = res.json;
+  let responseBody;
+  res.json = function(body) {
+    responseBody = body;
+    return originalJson.call(this, body);
+  };
+  res.on("finish", () => {
+    const duration = performance.now() - start;
+    const logData = {
+      method: req.method,
+      url: req.url,
+      statusCode: res.statusCode,
+      duration: `${duration.toFixed(2)}ms`,
+      ip: req.ip,
+      userId: req.user?.id
+    };
+    if (res.statusCode >= 400) {
+      logger.error("Request failed", {
+        ...logData,
+        error: responseBody?.error || responseBody?.message
+      });
+    } else {
+      logger.info("Request completed", logData);
+    }
+  });
+  next();
+};
+var errorLogger = (err, req, res, next) => {
+  logger.error("Unhandled error", {
+    error: err.message,
+    stack: err.stack,
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+    userId: req.user?.id,
+    body: req.body,
+    params: req.params,
+    query: req.query
+  });
+  next(err);
+};
+var logPaymentEvent = (event, data, userId) => {
+  logger.info("Payment event", {
+    event,
+    data,
+    userId,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  });
+};
+var logSecurityEvent = (event, details, req) => {
+  logger.warn("Security event", {
+    event,
+    details,
+    ip: req?.ip,
+    userAgent: req?.get("User-Agent"),
+    url: req?.url,
+    method: req?.method,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  });
+};
+var logPerformanceMetric = (metric, value, context) => {
+  logger.info("Performance metric", {
+    metric,
+    value,
+    context,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  });
+};
+var log = {
+  info: (message, meta) => logger.info(message, meta),
+  warn: (message, meta) => logger.warn(message, meta),
+  error: (message, meta) => logger.error(message, meta),
+  debug: (message, meta) => logger.debug(message, meta)
+};
+
+// server/error-handler.ts
+import { ZodError } from "zod";
+var AppError = class extends Error {
+  statusCode;
+  isOperational;
+  timestamp;
+  constructor(message, statusCode = 500, isOperational = true) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    this.timestamp = (/* @__PURE__ */ new Date()).toISOString();
+    Error.captureStackTrace(this, this.constructor);
+  }
+};
+var ValidationError = class extends AppError {
+  constructor(message, details) {
+    super(message, 400);
+    this.name = "ValidationError";
+  }
+};
+var AuthenticationError = class extends AppError {
+  constructor(message = "Authentication required") {
+    super(message, 401);
+    this.name = "AuthenticationError";
+  }
+};
+var NotFoundError = class extends AppError {
+  constructor(message = "Resource not found") {
+    super(message, 404);
+    this.name = "NotFoundError";
+  }
+};
+var ConflictError = class extends AppError {
+  constructor(message = "Resource conflict") {
+    super(message, 409);
+    this.name = "ConflictError";
+  }
+};
+var PaymentError = class extends AppError {
+  constructor(message, stripeError) {
+    super(message, 402);
+    this.stripeError = stripeError;
+    this.name = "PaymentError";
+  }
+};
+var successResponse = (data, message) => ({
+  success: true,
+  data,
+  timestamp: (/* @__PURE__ */ new Date()).toISOString()
+});
+var errorResponse = (message, code, details) => ({
+  success: false,
+  error: {
+    message,
+    code,
+    details
+  },
+  timestamp: (/* @__PURE__ */ new Date()).toISOString()
+});
+var asyncHandler = (fn) => {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+var errorHandler = (err, req, res, next) => {
+  let error = { ...err };
+  error.message = err.message;
+  const requestId = req.headers["x-request-id"] || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  logger.error("Error occurred", {
+    error: error.message,
+    stack: error.stack,
+    statusCode: error.statusCode,
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+    userAgent: req.get("User-Agent"),
+    userId: req.user?.id,
+    requestId,
+    body: req.body,
+    params: req.params,
+    query: req.query
+  });
+  if (err.name === "CastError") {
+    const message = "Resource not found";
+    error = new NotFoundError(message);
+  }
+  if (err.code === 11e3) {
+    const message = "Duplicate field value entered";
+    error = new ConflictError(message);
+  }
+  if (err.name === "ValidationError") {
+    const message = "Validation Error";
+    error = new ValidationError(message);
+  }
+  if (err instanceof ZodError) {
+    const message = "Validation failed";
+    const details = err.errors.map((e) => ({
+      field: e.path.join("."),
+      message: e.message,
+      code: e.code
+    }));
+    error = new ValidationError(message);
+    error.details = details;
+  }
+  if (err.name === "JsonWebTokenError") {
+    const message = "Invalid token";
+    error = new AuthenticationError(message);
+  }
+  if (err.name === "TokenExpiredError") {
+    const message = "Token expired";
+    error = new AuthenticationError(message);
+  }
+  if (err.type?.startsWith("Stripe")) {
+    const message = "Payment processing error";
+    error = new PaymentError(message, err);
+  }
+  const statusCode = error.statusCode || 500;
+  const response = {
+    success: false,
+    error: {
+      message: error.message || "Internal Server Error",
+      code: error.name,
+      ...process.env.NODE_ENV === "development" && {
+        details: error.details,
+        stack: error.stack
+      }
+    },
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    requestId
+  };
+  res.status(statusCode).json(response);
+};
+var notFoundHandler = (req, res, next) => {
+  const error = new NotFoundError(`Route ${req.originalUrl} not found`);
+  next(error);
+};
+process.on("unhandledRejection", (err) => {
+  logger.error("Unhandled Promise Rejection", {
+    error: err.message,
+    stack: err.stack
+  });
+  process.exit(1);
+});
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught Exception", {
+    error: err.message,
+    stack: err.stack
+  });
+  process.exit(1);
+});
+
+// server/donation-routes.ts
+import crypto from "crypto";
 var router4 = Router4();
 var stripe = null;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -8992,15 +9714,22 @@ if (process.env.STRIPE_SECRET_KEY) {
     apiVersion: "2023-10-16"
   });
 }
-router4.get("/donation-presets", async (req, res) => {
-  try {
-    const presets = await storage.getDonationPresets();
-    res.json(presets);
-  } catch (error) {
-    console.error("Error fetching donation presets:", error);
-    res.status(500).json({ error: "Failed to fetch donation presets" });
+router4.get("/donation-presets", optionalAuth, asyncHandler(async (req, res) => {
+  const presets = await storage.getDonationPresets();
+  let finalPresets = [...presets];
+  if (req.user && (req.user.role === "admin" || req.user.role === "super_admin")) {
+    finalPresets.unshift({
+      id: "admin-test-1",
+      amount: 1,
+      label: "Admin Test",
+      description: "Test payment for $1.00 - Admin Only",
+      icon: "test",
+      isPopular: false,
+      isAdminOnly: true
+    });
   }
-});
+  res.json(successResponse(finalPresets));
+}));
 router4.get("/campaigns", async (req, res) => {
   try {
     const campaigns2 = await storage.getActiveCampaigns();
@@ -9318,6 +10047,102 @@ router4.delete("/subscriptions/:subscriptionId", requireAuth, async (req, res) =
   } catch (error) {
     console.error("Error cancelling subscription:", error);
     res.status(500).json({ error: "Failed to cancel subscription" });
+  }
+});
+var paymentIntentSchema = z4.object({
+  amount: z4.number().min(1).max(1e5),
+  // $1 to $1000
+  currency: z4.enum(["usd"]).default("usd"),
+  description: z4.string().max(500).optional()
+});
+router4.post("/admin-test-payment", paymentLimiter, requireAuth, asyncHandler(async (req, res) => {
+  const user = req.user;
+  if (user.role !== "admin" && user.role !== "super_admin") {
+    logSecurityEvent("unauthorized_admin_payment_attempt", { userId: user.id }, req);
+    throw new ValidationError("Admin access required");
+  }
+  if (!stripe) {
+    throw new PaymentError("Payment system not configured");
+  }
+  const idempotencyKey = crypto.randomUUID();
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 100,
+    // $1.00 in cents
+    currency: "usd",
+    description: "Admin Test Payment - $1.00",
+    metadata: {
+      isTestPayment: "true",
+      adminId: user.id,
+      adminEmail: user.email,
+      testTimestamp: (/* @__PURE__ */ new Date()).toISOString()
+    }
+  }, {
+    idempotencyKey
+  });
+  logPaymentEvent("admin_test_payment_created", {
+    paymentIntentId: paymentIntent.id,
+    amount: 1,
+    adminId: user.id
+  }, user.id);
+  res.json(successResponse({
+    clientSecret: paymentIntent.client_secret,
+    paymentIntentId: paymentIntent.id,
+    amount: 1,
+    description: "Admin Test Payment - $1.00"
+  }));
+}));
+router4.post("/webhook", async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!endpointSecret) {
+    logSecurityEvent("stripe_webhook_no_secret", {}, req);
+    return res.status(400).json(errorResponse("Webhook secret not configured"));
+  }
+  let event;
+  try {
+    if (!stripe) {
+      throw new Error("Stripe not configured");
+    }
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    logSecurityEvent("stripe_webhook_verification_failed", { error: err.message }, req);
+    return res.status(400).json(errorResponse(`Webhook signature verification failed: ${err.message}`));
+  }
+  try {
+    switch (event.type) {
+      case "payment_intent.succeeded":
+        const paymentIntent = event.data.object;
+        logPaymentEvent("payment_succeeded", {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          metadata: paymentIntent.metadata
+        });
+        if (paymentIntent.metadata?.isTestPayment === "true") {
+          logPaymentEvent("admin_test_payment_succeeded", {
+            paymentIntentId: paymentIntent.id,
+            adminId: paymentIntent.metadata.adminId
+          });
+        }
+        break;
+      case "payment_intent.payment_failed":
+        const failedPayment = event.data.object;
+        logPaymentEvent("payment_failed", {
+          paymentIntentId: failedPayment.id,
+          error: failedPayment.last_payment_error,
+          metadata: failedPayment.metadata
+        });
+        break;
+      default:
+        logPaymentEvent("unhandled_webhook_event", { type: event.type });
+    }
+    res.json(successResponse({ received: true }));
+  } catch (error) {
+    logPaymentEvent("webhook_processing_error", {
+      eventType: event.type,
+      error: error.message
+    });
+    res.status(500).json(errorResponse("Webhook processing failed"));
   }
 });
 
@@ -14247,21 +15072,21 @@ When to refer to licensed therapists and emergency resources for relationship cr
       });
     }
   });
-  const uploadDir = path.join(process.cwd(), "uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  const uploadDir = path2.join(process.cwd(), "uploads");
+  if (!fs2.existsSync(uploadDir)) {
+    fs2.mkdirSync(uploadDir, { recursive: true });
   }
   const storage_config = multer.diskStorage({
     destination: (req, file, cb) => {
       const subDir = file.fieldname === "video" ? "videos" : file.fieldname === "photo" ? "photos" : "documents";
-      const fullPath = path.join(uploadDir, subDir);
-      if (!fs.existsSync(fullPath)) {
-        fs.mkdirSync(fullPath, { recursive: true });
+      const fullPath = path2.join(uploadDir, subDir);
+      if (!fs2.existsSync(fullPath)) {
+        fs2.mkdirSync(fullPath, { recursive: true });
       }
       cb(null, fullPath);
     },
     filename: (req, file, cb) => {
-      const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+      const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path2.extname(file.originalname)}`;
       cb(null, uniqueName);
     }
   });
@@ -14344,72 +15169,6 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   app2.use("/uploads", express.static(uploadDir));
-  app2.post("/api/ai-coaching/chat", async (req, res) => {
-    try {
-      const { message, coachType, persona = "supportive" } = req.body;
-      if (!message || !coachType) {
-        return res.status(400).json({ message: "Message and coach type are required" });
-      }
-      const personaStyles = {
-        supportive: {
-          prefix: "I'm here to support you. ",
-          tone: "warm and understanding",
-          suffix: " What would feel most helpful for you right now?"
-        },
-        motivational: {
-          prefix: "You've got this! ",
-          tone: "energetic and inspiring",
-          suffix: " Ready to make some positive changes happen?"
-        },
-        analytical: {
-          prefix: "Let me break this down for you. ",
-          tone: "logical and strategic",
-          suffix: " What specific outcome are you hoping to achieve?"
-        },
-        gentle: {
-          prefix: "Take your time with this. ",
-          tone: "calm and patient",
-          suffix: " Remember, every small step counts."
-        }
-      };
-      const coachKnowledge = {
-        "weight-loss": {
-          focus: "sustainable weight loss and healthy habits",
-          expertise: ["nutrition", "meal planning", "exercise", "motivation", "habit formation"]
-        },
-        "relationship": {
-          focus: "building stronger, healthier relationships",
-          expertise: ["communication", "conflict resolution", "trust building", "emotional intimacy", "boundaries"]
-        },
-        "wellness": {
-          focus: "overall wellness and life balance",
-          expertise: ["stress management", "work-life balance", "mental health", "self-care", "mindfulness"]
-        },
-        "behavior": {
-          focus: "positive behavior change and personal development",
-          expertise: ["habit formation", "goal setting", "overcoming barriers", "self-discipline", "pattern recognition"]
-        }
-      };
-      const currentPersona = personaStyles[persona] || personaStyles.supportive;
-      const coachInfo = coachKnowledge[coachType] || coachKnowledge.wellness;
-      let response = currentPersona.prefix;
-      response += `As your ${coachType.replace("-", " ")} specialist focusing on ${coachInfo.focus}, I can help you with ${message.toLowerCase()}. `;
-      if (persona === "analytical") {
-        response += "Let's create a structured approach to address this systematically.";
-      } else if (persona === "motivational") {
-        response += "I believe in your ability to overcome this challenge!";
-      } else if (persona === "gentle") {
-        response += "We'll work through this at a pace that feels comfortable for you.";
-      } else {
-        response += "I'm here to guide you through this with understanding and care.";
-      }
-      response += currentPersona.suffix;
-      res.json({ success: true, response });
-    } catch (error) {
-      console.error("Error processing AI chat:", error);
-      res.status(500).json({ message: error.message || "Failed to process chat message" });
-    }
-  });
   app2.post("/api/ai-coaching/motivational-message", async (req, res) => {
     try {
       const { profile, progressData } = req.body;
@@ -14578,7 +15337,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app2.use("/api/admin", router2);
   registerAdminCertificationRoutes(app2);
   app2.use("/api/coach", router3);
-  app2.use("/api/donation", router4);
+  app2.use("/api/donations", router4);
   app2.use("/api/onboarding", router5);
   app2.use("/api/assessments", router7);
   app2.use(router6);
@@ -15711,14 +16470,14 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
 // server/vite.ts
 import express2 from "express";
-import fs2 from "fs";
-import path3 from "path";
+import fs3 from "fs";
+import path4 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path2 from "path";
+import path3 from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 var vite_config_default = defineConfig({
   plugins: [
@@ -15732,14 +16491,14 @@ var vite_config_default = defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path2.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path2.resolve(import.meta.dirname, "shared"),
-      "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+      "@": path3.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path3.resolve(import.meta.dirname, "shared"),
+      "@assets": path3.resolve(import.meta.dirname, "attached_assets")
     }
   },
-  root: path2.resolve(import.meta.dirname, "client"),
+  root: path3.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path2.resolve(import.meta.dirname, "dist/public"),
+    outDir: path3.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true
   },
   server: {
@@ -15753,7 +16512,7 @@ var vite_config_default = defineConfig({
 // server/vite.ts
 import { nanoid } from "nanoid";
 var viteLogger = createLogger();
-function log(message, source = "express") {
+function log2(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -15785,13 +16544,13 @@ async function setupVite(app2, server2) {
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path3.resolve(
+      const clientTemplate = path4.resolve(
         import.meta.dirname,
         "..",
         "client",
         "index.html"
       );
-      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs3.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -15805,24 +16564,24 @@ async function setupVite(app2, server2) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path3.resolve(import.meta.dirname, "public");
-  if (!fs2.existsSync(distPath)) {
-    log(`Primary build directory not found: ${distPath}, trying alternative paths...`);
+  const distPath = path4.resolve(import.meta.dirname, "public");
+  if (!fs3.existsSync(distPath)) {
+    log2(`Primary build directory not found: ${distPath}, trying alternative paths...`);
     const alternativePaths = [
-      path3.resolve(import.meta.dirname, "..", "client", "dist"),
-      path3.resolve(import.meta.dirname, "..", "dist", "public"),
-      path3.resolve(import.meta.dirname, "..", "client", "build"),
-      path3.resolve(import.meta.dirname, "..", "build")
+      path4.resolve(import.meta.dirname, "..", "client", "dist"),
+      path4.resolve(import.meta.dirname, "..", "dist", "public"),
+      path4.resolve(import.meta.dirname, "..", "client", "build"),
+      path4.resolve(import.meta.dirname, "..", "build")
     ];
     let foundPath = null;
     for (const altPath of alternativePaths) {
-      if (fs2.existsSync(altPath)) {
+      if (fs3.existsSync(altPath)) {
         foundPath = altPath;
         break;
       }
     }
     if (!foundPath) {
-      log(`Warning: No build directory found. Server will still run for health checks.`);
+      log2(`Warning: No build directory found. Server will still run for health checks.`);
       app2.use("*", (_req, res) => {
         if (_req.path.startsWith("/api")) {
           return;
@@ -15840,14 +16599,14 @@ function serveStatic(app2) {
       });
       return;
     }
-    log(`Using build directory: ${foundPath}`);
+    log2(`Using build directory: ${foundPath}`);
     app2.use(express2.static(foundPath));
     app2.use("*", (_req, res) => {
       if (_req.path.startsWith("/api")) {
         return;
       }
-      const indexPath = path3.resolve(foundPath, "index.html");
-      if (fs2.existsSync(indexPath)) {
+      const indexPath = path4.resolve(foundPath, "index.html");
+      if (fs3.existsSync(indexPath)) {
         res.sendFile(indexPath);
       } else {
         res.status(200).send(`
@@ -15864,14 +16623,14 @@ function serveStatic(app2) {
     });
     return;
   }
-  log(`Using build directory: ${distPath}`);
+  log2(`Using build directory: ${distPath}`);
   app2.use(express2.static(distPath));
   app2.use("*", (_req, res) => {
     if (_req.path.startsWith("/api")) {
       return;
     }
-    const indexPath = path3.resolve(distPath, "index.html");
-    if (fs2.existsSync(indexPath)) {
+    const indexPath = path4.resolve(distPath, "index.html");
+    if (fs3.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
       res.status(200).send(`
@@ -15890,15 +16649,223 @@ function serveStatic(app2) {
 
 // server/index.ts
 import { createServer as createServer2 } from "http";
+
+// server/performance-monitor.ts
+var PerformanceMonitor = class {
+  metrics = {
+    requestCount: 0,
+    averageResponseTime: 0,
+    errorRate: 0,
+    slowQueries: 0,
+    memoryUsage: process.memoryUsage(),
+    lastUpdated: /* @__PURE__ */ new Date()
+  };
+  responseTimes = [];
+  errorCount = 0;
+  maxResponseTimes = 100;
+  // Keep last 100 response times
+  slowQueryThreshold = 1e3;
+  // 1 second
+  // Middleware to track request performance
+  trackRequest = (req, res, next) => {
+    const startTime = performance.now();
+    const startMemory = process.memoryUsage();
+    const originalEnd = res.end;
+    res.end = function(chunk, encoding, cb) {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      const endMemory = process.memoryUsage();
+      performanceMonitor.updateRequestMetrics(duration, res.statusCode >= 400);
+      logPerformanceMetric("request_completed", duration, {
+        method: req.method,
+        path: req.path,
+        statusCode: res.statusCode,
+        memoryDelta: {
+          rss: endMemory.rss - startMemory.rss,
+          heapUsed: endMemory.heapUsed - startMemory.heapUsed,
+          heapTotal: endMemory.heapTotal - startMemory.heapTotal
+        },
+        userAgent: req.get("User-Agent"),
+        ip: req.ip
+      });
+      if (duration > performanceMonitor.slowQueryThreshold) {
+        logger.warn("Slow request detected", {
+          method: req.method,
+          path: req.path,
+          duration: `${duration.toFixed(2)}ms`,
+          statusCode: res.statusCode
+        });
+        performanceMonitor.metrics.slowQueries++;
+      }
+      return originalEnd.call(this, chunk, encoding, cb);
+    };
+    next();
+  };
+  // Update request metrics
+  updateRequestMetrics(responseTime, isError) {
+    this.metrics.requestCount++;
+    if (isError) {
+      this.errorCount++;
+    }
+    this.responseTimes.push(responseTime);
+    if (this.responseTimes.length > this.maxResponseTimes) {
+      this.responseTimes.shift();
+    }
+    this.metrics.averageResponseTime = this.responseTimes.reduce((sum, time) => sum + time, 0) / this.responseTimes.length;
+    this.metrics.errorRate = this.errorCount / this.metrics.requestCount * 100;
+    this.metrics.memoryUsage = process.memoryUsage();
+    this.metrics.lastUpdated = /* @__PURE__ */ new Date();
+  }
+  // Track database query performance
+  trackDatabaseQuery = async (queryName, queryFunction) => {
+    const startTime = performance.now();
+    try {
+      const result = await queryFunction();
+      const duration = performance.now() - startTime;
+      logPerformanceMetric("database_query", duration, {
+        queryName,
+        success: true
+      });
+      if (duration > this.slowQueryThreshold) {
+        logger.warn("Slow database query detected", {
+          queryName,
+          duration: `${duration.toFixed(2)}ms`
+        });
+      }
+      return result;
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      logPerformanceMetric("database_query", duration, {
+        queryName,
+        success: false,
+        error: error.message
+      });
+      throw error;
+    }
+  };
+  // Get current metrics
+  getMetrics() {
+    return { ...this.metrics };
+  }
+  // Get detailed performance report
+  getDetailedReport() {
+    const memoryUsage = process.memoryUsage();
+    const uptime = process.uptime();
+    return {
+      ...this.metrics,
+      systemInfo: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        uptime: `${Math.floor(uptime / 3600)}h ${Math.floor(uptime % 3600 / 60)}m`,
+        pid: process.pid
+      },
+      memoryUsage: {
+        rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
+        heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
+        heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
+        external: `${Math.round(memoryUsage.external / 1024 / 1024)}MB`
+      },
+      performance: {
+        responseTimes: {
+          min: Math.min(...this.responseTimes),
+          max: Math.max(...this.responseTimes),
+          avg: this.metrics.averageResponseTime,
+          p95: this.getPercentile(this.responseTimes, 0.95),
+          p99: this.getPercentile(this.responseTimes, 0.99)
+        }
+      }
+    };
+  }
+  // Calculate percentile
+  getPercentile(values, percentile) {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = Math.ceil(sorted.length * percentile) - 1;
+    return sorted[index];
+  }
+  // Health check
+  getHealthStatus() {
+    const metrics = this.getMetrics();
+    const memoryUsage = process.memoryUsage();
+    const memoryUsagePercent = memoryUsage.heapUsed / memoryUsage.heapTotal * 100;
+    const health = {
+      status: "healthy",
+      checks: {
+        averageResponseTime: metrics.averageResponseTime < 1e3,
+        errorRate: metrics.errorRate < 5,
+        memoryUsage: memoryUsagePercent < 90,
+        slowQueries: metrics.slowQueries < 10
+      },
+      metrics: {
+        averageResponseTime: `${metrics.averageResponseTime.toFixed(2)}ms`,
+        errorRate: `${metrics.errorRate.toFixed(2)}%`,
+        memoryUsage: `${memoryUsagePercent.toFixed(2)}%`,
+        slowQueries: metrics.slowQueries
+      }
+    };
+    const failedChecks = Object.values(health.checks).filter((check) => !check).length;
+    if (failedChecks === 0) {
+      health.status = "healthy";
+    } else if (failedChecks <= 2) {
+      health.status = "warning";
+    } else {
+      health.status = "critical";
+    }
+    return health;
+  }
+  // Reset metrics
+  resetMetrics() {
+    this.metrics = {
+      requestCount: 0,
+      averageResponseTime: 0,
+      errorRate: 0,
+      slowQueries: 0,
+      memoryUsage: process.memoryUsage(),
+      lastUpdated: /* @__PURE__ */ new Date()
+    };
+    this.responseTimes = [];
+    this.errorCount = 0;
+    logger.info("Performance metrics reset");
+  }
+  // Start periodic logging
+  startPeriodicLogging(intervalMs = 6e4) {
+    setInterval(() => {
+      const report = this.getDetailedReport();
+      logger.info("Periodic performance report", report);
+    }, intervalMs);
+  }
+};
+var performanceMonitor = new PerformanceMonitor();
+
+// server/index.ts
 var app = express3();
+setupSecurity(app);
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "healthy", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  const healthStatus = performanceMonitor.getHealthStatus();
+  const statusCode = healthStatus.status === "healthy" ? 200 : healthStatus.status === "warning" ? 200 : 503;
+  res.status(statusCode).json(successResponse({
+    status: healthStatus.status,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    version: process.env.npm_package_version || "1.0.0",
+    performance: healthStatus
+  }));
 });
-app.use(express3.json());
-app.use(express3.urlencoded({ extended: false }));
+app.get("/admin/metrics", (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const detailedReport = performanceMonitor.getDetailedReport();
+  res.json(successResponse(detailedReport));
+});
+app.use(requestLogger);
+app.use(performanceMonitor.trackRequest);
+app.use(express3.json({ limit: "10mb" }));
+app.use(express3.urlencoded({ extended: false, limit: "10mb" }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path4 = req.path;
+  const path5 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -15907,15 +16874,15 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path4.startsWith("/api")) {
-      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
+    if (path5.startsWith("/api")) {
+      let logLine = `${req.method} ${path5} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "\u2026";
       }
-      log(logLine);
+      log2(logLine);
     }
   });
   next();
@@ -15923,38 +16890,41 @@ app.use((req, res, next) => {
 var server = createServer2(app);
 var port = process.env.PORT ? parseInt(process.env.PORT) : 5e3;
 server.listen(port, "0.0.0.0", () => {
-  log(`serving on port ${port}`);
+  log.info(`Server serving on port ${port}`, {
+    port,
+    environment: process.env.NODE_ENV,
+    nodeVersion: process.version
+  });
 });
 (async () => {
   try {
     await registerRoutes(app);
-    app.use((err, _req, res, _next) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
-      throw err;
-    });
     if (app.get("env") === "development") {
       await setupVite(app, server);
     } else {
       serveStatic(app);
     }
-    log("Application fully initialized");
+    app.use(securityErrorHandler);
+    app.use(errorLogger);
+    app.use(notFoundHandler);
+    app.use(errorHandler);
+    performanceMonitor.startPeriodicLogging(3e5);
+    log.info("Application fully initialized");
   } catch (error) {
-    log(`Error during initialization: ${error}`);
+    log.error(`Error during initialization: ${error}`);
   }
 })();
 process.on("SIGTERM", () => {
-  log("SIGTERM received, shutting down gracefully");
+  log.info("SIGTERM received, shutting down gracefully");
   server.close(() => {
-    log("Server closed");
+    log.info("Server closed");
     process.exit(0);
   });
 });
 process.on("SIGINT", () => {
-  log("SIGINT received, shutting down gracefully");
+  log.info("SIGINT received, shutting down gracefully");
   server.close(() => {
-    log("Server closed");
+    log.info("Server closed");
     process.exit(0);
   });
 });
