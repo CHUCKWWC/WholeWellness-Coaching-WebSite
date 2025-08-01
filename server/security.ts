@@ -66,7 +66,8 @@ export const securityHeaders = helmet({
         "'unsafe-inline'", // Required for Vite in development
         "js.stripe.com",
         "*.google.com",
-        "*.googletagmanager.com"
+        "*.googletagmanager.com",
+        "replit.com"
       ],
       styleSrc: [
         "'self'",
