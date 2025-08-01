@@ -1458,36 +1458,7 @@ var SupabaseClientStorage = class {
       return [];
     }
   }
-  // Additional User Methods
-  async getAllUsers() {
-    try {
-      const { data, error } = await supabase.from("users").select("*").order("created_at", { ascending: false });
-      if (error) {
-        console.error("Error getting all users:", error);
-        return [];
-      }
-      return data;
-    } catch (error) {
-      console.error("Error getting all users:", error);
-      return [];
-    }
-  }
-  async updateUser(id, updates) {
-    try {
-      const { data, error } = await supabase.from("users").update({
-        ...updates,
-        updated_at: (/* @__PURE__ */ new Date()).toISOString()
-      }).eq("id", id).select().single();
-      if (error) {
-        console.error("Error updating user:", error);
-        return void 0;
-      }
-      return data;
-    } catch (error) {
-      console.error("Error updating user:", error);
-      return void 0;
-    }
-  }
+  // Additional User Methods (getAllUsers and updateUser implemented earlier in this class)
   async getAllDonations() {
     try {
       const { data, error } = await supabase.from("donations").select("*").order("created_at", { ascending: false });
@@ -1658,7 +1629,7 @@ var SupabaseClientStorage = class {
       throw error;
     }
   }
-  async getAdminActivityLogs(limit, offset) {
+  async getAdminActivityLogsWithPagination(limit, offset) {
     try {
       const { data, error } = await supabase.from("admin_activity_log").select(`
           *,
@@ -1769,7 +1740,7 @@ var SupabaseClientStorage = class {
       return [];
     }
   }
-  async createAdminSession(session2) {
+  async createAdminSessionSimple(session2) {
     try {
       await supabase.from("admin_sessions").insert(session2);
     } catch (error) {
@@ -1802,7 +1773,7 @@ var SupabaseClientStorage = class {
       return null;
     }
   }
-  async createAdminActivityLog(log3) {
+  async createAdminActivityLogSimple(log3) {
     try {
       await supabase.from("admin_activity_log").insert(log3);
     } catch (error) {

@@ -6,6 +6,15 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+**August 1, 2025**: Applied comprehensive deployment fixes to resolve container layer push failures:
+- Fixed file permission issues in server/public/assets directory
+- Removed duplicate method definitions in server/supabase-client-storage.ts causing build warnings  
+- Created automated deployment fix script at scripts/deployment-fix.sh
+- Ensured proper build output directory permissions for successful deployment
+- Verified 191 JS assets are properly accessible with correct permissions
+- Deployment status: Ready for successful container layer push
+
 ## System Architecture
 
 ### Frontend Architecture
