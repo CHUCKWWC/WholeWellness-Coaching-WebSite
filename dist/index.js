@@ -1740,13 +1740,6 @@ var SupabaseClientStorage = class {
       return [];
     }
   }
-  async createAdminSessionSimple(session2) {
-    try {
-      await supabase.from("admin_sessions").insert(session2);
-    } catch (error) {
-      console.error("Error creating admin session:", error);
-    }
-  }
   async getAdminSession(token) {
     try {
       const { data, error } = await supabase.from("admin_sessions").select("*").eq("id", token).single();
@@ -1771,13 +1764,6 @@ var SupabaseClientStorage = class {
     } catch (error) {
       console.error("Error getting admin by id:", error);
       return null;
-    }
-  }
-  async createAdminActivityLogSimple(log3) {
-    try {
-      await supabase.from("admin_activity_log").insert(log3);
-    } catch (error) {
-      console.error("Error creating admin activity log:", error);
     }
   }
   async deactivateAdminSession(token) {

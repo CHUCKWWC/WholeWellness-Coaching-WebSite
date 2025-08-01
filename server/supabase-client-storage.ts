@@ -2109,15 +2109,7 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
-  async createAdminSessionSimple(session: any): Promise<void> {
-    try {
-      await supabase
-        .from('admin_sessions')
-        .insert(session);
-    } catch (error) {
-      console.error('Error creating admin session:', error);
-    }
-  }
+
 
   async getAdminSession(token: string): Promise<any> {
     try {
@@ -2159,15 +2151,7 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
-  async createAdminActivityLogSimple(log: any): Promise<void> {
-    try {
-      await supabase
-        .from('admin_activity_log')
-        .insert(log);
-    } catch (error) {
-      console.error('Error creating admin activity log:', error);
-    }
-  }
+
 
   async deactivateAdminSession(token: string): Promise<void> {
     try {

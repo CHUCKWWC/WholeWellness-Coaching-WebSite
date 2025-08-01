@@ -51,4 +51,5 @@ else
     echo "❌ assets directory missing from server/public"
 fi
 
-echo "🎉 Deployment fixes complete! Ready for container layer push."
+echo "🎉 Deployment fixes complete!"
+echo "The application is now ready for deployment."
