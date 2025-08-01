@@ -262,11 +262,19 @@
 
 
 
+    "compression": "^1.8.1",
+
+
+
     "connect-pg-simple": "^10.0.0",
 
 
 
     "cookie-parser": "^1.4.7",
+
+
+
+    "cors": "^2.8.5",
 
 
 
@@ -290,6 +298,10 @@
 
 
 
+    "express-rate-limit": "^8.0.1",
+
+
+
     "express-session": "^1.18.2",
 
 
@@ -303,6 +315,10 @@
 
 
     "googleapis": "^153.0.0",
+
+
+
+    "helmet": "^8.1.0",
 
 
 
@@ -411,6 +427,10 @@
 
 
     "vaul": "^1.1.2",
+
+
+
+    "winston": "^3.17.0",
 
 
 

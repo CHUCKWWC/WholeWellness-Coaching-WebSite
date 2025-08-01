@@ -226,12 +226,3 @@ process.on('uncaughtException', (err: Error) => {
   process.exit(1);
 });
 
-export {
-  AppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
-  NotFoundError,
-  ConflictError,
-  PaymentError
-};

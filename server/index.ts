@@ -101,26 +101,25 @@ server.listen(port, "0.0.0.0", () => {
     
     // Admin routes are handled in registerRoutes
 
+    // Setup Vite or static serving BEFORE error handlers
+    // This ensures frontend routes are handled before 404s
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
     // Add security error handler
     app.use(securityErrorHandler);
     
     // Add error logging
     app.use(errorLogger);
     
-    // Add 404 handler
+    // Add 404 handler AFTER Vite setup
     app.use(notFoundHandler);
     
     // Add main error handler
     app.use(errorHandler);
-
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
-    }
 
     // Start performance monitoring
     performanceMonitor.startPeriodicLogging(300000); // Log every 5 minutes
