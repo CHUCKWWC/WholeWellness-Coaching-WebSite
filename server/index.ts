@@ -3,16 +3,50 @@ import { registerRoutes } from "./routes";
 // Admin routes are included in main routes file
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
+import { setupSecurity, securityErrorHandler } from "./security";
+import { requestLogger, errorLogger, log as logger } from "./logger";
+import { errorHandler, notFoundHandler, successResponse } from "./error-handler";
+import { performanceMonitor } from "./performance-monitor";
 
 const app = express();
 
+// Apply security middleware first
+setupSecurity(app);
+
 // Add health check endpoint - only /health, not root
 app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+  const healthStatus = performanceMonitor.getHealthStatus();
+  const statusCode = healthStatus.status === 'healthy' ? 200 : 
+                    healthStatus.status === 'warning' ? 200 : 503;
+  
+  res.status(statusCode).json(successResponse({ 
+    status: healthStatus.status,
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+    performance: healthStatus
+  }));
 });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Add performance metrics endpoint for admins
+app.get('/admin/metrics', (req: Request, res: Response) => {
+  // Basic auth check - in production you'd want proper admin authentication
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  const detailedReport = performanceMonitor.getDetailedReport();
+  res.json(successResponse(detailedReport));
+});
+
+// Add request logging
+app.use(requestLogger);
+
+// Add performance monitoring
+app.use(performanceMonitor.trackRequest);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -52,7 +86,11 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 // Start server immediately for health checks
 server.listen(port, "0.0.0.0", () => {
-  log(`serving on port ${port}`);
+  logger.info(`Server serving on port ${port}`, {
+    port,
+    environment: process.env.NODE_ENV,
+    nodeVersion: process.version
+  });
 });
 
 // Initialize routes asynchronously after server is listening
@@ -63,13 +101,17 @@ server.listen(port, "0.0.0.0", () => {
     
     // Admin routes are handled in registerRoutes
 
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      res.status(status).json({ message });
-      throw err;
-    });
+    // Add security error handler
+    app.use(securityErrorHandler);
+    
+    // Add error logging
+    app.use(errorLogger);
+    
+    // Add 404 handler
+    app.use(notFoundHandler);
+    
+    // Add main error handler
+    app.use(errorHandler);
 
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
@@ -80,26 +122,29 @@ server.listen(port, "0.0.0.0", () => {
       serveStatic(app);
     }
 
-    log("Application fully initialized");
+    // Start performance monitoring
+    performanceMonitor.startPeriodicLogging(300000); // Log every 5 minutes
+    
+    logger.info("Application fully initialized");
   } catch (error) {
-    log(`Error during initialization: ${error}`);
+    logger.error(`Error during initialization: ${error}`);
     // Don't exit the process - keep server running for health checks
   }
 })();
 
 // Graceful shutdown handling
 process.on('SIGTERM', () => {
-  log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully');
   server.close(() => {
-    log('Server closed');
+    logger.info('Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  log('SIGINT received, shutting down gracefully');
+  logger.info('SIGINT received, shutting down gracefully');
   server.close(() => {
-    log('Server closed');
+    logger.info('Server closed');
     process.exit(0);
   });
 });

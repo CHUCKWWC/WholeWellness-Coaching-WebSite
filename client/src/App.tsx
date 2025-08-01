@@ -11,60 +11,74 @@ import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
 import HelpSystem from "@/components/HelpSystem";
 import EmpatheticHelpProvider from "@/components/EmpatheticHelpProvider";
+import { Suspense, lazy } from "react";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
+// Core pages - loaded immediately
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Services from "@/pages/Services";
-import Programs from "@/pages/Programs";
-import AICoaching from "@/pages/AICoaching";
-import Resources from "@/pages/Resources";
 import Contact from "@/pages/Contact";
-import Booking from "@/pages/Booking";
-import Members from "@/pages/Members";
-import WeightLossIntake from "@/pages/WeightLossIntake";
-
-import Impact from "@/pages/Impact";
-import Admin from "@/pages/Admin";
-import CMS from "@/pages/CMS";
-import Donate from "@/pages/Donate";
-import MemberPortal from "@/pages/MemberPortal";
-import CoachDashboard from "@/pages/CoachDashboard";
-import AdminLogin from "@/pages/AdminLogin";
-import AdminDashboard from "@/pages/AdminDashboard";
-import DonationPortal from "@/pages/DonationPortal";
-import CoachPortal from "@/pages/CoachPortal";
-import Privacy from "@/pages/Privacy";
-import Terms from "@/pages/Terms";
-import OnboardingWizard from "@/pages/OnboardingWizard";
-import PasswordReset from "@/pages/PasswordReset";
-import EmailVerification from "@/pages/EmailVerification";
-import HelpDemo from "@/pages/HelpDemo";
-import MentalWellnessHub from "@/pages/MentalWellnessHub";
-import PersonalizedRecommendations from "@/pages/PersonalizedRecommendations";
-import DigitalOnboarding from "@/pages/DigitalOnboarding";
-import CoachOnboarding from "@/pages/CoachOnboarding";
-import CoachSignup from "@/pages/CoachSignup";
-import CoachLogin from "@/pages/CoachLogin";
-import CoachProfile from "@/pages/CoachProfile";
-import Checkout from "@/pages/Checkout";
-import PaymentSuccess from "@/pages/PaymentSuccess";
-import Subscribe from "@/pages/Subscribe";
-import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
-import VolunteerApplication from "@/pages/VolunteerApplication";
-import WixBooking from "@/pages/WixBooking";
-import Assessments from "@/pages/assessments";
-import UserProfile from "@/pages/UserProfile";
-import EnhancedOnboarding from "@/pages/EnhancedOnboarding";
-import CoachCertifications from "@/pages/CoachCertifications";
-import ModuleLearning from "@/pages/ModuleLearning";
-import CertificationDashboard from "@/pages/CertificationDashboard";
-import CertificationGuide from "@/pages/CertificationGuide";
-import AdminSecurity from "@/pages/AdminSecurity";
-import AdminCoupons from "@/pages/AdminCoupons";
-import WellnessJourneyRecommender from "@/pages/WellnessJourneyRecommender";
-import AdminCertifications from "@/pages/AdminCertifications";
-import AdminTestPayment from "@/pages/AdminTestPayment";
 import NotFound from "@/pages/not-found";
+
+// Lazy-loaded pages for better performance
+const Programs = lazy(() => import("@/pages/Programs"));
+const AICoaching = lazy(() => import("@/pages/AICoaching"));
+const Resources = lazy(() => import("@/pages/Resources"));
+const Booking = lazy(() => import("@/pages/Booking"));
+const Members = lazy(() => import("@/pages/Members"));
+const WeightLossIntake = lazy(() => import("@/pages/WeightLossIntake"));
+const Impact = lazy(() => import("@/pages/Impact"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const CMS = lazy(() => import("@/pages/CMS"));
+const Donate = lazy(() => import("@/pages/Donate"));
+const MemberPortal = lazy(() => import("@/pages/MemberPortal"));
+const CoachDashboard = lazy(() => import("@/pages/CoachDashboard"));
+const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const DonationPortal = lazy(() => import("@/pages/DonationPortal"));
+const CoachPortal = lazy(() => import("@/pages/CoachPortal"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const OnboardingWizard = lazy(() => import("@/pages/OnboardingWizard"));
+const PasswordReset = lazy(() => import("@/pages/PasswordReset"));
+const EmailVerification = lazy(() => import("@/pages/EmailVerification"));
+const HelpDemo = lazy(() => import("@/pages/HelpDemo"));
+const MentalWellnessHub = lazy(() => import("@/pages/MentalWellnessHub"));
+const PersonalizedRecommendations = lazy(() => import("@/pages/PersonalizedRecommendations"));
+const DigitalOnboarding = lazy(() => import("@/pages/DigitalOnboarding"));
+const CoachOnboarding = lazy(() => import("@/pages/CoachOnboarding"));
+const CoachSignup = lazy(() => import("@/pages/CoachSignup"));
+const CoachLogin = lazy(() => import("@/pages/CoachLogin"));
+const CoachProfile = lazy(() => import("@/pages/CoachProfile"));
+const Checkout = lazy(() => import("@/pages/Checkout"));
+const PaymentSuccess = lazy(() => import("@/pages/PaymentSuccess"));
+const Subscribe = lazy(() => import("@/pages/Subscribe"));
+const SubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
+const VolunteerApplication = lazy(() => import("@/pages/VolunteerApplication"));
+const WixBooking = lazy(() => import("@/pages/WixBooking"));
+const Assessments = lazy(() => import("@/pages/assessments"));
+const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const EnhancedOnboarding = lazy(() => import("@/pages/EnhancedOnboarding"));
+const CoachCertifications = lazy(() => import("@/pages/CoachCertifications"));
+const ModuleLearning = lazy(() => import("@/pages/ModuleLearning"));
+const CertificationDashboard = lazy(() => import("@/pages/CertificationDashboard"));
+const CertificationGuide = lazy(() => import("@/pages/CertificationGuide"));
+const AdminSecurity = lazy(() => import("@/pages/AdminSecurity"));
+const AdminCoupons = lazy(() => import("@/pages/AdminCoupons"));
+const WellnessJourneyRecommender = lazy(() => import("@/pages/WellnessJourneyRecommender"));
+const AdminCertifications = lazy(() => import("@/pages/AdminCertifications"));
+const AdminTestPayment = lazy(() => import("@/pages/AdminTestPayment"));
+
+// Lazy route wrapper component
+const LazyRoute = ({ component: Component, ...props }: any) => (
+  <Suspense fallback={<LoadingSpinner />}>
+    <ErrorBoundary>
+      <Component {...props} />
+    </ErrorBoundary>
+  </Suspense>
+);
 
 function Router() {
   return (
@@ -75,9 +89,9 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/about" component={About} />
           <Route path="/services" component={Services} />
-          <Route path="/programs" component={Programs} />
-          <Route path="/ai-coaching" component={AICoaching} />
-          <Route path="/resources" component={Resources} />
+          <Route path="/programs" component={(props) => <LazyRoute component={Programs} {...props} />} />
+          <Route path="/ai-coaching" component={(props) => <LazyRoute component={AICoaching} {...props} />} />
+          <Route path="/resources" component={(props) => <LazyRoute component={Resources} {...props} />} />
           <Route path="/contact" component={Contact} />
           <Route path="/booking" component={Booking} />
           <Route path="/members" component={Members} />

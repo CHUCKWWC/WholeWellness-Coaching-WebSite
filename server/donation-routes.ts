@@ -3,6 +3,16 @@ import { storage } from "./supabase-client-storage";
 import { requireAuth, optionalAuth, type AuthenticatedRequest } from "./auth";
 import Stripe from 'stripe';
 import { z } from "zod";
+import { paymentLimiter, strictApiLimiter } from "./security";
+import { logPaymentEvent, logSecurityEvent } from "./logger";
+import { 
+  successResponse, 
+  errorResponse, 
+  PaymentError, 
+  ValidationError,
+  asyncHandler 
+} from "./error-handler";
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -15,30 +25,25 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 
 // Get donation presets
-router.get('/donation-presets', optionalAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const presets = await storage.getDonationPresets();
-    
-    // Add admin test item if user is authenticated and is admin
-    let finalPresets = [...presets];
-    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
-      finalPresets.unshift({
-        id: 'admin-test-1',
-        amount: 1,
-        label: 'Admin Test',
-        description: 'Test payment for $1.00 - Admin Only',
-        icon: 'test',
-        isPopular: false,
-        isAdminOnly: true
-      });
-    }
-    
-    res.json(finalPresets);
-  } catch (error) {
-    console.error('Error fetching donation presets:', error);
-    res.status(500).json({ error: 'Failed to fetch donation presets' });
+router.get('/donation-presets', optionalAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const presets = await storage.getDonationPresets();
+  
+  // Add admin test item if user is authenticated and is admin
+  let finalPresets = [...presets];
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+    finalPresets.unshift({
+      id: 'admin-test-1',
+      amount: 1,
+      label: 'Admin Test',
+      description: 'Test payment for $1.00 - Admin Only',
+      icon: 'test',
+      isPopular: false,
+      isAdminOnly: true
+    });
   }
-});
+  
+  res.json(successResponse(finalPresets));
+}));
 
 // Get active campaigns
 router.get('/campaigns', async (req, res) => {
@@ -433,41 +438,124 @@ router.delete('/subscriptions/:subscriptionId', requireAuth, async (req: Authent
   }
 });
 
-// Admin test payment endpoint
-router.post('/admin-test-payment', requireAuth, async (req: AuthenticatedRequest, res) => {
+// Payment validation schema
+const paymentIntentSchema = z.object({
+  amount: z.number().min(1).max(100000), // $1 to $1000
+  currency: z.enum(['usd']).default('usd'),
+  description: z.string().max(500).optional()
+});
+
+// Admin test payment endpoint with enhanced security
+router.post('/admin-test-payment', paymentLimiter, requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const user = req.user!;
+  
+  // Check if user is admin
+  if (user.role !== 'admin' && user.role !== 'super_admin') {
+    logSecurityEvent('unauthorized_admin_payment_attempt', { userId: user.id }, req);
+    throw new ValidationError('Admin access required');
+  }
+  
+  if (!stripe) {
+    throw new PaymentError('Payment system not configured');
+  }
+
+  // Generate idempotency key to prevent duplicate payments
+  const idempotencyKey = crypto.randomUUID();
+
+  // Create a $1.00 test payment intent
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 100, // $1.00 in cents
+    currency: 'usd',
+    description: 'Admin Test Payment - $1.00',
+    metadata: {
+      isTestPayment: 'true',
+      adminId: user.id,
+      adminEmail: user.email,
+      testTimestamp: new Date().toISOString()
+    },
+  }, {
+    idempotencyKey
+  });
+
+  // Log the payment creation
+  logPaymentEvent('admin_test_payment_created', {
+    paymentIntentId: paymentIntent.id,
+    amount: 1.00,
+    adminId: user.id
+  }, user.id);
+
+  res.json(successResponse({ 
+    clientSecret: paymentIntent.client_secret,
+    paymentIntentId: paymentIntent.id,
+    amount: 1.00,
+    description: 'Admin Test Payment - $1.00'
+  }));
+}));
+
+// Stripe webhook endpoint with signature verification
+router.post('/webhook', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!endpointSecret) {
+    logSecurityEvent('stripe_webhook_no_secret', {}, req);
+    return res.status(400).json(errorResponse('Webhook secret not configured'));
+  }
+
+  let event;
+
   try {
-    const user = req.user!;
-    
-    // Check if user is admin
-    if (user.role !== 'admin' && user.role !== 'super_admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-    
     if (!stripe) {
-      return res.status(500).json({ error: 'Stripe not configured' });
+      throw new Error('Stripe not configured');
+    }
+    
+    event = stripe.webhooks.constructEvent(req.body, sig as string, endpointSecret);
+  } catch (err: any) {
+    logSecurityEvent('stripe_webhook_verification_failed', { error: err.message }, req);
+    return res.status(400).json(errorResponse(`Webhook signature verification failed: ${err.message}`));
+  }
+
+  // Handle the event
+  try {
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        logPaymentEvent('payment_succeeded', {
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          metadata: paymentIntent.metadata
+        });
+        
+        // Handle successful payment
+        if (paymentIntent.metadata?.isTestPayment === 'true') {
+          logPaymentEvent('admin_test_payment_succeeded', {
+            paymentIntentId: paymentIntent.id,
+            adminId: paymentIntent.metadata.adminId
+          });
+        }
+        break;
+        
+      case 'payment_intent.payment_failed':
+        const failedPayment = event.data.object;
+        logPaymentEvent('payment_failed', {
+          paymentIntentId: failedPayment.id,
+          error: failedPayment.last_payment_error,
+          metadata: failedPayment.metadata
+        });
+        break;
+        
+      default:
+        logPaymentEvent('unhandled_webhook_event', { type: event.type });
     }
 
-    // Create a $1.00 test payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: 100, // $1.00 in cents
-      currency: 'usd',
-      description: 'Admin Test Payment - $1.00',
-      metadata: {
-        isTestPayment: 'true',
-        adminId: user.id,
-        adminEmail: user.email
-      },
-    });
-
-    res.json({ 
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
-      amount: 1.00,
-      description: 'Admin Test Payment - $1.00'
-    });
+    res.json(successResponse({ received: true }));
   } catch (error: any) {
-    console.error('Error creating admin test payment:', error);
-    res.status(500).json({ error: error.message || 'Failed to create test payment' });
+    logPaymentEvent('webhook_processing_error', { 
+      eventType: event.type, 
+      error: error.message 
+    });
+    res.status(500).json(errorResponse('Webhook processing failed'));
   }
 });
 
