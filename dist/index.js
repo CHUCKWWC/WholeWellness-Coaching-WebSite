@@ -9281,13 +9281,17 @@ var securityHeaders = helmet({
         "js.stripe.com",
         "*.google.com",
         "*.googletagmanager.com",
-        "replit.com"
+        "replit.com",
+        "wellness-central-charleswatson6.replit.app",
+        "wholewellnesscoaching.org"
       ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
         // Required for CSS-in-JS libraries
-        "fonts.googleapis.com"
+        "fonts.googleapis.com",
+        "wellness-central-charleswatson6.replit.app",
+        "wholewellnesscoaching.org"
       ],
       fontSrc: [
         "'self'",
@@ -9336,6 +9340,8 @@ var corsOptions = {
       "http://localhost:5000",
       "http://localhost:5173",
       "https://wholewellness-coaching-website.replit.app",
+      "https://wellness-central-charleswatson6.replit.app",
+      "https://wholewellnesscoaching.org",
       // Add your production domain here
       process.env.FRONTEND_URL
     ].filter(Boolean);
@@ -9363,6 +9369,17 @@ var compressionMiddleware = compression({
 function setupSecurity(app2) {
   app2.use(compressionMiddleware);
   app2.use(cors(corsOptions));
+  app2.use("/assets/*", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    if (req.path.endsWith(".js")) {
+      res.setHeader("Content-Type", "application/javascript");
+    } else if (req.path.endsWith(".css")) {
+      res.setHeader("Content-Type", "text/css");
+    }
+    next();
+  });
   app2.use(securityHeaders);
   app2.use("/api", generalApiLimiter);
   app2.set("trust proxy", 1);

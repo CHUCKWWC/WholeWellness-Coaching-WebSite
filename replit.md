@@ -7,13 +7,13 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
-**August 1, 2025**: Applied comprehensive deployment fixes to resolve container layer push failures:
-- Fixed file permission issues in server/public/assets directory
-- Removed duplicate method definitions in server/supabase-client-storage.ts causing build warnings  
-- Created automated deployment fix script at scripts/deployment-fix.sh
-- Ensured proper build output directory permissions for successful deployment
-- Verified 191 JS assets are properly accessible with correct permissions
-- Deployment status: Ready for successful container layer push
+**August 1, 2025**: Resolved 403 Forbidden asset loading errors for production deployment:
+- Updated CORS configuration to include production domains (wellness-central-charleswatson6.replit.app, wholewellnesscoaching.org)
+- Enhanced Content Security Policy to allow assets from production domains
+- Added specialized asset handling middleware for /assets/* routes with proper headers
+- Implemented clean build process ensuring asset hash consistency
+- Verified production server correctly serves CSS (index-C-rDCszs.css) and JS (index-8fIgh_68.js) assets
+- Deployment status: Asset serving issues resolved, ready for production deployment
 
 ## System Architecture
 
