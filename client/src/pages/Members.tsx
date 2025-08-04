@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +53,9 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function Members() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -68,14 +75,65 @@ export default function Members() {
     },
   });
 
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginForm) => {
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in.",
+      });
+      queryClient.setQueryData(["/api/auth/user"], data);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setIsLoggedIn(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid credentials. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterForm) => {
+      const response = await apiRequest("POST", "/api/auth/register", {
+        firstName: data.fullName.split(' ')[0],
+        lastName: data.fullName.split(' ').slice(1).join(' ') || data.fullName.split(' ')[0],
+        email: data.email,
+        password: data.password,
+        role: "user"
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Account Created!",
+        description: "Welcome to WholeWellness! Complete your discovery process to get started.",
+      });
+      queryClient.setQueryData(["/api/auth/user"], data);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Redirect to discovery process after registration
+      setLocation("/digital-onboarding");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onLogin = (data: LoginForm) => {
-    // Mock login for demo - in real app this would call the API
-    setIsLoggedIn(true);
+    loginMutation.mutate(data);
   };
 
   const onRegister = (data: RegisterForm) => {
-    // Mock registration for demo - in real app this would call the API
-    setIsLoggedIn(true);
+    registerMutation.mutate(data);
   };
 
   const memberBenefits = [
@@ -220,9 +278,13 @@ export default function Members() {
                         )}
                       />
                       
-                      <Button type="submit" className="w-full bg-primary hover:bg-secondary">
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-primary hover:bg-secondary"
+                        disabled={loginMutation.isPending}
+                      >
                         <Lock className="w-4 h-4 mr-2" />
-                        Sign In
+                        {loginMutation.isPending ? "Signing In..." : "Sign In"}
                       </Button>
                     </form>
                   </Form>
@@ -298,9 +360,13 @@ export default function Members() {
                         )}
                       />
                       
-                      <Button type="submit" className="w-full bg-primary hover:bg-secondary">
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-primary hover:bg-secondary"
+                        disabled={registerMutation.isPending}
+                      >
                         <User className="w-4 h-4 mr-2" />
-                        Create Account
+                        {registerMutation.isPending ? "Creating Account..." : "Create Account"}
                       </Button>
                     </form>
                   </Form>

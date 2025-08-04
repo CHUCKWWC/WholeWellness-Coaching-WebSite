@@ -17,59 +17,69 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Mail, ArrowLeft } from "lucide-react";
+import { User, Mail, Lock, ArrowLeft } from "lucide-react";
 
-const loginSchema = z.object({
+const registerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type RegisterForm = z.infer<typeof registerSchema>;
 
-export default function Login() {
+export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterForm) => {
+      const response = await apiRequest("POST", "/api/auth/register", {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        role: "user"
+      });
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
+        title: "Account Created!",
+        description: "Welcome to WholeWellness! Complete your discovery process to get started.",
       });
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      
-      // Check if user has completed onboarding
-      if (data.hasCompletedOnboarding) {
-        setLocation("/dashboard");
-      } else {
-        setLocation("/digital-onboarding");
-      }
+      // Redirect to discovery process after registration
+      setLocation("/digital-onboarding");
     },
     onError: (error: any) => {
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid credentials. Please try again.",
+        title: "Registration Failed",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
+  const onSubmit = (data: RegisterForm) => {
+    registerMutation.mutate(data);
   };
 
   return (
@@ -87,16 +97,52 @@ export default function Login() {
         <Card className="shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Welcome Back
+              Create Your Account
             </CardTitle>
             <p className="text-gray-600 mt-2">
-              Sign in to continue your wellness journey
+              Join WholeWellness and start your journey today
             </p>
           </CardHeader>
           
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="First name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Last name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="email"
@@ -129,7 +175,29 @@ export default function Login() {
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
                             type="password"
-                            placeholder="Enter your password"
+                            placeholder="Create a password"
+                            className="pl-10"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            type="password"
+                            placeholder="Confirm your password"
                             className="pl-10"
                             {...field}
                           />
@@ -143,19 +211,20 @@ export default function Login() {
                 <Button 
                   type="submit" 
                   className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={loginMutation.isPending}
+                  disabled={registerMutation.isPending}
                 >
-                  {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                  <User className="w-4 h-4 mr-2" />
+                  {registerMutation.isPending ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">
-                Don't have an account?{" "}
-                <Link href="/register">
+                Already have an account?{" "}
+                <Link href="/login">
                   <button className="text-blue-600 hover:text-blue-700 font-medium">
-                    Create Account
+                    Sign In
                   </button>
                 </Link>
               </p>

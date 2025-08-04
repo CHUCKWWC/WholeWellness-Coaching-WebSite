@@ -280,7 +280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: user.firstName,
         lastName: user.lastName,
         membershipLevel: user.membershipLevel,
-        rewardPoints: user.rewardPoints 
+        rewardPoints: user.rewardPoints,
+        hasCompletedOnboarding: user.hasCompletedOnboarding || false
       });
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -349,7 +350,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: user.lastName,
         membershipLevel: user.membershipLevel,
         rewardPoints: user.rewardPoints,
-        donationTotal: user.donationTotal
+        donationTotal: user.donationTotal,
+        hasCompletedOnboarding: user.hasCompletedOnboarding || false
       });
     } catch (error: any) {
       console.error('Login error:', error);

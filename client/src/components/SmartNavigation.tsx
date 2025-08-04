@@ -11,7 +11,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import AuthForm from "@/components/AuthForm";
+
 import Logo from "@/components/Logo";
 
 import { Badge } from "@/components/ui/badge";
@@ -57,11 +57,11 @@ const mainNavItems = [
     tooltip: "Discover your wellness needs with comprehensive evaluations" 
   },
   { 
-    href: "/digital-onboarding", 
+    href: "/register", 
     label: "Get Started", 
-    tooltip: "Begin your wellness journey with professional coaching",
-    badge: "Premium",
-    badgeColor: "bg-purple-100 text-purple-700"
+    tooltip: "Create your account to begin your wellness journey",
+    badge: "Free",
+    badgeColor: "bg-green-100 text-green-700"
   }
 ];
 
@@ -279,16 +279,18 @@ export default function SmartNavigation() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
-                      Login / Sign Up
+                <div className="flex items-center space-x-2">
+                  <Link href="/login">
+                    <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
+                      Sign In
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <AuthForm />
-                  </DialogContent>
-                </Dialog>
+                  </Link>
+                  <Link href="/register">
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Create Account
+                    </Button>
+                  </Link>
+                </div>
               )}
 
               {/* Mobile Menu */}

@@ -24,6 +24,8 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Services from "@/pages/Services";
 import Contact from "@/pages/Contact";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 import NotFound from "@/pages/not-found";
 
 // Lazy-loaded pages for better performance
@@ -114,6 +116,8 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/about" component={About} />
           <Route path="/services" component={Services} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
           <Route path="/programs" component={(props) => <LazyRoute component={Programs} loadingText="Loading Programs..." {...props} />} />
           <Route path="/ai-coaching" component={(props) => <LazyRoute component={AICoaching} loadingText="Initializing AI Coaching..." {...props} />} />
           <Route path="/resources" component={(props) => <LazyRoute component={Resources} loadingText="Loading Resources..." {...props} />} />
