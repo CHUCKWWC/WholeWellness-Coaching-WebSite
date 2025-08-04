@@ -1577,20 +1577,27 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
       const amount = planPrices[planId as keyof typeof planPrices] || planPrices.monthly;
 
+      // Create product first
+      const product = await stripe.products.create({
+        name: `${planName} - Whole Wellness Coaching`,
+        description: `${planName} life coaching subscription`,
+      });
+
+      // Create price for the product
+      const price = await stripe.prices.create({
+        currency: 'usd',
+        unit_amount: amount,
+        recurring: {
+          interval: planId === 'weekly' ? 'week' : 'month',
+        },
+        product: product.id,
+      });
+
       // Create subscription
       const subscription = await stripe.subscriptions.create({
         customer: stripeCustomerId,
         items: [{
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${planName} - Whole Wellness Coaching`,
-            },
-            unit_amount: amount,
-            recurring: {
-              interval: planId === 'weekly' ? 'week' : 'month',
-            },
-          },
+          price: price.id,
         }],
         payment_behavior: 'default_incomplete',
         payment_settings: {
