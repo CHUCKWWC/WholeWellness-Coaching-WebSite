@@ -25,7 +25,7 @@ export const users = pgTable("users", {
   donationTotal: decimal("donation_total").default("0"),
   rewardPoints: integer("reward_points").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  stripePurchaseId: varchar("stripe_purchase_id"),
   profileImageUrl: varchar("profile_image_url"),
   bio: text("bio"), // 200 char max enforced in validation
   rating: integer("rating").default(0), // 0-5 stars, admin-editable

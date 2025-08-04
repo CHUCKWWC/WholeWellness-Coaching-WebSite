@@ -14,12 +14,12 @@ export default function SubscriptionSuccess() {
             <div className="mx-auto mb-4 w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
               <CheckCircle className="h-8 w-8 text-purple-600" />
             </div>
-            <CardTitle className="text-purple-700">Subscription Activated!</CardTitle>
+            <CardTitle className="text-purple-700">Purchase Successful!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
               <p className="text-gray-600 mb-4">
-                Welcome to your coaching subscription! Your payment has been processed successfully.
+                Welcome to your coaching program! Your payment has been processed successfully.
               </p>
               
               <div className="bg-purple-50 p-6 rounded-lg">
@@ -30,7 +30,7 @@ export default function SubscriptionSuccess() {
                   </h3>
                 </div>
                 <p className="text-purple-700">
-                  Your subscription is now active and your coach matching process has begun.
+                  Your coaching program is now active and your coach matching process has begun.
                   You'll receive an email confirmation and coach assignment within 24-48 hours.
                 </p>
               </div>
@@ -46,7 +46,7 @@ export default function SubscriptionSuccess() {
                   <div>
                     <h4 className="font-medium">Confirmation Email</h4>
                     <p className="text-sm text-gray-600">
-                      You'll receive a subscription confirmation email with all the details.
+                      You'll receive a purchase confirmation email with all the details.
                     </p>
                   </div>
                 </div>
@@ -80,15 +80,15 @@ export default function SubscriptionSuccess() {
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-5 w-5 text-blue-600" />
-                <h4 className="font-medium text-blue-900">Your Subscription Benefits</h4>
+                <h4 className="font-medium text-blue-900">Your Program Benefits</h4>
               </div>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Professional coaching sessions as per your plan</li>
-                <li>• Unlimited messaging between sessions</li>
+                <li>• Professional coaching sessions as per your program</li>
+                <li>• Messaging support during your program period</li>
                 <li>• Access to resource library and tools</li>
                 <li>• Progress tracking and personalized plans</li>
-                <li>• Priority support and crisis assistance</li>
-                <li>• Monthly progress reports</li>
+                <li>• Priority support during program period</li>
+                <li>• Progress reports throughout your program</li>
               </ul>
             </div>
 
@@ -113,7 +113,7 @@ export default function SubscriptionSuccess() {
 
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-2">
-                You can manage your subscription anytime from your member portal.
+                You can manage your program anytime from your member portal.
               </p>
               <p className="text-xs text-gray-500">
                 Need help? Contact us at{' '}

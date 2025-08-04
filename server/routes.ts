@@ -1531,8 +1531,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  // If a paid subscription is required, use the endpoint below.
-  app.post('/api/get-or-create-subscription', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+  // Create purchase intent for coaching programs
+  app.post('/api/get-or-create-purchase', requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       if (!stripe) {
         return res.status(500).json({ message: 'Payment processing not configured' });
@@ -1541,18 +1541,10 @@ When to refer to licensed therapists and emergency resources for relationship cr
       const user = req.user;
       const { planId, planName, planPrice } = req.body;
 
-      // Check if user already has a subscription
-      if (user.stripeSubscriptionId) {
-        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-        
-        if (subscription.status === 'active') {
-          const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string);
-          res.json({
-            subscriptionId: subscription.id,
-            clientSecret: invoice.payment_intent?.client_secret,
-          });
-          return;
-        }
+      // Check if user already has a purchase for this plan
+      if (user.stripePurchaseId) {
+        // For purchases, we'll create a new intent each time since these are one-time purchases
+        // This allows users to purchase multiple coaching programs
       }
       
       if (!user.email) {
@@ -1570,55 +1562,43 @@ When to refer to licensed therapists and emergency resources for relationship cr
         await donationStorage.updateUser(user.id, { stripeCustomerId });
       }
 
-      // Plan pricing mapping
+      // Plan pricing mapping for one-time purchases
       const planPrices = {
-        weekly: 8000, // $80/week
-        biweekly: 16000, // $160/month (2 sessions)
-        monthly: 9000, // $90/month
+        ai_coaching: 29900, // $299 one-time
+        live_coaching: 59900, // $599 one-time
+        combined: 79900, // $799 one-time
       };
 
-      const amount = planPrices[planId as keyof typeof planPrices] || planPrices.monthly;
+      // Parse price from planPrice string (e.g., "$299") to cents
+      const priceInCents = planPrices[planId as keyof typeof planPrices] || 
+        (parseInt(planPrice.replace('$', '')) * 100);
 
-      // Create product first
-      const product = await stripe.products.create({
-        name: `${planName} - Whole Wellness Coaching`,
-        description: `${planName} life coaching subscription`,
-      });
-
-      // Create price for the product
-      const price = await stripe.prices.create({
+      // Create payment intent for one-time purchase
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: priceInCents,
         currency: 'usd',
-        unit_amount: amount,
-        recurring: {
-          interval: planId === 'weekly' ? 'week' : 'month',
-        },
-        product: product.id,
-      });
-
-      // Create subscription
-      const subscription = await stripe.subscriptions.create({
         customer: stripeCustomerId,
-        items: [{
-          price: price.id,
-        }],
-        payment_behavior: 'default_incomplete',
-        payment_settings: {
-          save_default_payment_method: 'on_subscription',
+        description: `${planName} - Whole Wellness Coaching Program (One-time Purchase)`,
+        metadata: {
+          userId: user.id,
+          userEmail: user.email,
+          planId: planId,
+          planName: planName,
+          purchaseType: 'coaching_program'
         },
-        expand: ['latest_invoice.payment_intent'],
       });
 
-      // Update user with subscription info
+      // Update user with purchase info (we'll update this to store purchase history later)
       await donationStorage.updateUser(user.id, {
-        stripeSubscriptionId: subscription.id
+        stripePurchaseId: paymentIntent.id
       });
   
       res.json({
-        subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        purchaseId: paymentIntent.id,
+        clientSecret: paymentIntent.client_secret,
       });
     } catch (error: any) {
-      console.error('Subscription creation error:', error);
+      console.error('Purchase creation error:', error);
       return res.status(400).json({ error: { message: error.message } });
     }
   });

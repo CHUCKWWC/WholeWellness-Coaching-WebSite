@@ -17,14 +17,14 @@ if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
 }
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-interface SubscribeFormProps {
+interface CoachingPurchaseFormProps {
   clientSecret: string;
   planName: string;
   planPrice: string;
   onSuccess?: () => void;
 }
 
-const SubscribeForm = ({ clientSecret, planName, planPrice, onSuccess }: SubscribeFormProps) => {
+const CoachingPurchaseForm = ({ clientSecret, planName, planPrice, onSuccess }: CoachingPurchaseFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -56,11 +56,11 @@ const SubscribeForm = ({ clientSecret, planName, planPrice, onSuccess }: Subscri
       setIsProcessing(false);
     } else {
       toast({
-        title: "Subscription Successful",
-        description: "Welcome to your coaching subscription!",
+        title: "Purchase Successful",
+        description: "Welcome to your coaching program!",
       });
       onSuccess?.();
-      setLocation('/subscription-success');
+      setLocation('/purchase-success');
     }
   };
 
@@ -69,20 +69,20 @@ const SubscribeForm = ({ clientSecret, planName, planPrice, onSuccess }: Subscri
       <div className="bg-blue-50 p-4 rounded-lg">
         <div className="flex items-center gap-2 mb-2">
           <Shield className="h-5 w-5 text-blue-600" />
-          <span className="font-medium text-blue-900">Secure Subscription</span>
+          <span className="font-medium text-blue-900">Secure Purchase</span>
         </div>
         <p className="text-sm text-blue-700">
-          Your subscription will automatically renew. You can cancel anytime from your member portal.
+          This is a one-time purchase for your coaching program with a limited time period. No recurring charges.
         </p>
       </div>
 
       <div className="bg-purple-50 p-4 rounded-lg">
         <div className="flex justify-between items-center mb-2">
-          <span className="font-medium">Subscription Plan:</span>
+          <span className="font-medium">Coaching Program:</span>
           <Badge variant="secondary">{planName}</Badge>
         </div>
         <div className="flex justify-between items-center">
-          <span className="font-medium">Monthly Price:</span>
+          <span className="font-medium">One-Time Price:</span>
           <span className="text-2xl font-bold text-purple-600">{planPrice}</span>
         </div>
       </div>
@@ -97,19 +97,19 @@ const SubscribeForm = ({ clientSecret, planName, planPrice, onSuccess }: Subscri
         {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Processing Subscription...
+            Processing Purchase...
           </>
         ) : (
           <>
             <CreditCard className="mr-2 h-5 w-5" />
-            Subscribe for {planPrice}/month
+            Purchase Program for {planPrice}
           </>
         )}
       </Button>
 
       <p className="text-xs text-gray-500 text-center">
-        By subscribing, you agree to our Terms of Service and Privacy Policy.
-        Your subscription will auto-renew monthly until cancelled.
+        By purchasing, you agree to our Terms of Service and Privacy Policy.
+        This is a one-time purchase with no recurring charges.
       </p>
     </form>
   );
@@ -195,20 +195,20 @@ export default function Subscribe() {
     }
   }, []);
 
-  const createSubscription = async () => {
+  const createPurchase = async () => {
     // Check if user is authenticated first
     if (!isAuthenticated) {
-      setError('Please log in to subscribe to a coaching plan');
+      setError('Please log in to purchase a coaching program');
       toast({
         title: "Authentication Required",
-        description: "Please log in to access subscription plans",
+        description: "Please log in to access coaching programs",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const response = await apiRequest("POST", "/api/get-or-create-subscription", {
+      const response = await apiRequest("POST", "/api/get-or-create-purchase", {
         planId: selectedPlan.id,
         planName: selectedPlan.name,
         planPrice: selectedPlan.price
@@ -216,17 +216,17 @@ export default function Subscribe() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create subscription');
+        throw new Error(errorData.message || 'Failed to create purchase');
       }
       
       const data = await response.json();
       setClientSecret(data.clientSecret);
     } catch (err: any) {
-      console.error('Subscription creation error:', err);
-      setError(err.message || 'Failed to initialize subscription');
+      console.error('Purchase creation error:', err);
+      setError(err.message || 'Failed to initialize purchase');
       toast({
-        title: "Subscription Setup Error",
-        description: err.message || 'Failed to initialize subscription',
+        title: "Purchase Setup Error",
+        description: err.message || 'Failed to initialize purchase',
         variant: "destructive",
       });
     }
@@ -255,7 +255,7 @@ export default function Subscribe() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 mb-4">
-                Please log in to access our coaching subscription plans and start your wellness journey.
+                Please log in to access our coaching programs and start your wellness journey.
               </p>
               <div className="space-y-3">
                 <Button 
@@ -285,7 +285,7 @@ export default function Subscribe() {
         <div className="max-w-4xl mx-auto px-4">
           <Card className="border-red-200">
             <CardHeader>
-              <CardTitle className="text-red-600">Subscription Error</CardTitle>
+              <CardTitle className="text-red-600">Purchase Error</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-red-700 mb-4">{error}</p>
@@ -309,10 +309,10 @@ export default function Subscribe() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Choose Your Coaching Plan
+              Choose Your Coaching Program
             </h1>
             <p className="text-gray-600">
-              Select the plan that best fits your wellness journey
+              Select the program that best fits your wellness journey - one-time purchase with limited access period
             </p>
           </div>
 
@@ -337,7 +337,7 @@ export default function Subscribe() {
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <div className="text-3xl font-bold text-purple-600">
                     {plan.price}
-                    <span className="text-sm text-gray-500 font-normal">/month</span>
+                    <span className="text-sm text-gray-500 font-normal"> one-time</span>
                   </div>
                   <p className="text-gray-600">{plan.description}</p>
                 </CardHeader>
@@ -358,17 +358,17 @@ export default function Subscribe() {
           <div className="max-w-md mx-auto">
             <Card>
               <CardHeader>
-                <CardTitle className="text-center">Selected Plan</CardTitle>
+                <CardTitle className="text-center">Selected Program</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-semibold">{selectedPlan.name}</h3>
-                  <p className="text-2xl font-bold text-purple-600">{selectedPlan.price}/month</p>
+                  <p className="text-2xl font-bold text-purple-600">{selectedPlan.price} one-time</p>
                   <p className="text-gray-600 mt-2">{selectedPlan.description}</p>
                 </div>
                 
                 <Button 
-                  onClick={createSubscription}
+                  onClick={createPurchase}
                   className="w-full py-3 text-lg bg-purple-600 hover:bg-purple-700"
                 >
                   <CreditCard className="mr-2 h-5 w-5" />
@@ -382,7 +382,7 @@ export default function Subscribe() {
             <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>Cancel anytime</span>
+                <span>Limited time access</span>
               </div>
               <div className="flex items-center gap-1">
                 <Shield className="h-4 w-4" />
@@ -404,11 +404,11 @@ export default function Subscribe() {
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Complete Subscription</CardTitle>
+            <CardTitle className="text-center">Complete Purchase</CardTitle>
           </CardHeader>
           <CardContent>
             <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <SubscribeForm 
+              <CoachingPurchaseForm 
                 clientSecret={clientSecret} 
                 planName={selectedPlan.name}
                 planPrice={selectedPlan.price}
