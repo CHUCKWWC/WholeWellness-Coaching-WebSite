@@ -53,6 +53,68 @@ import { onboardingNewRoutes } from "./onboarding-new-routes";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 // Admin auth now uses OAuth only - no password login exports
+
+// Sample resources seeding function
+async function seedSampleResources(storage: any) {
+  const sampleResources = [
+    {
+      title: "Building Resilience After Trauma",
+      type: "article",
+      category: "Mental Health", 
+      content: "Learn evidence-based strategies for rebuilding emotional strength after trauma. Includes grounding techniques, self-care practices, and professional help guidance.",
+      url: null,
+      isFree: true
+    },
+    {
+      title: "5 Steps to Setting Healthy Boundaries",
+      type: "article",
+      category: "Relationships",
+      content: "Establish and maintain healthy boundaries in relationships. Includes conversation scripts and consistency strategies.",
+      url: null,
+      isFree: true
+    },
+    {
+      title: "Guided Meditation for Anxiety Relief",
+      type: "video",
+      category: "Mental Health",
+      content: "15-minute guided meditation for calming anxiety and creating inner peace. Perfect for daily practice.",
+      url: "https://example.com/meditation-anxiety",
+      isFree: true
+    },
+    {
+      title: "Daily Self-Care Checklist",
+      type: "worksheet", 
+      category: "Personal Development",
+      content: "Printable daily checklist covering physical, emotional, mental, and spiritual wellness activities.",
+      url: "/downloads/self-care-checklist.pdf",
+      isFree: true
+    },
+    {
+      title: "Goal Setting Workbook",
+      type: "worksheet",
+      category: "Personal Development", 
+      content: "Comprehensive workbook with vision board templates, action plans, and progress tracking tools.",
+      url: "/downloads/goal-setting-workbook.pdf",
+      isFree: true
+    },
+    {
+      title: "Healing from Domestic Violence - Episode 1",
+      type: "podcast",
+      category: "Mental Health",
+      content: "Survivor stories and expert guidance on recovery journey. Includes immediate support resources.",
+      url: "https://example.com/podcast/healing-dv-ep1", 
+      isFree: true
+    }
+  ];
+
+  for (const resource of sampleResources) {
+    try {
+      await storage.createResource(resource);
+    } catch (error) {
+      console.error('Error creating sample resource:', error);
+    }
+  }
+}
 import { onboardingService } from "./onboarding-service";
 import { registerAdminCertificationRoutes } from "./admin-certification-routes";
 // Google Drive service initialized below
@@ -1977,6 +2039,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
         resources = await storage.getResourcesByCategory(category as string);
       } else {
         resources = await storage.getAllResources();
+        
+        // If no resources exist, seed with sample data
+        if (resources.length === 0) {
+          await seedSampleResources(storage);
+          resources = await storage.getAllResources();
+        }
       }
       
       res.json(resources);

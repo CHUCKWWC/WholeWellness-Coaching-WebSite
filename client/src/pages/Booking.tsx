@@ -157,6 +157,16 @@ export default function Booking() {
               </Card>
             ))}
           </div>
+
+          {/* Booking Form */}
+          {selectedService && (
+            <div className="mt-16">
+              <BookingForm 
+                serviceId={selectedService}
+                serviceName={services.find(s => s.id === selectedService)?.title}
+              />
+            </div>
+          )}
         </div>
       </section>
 

@@ -208,9 +208,16 @@ export const bookings = pgTable("bookings", {
   phone: text("phone"),
   coachingArea: text("coaching_area").notNull(),
   message: text("message"),
+  serviceType: text("service_type").default("consultation"), // consultation, individual, intensive
+  preferredDate: text("preferred_date"), // ISO string
+  preferredTime: text("preferred_time"), // HH:MM format
   status: text("status").default("pending"), // pending, confirmed, completed, cancelled
   scheduledDate: timestamp("scheduled_date"),
+  confirmationSent: boolean("confirmation_sent").default(false),
+  meetingUrl: text("meeting_url"), // Video call link
+  reminderSent: boolean("reminder_sent").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Assessment system for paid results

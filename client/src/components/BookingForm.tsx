@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -17,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import TimeSlotPicker from "@/components/TimeSlotPicker";
 
 const coachingAreas = [
   "Domestic Violence Recovery",
@@ -28,7 +32,16 @@ const coachingAreas = [
   "Weight Loss Coaching"
 ];
 
-export default function BookingForm() {
+interface BookingFormProps {
+  serviceId?: string;
+  serviceName?: string;
+}
+
+export default function BookingForm({ serviceId, serviceName }: BookingFormProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -40,6 +53,9 @@ export default function BookingForm() {
       phone: "",
       coachingArea: "",
       message: "",
+      serviceType: serviceId || "",
+      preferredDate: "",
+      preferredTime: "",
     },
   });
 
@@ -49,11 +65,11 @@ export default function BookingForm() {
       return response.json();
     },
     onSuccess: () => {
+      setIsComplete(true);
       toast({
-        title: "Booking Submitted Successfully!",
-        description: "Thank you for your interest! We will contact you within 24 hours to schedule your free consultation.",
+        title: "Booking Confirmed!",
+        description: `Your ${serviceName || 'session'} is scheduled for ${selectedDate?.toLocaleDateString()} at ${selectedTime}. Check your email for confirmation details.`,
       });
-      form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
     },
     onError: (error: any) => {
@@ -65,36 +81,203 @@ export default function BookingForm() {
     },
   });
 
-  const onSubmit = (data: InsertBooking) => {
-    bookingMutation.mutate(data);
+  const handleTimeSelection = (date: Date, time: string) => {
+    setSelectedDate(date);
+    setSelectedTime(time);
+    form.setValue("preferredDate", date.toISOString());
+    form.setValue("preferredTime", time);
   };
+
+  const nextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const previousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const onSubmit = (data: InsertBooking) => {
+    if (!selectedDate || !selectedTime) {
+      toast({
+        title: "Please select a time",
+        description: "You need to select both a date and time for your appointment.",
+        variant: "destructive",
+      });
+      return;
+    }
+    bookingMutation.mutate({
+      ...data,
+      serviceType: serviceId || data.serviceType || "consultation",
+      preferredDate: selectedDate.toISOString(),
+      preferredTime: selectedTime,
+    });
+  };
+
+  if (isComplete) {
+    return (
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="pt-6 text-center">
+          <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-green-800 mb-2">
+            Booking Confirmed!
+          </h3>
+          <p className="text-green-700 mb-4">
+            Your {serviceName || 'session'} is scheduled for{' '}
+            <strong>{selectedDate?.toLocaleDateString()} at {selectedTime}</strong>
+          </p>
+          <p className="text-sm text-green-600">
+            You'll receive a confirmation email with meeting details shortly.
+          </p>
+          <Button 
+            onClick={() => {
+              setIsComplete(false);
+              setCurrentStep(1);
+              form.reset();
+              setSelectedDate(null);
+              setSelectedTime(null);
+            }}
+            variant="outline"
+            className="mt-4"
+          >
+            Book Another Session
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const steps = [
+    { number: 1, title: "Service", description: "Select your service" },
+    { number: 2, title: "Time", description: "Pick date & time" },
+    { number: 3, title: "Details", description: "Your information" },
+  ];
+
+  const renderProgressBar = () => (
+    <div className="mb-8">
+      <div className="flex items-center justify-between">
+        {steps.map((step, index) => (
+          <div key={step.number} className="flex items-center">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
+              currentStep >= step.number 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-200 text-gray-600'
+            }`}>
+              {step.number}
+            </div>
+            <div className="ml-3 hidden sm:block">
+              <p className={`text-sm font-medium ${
+                currentStep >= step.number ? 'text-primary' : 'text-gray-400'
+              }`}>
+                {step.title}
+              </p>
+              <p className={`text-xs ${
+                currentStep >= step.number ? 'text-gray-600' : 'text-gray-400'
+              }`}>
+                {step.description}
+              </p>
+            </div>
+            {index < steps.length - 1 && (
+              <div className={`flex-1 mx-4 h-px ${
+                currentStep > step.number ? 'bg-primary' : 'bg-gray-200'
+              }`} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {renderProgressBar()}
+      
+      {currentStep === 1 && (
         <div>
-          <h3 className="text-xl font-semibold text-secondary mb-6">What to Expect</h3>
+          <h3 className="text-xl font-semibold text-secondary mb-6">
+            {serviceName ? `Booking: ${serviceName}` : 'Select Service Type'}
+          </h3>
           <div className="space-y-4">
-            {[
-              "30-minute confidential conversation",
-              "Assessment of your current situation and goals",
-              "Explanation of our coaching approach",
-              "Discussion of payment options and financial assistance",
-              "No pressure, no obligation"
-            ].map((item, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="bg-primary text-white rounded-full p-1 flex-shrink-0 mt-1">
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                  </svg>
-                </div>
-                <p className="text-gray-700">{item}</p>
-              </div>
-            ))}
+            {serviceName ? (
+              <Card className="border-primary">
+                <CardContent className="pt-6">
+                  <h4 className="font-semibold mb-2">{serviceName}</h4>
+                  <p className="text-gray-600 text-sm mb-4">
+                    Ready to proceed with this service selection.
+                  </p>
+                  <Button onClick={nextStep} className="w-full">
+                    Continue to Time Selection
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Form {...form}>
+                <FormField
+                  control={form.control}
+                  name="coachingArea"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What area would you like coaching support with? *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a coaching area" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {coachingAreas.map((area) => (
+                            <SelectItem key={area} value={area}>
+                              {area}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  onClick={nextStep}
+                  disabled={!form.watch("coachingArea")}
+                  className="w-full mt-4"
+                >
+                  Continue to Time Selection
+                </Button>
+              </Form>
+            )}
           </div>
         </div>
-        
+      )}
+
+      {currentStep === 2 && (
         <div>
+          <h3 className="text-xl font-semibold text-secondary mb-6">Select Date & Time</h3>
+          <TimeSlotPicker
+            onTimeSelect={handleTimeSelection}
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+          />
+          <div className="flex gap-4 mt-6">
+            <Button variant="outline" onClick={previousStep} className="flex-1">
+              Back
+            </Button>
+            <Button 
+              onClick={nextStep}
+              disabled={!selectedDate || !selectedTime}
+              className="flex-1"
+            >
+              Continue to Details
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {currentStep === 3 && (
+        <div>
+          <h3 className="text-xl font-semibold text-secondary mb-6">Your Information</h3>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -182,17 +365,27 @@ export default function BookingForm() {
                 )}
               />
               
-              <Button 
-                type="submit" 
-                className="w-full bg-primary text-white hover:bg-secondary transition-colors"
-                disabled={bookingMutation.isPending}
-              >
-                {bookingMutation.isPending ? "Submitting..." : "Schedule Free Consultation"}
-              </Button>
+              <div className="flex gap-4 mt-6">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={previousStep} 
+                  className="flex-1"
+                >
+                  Back
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1 bg-primary text-white hover:bg-secondary transition-colors"
+                  disabled={bookingMutation.isPending}
+                >
+                  {bookingMutation.isPending ? "Submitting..." : "Schedule Session"}
+                </Button>
+              </div>
             </form>
           </Form>
         </div>
-      </div>
+      )}
     </div>
   );
 }
