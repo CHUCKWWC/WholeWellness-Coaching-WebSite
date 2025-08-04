@@ -26,6 +26,7 @@ import Services from "@/pages/Services";
 import Contact from "@/pages/Contact";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import EmailConfirm from "@/pages/EmailConfirm";
 import NotFound from "@/pages/not-found";
 
 // Lazy-loaded pages for better performance
@@ -118,6 +119,7 @@ function Router() {
           <Route path="/services" component={Services} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/email-confirm" component={EmailConfirm} />
           <Route path="/programs" component={(props) => <LazyRoute component={Programs} loadingText="Loading Programs..." {...props} />} />
           <Route path="/ai-coaching" component={(props) => <LazyRoute component={AICoaching} loadingText="Initializing AI Coaching..." {...props} />} />
           <Route path="/resources" component={(props) => <LazyRoute component={Resources} loadingText="Loading Resources..." {...props} />} />
