@@ -7,7 +7,7 @@ import AuthForm from "@/components/AuthForm";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
 import QuickStartDashboard from "@/components/QuickStartDashboard";
 import GuidedTour from "@/components/GuidedTour";
-import FirstTimeUserExperience from "@/components/FirstTimeUserExperience";
+// FirstTimeUserExperience removed as obsolete component
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -108,8 +108,7 @@ export default function Home() {
     <div>
       <Hero />
       
-      {/* First Time User Experience */}
-      <FirstTimeUserExperience isOpen={showWelcome} onClose={closeWelcome} />
+      {/* First Time User Experience removed with obsolete component cleanup */}
       
       {/* Guided Tour */}
       <GuidedTour isOpen={showTour} onClose={closeTour} />

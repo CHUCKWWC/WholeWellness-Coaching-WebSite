@@ -17,7 +17,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { LazyLoadWrapper, withLazyLoading } from "@/components/LazyLoadWrapper";
 import { useRoutePreloader } from "@/utils/routePreloader";
 import { useLocation } from "wouter";
-import PerformanceMonitor, { useWebVitals } from "@/components/PerformanceMonitor";
+// PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
 import Home from "@/pages/Home";

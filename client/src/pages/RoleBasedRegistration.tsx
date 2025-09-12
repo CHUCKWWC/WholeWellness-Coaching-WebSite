@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { User, Heart, Shield, UserPlus, CreditCard, Crown } from "lucide-react";
-import BrowserSecureAuth from "@/components/BrowserSecureAuth";
+// BrowserSecureAuth removed as obsolete component
 
 const registrationSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -194,18 +194,10 @@ export default function RoleBasedRegistration() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Google OAuth Option */}
+            {/* OAuth integration removed with BrowserSecureAuth cleanup */}
             <div className="mb-6">
-              <BrowserSecureAuth onClose={() => {}} />
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with email
-                  </span>
-                </div>
+              <div className="text-center text-sm text-muted-foreground">
+                Sign up with email below
               </div>
             </div>
 

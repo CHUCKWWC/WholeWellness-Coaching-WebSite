@@ -1,8 +1,5 @@
 import React from 'react';
-import { PWANotifications } from './PWANotifications';
 import { EnhancedSearch } from './EnhancedSearch';
-import { VoiceNavigation } from './VoiceNavigation';
-import { OptimizedImage } from './OptimizedImage';
 
 interface FeatureShowcaseProps {
   onNavigate?: (destination: string) => void;
@@ -139,37 +136,28 @@ export function FeatureShowcase({ onNavigate, onSearch }: FeatureShowcaseProps) 
           </p>
         </div>
 
-        {/* WebP Optimization Demo */}
+        {/* Standard Images Demo */}
         <div className="space-y-3">
-          <h3 className="text-lg font-medium text-gray-800">Optimized Images</h3>
+          <h3 className="text-lg font-medium text-gray-800">Wellness Resources</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            <OptimizedImage
-              src="/api/placeholder/300/200"
-              webpSrc="/api/placeholder/300/200.webp"
+            <img 
+              src="/placeholder/300/200" 
               alt="Wellness coaching session"
-              width={300}
-              height={200}
-              className="rounded-lg shadow-md"
+              className="rounded-lg shadow-md w-full h-48 object-cover"
             />
-            <OptimizedImage
-              src="/api/placeholder/300/200"
-              webpSrc="/api/placeholder/300/200.webp"
+            <img 
+              src="/placeholder/300/200" 
               alt="Meditation and mindfulness"
-              width={300}
-              height={200}
-              className="rounded-lg shadow-md"
+              className="rounded-lg shadow-md w-full h-48 object-cover"
             />
-            <OptimizedImage
-              src="/api/placeholder/300/200"
-              webpSrc="/api/placeholder/300/200.webp"
+            <img 
+              src="/placeholder/300/200" 
               alt="Health and wellness resources"
-              width={300}
-              height={200}
-              className="rounded-lg shadow-md"
+              className="rounded-lg shadow-md w-full h-48 object-cover"
             />
           </div>
           <p className="text-sm text-gray-600 text-center">
-            Images automatically use WebP format when supported, with lazy loading
+            Wellness coaching resources and support materials
           </p>
         </div>
       </div>
@@ -262,14 +250,7 @@ export function FeatureShowcase({ onNavigate, onSearch }: FeatureShowcaseProps) 
         </div>
       </div>
 
-      {/* PWA Notifications */}
-      <PWANotifications />
-      
-      {/* Voice Navigation */}
-      <VoiceNavigation 
-        onNavigate={handleVoiceNavigate}
-        onSearch={onSearch}
-      />
+      {/* Feature demonstration complete */}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import BrowserSecureAuth from "@/components/BrowserSecureAuth";
+// BrowserSecureAuth removed as obsolete component
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -69,13 +69,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <BrowserSecureAuth onClose={() => {
-          // Hide Google OAuth section and show email form
-          const googleSection = document.querySelector('[data-google-auth]');
-          if (googleSection) {
-            (googleSection as HTMLElement).style.display = 'none';
-          }
-        }} />
+        {/* BrowserSecureAuth component removed as obsolete */}
         
         <Form {...loginForm}>
           <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
