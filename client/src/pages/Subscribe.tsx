@@ -13,7 +13,7 @@ import { useLocation } from 'wouter';
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+  console.error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
 }
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -60,7 +60,7 @@ const CoachingPurchaseForm = ({ clientSecret, planName, planPrice, onSuccess }: 
         description: "Welcome to your coaching program!",
       });
       onSuccess?.();
-      setLocation('/purchase-success');
+      setLocation('/subscription-success');
     }
   };
 
