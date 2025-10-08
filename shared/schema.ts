@@ -27,11 +27,18 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripePurchaseId: varchar("stripe_purchase_id"),
   profileImageUrl: varchar("profile_image_url"),
+  coverPhotoUrl: varchar("cover_photo_url"),
   bio: text("bio"), // 200 char max enforced in validation
   rating: integer("rating").default(0), // 0-5 stars, admin-editable
   introVideoUrl: varchar("intro_video_url"),
   keywords: text("keywords").array(), // max 5 keywords, 20 chars each
   preferredCoach: varchar("preferred_coach"),
+  location: varchar("location"),
+  website: varchar("website"),
+  socialLinks: jsonb("social_links").$type<{instagram?: string, linkedin?: string, twitter?: string, facebook?: string}>().default({}),
+  educationHistory: jsonb("education_history").$type<Array<{institution: string, degree?: string, year?: string}>>().default([]),
+  achievements: text("achievements").array().default([]),
+  interests: text("interests").array().default([]),
   googleId: varchar("google_id"),
   provider: varchar("provider").default("local"), // local, google, facebook, apple
   role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
@@ -432,6 +439,7 @@ export const coaches = pgTable("coaches", {
   email: varchar("email").unique().notNull(),
   phone: varchar("phone"),
   profileImage: text("profile_image"),
+  coverPhotoUrl: text("cover_photo_url"),
   bio: text("bio"),
   specialties: jsonb("specialties").$type<string[]>().default([]),
   experience: integer("experience"), // years of experience
@@ -440,6 +448,10 @@ export const coaches = pgTable("coaches", {
   hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }),
   timezone: varchar("timezone"),
   languages: jsonb("languages").$type<string[]>().default([]),
+  location: varchar("location"),
+  website: varchar("website"),
+  socialLinks: jsonb("social_links").$type<{instagram?: string, linkedin?: string, twitter?: string, facebook?: string}>().default({}),
+  clientCount: integer("client_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
