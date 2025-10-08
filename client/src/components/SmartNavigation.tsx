@@ -86,6 +86,7 @@ const dropdownCategories = [
   {
     title: "Connect & Support",
     items: [
+      { href: "/events", label: "Coming Events", icon: "📆" },
       { href: "/wix-booking", label: "Book Appointment", icon: "📅" },
       { href: "/contact", label: "Contact", icon: "💬" },
       { href: "/about", label: "About", icon: "ℹ️" }

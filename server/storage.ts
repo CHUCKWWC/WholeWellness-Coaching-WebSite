@@ -98,6 +98,15 @@ export interface IStorage {
   getChatMessage(id: string): Promise<ChatMessage | undefined>;
   getChatMessagesBySessionId(sessionId: string): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+
+  // Events
+  getEvent(id: string): Promise<any>;
+  getAllEvents(): Promise<any[]>;
+  createEvent(event: any): Promise<any>;
+  updateEventParticipantCount(eventId: string, count: number): Promise<void>;
+  getEventRegistrationByUserAndEvent(userId: string, eventId: string): Promise<any>;
+  createEventRegistration(registration: any): Promise<any>;
+  getUserEventRegistrations(userId: string): Promise<any[]>;
 }
 
 export class MemoryStorage implements IStorage {

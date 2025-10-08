@@ -26,7 +26,9 @@ import {
   insertCoachClientSchema,
   insertCoachSessionNotesSchema,
   insertCoachMessageTemplateSchema,
-  insertCoachClientCommunicationSchema
+  insertCoachClientCommunicationSchema,
+  insertEventSchema,
+  insertEventRegistrationSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
@@ -4770,6 +4772,127 @@ When to refer to licensed therapists and emergency resources for relationship cr
     } catch (error) {
       console.error("Error searching course files:", error);
       res.status(500).json({ message: "Failed to search course files in Google Drive" });
+    }
+  });
+
+  // ============================================
+  // EVENTS & WEBINARS API ROUTES
+  // ============================================
+  
+  // Get all upcoming events
+  app.get("/api/events", optionalAuth as any, async (req: any, res) => {
+    try {
+      const events = await storage.getAllEvents();
+      // Only show public events to non-authenticated users
+      const filteredEvents = req.user 
+        ? events 
+        : events.filter(e => e.isPublic);
+      res.json(filteredEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+
+  // Get single event
+  app.get("/api/events/:id", optionalAuth as any, async (req: any, res) => {
+    try {
+      const event = await storage.getEvent(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      // Check if user can access this event
+      if (!event.isPublic && !req.user) {
+        return res.status(403).json({ message: "This event is for members only" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(500).json({ message: "Failed to fetch event" });
+    }
+  });
+
+  // Create event (coaches and admins only)
+  app.post("/api/events", requireAuth as any, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (user.role !== 'coach' && user.role !== 'admin' && user.role !== 'super_admin') {
+        return res.status(403).json({ message: "Only coaches and admins can create events" });
+      }
+
+      // Validate request body
+      const validatedData = insertEventSchema.parse({
+        ...req.body,
+        coachId: user.id,
+        coachName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+      });
+
+      const event = await storage.createEvent(validatedData);
+      res.status(201).json(event);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Error creating event:", error);
+      res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+
+  // Register for event
+  app.post("/api/events/:id/register", requireAuth as any, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const eventId = req.params.id;
+      
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check if already registered
+      const existingRegistration = await storage.getEventRegistrationByUserAndEvent(user.id, eventId);
+      if (existingRegistration) {
+        return res.status(400).json({ message: "You are already registered for this event" });
+      }
+
+      // Check if event is full
+      if (event.maxParticipants && event.currentParticipants >= event.maxParticipants) {
+        return res.status(400).json({ message: "This event is full" });
+      }
+
+      // Validate registration data
+      const validatedRegistration = insertEventRegistrationSchema.parse({
+        eventId,
+        userId: user.id,
+        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+        userEmail: user.email,
+        paymentStatus: event.isPaid ? 'pending' : 'completed',
+        amountPaid: event.isPaid ? event.price : '0'
+      });
+
+      const registration = await storage.createEventRegistration(validatedRegistration);
+
+      // Update participant count
+      await storage.updateEventParticipantCount(eventId, event.currentParticipants + 1);
+
+      res.status(201).json(registration);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid registration data", errors: error.errors });
+      }
+      console.error("Error registering for event:", error);
+      res.status(500).json({ message: "Failed to register for event" });
+    }
+  });
+
+  // Get user's event registrations
+  app.get("/api/events/user/registrations", requireAuth as any, async (req: any, res) => {
+    try {
+      const registrations = await storage.getUserEventRegistrations(req.user.id);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching registrations:", error);
+      res.status(500).json({ message: "Failed to fetch registrations" });
     }
   });
 

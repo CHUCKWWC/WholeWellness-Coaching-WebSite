@@ -1579,6 +1579,103 @@ export const adminLoginSchema = z.object({
 export type AdminLoginData = z.infer<typeof adminLoginSchema>;
 
 // ============================================
+// EVENTS & WEBINAR SYSTEM
+// ============================================
+
+// Events table for upcoming coaching sessions, workshops, webinars, and live streams
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  eventType: varchar("event_type").notNull(), // "webinar", "workshop", "group_coaching", "live_stream", "certification"
+  coachId: varchar("coach_id").references(() => users.id),
+  coachName: varchar("coach_name"), // Denormalized for performance
+  imageUrl: varchar("image_url"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  timezone: varchar("timezone").default("America/New_York"),
+  maxParticipants: integer("max_participants"), // null = unlimited
+  currentParticipants: integer("current_participants").default(0),
+  price: decimal("price").default("0"), // 0 = free
+  currency: varchar("currency").default("USD"),
+  isPublic: boolean("is_public").default(true), // false = members only
+  isPaid: boolean("is_paid").default(false),
+  streamUrl: varchar("stream_url"), // Live stream URL (YouTube, 100ms, etc.)
+  streamProvider: varchar("stream_provider"), // "youtube", "100ms", "agora", "google_meet"
+  meetingLink: varchar("meeting_link"), // Google Meet or Zoom link
+  recordingUrl: varchar("recording_url"), // For replay after event
+  status: varchar("status").default("upcoming"), // "upcoming", "live", "completed", "cancelled"
+  tags: text("tags").array(), // ["wellness", "weight-loss", "mindfulness"]
+  category: varchar("category"), // "health", "relationships", "career", "mindfulness"
+  learningObjectives: text("learning_objectives").array(),
+  materials: jsonb("materials"), // Links to resources, worksheets
+  isFeatured: boolean("is_featured").default(false),
+  registrationDeadline: timestamp("registration_deadline"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Event registrations/RSVPs
+export const eventRegistrations = pgTable("event_registrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  userName: varchar("user_name"), // Denormalized
+  userEmail: varchar("user_email"), // Denormalized
+  registeredAt: timestamp("registered_at").defaultNow(),
+  attended: boolean("attended").default(false),
+  paymentStatus: varchar("payment_status").default("pending"), // "pending", "completed", "refunded"
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  amountPaid: decimal("amount_paid").default("0"),
+  notes: text("notes"),
+  reminderSent: boolean("reminder_sent").default(false),
+  certificateIssued: boolean("certificate_issued").default(false),
+  rating: integer("rating"), // 1-5 stars
+  feedback: text("feedback"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  coach: one(users, {
+    fields: [events.coachId],
+    references: [users.id],
+  }),
+  registrations: many(eventRegistrations),
+}));
+
+export const eventRegistrationsRelations = relations(eventRegistrations, ({ one }) => ({
+  event: one(events, {
+    fields: [eventRegistrations.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [eventRegistrations.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  currentParticipants: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventRegistrationSchema = createInsertSchema(eventRegistrations).omit({
+  id: true,
+  registeredAt: true,
+  createdAt: true,
+});
+
+// Types
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type EventRegistration = typeof eventRegistrations.$inferSelect;
+export type InsertEventRegistration = z.infer<typeof insertEventRegistrationSchema>;
+
+// ============================================
 // MULTI-ASSESSMENT SYSTEM TABLES
 // ============================================
 
