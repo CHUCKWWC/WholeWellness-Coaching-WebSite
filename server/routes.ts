@@ -2866,6 +2866,145 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // User Profile Routes
+  
+  // Get current user profile
+  app.get("/api/user/profile", requireAuth as any, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+      
+      // Exclude sensitive data
+      const { passwordHash, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get public user profile by ID
+  app.get("/api/user/profile/:userId", optionalAuth as any, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Return public profile data only
+      const publicProfile = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        coverPhotoUrl: user.coverPhotoUrl,
+        bio: user.bio,
+        location: user.location,
+        website: user.website,
+        socialLinks: user.socialLinks,
+        educationHistory: user.educationHistory,
+        achievements: user.achievements,
+        interests: user.interests,
+        membershipLevel: user.membershipLevel,
+        joinDate: user.joinDate
+      };
+      
+      res.json(publicProfile);
+    } catch (error) {
+      console.error("Error fetching public user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update user profile
+  app.patch("/api/user/profile", requireAuth as any, async (req: any, res) => {
+    try {
+      const allowedUpdates = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        profileImageUrl: req.body.profileImageUrl,
+        coverPhotoUrl: req.body.coverPhotoUrl,
+        bio: req.body.bio,
+        location: req.body.location,
+        website: req.body.website,
+        socialLinks: req.body.socialLinks,
+        educationHistory: req.body.educationHistory,
+        achievements: req.body.achievements,
+        interests: req.body.interests
+      };
+      
+      // Remove undefined values
+      const updates = Object.fromEntries(
+        Object.entries(allowedUpdates).filter(([_, v]) => v !== undefined)
+      );
+      
+      const updatedUser = await storage.updateUser(req.user.id, updates);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Exclude sensitive data
+      const { passwordHash, ...userProfile } = updatedUser;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get public coach profile by coach ID
+  app.get("/api/coach/profile/:coachId", optionalAuth as any, async (req: any, res) => {
+    try {
+      const { coachId } = req.params;
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      
+      // Get coach credentials for display
+      const credentials = await coachStorage.getCoachCredentials(coach.id);
+      
+      // Return public coach profile
+      const publicProfile = {
+        id: coach.id,
+        coachId: coach.coachId,
+        firstName: coach.firstName,
+        lastName: coach.lastName,
+        profileImage: coach.profileImage,
+        coverPhotoUrl: coach.coverPhotoUrl,
+        bio: coach.bio,
+        specialties: coach.specialties,
+        experience: coach.experience,
+        isVerified: coach.isVerified,
+        hourlyRate: coach.hourlyRate,
+        timezone: coach.timezone,
+        languages: coach.languages,
+        location: coach.location,
+        website: coach.website,
+        socialLinks: coach.socialLinks,
+        clientCount: coach.clientCount,
+        credentials: credentials.map(c => ({
+          title: c.title,
+          issuingOrganization: c.issuingOrganization,
+          issueDate: c.issueDate,
+          credentialType: c.credentialType,
+          verificationStatus: c.verificationStatus
+        }))
+      };
+      
+      res.json(publicProfile);
+    } catch (error) {
+      console.error("Error fetching public coach profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Google OAuth Routes - Updated for secure browser compliance
   app.get('/auth/google', (req, res, next) => {
     // Use the correct Replit domain for OAuth
