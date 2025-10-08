@@ -1802,3 +1802,152 @@ export type InsertCoachInteraction = z.infer<typeof insertCoachInteractionSchema
 
 export type AssessmentForm = typeof assessmentForms.$inferSelect;
 export type InsertAssessmentForm = z.infer<typeof insertAssessmentFormSchema>;
+
+// ============================================
+// VIDEO CONFERENCING & SESSION SYSTEM
+// ============================================
+
+// Video sessions for 1-on-1 coaching and workshops
+export const videoSessions = pgTable("video_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: integer("booking_id").references(() => bookings.id), // Links to booking if from booking system
+  coachId: varchar("coach_id").notNull().references(() => users.id),
+  sessionType: varchar("session_type").notNull(), // "one-on-one", "workshop", "group"
+  title: varchar("title").notNull(),
+  description: text("description"),
+  roomId: varchar("room_id").unique().notNull(), // 100ms room ID
+  roomCode: varchar("room_code").unique(), // Easy join code for participants
+  status: varchar("status").default("scheduled"), // scheduled, in_progress, completed, cancelled
+  scheduledStartTime: timestamp("scheduled_start_time").notNull(),
+  scheduledEndTime: timestamp("scheduled_end_time").notNull(),
+  actualStartTime: timestamp("actual_start_time"),
+  actualEndTime: timestamp("actual_end_time"),
+  maxParticipants: integer("max_participants").default(1), // 1 for 1-on-1, higher for workshops
+  recordingEnabled: boolean("recording_enabled").default(true),
+  recordingUrl: varchar("recording_url"),
+  transcriptEnabled: boolean("transcript_enabled").default(true),
+  aiSummaryEnabled: boolean("ai_summary_enabled").default(true),
+  metadata: jsonb("metadata"), // Additional session data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Session participants (clients/members in the session)
+export const sessionParticipants = pgTable("session_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => videoSessions.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  role: varchar("role").default("participant"), // participant, moderator, presenter
+  joinedAt: timestamp("joined_at"),
+  leftAt: timestamp("left_at"),
+  duration: integer("duration"), // Time spent in minutes
+  isActive: boolean("is_active").default(true),
+  authToken: varchar("auth_token"), // 100ms auth token for joining
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Session transcripts
+export const sessionTranscripts = pgTable("session_transcripts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => videoSessions.id),
+  transcript: text("transcript").notNull(), // Full transcript text
+  speakerSegments: jsonb("speaker_segments"), // Transcript with speaker identification
+  aiSummary: text("ai_summary"), // AI-generated summary
+  keyPoints: text("key_points").array(), // Extracted key points
+  actionItems: jsonb("action_items"), // Identified action items
+  sentToCoach: boolean("sent_to_coach").default(false),
+  sentToParticipants: boolean("sent_to_participants").default(false),
+  generatedAt: timestamp("generated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Workshop-specific details
+export const workshopDetails = pgTable("workshop_details", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => videoSessions.id),
+  topic: varchar("topic").notNull(),
+  agenda: jsonb("agenda"), // Workshop agenda items
+  materials: jsonb("materials"), // Links to workshop materials
+  pollResults: jsonb("poll_results"), // Interactive poll results
+  chatLog: jsonb("chat_log"), // Workshop chat messages
+  breakoutRooms: jsonb("breakout_rooms"), // Breakout room configuration
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Relations for video session system
+export const videoSessionsRelations = relations(videoSessions, ({ one, many }) => ({
+  booking: one(bookings, {
+    fields: [videoSessions.bookingId],
+    references: [bookings.id],
+  }),
+  coach: one(users, {
+    fields: [videoSessions.coachId],
+    references: [users.id],
+  }),
+  participants: many(sessionParticipants),
+  transcripts: many(sessionTranscripts),
+  workshopDetails: one(workshopDetails),
+}));
+
+export const sessionParticipantsRelations = relations(sessionParticipants, ({ one }) => ({
+  session: one(videoSessions, {
+    fields: [sessionParticipants.sessionId],
+    references: [videoSessions.id],
+  }),
+  user: one(users, {
+    fields: [sessionParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const sessionTranscriptsRelations = relations(sessionTranscripts, ({ one }) => ({
+  session: one(videoSessions, {
+    fields: [sessionTranscripts.sessionId],
+    references: [videoSessions.id],
+  }),
+}));
+
+export const workshopDetailsRelations = relations(workshopDetails, ({ one }) => ({
+  session: one(videoSessions, {
+    fields: [workshopDetails.sessionId],
+    references: [videoSessions.id],
+  }),
+}));
+
+// Insert schemas for video session system
+export const insertVideoSessionSchema = createInsertSchema(videoSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSessionParticipantSchema = createInsertSchema(sessionParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSessionTranscriptSchema = createInsertSchema(sessionTranscripts).omit({
+  id: true,
+  generatedAt: true,
+  createdAt: true,
+});
+
+export const insertWorkshopDetailsSchema = createInsertSchema(workshopDetails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for video session system
+export type VideoSession = typeof videoSessions.$inferSelect;
+export type InsertVideoSession = z.infer<typeof insertVideoSessionSchema>;
+
+export type SessionParticipant = typeof sessionParticipants.$inferSelect;
+export type InsertSessionParticipant = z.infer<typeof insertSessionParticipantSchema>;
+
+export type SessionTranscript = typeof sessionTranscripts.$inferSelect;
+export type InsertSessionTranscript = z.infer<typeof insertSessionTranscriptSchema>;
+
+export type WorkshopDetails = typeof workshopDetails.$inferSelect;
+export type InsertWorkshopDetails = z.infer<typeof insertWorkshopDetailsSchema>;
