@@ -79,6 +79,8 @@ const AdminCertifications = lazy(() => import("@/pages/AdminCertifications"));
 const AdminTestPayment = lazy(() => import("@/pages/AdminTestPayment"));
 const CustomOnboarding = lazy(() => import("@/pages/CustomOnboarding"));
 const ComingEvents = lazy(() => import("@/pages/ComingEvents"));
+const CoachProfileView = lazy(() => import("@/pages/CoachProfileView"));
+const UserProfileView = lazy(() => import("@/pages/UserProfileView"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -158,6 +160,8 @@ function Router() {
           <Route path="/coach-signup" component={(props) => <LazyRoute component={CoachSignup} loadingText="Loading coach registration..." {...props} />} />
           <Route path="/coach-login" component={(props) => <LazyRoute component={CoachLogin} loadingText="Loading coach login..." {...props} />} />
           <Route path="/coach-profile" component={(props) => <LazyRoute component={CoachProfile} loadingText="Loading coach profile..." {...props} />} />
+          <Route path="/coach/:coachId" component={(props) => <LazyRoute component={CoachProfileView} loadingText="Loading coach profile..." {...props} />} />
+          <Route path="/user/:userId" component={(props) => <LazyRoute component={UserProfileView} loadingText="Loading user profile..." {...props} />} />
           <Route path="/checkout" component={(props) => <LazyRoute component={Checkout} loadingText="Securing payment..." {...props} />} />
           <Route path="/payment-success" component={(props) => <LazyRoute component={PaymentSuccess} loadingText="Confirming payment..." {...props} />} />
           <Route path="/subscribe" component={(props) => <LazyRoute component={Subscribe} loadingText="Setting up subscription..." {...props} />} />
