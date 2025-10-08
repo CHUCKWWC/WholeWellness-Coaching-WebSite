@@ -59,6 +59,14 @@ export default function CoachProfileView() {
 
   const { data: profile, isLoading } = useQuery<CoachProfile>({
     queryKey: ['/api/coach/profile', coachId],
+    queryFn: async () => {
+      const response = await fetch(`/api/coach/profile/${coachId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch coach profile');
+      }
+      return response.json();
+    },
+    enabled: !!coachId,
   });
 
   if (isLoading) {

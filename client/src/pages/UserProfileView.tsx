@@ -54,6 +54,14 @@ export default function UserProfileView() {
 
   const { data: profile, isLoading } = useQuery<UserProfile>({
     queryKey: ['/api/user/profile', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user/profile/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      return response.json();
+    },
+    enabled: !!userId,
   });
 
   if (isLoading) {

@@ -7,6 +7,14 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+**October 8, 2025**: Implemented social-style profile pages for coaches and members:
+- Created CoachProfileView and UserProfileView components with Facebook-inspired layouts adapted to platform's teal aesthetic
+- Added public profile routes `/coach/:coachId` and `/user/:userId` with lazy loading
+- Integrated with existing backend API endpoints for profile data (GET /api/coach/profile/:coachId and GET /api/user/profile/:userId)
+- Profile features include: cover photos, profile images, bio, social links (Instagram, LinkedIn, Twitter, Facebook), certifications, achievements, specialties
+- Implemented responsive layouts with Cards, Badges, and Skeleton loading states
+- Added role-based UI (own profile shows edit buttons, others show message/book buttons)
+
 **August 1, 2025**: Resolved 403 Forbidden asset loading errors for production deployment:
 - Updated CORS configuration to include production domains (wellness-central-charleswatson6.replit.app, wholewellnesscoaching.org)
 - Enhanced Content Security Policy to allow assets from production domains
@@ -32,10 +40,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Features
 - **AI Coaching System**: Features 6 specialized AI coaches (Charlene - Mindfulness, Lisa - Behavior, Dasha - Wellness, Charles - Relationship, Bobby - Mental Health, Aria - Weight Loss) fully integrated with OpenAI Assistants API for persistent conversations. Each coach has a unique assistant ID and customizable tone/persona (supportive, motivational, analytical, gentle). Assistant responses are now working correctly with text format and thread persistence.
-- **Professional Coach Management**: Supports coach onboarding, profile management, scheduling, client assignment, progress tracking, and Google Meet integration for sessions.
+- **Professional Coach Management**: Supports coach onboarding, profile management, scheduling, client assignment, progress tracking, and Google Meet integration for sessions. Features social-style public profile pages for coaches displaying certifications, specialties, bio, and social links.
 - **Donation & Membership System**: Integrates Stripe for donation processing, manages membership tiers, and includes a points-based reward system and campaign management.
 - **Admin Dashboard**: Provides role-based access for admins, super admins, and coaches with analytics, user management, and dynamic content updates.
-- **Member Portal**: Offers secure registration, automated onboarding, specialty selection, session booking, progress tracking, and a resource library.
+- **Member Portal**: Offers secure registration, automated onboarding, specialty selection, session booking, progress tracking, and a resource library. Includes social-style public profile pages displaying member achievements, wellness journey, and personal background.
 - **Multi-assessment System**: Implements comprehensive assessment types (e.g., weight loss, attachment style, mental health screening) with database architecture and API.
 - **Certification System**: Manages coach certification courses, enrollment, progress tracking, and certificate issuance, including integration with Google Drive for course content.
 - **Wellness Journey Recommender**: An AI-powered system for personalized wellness journeys, goal tracking, and progress monitoring.
