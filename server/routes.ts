@@ -130,6 +130,7 @@ import { setupGoogleAuth, generateGoogleAuthToken } from "./google-auth";
 import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./google-drive-service";
 import { googleDriveDemoService } from "./google-drive-demo";
 import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
+import videoRoutes from "./video-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -3576,6 +3577,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Onboarding routes handled by registerOnboardingRoutes() at end of file
   app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);
+  app.use('/api/video', videoRoutes);
   
   // Setup coupon routes
   setupCouponRoutes(app);

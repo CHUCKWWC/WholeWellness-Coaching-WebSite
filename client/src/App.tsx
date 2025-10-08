@@ -81,6 +81,8 @@ const CustomOnboarding = lazy(() => import("@/pages/CustomOnboarding"));
 const ComingEvents = lazy(() => import("@/pages/ComingEvents"));
 const CoachProfileView = lazy(() => import("@/pages/CoachProfileView"));
 const UserProfileView = lazy(() => import("@/pages/UserProfileView"));
+const VideoSession = lazy(() => import("@/pages/VideoSession"));
+const SessionJoin = lazy(() => import("@/pages/SessionJoin"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -199,6 +201,8 @@ function Router() {
           <Route path="/wellness-journey" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Creating your wellness journey..." {...props} />} />
           <Route path="/admin/test-payment" component={(props) => <LazyRoute component={AdminTestPayment} loadingText="Loading payment test..." {...props} />} />
           <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
+          <Route path="/session/:sessionId/join" component={(props) => <LazyRoute component={SessionJoin} loadingText="Preparing session..." {...props} />} />
+          <Route path="/session/:sessionId" component={(props) => <LazyRoute component={VideoSession} loadingText="Connecting..." {...props} />} />
           <Route component={NotFound} />
         </Switch>
       </main>
