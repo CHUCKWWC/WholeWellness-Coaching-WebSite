@@ -3106,6 +3106,10 @@ __export(schema_exports, {
   donations: () => donations,
   donationsRelations: () => donationsRelations,
   emergencyContacts: () => emergencyContacts,
+  eventRegistrations: () => eventRegistrations,
+  eventRegistrationsRelations: () => eventRegistrationsRelations,
+  events: () => events,
+  eventsRelations: () => eventsRelations,
   impactMetrics: () => impactMetrics,
   insertAdminActivityLogSchema: () => insertAdminActivityLogSchema,
   insertAdminSessionSchema: () => insertAdminSessionSchema,
@@ -3127,6 +3131,8 @@ __export(schema_exports, {
   insertContentPageSchema: () => insertContentPageSchema,
   insertDonationSchema: () => insertDonationSchema,
   insertEmergencyContactSchema: () => insertEmergencyContactSchema,
+  insertEventRegistrationSchema: () => insertEventRegistrationSchema,
+  insertEventSchema: () => insertEventSchema,
   insertKnowledgeBaseCategorySchema: () => insertKnowledgeBaseCategorySchema,
   insertKnowledgeBaseFeedbackSchema: () => insertKnowledgeBaseFeedbackSchema,
   insertKnowledgeBaseSchema: () => insertKnowledgeBaseSchema,
@@ -3140,12 +3146,16 @@ __export(schema_exports, {
   insertResourceUsageAnalyticsSchema: () => insertResourceUsageAnalyticsSchema,
   insertRewardTransactionSchema: () => insertRewardTransactionSchema,
   insertRolePermissionSchema: () => insertRolePermissionSchema,
+  insertSessionParticipantSchema: () => insertSessionParticipantSchema,
+  insertSessionTranscriptSchema: () => insertSessionTranscriptSchema,
   insertSiteSettingSchema: () => insertSiteSettingSchema,
   insertTestimonialSchema: () => insertTestimonialSchema,
   insertUserAssessmentSchema: () => insertUserAssessmentSchema,
   insertUserSchema: () => insertUserSchema,
+  insertVideoSessionSchema: () => insertVideoSessionSchema,
   insertWeightLossIntakeSchema: () => insertWeightLossIntakeSchema,
   insertWellnessAssessmentSchema: () => insertWellnessAssessmentSchema,
+  insertWorkshopDetailsSchema: () => insertWorkshopDetailsSchema,
   journeyAdaptations: () => journeyAdaptations,
   journeyMilestones: () => journeyMilestones,
   journeyPhases: () => journeyPhases,
@@ -3176,6 +3186,10 @@ __export(schema_exports, {
   resources: () => resources,
   rewardTransactions: () => rewardTransactions,
   rolePermissions: () => rolePermissions,
+  sessionParticipants: () => sessionParticipants,
+  sessionParticipantsRelations: () => sessionParticipantsRelations,
+  sessionTranscripts: () => sessionTranscripts,
+  sessionTranscriptsRelations: () => sessionTranscriptsRelations,
   sessions: () => sessions,
   siteSettings: () => siteSettings2,
   testimonials: () => testimonials,
@@ -3184,11 +3198,15 @@ __export(schema_exports, {
   userPreferences: () => userPreferences,
   users: () => users,
   usersRelations: () => usersRelations,
+  videoSessions: () => videoSessions,
+  videoSessionsRelations: () => videoSessionsRelations,
   weightLossIntakes: () => weightLossIntakes,
   wellnessAssessments: () => wellnessAssessments,
   wellnessGoals: () => wellnessGoals,
   wellnessJourneys: () => wellnessJourneys,
-  wellnessRecommendations: () => wellnessRecommendations
+  wellnessRecommendations: () => wellnessRecommendations,
+  workshopDetails: () => workshopDetails,
+  workshopDetailsRelations: () => workshopDetailsRelations
 });
 import {
   pgTable,
@@ -3216,8 +3234,9 @@ var users = pgTable("users", {
   donationTotal: decimal("donation_total").default("0"),
   rewardPoints: integer("reward_points").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  stripePurchaseId: varchar("stripe_purchase_id"),
   profileImageUrl: varchar("profile_image_url"),
+  coverPhotoUrl: varchar("cover_photo_url"),
   bio: text("bio"),
   // 200 char max enforced in validation
   rating: integer("rating").default(0),
@@ -3226,6 +3245,12 @@ var users = pgTable("users", {
   keywords: text("keywords").array(),
   // max 5 keywords, 20 chars each
   preferredCoach: varchar("preferred_coach"),
+  location: varchar("location"),
+  website: varchar("website"),
+  socialLinks: jsonb("social_links").$type().default({}),
+  educationHistory: jsonb("education_history").$type().default([]),
+  achievements: text("achievements").array().default([]),
+  interests: text("interests").array().default([]),
   googleId: varchar("google_id"),
   provider: varchar("provider").default("local"),
   // local, google, facebook, apple
@@ -3234,6 +3259,7 @@ var users = pgTable("users", {
   permissions: jsonb("permissions"),
   // JSON array of permission strings
   isActive: boolean("is_active").default(true),
+  hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
   joinDate: timestamp("join_date").defaultNow(),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3422,10 +3448,21 @@ var bookings = pgTable("bookings", {
   phone: text("phone"),
   coachingArea: text("coaching_area").notNull(),
   message: text("message"),
+  serviceType: text("service_type").default("consultation"),
+  // consultation, individual, intensive
+  preferredDate: text("preferred_date"),
+  // ISO string
+  preferredTime: text("preferred_time"),
+  // HH:MM format
   status: text("status").default("pending"),
   // pending, confirmed, completed, cancelled
   scheduledDate: timestamp("scheduled_date"),
-  createdAt: timestamp("created_at").defaultNow()
+  confirmationSent: boolean("confirmation_sent").default(false),
+  meetingUrl: text("meeting_url"),
+  // Video call link
+  reminderSent: boolean("reminder_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 var programs = pgTable("programs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -3642,6 +3679,7 @@ var coaches = pgTable("coaches", {
   email: varchar("email").unique().notNull(),
   phone: varchar("phone"),
   profileImage: text("profile_image"),
+  coverPhotoUrl: text("cover_photo_url"),
   bio: text("bio"),
   specialties: jsonb("specialties").$type().default([]),
   experience: integer("experience"),
@@ -3652,6 +3690,10 @@ var coaches = pgTable("coaches", {
   hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }),
   timezone: varchar("timezone"),
   languages: jsonb("languages").$type().default([]),
+  location: varchar("location"),
+  website: varchar("website"),
+  socialLinks: jsonb("social_links").$type().default({}),
+  clientCount: integer("client_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -4699,6 +4741,100 @@ var adminLoginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   rememberMe: z.boolean().optional().default(false)
 });
+var events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  eventType: varchar("event_type").notNull(),
+  // "webinar", "workshop", "group_coaching", "live_stream", "certification"
+  coachId: varchar("coach_id").references(() => users.id),
+  coachName: varchar("coach_name"),
+  // Denormalized for performance
+  imageUrl: varchar("image_url"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  timezone: varchar("timezone").default("America/New_York"),
+  maxParticipants: integer("max_participants"),
+  // null = unlimited
+  currentParticipants: integer("current_participants").default(0),
+  price: decimal("price").default("0"),
+  // 0 = free
+  currency: varchar("currency").default("USD"),
+  isPublic: boolean("is_public").default(true),
+  // false = members only
+  isPaid: boolean("is_paid").default(false),
+  streamUrl: varchar("stream_url"),
+  // Live stream URL (YouTube, 100ms, etc.)
+  streamProvider: varchar("stream_provider"),
+  // "youtube", "100ms", "agora", "google_meet"
+  meetingLink: varchar("meeting_link"),
+  // Google Meet or Zoom link
+  recordingUrl: varchar("recording_url"),
+  // For replay after event
+  status: varchar("status").default("upcoming"),
+  // "upcoming", "live", "completed", "cancelled"
+  tags: text("tags").array(),
+  // ["wellness", "weight-loss", "mindfulness"]
+  category: varchar("category"),
+  // "health", "relationships", "career", "mindfulness"
+  learningObjectives: text("learning_objectives").array(),
+  materials: jsonb("materials"),
+  // Links to resources, worksheets
+  isFeatured: boolean("is_featured").default(false),
+  registrationDeadline: timestamp("registration_deadline"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var eventRegistrations = pgTable("event_registrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  userName: varchar("user_name"),
+  // Denormalized
+  userEmail: varchar("user_email"),
+  // Denormalized
+  registeredAt: timestamp("registered_at").defaultNow(),
+  attended: boolean("attended").default(false),
+  paymentStatus: varchar("payment_status").default("pending"),
+  // "pending", "completed", "refunded"
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  amountPaid: decimal("amount_paid").default("0"),
+  notes: text("notes"),
+  reminderSent: boolean("reminder_sent").default(false),
+  certificateIssued: boolean("certificate_issued").default(false),
+  rating: integer("rating"),
+  // 1-5 stars
+  feedback: text("feedback"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var eventsRelations = relations(events, ({ one, many }) => ({
+  coach: one(users, {
+    fields: [events.coachId],
+    references: [users.id]
+  }),
+  registrations: many(eventRegistrations)
+}));
+var eventRegistrationsRelations = relations(eventRegistrations, ({ one }) => ({
+  event: one(events, {
+    fields: [eventRegistrations.eventId],
+    references: [events.id]
+  }),
+  user: one(users, {
+    fields: [eventRegistrations.userId],
+    references: [users.id]
+  })
+}));
+var insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  currentParticipants: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertEventRegistrationSchema = createInsertSchema(eventRegistrations).omit({
+  id: true,
+  registeredAt: true,
+  createdAt: true
+});
 var assessmentTypes = pgTable("assessment_types", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
@@ -4792,6 +4928,140 @@ var insertCoachInteractionSchema = createInsertSchema(coachInteractions).omit({
 var insertAssessmentFormSchema = createInsertSchema(assessmentForms).omit({
   id: true,
   createdAt: true
+});
+var videoSessions = pgTable("video_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  // Links to booking if from booking system
+  coachId: varchar("coach_id").notNull().references(() => users.id),
+  sessionType: varchar("session_type").notNull(),
+  // "one-on-one", "workshop", "group"
+  title: varchar("title").notNull(),
+  description: text("description"),
+  roomId: varchar("room_id").unique().notNull(),
+  // 100ms room ID
+  roomCode: varchar("room_code").unique(),
+  // Easy join code for participants
+  status: varchar("status").default("scheduled"),
+  // scheduled, in_progress, completed, cancelled
+  scheduledStartTime: timestamp("scheduled_start_time").notNull(),
+  scheduledEndTime: timestamp("scheduled_end_time").notNull(),
+  actualStartTime: timestamp("actual_start_time"),
+  actualEndTime: timestamp("actual_end_time"),
+  maxParticipants: integer("max_participants").default(1),
+  // 1 for 1-on-1, higher for workshops
+  recordingEnabled: boolean("recording_enabled").default(true),
+  recordingUrl: varchar("recording_url"),
+  transcriptEnabled: boolean("transcript_enabled").default(true),
+  aiSummaryEnabled: boolean("ai_summary_enabled").default(true),
+  metadata: jsonb("metadata"),
+  // Additional session data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var sessionParticipants = pgTable("session_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => videoSessions.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  role: varchar("role").default("participant"),
+  // participant, moderator, presenter
+  joinedAt: timestamp("joined_at"),
+  leftAt: timestamp("left_at"),
+  duration: integer("duration"),
+  // Time spent in minutes
+  isActive: boolean("is_active").default(true),
+  authToken: varchar("auth_token"),
+  // 100ms auth token for joining
+  createdAt: timestamp("created_at").defaultNow()
+});
+var sessionTranscripts = pgTable("session_transcripts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => videoSessions.id),
+  transcript: text("transcript").notNull(),
+  // Full transcript text
+  speakerSegments: jsonb("speaker_segments"),
+  // Transcript with speaker identification
+  aiSummary: text("ai_summary"),
+  // AI-generated summary
+  keyPoints: text("key_points").array(),
+  // Extracted key points
+  actionItems: jsonb("action_items"),
+  // Identified action items
+  sentToCoach: boolean("sent_to_coach").default(false),
+  sentToParticipants: boolean("sent_to_participants").default(false),
+  generatedAt: timestamp("generated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var workshopDetails = pgTable("workshop_details", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => videoSessions.id),
+  topic: varchar("topic").notNull(),
+  agenda: jsonb("agenda"),
+  // Workshop agenda items
+  materials: jsonb("materials"),
+  // Links to workshop materials
+  pollResults: jsonb("poll_results"),
+  // Interactive poll results
+  chatLog: jsonb("chat_log"),
+  // Workshop chat messages
+  breakoutRooms: jsonb("breakout_rooms"),
+  // Breakout room configuration
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var videoSessionsRelations = relations(videoSessions, ({ one, many }) => ({
+  booking: one(bookings, {
+    fields: [videoSessions.bookingId],
+    references: [bookings.id]
+  }),
+  coach: one(users, {
+    fields: [videoSessions.coachId],
+    references: [users.id]
+  }),
+  participants: many(sessionParticipants),
+  transcripts: many(sessionTranscripts),
+  workshopDetails: one(workshopDetails)
+}));
+var sessionParticipantsRelations = relations(sessionParticipants, ({ one }) => ({
+  session: one(videoSessions, {
+    fields: [sessionParticipants.sessionId],
+    references: [videoSessions.id]
+  }),
+  user: one(users, {
+    fields: [sessionParticipants.userId],
+    references: [users.id]
+  })
+}));
+var sessionTranscriptsRelations = relations(sessionTranscripts, ({ one }) => ({
+  session: one(videoSessions, {
+    fields: [sessionTranscripts.sessionId],
+    references: [videoSessions.id]
+  })
+}));
+var workshopDetailsRelations = relations(workshopDetails, ({ one }) => ({
+  session: one(videoSessions, {
+    fields: [workshopDetails.sessionId],
+    references: [videoSessions.id]
+  })
+}));
+var insertVideoSessionSchema = createInsertSchema(videoSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertSessionParticipantSchema = createInsertSchema(sessionParticipants).omit({
+  id: true,
+  createdAt: true
+});
+var insertSessionTranscriptSchema = createInsertSchema(sessionTranscripts).omit({
+  id: true,
+  generatedAt: true,
+  createdAt: true
+});
+var insertWorkshopDetailsSchema = createInsertSchema(workshopDetails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
 });
 
 // server/routes.ts
@@ -12587,8 +12857,518 @@ function registerWellnessJourneyRoutes(app2) {
   });
 }
 
+// server/video-routes.ts
+import { Router as Router7 } from "express";
+import { eq as eq3 } from "drizzle-orm";
+
+// server/video-service.ts
+import { SDK } from "@100mslive/server-sdk";
+var HMS_ACCESS_KEY = process.env.HMS_ACCESS_KEY || "";
+var HMS_SECRET = process.env.HMS_SECRET || "";
+var hmsClient = null;
+function initialize100ms() {
+  if (!HMS_ACCESS_KEY || !HMS_SECRET) {
+    console.warn("100ms credentials not configured. Video sessions will not work until HMS_ACCESS_KEY and HMS_SECRET are set.");
+    return null;
+  }
+  try {
+    hmsClient = new SDK(HMS_ACCESS_KEY, HMS_SECRET);
+    console.log("100ms SDK initialized successfully");
+    return hmsClient;
+  } catch (error) {
+    console.error("Failed to initialize 100ms SDK:", error);
+    return null;
+  }
+}
+async function createRoom(sessionId, options) {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
+  }
+  try {
+    const room = await hmsClient.rooms.create({
+      name: options.name,
+      description: options.description,
+      recording_info: {
+        enabled: options.recording ?? true
+      }
+    });
+    return {
+      roomId: room.id,
+      name: room.name
+    };
+  } catch (error) {
+    console.error("Error creating 100ms room:", error);
+    throw error;
+  }
+}
+async function generateAuthToken(roomId, userId, role = "guest") {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
+  }
+  try {
+    const token = await hmsClient.auth.getAuthToken({
+      roomId,
+      userId,
+      role
+    });
+    return token;
+  } catch (error) {
+    console.error("Error generating auth token:", error);
+    throw error;
+  }
+}
+async function endSession(roomId) {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized");
+  }
+  try {
+    await hmsClient.recordings.stop({
+      room_id: roomId
+    });
+    await hmsClient.rooms.disable(roomId);
+    return { success: true };
+  } catch (error) {
+    console.error("Error ending session:", error);
+    throw error;
+  }
+}
+function generateRoomCode() {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return code;
+}
+initialize100ms();
+
+// server/video-routes.ts
+import OpenAI3 from "openai";
+var router7 = Router7();
+var openai3 = new OpenAI3({ apiKey: process.env.OPENAI_API_KEY });
+router7.post("/sessions/create", async (req, res) => {
+  try {
+    const {
+      bookingId,
+      sessionType,
+      title,
+      description,
+      scheduledStartTime,
+      scheduledEndTime,
+      maxParticipants = 1,
+      recordingEnabled = true,
+      transcriptEnabled = true,
+      aiSummaryEnabled = true
+    } = req.body;
+    const coachId = req.user.id;
+    const roomCode = generateRoomCode();
+    let roomId = `room_${Date.now()}`;
+    try {
+      const room = await createRoom(roomCode, {
+        name: title,
+        description,
+        recording: recordingEnabled,
+        maxParticipants
+      });
+      roomId = room.roomId;
+    } catch (error) {
+      console.warn("100ms room creation failed, using fallback:", error);
+    }
+    const [session2] = await db2.insert(videoSessions).values({
+      bookingId,
+      coachId,
+      sessionType,
+      title,
+      description,
+      roomId,
+      roomCode,
+      scheduledStartTime: new Date(scheduledStartTime),
+      scheduledEndTime: new Date(scheduledEndTime),
+      maxParticipants,
+      recordingEnabled,
+      transcriptEnabled,
+      aiSummaryEnabled
+    }).returning();
+    if (sessionType === "workshop") {
+      await db2.insert(workshopDetails).values({
+        sessionId: session2.id,
+        topic: title
+      });
+    }
+    res.json({
+      success: true,
+      session: session2,
+      joinUrl: `/session/${session2.id}/join`,
+      roomCode: session2.roomCode
+    });
+  } catch (error) {
+    console.error("Error creating video session:", error);
+    res.status(500).json({ error: "Failed to create session" });
+  }
+});
+router7.get("/sessions/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const [session2] = await db2.select().from(videoSessions).where(eq3(videoSessions.id, sessionId));
+    if (!session2) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+    const participants = await db2.select().from(sessionParticipants).where(eq3(sessionParticipants.sessionId, sessionId));
+    res.json({ session: session2, participants });
+  } catch (error) {
+    console.error("Error fetching session:", error);
+    res.status(500).json({ error: "Failed to fetch session" });
+  }
+});
+router7.post("/sessions/:sessionId/join-token", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user.id;
+    const { role = "guest" } = req.body;
+    const [session2] = await db2.select().from(videoSessions).where(eq3(videoSessions.id, sessionId));
+    if (!session2) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+    let authToken = `fallback_token_${userId}_${Date.now()}`;
+    try {
+      authToken = await generateAuthToken(
+        session2.roomId,
+        userId,
+        session2.coachId === userId ? "host" : role
+      );
+    } catch (error) {
+      console.warn("100ms token generation failed, using fallback:", error);
+    }
+    const [participant] = await db2.insert(sessionParticipants).values({
+      sessionId,
+      userId,
+      role: session2.coachId === userId ? "host" : "participant",
+      authToken
+    }).returning();
+    res.json({
+      success: true,
+      authToken,
+      roomId: session2.roomId,
+      participant
+    });
+  } catch (error) {
+    console.error("Error generating join token:", error);
+    res.status(500).json({ error: "Failed to generate join token" });
+  }
+});
+router7.post("/sessions/:sessionId/start", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    await db2.update(videoSessions).set({
+      status: "in_progress",
+      actualStartTime: /* @__PURE__ */ new Date()
+    }).where(eq3(videoSessions.id, sessionId));
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error starting session:", error);
+    res.status(500).json({ error: "Failed to start session" });
+  }
+});
+router7.post("/sessions/:sessionId/end", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { transcript } = req.body;
+    const [session2] = await db2.select().from(videoSessions).where(eq3(videoSessions.id, sessionId));
+    if (!session2) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+    try {
+      await endSession(session2.roomId);
+    } catch (error) {
+      console.warn("100ms session end failed:", error);
+    }
+    await db2.update(videoSessions).set({
+      status: "completed",
+      actualEndTime: /* @__PURE__ */ new Date()
+    }).where(eq3(videoSessions.id, sessionId));
+    if (transcript && session2.transcriptEnabled) {
+      let aiSummary = null;
+      let keyPoints = [];
+      if (session2.aiSummaryEnabled) {
+        try {
+          const completion = await openai3.chat.completions.create({
+            model: "gpt-4",
+            messages: [
+              {
+                role: "system",
+                content: "You are an expert at analyzing coaching session transcripts. Provide a concise summary and extract key discussion points and action items."
+              },
+              {
+                role: "user",
+                content: `Analyze this coaching session transcript and provide:
+1. A brief summary (2-3 sentences)
+2. Key points discussed (bullet points)
+3. Action items for the client
+
+Transcript:
+${transcript}`
+              }
+            ]
+          });
+          aiSummary = completion.choices[0].message.content;
+          keyPoints = aiSummary?.match(/[-•]\s*(.+)/g)?.map((p) => p.trim()) || [];
+        } catch (error) {
+          console.error("Error generating AI summary:", error);
+        }
+      }
+      await db2.insert(sessionTranscripts).values({
+        sessionId,
+        transcript,
+        aiSummary,
+        keyPoints
+      });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error ending session:", error);
+    res.status(500).json({ error: "Failed to end session" });
+  }
+});
+router7.get("/sessions/:sessionId/transcript", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const [transcript] = await db2.select().from(sessionTranscripts).where(eq3(sessionTranscripts.sessionId, sessionId));
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    res.json(transcript);
+  } catch (error) {
+    console.error("Error fetching transcript:", error);
+    res.status(500).json({ error: "Failed to fetch transcript" });
+  }
+});
+router7.post("/sessions/:sessionId/send-transcript", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const [transcript] = await db2.select().from(sessionTranscripts).where(eq3(sessionTranscripts.sessionId, sessionId));
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    const [session2] = await db2.select().from(videoSessions).where(eq3(videoSessions.id, sessionId));
+    const participants = await db2.select().from(sessionParticipants).where(eq3(sessionParticipants.sessionId, sessionId));
+    await db2.update(sessionTranscripts).set({
+      sentToCoach: true,
+      sentToParticipants: true
+    }).where(eq3(sessionTranscripts.sessionId, sessionId));
+    res.json({ success: true, message: "Transcript sent to all participants" });
+  } catch (error) {
+    console.error("Error sending transcript:", error);
+    res.status(500).json({ error: "Failed to send transcript" });
+  }
+});
+router7.get("/sessions", async (req, res) => {
+  try {
+    const coachId = req.user.id;
+    const { status } = req.query;
+    let query = db2.select().from(videoSessions).where(eq3(videoSessions.coachId, coachId));
+    if (status) {
+      query = query.where(eq3(videoSessions.status, status));
+    }
+    const sessions2 = await query;
+    res.json(sessions2);
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ error: "Failed to fetch sessions" });
+  }
+});
+router7.post("/sessions/from-booking/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const coachId = req.user.id;
+    const [booking] = await db2.select().from(bookings).where(eq3(bookings.id, parseInt(bookingId)));
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+    const roomCode = generateRoomCode();
+    let roomId = `room_${Date.now()}`;
+    try {
+      const room = await createRoom(roomCode, {
+        name: `${booking.serviceType} session with ${booking.fullName}`,
+        description: booking.message || "",
+        recording: true,
+        maxParticipants: 1
+      });
+      roomId = room.roomId;
+    } catch (error) {
+      console.warn("100ms room creation failed, using fallback:", error);
+    }
+    const [session2] = await db2.insert(videoSessions).values({
+      bookingId: booking.id,
+      coachId,
+      sessionType: "one-on-one",
+      title: `${booking.serviceType} session`,
+      description: booking.message,
+      roomId,
+      roomCode,
+      scheduledStartTime: booking.scheduledDate || /* @__PURE__ */ new Date(),
+      scheduledEndTime: new Date(Date.now() + 60 * 60 * 1e3),
+      // 1 hour default
+      maxParticipants: 1,
+      recordingEnabled: true,
+      transcriptEnabled: true,
+      aiSummaryEnabled: true
+    }).returning();
+    await db2.update(bookings).set({
+      meetingUrl: `/session/${session2.id}/join`,
+      status: "confirmed"
+    }).where(eq3(bookings.id, booking.id));
+    res.json({
+      success: true,
+      session: session2,
+      joinUrl: `/session/${session2.id}/join`,
+      roomCode: session2.roomCode
+    });
+  } catch (error) {
+    console.error("Error creating session from booking:", error);
+    res.status(500).json({ error: "Failed to create session" });
+  }
+});
+var video_routes_default = router7;
+
+// server/migrate-video-schema.ts
+import { sql as sql2 } from "drizzle-orm";
+async function migrateVideoSchema() {
+  try {
+    console.log("Starting video schema migration...");
+    await db2.execute(sql2`
+      CREATE TABLE IF NOT EXISTS video_sessions (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        booking_id INTEGER,
+        coach_id INTEGER NOT NULL,
+        room_code VARCHAR NOT NULL UNIQUE,
+        session_type VARCHAR NOT NULL CHECK (session_type IN ('one-on-one', 'workshop', 'group')),
+        title VARCHAR NOT NULL,
+        description TEXT,
+        scheduled_start_time TIMESTAMP NOT NULL,
+        actual_start_time TIMESTAMP,
+        end_time TIMESTAMP,
+        status VARCHAR NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'active', 'completed', 'cancelled')),
+        recording_url VARCHAR,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("\u2713 video_sessions table created/verified");
+    await db2.execute(sql2`
+      CREATE TABLE IF NOT EXISTS session_participants (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id VARCHAR NOT NULL REFERENCES video_sessions(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL,
+        role VARCHAR NOT NULL CHECK (role IN ('host', 'participant', 'moderator')),
+        joined_at TIMESTAMP,
+        left_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("\u2713 session_participants table created/verified");
+    await db2.execute(sql2`
+      CREATE TABLE IF NOT EXISTS session_transcripts (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id VARCHAR NOT NULL REFERENCES video_sessions(id) ON DELETE CASCADE,
+        transcript TEXT NOT NULL,
+        summary TEXT,
+        ai_insights TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("\u2713 session_transcripts table created/verified");
+    await db2.execute(sql2`
+      CREATE TABLE IF NOT EXISTS workshop_details (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id VARCHAR NOT NULL REFERENCES video_sessions(id) ON DELETE CASCADE,
+        max_participants INTEGER NOT NULL,
+        current_participants INTEGER DEFAULT 0,
+        topics TEXT[] DEFAULT '{}',
+        materials_url VARCHAR,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log("\u2713 workshop_details table created/verified");
+    await db2.execute(sql2`CREATE INDEX IF NOT EXISTS idx_video_sessions_coach_id ON video_sessions(coach_id)`);
+    await db2.execute(sql2`CREATE INDEX IF NOT EXISTS idx_video_sessions_booking_id ON video_sessions(booking_id)`);
+    await db2.execute(sql2`CREATE INDEX IF NOT EXISTS idx_session_participants_session_id ON session_participants(session_id)`);
+    await db2.execute(sql2`CREATE INDEX IF NOT EXISTS idx_session_participants_user_id ON session_participants(user_id)`);
+    await db2.execute(sql2`CREATE INDEX IF NOT EXISTS idx_session_transcripts_session_id ON session_transcripts(session_id)`);
+    console.log("\u2713 Indexes created/verified");
+    console.log("Video schema migration completed successfully!");
+    return { success: true, message: "Video schema migration completed" };
+  } catch (error) {
+    console.error("Error migrating video schema:", error);
+    throw error;
+  }
+}
+
 // server/routes.ts
+async function seedSampleResources(storage3) {
+  const sampleResources = [
+    {
+      title: "Building Resilience After Trauma",
+      type: "article",
+      category: "Mental Health",
+      content: "Learn evidence-based strategies for rebuilding emotional strength after trauma. Includes grounding techniques, self-care practices, and professional help guidance.",
+      url: null,
+      isFree: true
+    },
+    {
+      title: "5 Steps to Setting Healthy Boundaries",
+      type: "article",
+      category: "Relationships",
+      content: "Establish and maintain healthy boundaries in relationships. Includes conversation scripts and consistency strategies.",
+      url: null,
+      isFree: true
+    },
+    {
+      title: "Guided Meditation for Anxiety Relief",
+      type: "video",
+      category: "Mental Health",
+      content: "15-minute guided meditation for calming anxiety and creating inner peace. Perfect for daily practice.",
+      url: "https://example.com/meditation-anxiety",
+      isFree: true
+    },
+    {
+      title: "Daily Self-Care Checklist",
+      type: "worksheet",
+      category: "Personal Development",
+      content: "Printable daily checklist covering physical, emotional, mental, and spiritual wellness activities.",
+      url: "/downloads/self-care-checklist.pdf",
+      isFree: true
+    },
+    {
+      title: "Goal Setting Workbook",
+      type: "worksheet",
+      category: "Personal Development",
+      content: "Comprehensive workbook with vision board templates, action plans, and progress tracking tools.",
+      url: "/downloads/goal-setting-workbook.pdf",
+      isFree: true
+    },
+    {
+      title: "Healing from Domestic Violence - Episode 1",
+      type: "podcast",
+      category: "Mental Health",
+      content: "Survivor stories and expert guidance on recovery journey. Includes immediate support resources.",
+      url: "https://example.com/podcast/healing-dv-ep1",
+      isFree: true
+    }
+  ];
+  for (const resource of sampleResources) {
+    try {
+      await storage3.createResource(resource);
+    } catch (error) {
+      console.error("Error creating sample resource:", error);
+    }
+  }
+}
 async function registerRoutes(app2) {
+  migrateVideoSchema().catch((err) => {
+    console.error("Failed to migrate video schema:", err);
+  });
   app2.get("/api/public/course-materials/:courseId", async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     try {
@@ -12704,7 +13484,8 @@ async function registerRoutes(app2) {
         firstName: user.firstName,
         lastName: user.lastName,
         membershipLevel: user.membershipLevel,
-        rewardPoints: user.rewardPoints
+        rewardPoints: user.rewardPoints,
+        hasCompletedOnboarding: user.hasCompletedOnboarding || false
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -12761,7 +13542,8 @@ async function registerRoutes(app2) {
         lastName: user.lastName,
         membershipLevel: user.membershipLevel,
         rewardPoints: user.rewardPoints,
-        donationTotal: user.donationTotal
+        donationTotal: user.donationTotal,
+        hasCompletedOnboarding: user.hasCompletedOnboarding || false
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -13820,23 +14602,14 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.status(500).json({ message: error.message || "Failed to create payment intent" });
     }
   });
-  app2.post("/api/get-or-create-subscription", requireAuth, async (req, res) => {
+  app2.post("/api/get-or-create-purchase", requireAuth, async (req, res) => {
     try {
       if (!stripe3) {
         return res.status(500).json({ message: "Payment processing not configured" });
       }
       const user = req.user;
       const { planId, planName, planPrice } = req.body;
-      if (user.stripeSubscriptionId) {
-        const subscription2 = await stripe3.subscriptions.retrieve(user.stripeSubscriptionId);
-        if (subscription2.status === "active") {
-          const invoice = await stripe3.invoices.retrieve(subscription2.latest_invoice);
-          res.json({
-            subscriptionId: subscription2.id,
-            clientSecret: invoice.payment_intent?.client_secret
-          });
-          return;
-        }
+      if (user.stripePurchaseId) {
       }
       if (!user.email) {
         throw new Error("No user email on file");
@@ -13851,43 +14624,36 @@ When to refer to licensed therapists and emergency resources for relationship cr
         await donationStorage.updateUser(user.id, { stripeCustomerId });
       }
       const planPrices = {
-        weekly: 8e3,
-        // $80/week
-        biweekly: 16e3,
-        // $160/month (2 sessions)
-        monthly: 9e3
-        // $90/month
+        ai_coaching: 29900,
+        // $299 one-time
+        live_coaching: 59900,
+        // $599 one-time
+        combined: 79900
+        // $799 one-time
       };
-      const amount = planPrices[planId] || planPrices.monthly;
-      const subscription = await stripe3.subscriptions.create({
+      const priceInCents = planPrices[planId] || parseInt(planPrice.replace("$", "")) * 100;
+      const paymentIntent = await stripe3.paymentIntents.create({
+        amount: priceInCents,
+        currency: "usd",
         customer: stripeCustomerId,
-        items: [{
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `${planName} - Whole Wellness Coaching`
-            },
-            unit_amount: amount,
-            recurring: {
-              interval: planId === "weekly" ? "week" : "month"
-            }
-          }
-        }],
-        payment_behavior: "default_incomplete",
-        payment_settings: {
-          save_default_payment_method: "on_subscription"
-        },
-        expand: ["latest_invoice.payment_intent"]
+        description: `${planName} - Whole Wellness Coaching Program (One-time Purchase)`,
+        metadata: {
+          userId: user.id,
+          userEmail: user.email,
+          planId,
+          planName,
+          purchaseType: "coaching_program"
+        }
       });
       await donationStorage.updateUser(user.id, {
-        stripeSubscriptionId: subscription.id
+        stripePurchaseId: paymentIntent.id
       });
       res.json({
-        subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret
+        purchaseId: paymentIntent.id,
+        clientSecret: paymentIntent.client_secret
       });
     } catch (error) {
-      console.error("Subscription creation error:", error);
+      console.error("Purchase creation error:", error);
       return res.status(400).json({ error: { message: error.message } });
     }
   });
@@ -14240,6 +15006,10 @@ When to refer to licensed therapists and emergency resources for relationship cr
         resources2 = await storage.getResourcesByCategory(category);
       } else {
         resources2 = await storage.getAllResources();
+        if (resources2.length === 0) {
+          await seedSampleResources(storage);
+          resources2 = await storage.getAllResources();
+        }
       }
       res.json(resources2);
     } catch (error) {
@@ -14920,6 +15690,117 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  app2.get("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+      const { passwordHash, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.get("/api/user/profile/:userId", optionalAuth, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const publicProfile = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        coverPhotoUrl: user.coverPhotoUrl,
+        bio: user.bio,
+        location: user.location,
+        website: user.website,
+        socialLinks: user.socialLinks,
+        educationHistory: user.educationHistory,
+        achievements: user.achievements,
+        interests: user.interests,
+        membershipLevel: user.membershipLevel,
+        joinDate: user.joinDate
+      };
+      res.json(publicProfile);
+    } catch (error) {
+      console.error("Error fetching public user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.patch("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const allowedUpdates = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        profileImageUrl: req.body.profileImageUrl,
+        coverPhotoUrl: req.body.coverPhotoUrl,
+        bio: req.body.bio,
+        location: req.body.location,
+        website: req.body.website,
+        socialLinks: req.body.socialLinks,
+        educationHistory: req.body.educationHistory,
+        achievements: req.body.achievements,
+        interests: req.body.interests
+      };
+      const updates = Object.fromEntries(
+        Object.entries(allowedUpdates).filter(([_, v]) => v !== void 0)
+      );
+      const updatedUser = await storage.updateUser(req.user.id, updates);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const { passwordHash, ...userProfile } = updatedUser;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.get("/api/coach/profile/:coachId", optionalAuth, async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const coach = await coachStorage.getCoachById(parseInt(coachId));
+      if (!coach) {
+        return res.status(404).json({ message: "Coach not found" });
+      }
+      const credentials = await coachStorage.getCoachCredentials(coach.id);
+      const publicProfile = {
+        id: coach.id,
+        coachId: coach.coachId,
+        firstName: coach.firstName,
+        lastName: coach.lastName,
+        profileImage: coach.profileImage,
+        coverPhotoUrl: coach.coverPhotoUrl,
+        bio: coach.bio,
+        specialties: coach.specialties,
+        experience: coach.experience,
+        isVerified: coach.isVerified,
+        hourlyRate: coach.hourlyRate,
+        timezone: coach.timezone,
+        languages: coach.languages,
+        location: coach.location,
+        website: coach.website,
+        socialLinks: coach.socialLinks,
+        clientCount: coach.clientCount,
+        credentials: credentials.map((c) => ({
+          title: c.title,
+          issuingOrganization: c.issuingOrganization,
+          issueDate: c.issueDate,
+          credentialType: c.credentialType,
+          verificationStatus: c.verificationStatus
+        }))
+      };
+      res.json(publicProfile);
+    } catch (error) {
+      console.error("Error fetching public coach profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   app2.get("/auth/google", (req, res, next) => {
     passport2.authenticate("google", {
       scope: ["profile", "email"],
@@ -15316,6 +16197,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app2.use("/api/donations", router4);
   app2.use("/api/assessments", router6);
   app2.use(router5);
+  app2.use("/api/video", video_routes_default);
   setupCouponRoutes(app2);
   registerWellnessJourneyRoutes(app2);
   const httpServer = createServer(app2);
@@ -16437,6 +17319,95 @@ When to refer to licensed therapists and emergency resources for relationship cr
     } catch (error) {
       console.error("Error searching course files:", error);
       res.status(500).json({ message: "Failed to search course files in Google Drive" });
+    }
+  });
+  app2.get("/api/events", optionalAuth, async (req, res) => {
+    try {
+      const events2 = await storage.getAllEvents();
+      const filteredEvents = req.user ? events2 : events2.filter((e) => e.isPublic);
+      res.json(filteredEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+  app2.get("/api/events/:id", optionalAuth, async (req, res) => {
+    try {
+      const event = await storage.getEvent(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      if (!event.isPublic && !req.user) {
+        return res.status(403).json({ message: "This event is for members only" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(500).json({ message: "Failed to fetch event" });
+    }
+  });
+  app2.post("/api/events", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (user.role !== "coach" && user.role !== "admin" && user.role !== "super_admin") {
+        return res.status(403).json({ message: "Only coaches and admins can create events" });
+      }
+      const validatedData = insertEventSchema.parse({
+        ...req.body,
+        coachId: user.id,
+        coachName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+      });
+      const event = await storage.createEvent(validatedData);
+      res.status(201).json(event);
+    } catch (error) {
+      if (error instanceof z10.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Error creating event:", error);
+      res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+  app2.post("/api/events/:id/register", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      const eventId = req.params.id;
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      const existingRegistration = await storage.getEventRegistrationByUserAndEvent(user.id, eventId);
+      if (existingRegistration) {
+        return res.status(400).json({ message: "You are already registered for this event" });
+      }
+      if (event.maxParticipants && event.currentParticipants >= event.maxParticipants) {
+        return res.status(400).json({ message: "This event is full" });
+      }
+      const validatedRegistration = insertEventRegistrationSchema.parse({
+        eventId,
+        userId: user.id,
+        userName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User",
+        userEmail: user.email,
+        paymentStatus: event.isPaid ? "pending" : "completed",
+        amountPaid: event.isPaid ? event.price : "0"
+      });
+      const registration = await storage.createEventRegistration(validatedRegistration);
+      await storage.updateEventParticipantCount(eventId, event.currentParticipants + 1);
+      res.status(201).json(registration);
+    } catch (error) {
+      if (error instanceof z10.ZodError) {
+        return res.status(400).json({ message: "Invalid registration data", errors: error.errors });
+      }
+      console.error("Error registering for event:", error);
+      res.status(500).json({ message: "Failed to register for event" });
+    }
+  });
+  app2.get("/api/events/user/registrations", requireAuth, async (req, res) => {
+    try {
+      const registrations = await storage.getUserEventRegistrations(req.user.id);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching registrations:", error);
+      res.status(500).json({ message: "Failed to fetch registrations" });
     }
   });
   registerAIChatRoutes(app2);

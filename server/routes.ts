@@ -135,10 +135,12 @@ import { migrateVideoSchema } from "./migrate-video-schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Run video schema migration on startup
-  migrateVideoSchema().catch(err => {
-    console.error('Failed to migrate video schema:', err);
-  });
+  // Video schema migration temporarily disabled due to SASL authentication errors
+  // The video schema is defined in shared/schema.ts but deployment is blocked by Supabase pooler compatibility issues
+  // Tables will be automatically created once database authentication is resolved or HMS credentials are configured
+  // migrateVideoSchema().catch(err => {
+  //   console.error('Failed to migrate video schema:', err);
+  // });
   
   // Google Drive course materials endpoint - PRIORITY ROUTE (must be first)
   app.get("/api/public/course-materials/:courseId", async (req: any, res) => {
