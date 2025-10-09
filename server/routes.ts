@@ -53,6 +53,7 @@ import { donationRoutes } from "./donation-routes";
 import registerOnboardingRoutes from "./onboarding-routes";
 import { setupCouponRoutes } from "./coupon-routes";
 import { onboardingNewRoutes } from "./onboarding-new-routes";
+import { authLimiter } from "./security";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 // Admin auth now uses OAuth only - no password login exports
@@ -254,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Authentication Routes
-  app.post('/api/auth/register', async (req, res) => {
+  app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
       const userData = registerSchema.parse(req.body);
       
@@ -308,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/login', async (req, res) => {
+  app.post('/api/auth/login', authLimiter, async (req, res) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
@@ -1366,7 +1367,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Password reset routes
-  app.post('/api/auth/request-reset', async (req, res) => {
+  app.post('/api/auth/request-reset', authLimiter, async (req, res) => {
     try {
       const { email } = req.body;
       
