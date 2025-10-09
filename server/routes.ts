@@ -40,7 +40,8 @@ import {
   type AuthenticatedRequest as AuthReq1 
 } from "./auth";
 import { donationStorage } from "./donation-storage";
-// import { registerAIChatRoutes } from "./ai-chat-routes"; // TEMPORARILY DISABLED - file missing
+import aiChatRoutes from "./ai-chat-routes";
+import chatDigestRoutes from "./chat-digest-routes";
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
@@ -3596,9 +3597,10 @@ When to refer to licensed therapists and emergency resources for relationship cr
   
   // Chat summarization and digest routes
   // TEMPORARILY DISABLED - chat-digest-routes file missing
-  // const chatDigestRoutes = (await import('./chat-digest-routes')).default;
-  // app.use('/api/chat', requireAuth as any, chatDigestRoutes);
-  // app.use('/api/digest', requireAuth as any, chatDigestRoutes);
+  // Chat and digest routes for conversation intelligence
+  app.use('/api/ai-coaching', aiChatRoutes);
+  app.use('/api/chat', aiChatRoutes);
+  app.use('/api/digest', chatDigestRoutes);
   
   // Setup coupon routes
   setupCouponRoutes(app);
