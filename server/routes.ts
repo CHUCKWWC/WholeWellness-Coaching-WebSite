@@ -40,7 +40,7 @@ import {
   type AuthenticatedRequest as AuthReq1 
 } from "./auth";
 import { donationStorage } from "./donation-storage";
-import { registerAIChatRoutes } from "./ai-chat-routes";
+// import { registerAIChatRoutes } from "./ai-chat-routes"; // TEMPORARILY DISABLED - file missing
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
@@ -132,7 +132,7 @@ import { googleDriveDemoService } from "./google-drive-demo";
 import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 import videoRoutes from "./video-routes";
 import { migrateVideoSchema } from "./migrate-video-schema";
-import { migrateChatSchema } from "./migrate-chat-schema";
+// import { migrateChatSchema } from "./migrate-chat-schema"; // TEMPORARILY DISABLED - file missing
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -144,9 +144,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // });
 
   // Chat schema migration - creates tables for conversation intelligence features
-  migrateChatSchema().catch(err => {
-    console.error('Failed to migrate chat schema:', err);
-  });
+  // TEMPORARILY DISABLED - migrate-chat-schema file missing
+  // migrateChatSchema().catch(err => {
+  //   console.error('Failed to migrate chat schema:', err);
+  // });
   
   // Google Drive course materials endpoint - PRIORITY ROUTE (must be first)
   app.get("/api/public/course-materials/:courseId", async (req: any, res) => {
@@ -3594,9 +3595,10 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.use('/api/video', videoRoutes);
   
   // Chat summarization and digest routes
-  const chatDigestRoutes = (await import('./chat-digest-routes')).default;
-  app.use('/api/chat', requireAuth as any, chatDigestRoutes);
-  app.use('/api/digest', requireAuth as any, chatDigestRoutes);
+  // TEMPORARILY DISABLED - chat-digest-routes file missing
+  // const chatDigestRoutes = (await import('./chat-digest-routes')).default;
+  // app.use('/api/chat', requireAuth as any, chatDigestRoutes);
+  // app.use('/api/digest', requireAuth as any, chatDigestRoutes);
   
   // Setup coupon routes
   setupCouponRoutes(app);
@@ -5057,7 +5059,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // AI Chat Routes with Memory - Direct Implementation
-  registerAIChatRoutes(app);
+  // TEMPORARILY DISABLED - ai-chat-routes file missing
+  // registerAIChatRoutes(app);
 
   // Onboarding Routes
   registerOnboardingRoutes(app);
