@@ -103,7 +103,8 @@ server.listen(port, "0.0.0.0", () => {
     // Admin routes are handled in registerRoutes
 
     // Initialize digest scheduler for automated email reminders
-    initializeDigestScheduler();
+    // TEMPORARILY DISABLED until database tables are created
+    // initializeDigestScheduler();
 
     // Setup Vite or static serving BEFORE error handlers
     // This ensures frontend routes are handled before 404s
