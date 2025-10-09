@@ -124,24 +124,24 @@ export default function DigestPreferencesSettings() {
   }
 
   return (
-    <Card data-testid="digest-settings-card" className="w-full max-w-2xl">
-      <CardHeader>
+    <Card data-testid="digest-settings-card" className="w-full max-w-2xl mx-auto">
+      <CardHeader className="px-4 sm:px-6">
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5 text-teal-600" />
-          <CardTitle>Email Digest Preferences</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Email Digest Preferences</CardTitle>
         </div>
-        <CardDescription>
+        <CardDescription className="text-sm">
           Get personalized summaries of your coaching conversations with action items and insights
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-4 sm:px-6">
         {/* Email Enable/Disable */}
-        <div className="flex items-center justify-between rounded-lg border p-4" data-testid="email-enabled-toggle">
-          <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-teal-600" />
+        <div className="flex items-center justify-between rounded-lg border p-3 sm:p-4" data-testid="email-enabled-toggle">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 flex-shrink-0" />
             <div>
-              <Label className="text-base font-medium">Email Digests</Label>
-              <p className="text-sm text-muted-foreground">Receive digest emails</p>
+              <Label className="text-sm sm:text-base font-medium">Email Digests</Label>
+              <p className="text-xs sm:text-sm text-muted-foreground">Receive digest emails</p>
             </div>
           </div>
           <Switch

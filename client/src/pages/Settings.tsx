@@ -20,17 +20,17 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="container max-w-6xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-          <p className="text-muted-foreground mt-2">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-4 sm:py-8">
+      <div className="container max-w-6xl mx-auto px-3 sm:px-4">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">
             Manage your account preferences and notifications
           </p>
         </div>
 
         <Tabs defaultValue="notifications" className="w-full" data-testid="settings-tabs">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid" data-testid="tabs-list">
+          <TabsList className="grid w-full grid-cols-4 gap-1 sm:gap-2 lg:w-auto lg:inline-grid" data-testid="tabs-list">
             <TabsTrigger value="notifications" className="flex items-center gap-2" data-testid="tab-notifications">
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">Notifications</span>

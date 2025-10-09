@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Table, 
   TableBody, 
@@ -68,6 +69,7 @@ const STATUS_CONFIG = {
 
 export default function AdminCrisisAlerts() {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [selectedAlert, setSelectedAlert] = useState<CrisisAlert | null>(null);
   const [resolution, setResolution] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -150,22 +152,22 @@ export default function AdminCrisisAlerts() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6" data-testid="crisis-alerts-dashboard">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-6" data-testid="crisis-alerts-dashboard">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Crisis Alerts Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Monitor and respond to mental health crisis alerts</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Crisis Alerts Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Monitor and respond to mental health crisis alerts</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-4">
             {criticalCount > 0 && (
-              <Badge className="bg-red-600 text-white" data-testid="badge-critical-count">
+              <Badge className="bg-red-600 text-white text-xs sm:text-sm" data-testid="badge-critical-count">
                 {criticalCount} Critical
               </Badge>
             )}
             {newCount > 0 && (
-              <Badge className="bg-blue-600 text-white" data-testid="badge-new-count">
+              <Badge className="bg-blue-600 text-white text-xs sm:text-sm" data-testid="badge-new-count">
                 {newCount} New
               </Badge>
             )}
@@ -174,13 +176,13 @@ export default function AdminCrisisAlerts() {
 
         {/* Emergency Resources Card */}
         <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
-              <Phone className="h-5 w-5" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base text-red-800 dark:text-red-200">
+              <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
               Emergency Resources
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-4 text-sm">
+          <CardContent className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
             <div>
               <strong>988 Suicide & Crisis Lifeline:</strong> Call/Text 988
             </div>
@@ -194,139 +196,216 @@ export default function AdminCrisisAlerts() {
         </Card>
 
         {/* Filters */}
-        <div className="flex gap-2 flex-wrap" data-testid="status-filters">
+        <div className="flex gap-1 sm:gap-2 flex-wrap overflow-x-auto pb-2" data-testid="status-filters">
           <Button
             variant={statusFilter === "all" ? "default" : "outline"}
+            size={isMobile ? "sm" : "default"}
             onClick={() => setStatusFilter("all")}
-            className={statusFilter === "all" ? "bg-teal-600 hover:bg-teal-700" : ""}
+            className={statusFilter === "all" ? "bg-teal-600 hover:bg-teal-700 text-xs sm:text-sm" : "text-xs sm:text-sm"}
             data-testid="filter-all"
           >
             All ({alerts.length})
           </Button>
           <Button
             variant={statusFilter === "new" ? "default" : "outline"}
+            size={isMobile ? "sm" : "default"}
             onClick={() => setStatusFilter("new")}
-            className={statusFilter === "new" ? "bg-teal-600 hover:bg-teal-700" : ""}
+            className={statusFilter === "new" ? "bg-teal-600 hover:bg-teal-700 text-xs sm:text-sm" : "text-xs sm:text-sm"}
             data-testid="filter-new"
           >
             New ({alerts.filter(a => a.status === "new").length})
           </Button>
           <Button
             variant={statusFilter === "acknowledged" ? "default" : "outline"}
+            size={isMobile ? "sm" : "default"}
             onClick={() => setStatusFilter("acknowledged")}
-            className={statusFilter === "acknowledged" ? "bg-teal-600 hover:bg-teal-700" : ""}
+            className={statusFilter === "acknowledged" ? "bg-teal-600 hover:bg-teal-700 text-xs sm:text-sm" : "text-xs sm:text-sm"}
             data-testid="filter-acknowledged"
           >
             Acknowledged ({alerts.filter(a => a.status === "acknowledged").length})
           </Button>
           <Button
             variant={statusFilter === "escalated" ? "default" : "outline"}
+            size={isMobile ? "sm" : "default"}
             onClick={() => setStatusFilter("escalated")}
-            className={statusFilter === "escalated" ? "bg-teal-600 hover:bg-teal-700" : ""}
+            className={statusFilter === "escalated" ? "bg-teal-600 hover:bg-teal-700 text-xs sm:text-sm" : "text-xs sm:text-sm"}
             data-testid="filter-escalated"
           >
             Escalated ({alerts.filter(a => a.status === "escalated").length})
           </Button>
           <Button
             variant={statusFilter === "resolved" ? "default" : "outline"}
+            size={isMobile ? "sm" : "default"}
             onClick={() => setStatusFilter("resolved")}
-            className={statusFilter === "resolved" ? "bg-teal-600 hover:bg-teal-700" : ""}
+            className={statusFilter === "resolved" ? "bg-teal-600 hover:bg-teal-700 text-xs sm:text-sm" : "text-xs sm:text-sm"}
             data-testid="filter-resolved"
           >
             Resolved ({alerts.filter(a => a.status === "resolved").length})
           </Button>
         </div>
 
-        {/* Alerts Table */}
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Severity</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Coach</TableHead>
-                  <TableHead>Keywords</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAlerts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      No crisis alerts found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredAlerts.map((alert) => {
-                    const severityConfig = SEVERITY_CONFIG[alert.severityLevel];
-                    const statusConfig = STATUS_CONFIG[alert.status];
-                    const SeverityIcon = severityConfig.icon;
+        {/* Alerts Display - Cards on Mobile, Table on Desktop */}
+        {isMobile ? (
+          /* Mobile Card View */
+          <div className="space-y-3">
+            {filteredAlerts.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  No crisis alerts found
+                </CardContent>
+              </Card>
+            ) : (
+              filteredAlerts.map((alert) => {
+                const severityConfig = SEVERITY_CONFIG[alert.severityLevel];
+                const statusConfig = STATUS_CONFIG[alert.status];
+                const SeverityIcon = severityConfig.icon;
 
-                    return (
-                      <TableRow key={alert.id} className="hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`alert-row-${alert.id}`}>
-                        <TableCell>
-                          <Badge className={`${severityConfig.color} flex items-center gap-1 w-fit`}>
-                            <SeverityIcon className="h-3 w-3" />
-                            {severityConfig.label}
+                return (
+                  <Card key={alert.id} data-testid={`alert-card-${alert.id}`} className="overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start gap-2">
+                        <Badge className={`${severityConfig.color} flex items-center gap-1 w-fit text-xs`}>
+                          <SeverityIcon className="h-3 w-3" />
+                          {severityConfig.label}
+                        </Badge>
+                        <Badge className={`${statusConfig.color} text-xs`}>{statusConfig.label}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">{alert.userName || "Unknown User"}</div>
+                          {alert.userEmail && (
+                            <div className="text-xs text-muted-foreground">{alert.userEmail}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Coach: <span className="capitalize">{alert.coachType}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {alert.detectedKeywords.slice(0, 3).map((keyword, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">
+                            {keyword}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-500" />
-                            <div>
-                              <div className="font-medium">{alert.userName || "Unknown User"}</div>
-                              {alert.userEmail && (
-                                <div className="text-xs text-muted-foreground">{alert.userEmail}</div>
+                        ))}
+                        {alert.detectedKeywords.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{alert.detectedKeywords.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(alert.createdAt), "MMM d, h:mm a")}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setSelectedAlert(alert)}
+                        data-testid={`button-view-${alert.id}`}
+                      >
+                        View Details
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        ) : (
+          /* Desktop Table View */
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Severity</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Coach</TableHead>
+                    <TableHead>Keywords</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAlerts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No crisis alerts found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAlerts.map((alert) => {
+                      const severityConfig = SEVERITY_CONFIG[alert.severityLevel];
+                      const statusConfig = STATUS_CONFIG[alert.status];
+                      const SeverityIcon = severityConfig.icon;
+
+                      return (
+                        <TableRow key={alert.id} className="hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`alert-row-${alert.id}`}>
+                          <TableCell>
+                            <Badge className={`${severityConfig.color} flex items-center gap-1 w-fit`}>
+                              <SeverityIcon className="h-3 w-3" />
+                              {severityConfig.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <div>
+                                <div className="font-medium">{alert.userName || "Unknown User"}</div>
+                                {alert.userEmail && (
+                                  <div className="text-xs text-muted-foreground">{alert.userEmail}</div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="capitalize">{alert.coachType}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {alert.detectedKeywords.slice(0, 3).map((keyword, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                              {alert.detectedKeywords.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{alert.detectedKeywords.length - 3}
+                                </Badge>
                               )}
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="capitalize">{alert.coachType}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {alert.detectedKeywords.slice(0, 3).map((keyword, i) => (
-                              <Badge key={i} variant="outline" className="text-xs">
-                                {keyword}
-                              </Badge>
-                            ))}
-                            {alert.detectedKeywords.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{alert.detectedKeywords.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusConfig.color}>{statusConfig.label}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(alert.createdAt), "MMM d, h:mm a")}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedAlert(alert)}
-                            data-testid={`button-view-${alert.id}`}
-                          >
-                            View Details
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={statusConfig.color}>{statusConfig.label}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {format(new Date(alert.createdAt), "MMM d, h:mm a")}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedAlert(alert)}
+                              data-testid={`button-view-${alert.id}`}
+                            >
+                              View Details
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Alert Details Dialog */}
         <Dialog open={!!selectedAlert} onOpenChange={() => setSelectedAlert(null)}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="dialog-alert-details">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full" data-testid="dialog-alert-details">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
