@@ -74,19 +74,19 @@ export default function AdminCrisisAlerts() {
 
   // Fetch crisis alerts
   const { data: alerts = [], isLoading } = useQuery<CrisisAlert[]>({
-    queryKey: ['/api/admin/crisis-alerts', statusFilter],
+    queryKey: ['/api/digest/crisis-alerts', statusFilter],
   });
 
   // Update alert status
   const updateStatus = useMutation({
     mutationFn: async ({ id, status, resolution }: { id: string; status: string; resolution?: string }) => {
-      return apiRequest('/api/admin/crisis-alerts/update', {
-        method: 'POST',
+      return apiRequest('/api/digest/crisis-alerts/update', {
+        method: 'PUT',
         body: JSON.stringify({ id, status, resolution }),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/crisis-alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/digest/crisis-alerts'] });
       toast({
         title: "Alert updated",
         description: "Crisis alert status has been updated successfully.",

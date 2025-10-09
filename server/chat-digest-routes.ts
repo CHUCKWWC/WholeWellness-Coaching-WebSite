@@ -336,4 +336,48 @@ router.get('/crisis-alerts', async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/crisis-alerts/update - Update crisis alert status (admin only)
+router.put('/crisis-alerts/update', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id, status, resolution } = req.body;
+
+    if (!id || !status) {
+      return res.status(400).json({ error: 'Alert ID and status are required' });
+    }
+
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
+    };
+
+    if (resolution) {
+      updateData.resolution = resolution;
+    }
+
+    if (status === 'resolved') {
+      updateData.resolvedAt = new Date();
+    }
+
+    const [updated] = await db.update(crisisAlerts)
+      .set(updateData)
+      .where(eq(crisisAlerts.id, id))
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating crisis alert:', error);
+    res.status(500).json({ error: 'Failed to update crisis alert' });
+  }
+});
+
 export default router;

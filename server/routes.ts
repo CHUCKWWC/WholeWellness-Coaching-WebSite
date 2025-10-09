@@ -3595,8 +3595,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
   
   // Chat summarization and digest routes
   const chatDigestRoutes = (await import('./chat-digest-routes')).default;
-  app.use('/api/chat', chatDigestRoutes);
-  app.use('/api/digest', chatDigestRoutes);
+  app.use('/api/chat', requireAuth as any, chatDigestRoutes);
+  app.use('/api/digest', requireAuth as any, chatDigestRoutes);
   
   // Setup coupon routes
   setupCouponRoutes(app);
