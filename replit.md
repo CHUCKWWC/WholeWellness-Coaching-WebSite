@@ -27,7 +27,11 @@ Preferred communication style: Simple, everyday language.
 - **Headers**: Helmet middleware for CSP, HSTS, X-Content-Type-Options
 - **CORS**: Strict allowlist of known frontend origins
 - **Sessions/Tokens**: Short lifetimes, SameSite, HttpOnly, Secure flags
-- **Rate Limiting**: Protect auth, assessment, and webhook endpoints
+- **Rate Limiting**: Tiered protection with proper precedence
+  - Auth endpoints: 10 req/15min (authLimiter on /api/auth/login, /api/auth/register, /api/auth/request-reset)
+  - General API: 100 req/15min (generalApiLimiter on /api/*, skips auth routes via req.baseUrl + req.path)
+  - Payment endpoints: 3 req/15min (paymentLimiter)
+  - Sensitive ops: 5 req/15min (strictApiLimiter)
 - **Secrets**: Environment variables only; no hardcoded credentials
 - **Webhooks**: Signature verification and idempotency handling
 
@@ -49,6 +53,14 @@ Preferred communication style: Simple, everyday language.
 - **Observability**: Structured logs with request IDs, metrics, error tracking
 
 ## Recent Changes
+**October 9, 2025** (Late Evening): Fixed critical security gap in authentication rate limiting:
+- **Rate Limiting Enhancement**: Implemented proper rate limiting precedence for authentication endpoints
+  - Applied authLimiter (10 req/15min) to POST /api/auth/login, POST /api/auth/register, and POST /api/auth/request-reset
+  - Fixed generalApiLimiter skip function to use `req.baseUrl + req.path` for reliable route exclusion when middleware is mounted at '/api'
+  - Verified auth endpoints blocked at 10 requests (HTTP 429) while non-auth endpoints maintain 100 req/15min limit
+  - Eliminated double-counting issue where both limiters were incrementing counters on auth traffic
+- **Security Impact**: Prevents brute-force attacks on authentication endpoints with stricter rate limits than general API access
+
 **October 9, 2025** (Evening): Enhanced platform with mobile optimization, documentation, and strategic planning:
 - **Mobile Optimization**: Implemented full mobile responsiveness with auto-detection (768px breakpoint)
   - Settings and digest preferences: Responsive padding, mobile-friendly controls, adaptive text sizes
