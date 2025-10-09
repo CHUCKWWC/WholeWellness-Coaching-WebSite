@@ -83,6 +83,8 @@ const CoachProfileView = lazy(() => import("@/pages/CoachProfileView"));
 const UserProfileView = lazy(() => import("@/pages/UserProfileView"));
 const VideoSession = lazy(() => import("@/pages/VideoSession"));
 const SessionJoin = lazy(() => import("@/pages/SessionJoin"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const AdminCrisisAlerts = lazy(() => import("@/pages/AdminCrisisAlerts"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -142,11 +144,13 @@ function Router() {
           <Route path="/coach-dashboard" component={(props) => <LazyRoute component={CoachDashboard} loadingText="Loading Coach Dashboard..." {...props} />} />
           <Route path="/assessments" component={(props) => <LazyRoute component={Assessments} loadingText="Loading Assessments..." {...props} />} />
           <Route path="/user-profile" component={(props) => <LazyRoute component={UserProfile} loadingText="Loading Profile..." {...props} />} />
+          <Route path="/settings" component={(props) => <LazyRoute component={Settings} loadingText="Loading Settings..." {...props} />} />
           <Route path="/admin-login" component={(props) => <LazyRoute component={AdminLogin} loadingText="Loading Admin Login..." {...props} />} />
           <Route path="/admin-dashboard" component={(props) => <LazyRoute component={AdminDashboard} loadingText="Loading Admin Dashboard..." {...props} />} />
           <Route path="/admin-security" component={(props) => <LazyRoute component={AdminSecurity} loadingText="Loading Security Settings..." {...props} />} />
           <Route path="/admin-coupons" component={(props) => <LazyRoute component={AdminCoupons} loadingText="Loading Coupon Management..." {...props} />} />
           <Route path="/admin-certifications" component={(props) => <LazyRoute component={AdminCertifications} loadingText="Loading Certification Management..." {...props} />} />
+          <Route path="/admin-crisis-alerts" component={(props) => <LazyRoute component={AdminCrisisAlerts} loadingText="Loading Crisis Alerts..." {...props} />} />
           <Route path="/donation-portal" component={(props) => <LazyRoute component={DonationPortal} loadingText="Loading Donation System..." {...props} />} />
           <Route path="/coach-portal" component={(props) => <LazyRoute component={CoachPortal} loadingText="Loading Coach Portal..." {...props} />} />
           <Route path="/privacy" component={(props) => <LazyRoute component={Privacy} loadingText="Loading Privacy Policy..." {...props} />} />

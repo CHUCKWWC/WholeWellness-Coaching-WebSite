@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 // Admin routes are included in main routes file
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
+import { initializeDigestScheduler } from "./digest-scheduler";
 import { setupSecurity, securityErrorHandler } from "./security";
 import { requestLogger, errorLogger, log as logger } from "./logger";
 import { errorHandler, notFoundHandler, successResponse } from "./error-handler";
@@ -100,6 +101,9 @@ server.listen(port, "0.0.0.0", () => {
     await registerRoutes(app);
     
     // Admin routes are handled in registerRoutes
+
+    // Initialize digest scheduler for automated email reminders
+    initializeDigestScheduler();
 
     // Setup Vite or static serving BEFORE error handlers
     // This ensures frontend routes are handled before 404s
