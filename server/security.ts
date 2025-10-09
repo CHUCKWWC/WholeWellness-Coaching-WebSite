@@ -16,7 +16,9 @@ export const generalApiLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => {
     // Skip rate limiting for health checks and auth endpoints (they have their own stricter limiter)
-    return req.path === '/health' || req.path.startsWith('/api/auth/');
+    // Construct full path using baseUrl + path since this limiter is mounted at '/api'
+    const fullPath = req.baseUrl + req.path;
+    return req.path === '/health' || fullPath.startsWith('/api/auth/');
   }
 });
 
