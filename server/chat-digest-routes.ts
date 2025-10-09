@@ -3,6 +3,7 @@ import { db } from "./db";
 import { digestPreferences, crisisAlerts } from "../shared/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "./auth";
+import { requireAdminAuth } from "./admin-auth";
 
 const router = Router();
 
@@ -104,7 +105,7 @@ router.post("/preferences", requireAuth, async (req, res) => {
 });
 
 // GET /api/digest/crisis-alerts - Get crisis alerts (admin only)
-router.get("/crisis-alerts", async (req, res) => {
+router.get("/crisis-alerts", requireAdminAuth, async (req, res) => {
   try {
     const statusFilter = req.query.status as string;
 
@@ -124,7 +125,7 @@ router.get("/crisis-alerts", async (req, res) => {
 });
 
 // PUT /api/digest/crisis-alerts/update - Update crisis alert status (admin only)
-router.put("/crisis-alerts/update", async (req, res) => {
+router.put("/crisis-alerts/update", requireAdminAuth, async (req, res) => {
   try {
     const { id, status, resolution } = req.body;
 
