@@ -17,10 +17,10 @@ setupSecurity(app);
 // Add health check endpoint - only /health, not root
 app.get('/health', (req: Request, res: Response) => {
   const healthStatus = performanceMonitor.getHealthStatus();
-  const statusCode = healthStatus.status === 'healthy' ? 200 : 
+  const statusCode = healthStatus.status === 'healthy' ? 200 :
                     healthStatus.status === 'warning' ? 200 : 503;
-  
-  res.status(statusCode).json(successResponse({ 
+
+  res.status(statusCode).json(successResponse({
     status: healthStatus.status,
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
@@ -35,7 +35,7 @@ app.get('/admin/metrics', (req: Request, res: Response) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  
+
   const detailedReport = performanceMonitor.getDetailedReport();
   res.json(successResponse(detailedReport));
 });
@@ -99,7 +99,7 @@ server.listen(port, "0.0.0.0", () => {
   try {
     // Register routes but don't wait for complex initialization
     await registerRoutes(app);
-    
+
     // Admin routes are handled in registerRoutes
 
     // Initialize digest scheduler for automated email reminders
@@ -115,19 +115,19 @@ server.listen(port, "0.0.0.0", () => {
 
     // Add security error handler
     app.use(securityErrorHandler);
-    
+
     // Add error logging
     app.use(errorLogger);
-    
+
     // Add 404 handler AFTER Vite setup
     app.use(notFoundHandler);
-    
+
     // Add main error handler
     app.use(errorHandler);
 
     // Start performance monitoring
     performanceMonitor.startPeriodicLogging(300000); // Log every 5 minutes
-    
+
     logger.info("Application fully initialized");
   } catch (error) {
     logger.error(`Error during initialization: ${error}`);
