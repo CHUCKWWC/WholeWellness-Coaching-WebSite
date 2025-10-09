@@ -7,6 +7,18 @@ The Wholewellness Coaching Platform is a comprehensive nonprofit digital solutio
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+**October 9, 2025**: Implemented AI-powered chat summarization, daily/weekly digests, and crisis detection:
+- Added comprehensive chat summarization system with GPT-4 for conversation analysis
+- Created daily/weekly/monthly digest preferences with timezone support and email delivery via SendGrid
+- Implemented crisis detection with keyword scanning and severity assessment (low/medium/high/critical)
+- Built ModernChatInterface component with WCAG 2.1 AA accessibility, emotion-aware UI, and BrainBox-inspired design
+- Added database schema: chat_summaries, digest_preferences, sent_digests, crisis_alerts tables
+- Created API routes: POST /api/chat/summarize, GET /api/digest/preferences, POST /api/digest/send-now
+- Integrated SendGrid for professional HTML email templates with action items, insights, and conversation summaries
+- Added automatic crisis alert emails to admins when mental health keywords detected
+- Features: action item extraction, emotional tone detection, conversation insights, multi-coach conversation tracking
+- Note: Database schema defined but deployment blocked by Supabase SASL authentication issue (will auto-deploy when resolved)
+
 **October 8, 2025**: Implemented social-style profile pages for coaches and members:
 - Created CoachProfileView and UserProfileView components with Facebook-inspired layouts adapted to platform's teal aesthetic
 - Added public profile routes `/coach/:coachId` and `/user/:userId` with lazy loading
@@ -39,7 +51,9 @@ Preferred communication style: Simple, everyday language.
 - **API**: RESTful API with modular route organization, CORS, JSON parsing, and centralized error handling.
 
 ### Key Features
-- **AI Coaching System**: Features 6 specialized AI coaches (Charlene - Mindfulness, Lisa - Behavior, Dasha - Wellness, Charles - Relationship, Bobby - Mental Health, Aria - Weight Loss) fully integrated with OpenAI Assistants API for persistent conversations. Each coach has a unique assistant ID and customizable tone/persona (supportive, motivational, analytical, gentle). Assistant responses are now working correctly with text format and thread persistence.
+- **AI Coaching System**: Features 6 specialized AI coaches (Charlene - Mindfulness, Lisa - Behavior, Dasha - Wellness, Charles - Relationship, Bobby - Mental Health, Aria - Weight Loss) fully integrated with OpenAI Assistants API for persistent conversations. Each coach has a unique assistant ID and customizable tone/persona (supportive, motivational, analytical, gentle). Assistant responses are now working correctly with text format and thread persistence. Includes modern BrainBox-inspired chat UI with WCAG 2.1 AA accessibility, emotion-aware messaging, and real-time typing indicators.
+- **Conversation Intelligence**: AI-powered conversation summarization generates daily/weekly digests with action items, emotional tone detection, key topic extraction, and personalized insights. Automated email delivery via SendGrid with user-configurable frequency (daily/weekly/biweekly/monthly) and timezone preferences.
+- **Mental Health Safety**: Built-in crisis detection system scans for mental health keywords, assesses severity levels, and automatically alerts admins via email. Includes human handoff options and emergency resource information (988 Suicide Lifeline, Crisis Text Line, Domestic Violence Hotline).
 - **Professional Coach Management**: Supports coach onboarding, profile management, scheduling, client assignment, progress tracking, and Google Meet integration for sessions. Features social-style public profile pages for coaches displaying certifications, specialties, bio, and social links.
 - **Donation & Membership System**: Integrates Stripe for donation processing, manages membership tiers, and includes a points-based reward system and campaign management.
 - **Admin Dashboard**: Provides role-based access for admins, super admins, and coaches with analytics, user management, and dynamic content updates.
@@ -53,7 +67,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Services
 - **Supabase**: Primary database hosting, authentication, and storage.
-- **OpenAI**: AI coaching capabilities via GPT-4.
+- **OpenAI**: AI coaching capabilities via GPT-4, conversation summarization, and insights generation.
+- **SendGrid**: Transactional email service for daily/weekly digests, crisis alerts, and notifications.
 - **Stripe**: Payment processing and subscription management.
 - **n8n**: Workflow automation and AI integration.
 - **Google Meet**: Video conferencing for professional coach sessions.

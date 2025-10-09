@@ -3587,6 +3587,11 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.use(onboardingNewRoutes);
   app.use('/api/video', videoRoutes);
   
+  // Chat summarization and digest routes
+  const chatDigestRoutes = (await import('./chat-digest-routes')).default;
+  app.use('/api/chat', chatDigestRoutes);
+  app.use('/api/digest', chatDigestRoutes);
+  
   // Setup coupon routes
   setupCouponRoutes(app);
 
