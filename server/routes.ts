@@ -131,8 +131,14 @@ import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./googl
 import { googleDriveDemoService } from "./google-drive-demo";
 import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 import videoRoutes from "./video-routes";
+import { migrateVideoSchema } from "./migrate-video-schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Run video schema migration on startup
+  migrateVideoSchema().catch(err => {
+    console.error('Failed to migrate video schema:', err);
+  });
   
   // Google Drive course materials endpoint - PRIORITY ROUTE (must be first)
   app.get("/api/public/course-materials/:courseId", async (req: any, res) => {
