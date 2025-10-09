@@ -1951,3 +1951,135 @@ export type InsertSessionTranscript = z.infer<typeof insertSessionTranscriptSche
 
 export type WorkshopDetails = typeof workshopDetails.$inferSelect;
 export type InsertWorkshopDetails = z.infer<typeof insertWorkshopDetailsSchema>;
+
+// ============================================
+// CHAT SUMMARIZATION & DIGEST SYSTEM
+// ============================================
+
+// Chat conversation summaries (daily/session-based AI summaries)
+export const chatSummaries = pgTable("chat_summaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  coachType: varchar("coach_type").notNull(), // which AI coach (charlene, lisa, dasha, charles, bobby, aria)
+  conversationDate: timestamp("conversation_date").notNull(),
+  messageCount: integer("message_count").notNull(),
+  summary: text("summary").notNull(), // AI-generated summary
+  keyTopics: text("key_topics").array(), // Extracted main topics
+  emotionalTone: varchar("emotional_tone"), // detected mood (positive, neutral, struggling, crisis)
+  actionItems: jsonb("action_items"), // Extracted tasks/goals [{item: string, priority: string}]
+  insights: text("insights"), // AI insights about user progress
+  fullTranscript: text("full_transcript"), // Optional: full conversation text
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User digest preferences
+export const digestPreferences = pgTable("digest_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => users.id),
+  frequency: varchar("frequency").notNull().default("weekly"), // daily, weekly, biweekly, monthly
+  preferredDay: varchar("preferred_day"), // monday, tuesday, etc. (for weekly+)
+  preferredHour: integer("preferred_hour").default(9), // 0-23 hour in user's timezone
+  timezone: varchar("timezone").notNull().default("America/New_York"),
+  includeActionItems: boolean("include_action_items").default(true),
+  includeInsights: boolean("include_insights").default(true),
+  includeProgress: boolean("include_progress").default(true),
+  emailEnabled: boolean("email_enabled").default(true),
+  lastSentAt: timestamp("last_sent_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Sent digest history (tracking what was sent)
+export const sentDigests = pgTable("sent_digests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  digestType: varchar("digest_type").notNull(), // daily, weekly, monthly
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  summaryCount: integer("summary_count").notNull(), // number of conversations included
+  content: jsonb("content").notNull(), // digest content sent
+  sentAt: timestamp("sent_at").defaultNow(),
+  opened: boolean("opened").default(false),
+  openedAt: timestamp("opened_at"),
+});
+
+// Crisis alerts (for mental health safety escalation)
+export const crisisAlerts = pgTable("crisis_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  coachType: varchar("coach_type").notNull(),
+  triggerMessage: text("trigger_message").notNull(), // Message that triggered alert
+  severityLevel: varchar("severity_level").notNull(), // low, medium, high, critical
+  detectedKeywords: text("detected_keywords").array(), // Crisis keywords found
+  aiAssessment: text("ai_assessment"), // AI analysis of situation
+  status: varchar("status").default("new"), // new, acknowledged, escalated, resolved
+  escalatedTo: varchar("escalated_to"), // Coach/admin ID if escalated
+  resolution: text("resolution"),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+// Relations for summarization system
+export const chatSummariesRelations = relations(chatSummaries, ({ one }) => ({
+  user: one(users, {
+    fields: [chatSummaries.userId],
+    references: [users.id],
+  }),
+}));
+
+export const digestPreferencesRelations = relations(digestPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [digestPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const sentDigestsRelations = relations(sentDigests, ({ one }) => ({
+  user: one(users, {
+    fields: [sentDigests.userId],
+    references: [users.id],
+  }),
+}));
+
+export const crisisAlertsRelations = relations(crisisAlerts, ({ one }) => ({
+  user: one(users, {
+    fields: [crisisAlerts.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas
+export const insertChatSummarySchema = createInsertSchema(chatSummaries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDigestPreferenceSchema = createInsertSchema(digestPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSentDigestSchema = createInsertSchema(sentDigests).omit({
+  id: true,
+  sentAt: true,
+});
+
+export const insertCrisisAlertSchema = createInsertSchema(crisisAlerts).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types
+export type ChatSummary = typeof chatSummaries.$inferSelect;
+export type InsertChatSummary = z.infer<typeof insertChatSummarySchema>;
+
+export type DigestPreference = typeof digestPreferences.$inferSelect;
+export type InsertDigestPreference = z.infer<typeof insertDigestPreferenceSchema>;
+
+export type SentDigest = typeof sentDigests.$inferSelect;
+export type InsertSentDigest = z.infer<typeof insertSentDigestSchema>;
+
+export type CrisisAlert = typeof crisisAlerts.$inferSelect;
+export type InsertCrisisAlert = z.infer<typeof insertCrisisAlertSchema>;
