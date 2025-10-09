@@ -8,7 +8,7 @@ import FeatureSpotlight from "@/components/FeatureSpotlight";
 import ProgressIndicator from "@/components/ProgressIndicator";
 import KeyboardShortcuts, { KeyboardShortcutsHint } from "@/components/KeyboardShortcuts";
 import Footer from "@/components/Footer";
-import Chatbot from "@/components/Chatbot";
+// import Chatbot from "@/components/Chatbot"; // Component doesn't exist yet
 import HelpSystem from "@/components/HelpSystem";
 import EmpatheticHelpProvider from "@/components/EmpatheticHelpProvider";
 import { Suspense, lazy, useEffect } from "react";
@@ -211,7 +211,7 @@ function Router() {
         </Switch>
       </main>
       <Footer />
-      <Chatbot />
+      {/* <Chatbot /> */}
       <HelpSystem />
       <FeatureSpotlight />
       <ProgressIndicator />
