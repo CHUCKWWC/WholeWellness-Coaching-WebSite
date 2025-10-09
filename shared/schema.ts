@@ -2017,6 +2017,7 @@ export const crisisAlerts = pgTable("crisis_alerts", {
   escalatedTo: varchar("escalated_to"), // Coach/admin ID if escalated
   resolution: text("resolution"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
   resolvedAt: timestamp("resolved_at"),
 });
 

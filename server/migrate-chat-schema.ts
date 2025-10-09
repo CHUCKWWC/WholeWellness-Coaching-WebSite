@@ -80,6 +80,7 @@ export async function migrateChatSchema() {
         escalated_to VARCHAR,
         resolution TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
         resolved_at TIMESTAMP
       );
     `);
