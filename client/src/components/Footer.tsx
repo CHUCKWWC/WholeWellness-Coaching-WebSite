@@ -1,105 +1,223 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+const serviceLinks = [
+  { href: "/services", label: "Domestic Violence Recovery" },
+  { href: "/services", label: "Divorce & Widowhood Support" },
+  { href: "/services", label: "Career Development" },
+  { href: "/services", label: "Life Balance Coaching" },
+  { href: "/services", label: "Relationship Coaching" },
+];
+
+const resourceLinks = [
+  { href: "/programs", label: "Support Groups" },
+  { href: "/programs", label: "Workshops" },
+  { href: "/resources", label: "Article Library" },
+  { href: "/resources", label: "Podcast" },
+  { href: "/members", label: "Member Portal" },
+];
+
+const socialLinks = [
+  { href: "#", Icon: Facebook, label: "Facebook" },
+  { href: "#", Icon: Instagram, label: "Instagram" },
+  { href: "#", Icon: Linkedin, label: "LinkedIn" },
+  { href: "#", Icon: Twitter, label: "Twitter" },
+];
+
+const contactDetails = [
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    lines: ["info@wholewellnesscoaching.org"],
+  },
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+      </svg>
+    ),
+    lines: ["(555) 123-4567"],
+  },
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+    lines: ["12370 Potranco Rd", "Suite 207 PMB 1209", "San Antonio, TX 78253-4260"],
+  },
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    lines: ["Monday - Friday: 9AM - 6PM", "Saturday: 10AM - 2PM", "Sunday: Closed"],
+  },
+];
 
 export default function Footer() {
   return (
-    <footer className="hidden md:block bg-secondary text-white py-16 md:safe-bottom">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+    <footer className="bg-secondary text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+        {/* Mobile Accordion Layout */}
+        <div className="md:hidden space-y-8">
+          <div>
+            <h3 className="text-2xl font-bold mb-3">Wholewellness Coaching</h3>
+            <p className="text-sm text-gray-200 leading-relaxed">
+              Empowering lives through accessible, high-quality coaching services for underserved communities.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {socialLinks.map(({ href, Icon, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20"
+                  aria-label={label}
+                  data-testid={`link-social-${label.toLowerCase()}`}
+                >
+                  <Icon className="h-5 w-5" />
+                </a>
+              ))}
+            </div>
+          </div>
+          
+          <Accordion type="multiple" className="w-full space-y-3">
+            <AccordionItem value="services" className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <AccordionTrigger className="px-4 text-base font-semibold text-white" data-testid="accordion-services">
+                Services
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ul className="space-y-2 text-sm text-gray-200">
+                  {serviceLinks.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-service-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="resources" className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <AccordionTrigger className="px-4 text-base font-semibold text-white" data-testid="accordion-resources">
+                Resources
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <ul className="space-y-2 text-sm text-gray-200">
+                  {resourceLinks.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-resource-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="contact" className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <AccordionTrigger className="px-4 text-base font-semibold text-white" data-testid="accordion-contact">
+                Contact & Hours
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-gray-200">
+                {contactDetails.map(({ icon, lines }, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <span className="mt-0.5 text-white/80">{icon}</span>
+                    <div className="space-y-1">
+                      {lines.map((line) => (
+                        <p key={line}>{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+        
+        {/* Desktop Grid Layout */}
+        <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
             <h3 className="text-xl font-bold mb-6">Wholewellness Coaching</h3>
             <p className="text-gray-300 mb-6">
               Empowering lives through accessible, high-quality coaching services for underserved communities.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-primary transition-colors">
-                <Facebook className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-white hover:text-primary transition-colors">
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-white hover:text-primary transition-colors">
-                <Linkedin className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-white hover:text-primary transition-colors">
-                <Twitter className="w-6 h-6" />
-              </a>
+              {socialLinks.map(({ href, Icon, label }) => (
+                <a key={label} href={href} className="text-white hover:text-primary transition-colors" aria-label={label} data-testid={`link-social-${label.toLowerCase()}`}>
+                  <Icon className="w-6 h-6" />
+                </a>
+              ))}
             </div>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-6">Services</h4>
             <ul className="space-y-3 text-gray-300">
-              <li><Link href="/services" className="hover:text-white transition-colors">Domestic Violence Recovery</Link></li>
-              <li><Link href="/services" className="hover:text-white transition-colors">Divorce & Widowhood Support</Link></li>
-              <li><Link href="/services" className="hover:text-white transition-colors">Career Development</Link></li>
-              <li><Link href="/services" className="hover:text-white transition-colors">Life Balance Coaching</Link></li>
-              <li><Link href="/services" className="hover:text-white transition-colors">Relationship Coaching</Link></li>
+              {serviceLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-service-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-6">Resources</h4>
             <ul className="space-y-3 text-gray-300">
-              <li><Link href="/programs" className="hover:text-white transition-colors">Support Groups</Link></li>
-              <li><Link href="/programs" className="hover:text-white transition-colors">Workshops</Link></li>
-              <li><Link href="/resources" className="hover:text-white transition-colors">Article Library</Link></li>
-              <li><Link href="/resources" className="hover:text-white transition-colors">Podcast</Link></li>
-              <li><Link href="/members" className="hover:text-white transition-colors">Member Portal</Link></li>
+              {resourceLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-resource-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-6">Contact Info</h4>
             <div className="space-y-3 text-gray-300">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span>info@wholewellnesscoaching.org</span>
-              </div>
-              <div className="flex items-center">
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                <span>(555) 123-4567</span>
-              </div>
-              <div className="flex items-start">
-                <svg className="w-5 h-5 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <div>
-                  <p>12370 Potranco Rd</p>
-                  <p>Suite 207 PMB 1209</p>
-                  <p>San Antonio, TX 78253-4260</p>
+              {contactDetails.map(({ icon, lines }, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <span className="mt-1 text-white/80">{icon}</span>
+                  <div className="space-y-1">
+                    {lines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start">
-                <svg className="w-5 h-5 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p>Monday - Friday: 9AM - 6PM</p>
-                  <p>Saturday: 10AM - 2PM</p>
-                  <p>Sunday: Closed</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
         
+        {/* Footer Bottom - Always visible */}
         <div className="border-t border-gray-600 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 mb-4 md:mb-0">
               © 2024 Wholewellness Coaching. All rights reserved.
             </p>
-            <div className="flex space-x-6 text-gray-300">
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-              <Link href="/coach-signup" className="hover:text-white transition-colors">Become a Coach</Link>
-              <Link href="/coach-profile" className="hover:text-white transition-colors">Coaches Portal</Link>
-              <a href="#" className="hover:text-white transition-colors">Accessibility</a>
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-gray-300 text-sm">
+              <Link href="/privacy" className="hover:text-white transition-colors" data-testid="link-privacy">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors" data-testid="link-terms">Terms of Service</Link>
+              <Link href="/coach-signup" className="hover:text-white transition-colors" data-testid="link-become-coach">Become a Coach</Link>
+              <Link href="/coach-profile" className="hover:text-white transition-colors" data-testid="link-coach-portal">Coaches Portal</Link>
+              <a href="#" className="hover:text-white transition-colors" data-testid="link-accessibility">Accessibility</a>
             </div>
           </div>
         </div>
