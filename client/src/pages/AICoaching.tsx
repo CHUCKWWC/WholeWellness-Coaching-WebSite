@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Brain, MessageCircle, Shield, Clock, Users, Zap, Send, User, Bot, Settings, Palette, Heart, Dumbbell } from "lucide-react";
+import { Brain, MessageCircle, Shield, Clock, Users, Zap, Send, User, Bot, Settings, Palette, Heart, Dumbbell, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import HelpBubble from "@/components/HelpBubble";
@@ -26,6 +26,35 @@ export default function AICoaching() {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [isPopup, setIsPopup] = useState(false);
+
+  // Check if opened in popup mode and load coach from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const coachParam = urlParams.get('coach');
+    const popupParam = urlParams.get('popup');
+    
+    if (popupParam === 'true') {
+      setIsPopup(true);
+    }
+    
+    if (coachParam) {
+      try {
+        const coachData = JSON.parse(decodeURIComponent(coachParam));
+        setSelectedCoach(coachData);
+        setShowChat(true);
+        setMessages([{
+          id: `welcome-${Date.now()}`,
+          text: `Hello! I'm ${coachData.coach}. I'm here to help you with ${coachData.specialties.join(', ').toLowerCase()}. What would you like to work on today?`,
+          isUser: false,
+          timestamp: new Date()
+        }]);
+      } catch (error) {
+        console.error('Failed to parse coach data from URL:', error);
+      }
+    }
+  }, []);
+
   // Persona configurations with brand colors
   const personaConfig = {
     supportive: {
@@ -235,6 +264,38 @@ export default function AICoaching() {
     }]);
   };
 
+  const openChatInNewWindow = (coach: any) => {
+    // Encode coach data in URL parameters
+    const coachData = encodeURIComponent(JSON.stringify({
+      id: coach.id,
+      name: coach.name,
+      coach: coach.coach,
+      avatar: coach.avatar,
+      description: coach.description,
+      specialties: coach.specialties,
+      color: coach.color,
+      suggestedPrompts: coach.suggestedPrompts
+    }));
+    
+    // Open a new window with specific dimensions
+    const windowFeatures = 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes';
+    const newWindow = window.open(
+      `/ai-coaching?coach=${coachData}&popup=true`,
+      'AI_Coach_Chat',
+      windowFeatures
+    );
+    
+    if (newWindow) {
+      newWindow.focus();
+    } else {
+      toast({
+        title: "Popup Blocked",
+        description: "Please allow popups for this site to open chat in a new window.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const features = [
     {
       icon: <Brain className="h-6 w-6" />,
@@ -392,24 +453,26 @@ export default function AICoaching() {
 
   if (showChat && selectedCoach) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowChat(false);
-                setSelectedCoach(null);
-                setMessages([]);
-              }}
-              className="mb-4"
-            >
-              ← Back to AI Coaching Overview
-            </Button>
-          </div>
+      <div className={`bg-gray-50 ${isPopup ? 'h-screen' : 'min-h-screen py-8'}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          {!isPopup && (
+            <div className="mb-6">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowChat(false);
+                  setSelectedCoach(null);
+                  setMessages([]);
+                }}
+                className="mb-4"
+              >
+                ← Back to AI Coaching Overview
+              </Button>
+            </div>
+          )}
 
           {/* Chat Interface - Mobile Optimized */}
-          <Card className={`${isMobile ? 'h-[90vh]' : 'h-[700px]'} flex flex-col shadow-xl`}>
+          <Card className={`${isPopup ? 'h-[calc(100vh-2rem)]' : isMobile ? 'h-[90vh]' : 'h-[700px]'} flex flex-col shadow-xl`}>
             <CardHeader 
               className={`border-b bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 ${isMobile ? 'p-3' : 'p-6'}`}
               style={{ 
@@ -720,13 +783,24 @@ export default function AICoaching() {
                     </div>
                   </div>
                   
-                  <Button 
-                    className="w-full bg-primary hover:bg-secondary text-white transition-colors"
-                    onClick={() => handleCoachSelect(coach)}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Start Chat with {coach.coach.split(' - ')[0]}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 bg-primary hover:bg-secondary text-white transition-colors"
+                      onClick={() => handleCoachSelect(coach)}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Start Chat
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="px-3 border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                      onClick={() => openChatInNewWindow(coach)}
+                      title="Open in new window"
+                      data-testid={`button-open-window-${coach.id}`}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
