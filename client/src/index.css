@@ -86,13 +86,6 @@
     border-color: hsl(var(--warm));
   }
 
-  /* Mobile app footer - hide on small screens to prevent obstruction */
-  @media (max-width: 768px) {
-    .mobile-hide-footer {
-      display: none;
-    }
-  }
-
   /* Safe bottom padding for mobile devices with fallback */
   .safe-bottom {
     padding-bottom: 2rem;

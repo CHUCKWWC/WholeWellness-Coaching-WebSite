@@ -119,7 +119,7 @@ function Router() {
   return (
     <div className="min-h-screen flex flex-col">
       <SmartNavigation />
-      <main className="flex-1 safe-bottom">
+      <main className="flex-1 safe-bottom md:pb-0">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/about" component={About} />
