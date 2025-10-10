@@ -1,6 +1,6 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import OpenAI from "openai";
-import { requireAuth } from "./auth";
+import { requireAuth, AuthenticatedRequest } from "./auth";
 
 const router = Router();
 
@@ -44,7 +44,7 @@ const COACH_CONFIGS: Record<string, { name: string; assistantId: string; descrip
 };
 
 // POST /api/ai-coaching/chat - Send message to AI coach
-router.post("/chat", requireAuth, async (req, res) => {
+router.post("/chat", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!openai) {
       return res.status(503).json({ 
@@ -102,7 +102,7 @@ Keep responses concise (2-3 paragraphs) and actionable.`;
 });
 
 // GET /api/chat/history/:sessionId - Get chat history for a session
-router.get("/history/:sessionId", requireAuth, async (req, res) => {
+router.get("/history/:sessionId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { sessionId } = req.params;
     const userId = req.user!.id;
@@ -118,7 +118,7 @@ router.get("/history/:sessionId", requireAuth, async (req, res) => {
 });
 
 // GET /api/chat/sessions/:userId - Get user's chat sessions
-router.get("/sessions/:userId", requireAuth, async (req, res) => {
+router.get("/sessions/:userId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { userId } = req.params;
 
