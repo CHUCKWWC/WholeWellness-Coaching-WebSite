@@ -73,7 +73,51 @@ export default function AICoaching() {
     enabled: !!user && isAuthenticated,
   });
 
-  // AI Chat mutation with memory
+  // Fallback responses for when AI is unavailable
+  const getFallbackResponse = (coachType: string, persona: string) => {
+    const fallbackResponses: Record<string, string[]> = {
+      charlene: [
+        "I'm here to support your mindfulness journey. While I process your request, remember to take a deep breath and be present in this moment.",
+        "Mindfulness is about being present. Let's explore this together with patience and compassion.",
+        "Thank you for sharing. I'm processing your message and will provide thoughtful guidance shortly."
+      ],
+      lisa: [
+        "Your behavioral patterns are unique to you. I'm analyzing your message to provide personalized insights.",
+        "Change happens one step at a time. Let's work together to identify positive patterns.",
+        "I appreciate your openness. Processing your concerns to offer you the best behavioral strategies."
+      ],
+      dasha: [
+        "Holistic wellness touches every part of your life. I'm considering all aspects of your question.",
+        "Your wellness journey is important. Let me gather my thoughts to give you comprehensive guidance.",
+        "Balance is key. I'm formulating a response that addresses your whole wellbeing."
+      ],
+      charles: [
+        "Relationships are complex and deserve careful consideration. I'm reflecting on your message.",
+        "Building healthy connections takes time and understanding. Let me provide you with thoughtful insights.",
+        "Thank you for trusting me with this. I'm preparing guidance for your relationship concerns."
+      ],
+      bobby: [
+        "Your mental health matters deeply. I'm processing your message with the care it deserves.",
+        "It takes courage to reach out. I'm here to support you and will respond thoughtfully.",
+        "Mental wellness is a journey. Let me provide you with supportive and evidence-based guidance."
+      ],
+      aria: [
+        "Sustainable weight management is about lifestyle, not just diet. I'm considering all aspects of your goals.",
+        "Every wellness journey is unique. I'm personalizing my response to your specific needs.",
+        "Healthy habits take time to build. Let me provide you with practical, achievable guidance."
+      ]
+    };
+
+    const responses = fallbackResponses[coachType] || [
+      "Thank you for reaching out. I'm processing your message and will respond shortly with personalized guidance.",
+      "I'm here to support you. Let me gather my thoughts to provide you with the best possible advice.",
+      "Your question is important. I'm formulating a thoughtful response tailored to your needs."
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  // AI Chat mutation with memory and fallback support
   const sendMessage = useMutation({
     mutationFn: async (data: { message: string; coachType: string; persona?: string; sessionId?: string | null }) => {
       const response = await apiRequest("POST", "/api/ai-coaching/chat", data);
@@ -91,11 +135,27 @@ export default function AICoaching() {
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive",
-      });
+      // Provide fallback response instead of just showing error
+      const fallbackText = isAuthenticated 
+        ? getFallbackResponse(selectedCoach?.id || 'charlene', currentPersona)
+        : "To get personalized AI coaching responses, please sign in to your account. In the meantime, I can share that your question is important and our AI coaches are designed to provide thoughtful, evidence-based guidance tailored to your unique needs.";
+      
+      const fallbackMessage = {
+        id: `fallback-${Date.now()}`,
+        text: fallbackText,
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, fallbackMessage]);
+
+      // Only show toast for authenticated users (service unavailable)
+      if (isAuthenticated) {
+        toast({
+          title: "Service Temporarily Unavailable",
+          description: "Using fallback response. Full AI features will return shortly.",
+          variant: "default",
+        });
+      }
     },
   });
 
@@ -400,6 +460,21 @@ export default function AICoaching() {
                 </div>
               </div>
             </CardHeader>
+
+            {/* Guest Preview Notice */}
+            {!isAuthenticated && (
+              <div className="bg-blue-50 border-b border-blue-200 p-3">
+                <div className="flex items-start gap-3">
+                  <div className="text-blue-600 mt-0.5">ℹ️</div>
+                  <div className="flex-1">
+                    <p className="text-sm text-blue-900 font-medium">Guest Preview Mode</p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      You're trying our AI coaching! <a href="/register" className="underline font-medium">Sign up free</a> to unlock full AI responses, conversation history, and personalized guidance.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Messages Area - Mobile Optimized with Fixed Scrolling */}
             <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
