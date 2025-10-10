@@ -71,6 +71,11 @@
     min-height: 100vh;
     min-height: -webkit-fill-available;
   }
+
+  /* Smooth scroll offset for fixed header */
+  section[id] {
+    scroll-margin-top: 80px;
+  }
 }
 
 @layer utilities {
