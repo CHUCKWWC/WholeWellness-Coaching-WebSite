@@ -169,6 +169,15 @@ export default function SmartNavigation() {
     </TooltipProvider>
   );
 
+  // Quick access navigation for mobile
+  const quickAccessItems = [
+    { href: "/ai-coaching", label: "AI Coaching", icon: "🤖", color: "bg-blue-50 text-blue-700 border-blue-200" },
+    { href: "/wellness-journey", label: "Wellness Journey", icon: "🎯", color: "bg-green-50 text-green-700 border-green-200" },
+    { href: "/assessments", label: "Assessments", icon: "📋", color: "bg-purple-50 text-purple-700 border-purple-200" },
+    { href: "/wix-booking", label: "Book Session", icon: "📅", color: "bg-orange-50 text-orange-700 border-orange-200" },
+    { href: "/resources", label: "Resources", icon: "📚", color: "bg-teal-50 text-teal-700 border-teal-200" },
+  ];
+
   return (
     <TooltipProvider>
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b shadow-sm">
@@ -367,6 +376,30 @@ export default function SmartNavigation() {
               </div>
 
 
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick Access Navigation - Mobile Only */}
+        <div className="lg:hidden border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 px-4 py-3 min-w-max">
+              {quickAccessItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <button
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 whitespace-nowrap",
+                      location === item.href 
+                        ? item.color + " shadow-sm" 
+                        : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                    )}
+                    data-testid={`chip-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <span className="text-base">{item.icon}</span>
+                    {item.label}
+                  </button>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
