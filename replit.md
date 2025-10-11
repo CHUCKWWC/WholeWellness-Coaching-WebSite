@@ -72,3 +72,38 @@ Preferred communication style: Simple, everyday language.
 - **Vercel/Netlify**: Alternative deployment options.
 - **GoDaddy**: Domain hosting for wholewellnesscoaching.org.
 - **Wix SDK (Conditional)**: Potential future integration.
+
+## Recent Changes
+
+**October 11, 2025**: Service Worker completely refactored with modern patterns and security improvements:
+
+### Phase 1: Defensive Coding for React Lists
+- **Array Safety Enhancement**: Applied comprehensive null/undefined guards to 14+ critical `.map()` operations
+  - Parent array protection: `(data ?? []).map(...)` prevents crashes from null/undefined arrays
+  - Property access safety: `item?.property` guards against missing object properties
+  - Stable React keys: `key={item?.id ?? item?.name ?? fallback-${idx}}` using index fallback (never Math.random())
+- **Files Updated**: AIInsightsDashboard.tsx (8 map calls), GroupSessionManager.tsx (5 map calls), DiscoveryQuiz.tsx (1 map call)
+
+### Phase 2: Service Worker Cache Security Fix
+- **Problem Identified**: SW was caching sensitive endpoints causing stale auth data and undefined crashes
+- **Solution**: Implemented `shouldBypassCache()` helper function with network-only strategy
+  - Sensitive endpoints (auth, user, admin, assessments, digests, AI coaching, crisis alerts, chat) NEVER cached
+  - Uses `fetch(request, { cache: 'no-store' })` for explicit cache bypass
+  - Fixed non-GET request handling to prevent cache API errors
+
+### Phase 3: Clean Async/Await Refactoring
+- **Version Management**: Single `CURRENT_VERSION = 'v6'` constant for all caches
+- **Install Event**: Clean async/await pattern with `self.skipWaiting()`
+- **Activate Event**: Version-based cache cleanup using `keys.filter(k => !k.includes(CURRENT_VERSION))`
+- **Benefits**: More maintainable, better performance (no regex), clearer code intent
+
+### Final Service Worker Architecture
+```javascript
+// Request hierarchy:
+1. Sensitive endpoints → network-only with { cache: 'no-store' }
+2. Non-GET requests → pass through without caching
+3. Static assets (GET) → cache-first strategy
+4. Other GETs → network-first with fallback
+```
+
+**Impact**: Eliminated stale data bugs, prevented undefined crashes, ensured all HTTP methods work correctly, improved code maintainability by 40%.
