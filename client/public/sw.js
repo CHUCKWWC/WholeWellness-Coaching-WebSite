@@ -1,6 +1,6 @@
-const CACHE_NAME = 'wholewellness-v2';
-const STATIC_CACHE_NAME = 'wholewellness-static-v2';
-const DYNAMIC_CACHE_NAME = 'wholewellness-dynamic-v2';
+const CACHE_NAME = 'wholewellness-v4';
+const STATIC_CACHE_NAME = 'wholewellness-static-v4';
+const DYNAMIC_CACHE_NAME = 'wholewellness-dynamic-v4';
 
 // Resources to cache on install
 const STATIC_ASSETS = [
@@ -17,17 +17,28 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png'
 ];
 
-// API endpoints to cache
+// NEVER cache these sensitive/dynamic endpoints - always network-only
+// Using (?:\/|$) to match both base routes (/api/user) and nested paths (/api/user/profile)
+const NEVER_CACHE_PATTERNS = [
+  /^\/api\/auth(?:\/|$)/,           // All auth endpoints (login, logout, user, etc.)
+  /^\/api\/assessments(?:\/|$)/,    // User-specific assessments (dynamic data)
+  /^\/api\/user(?:\/|$)/,           // User-specific data
+  /^\/api\/admin(?:\/|$)/,          // Admin endpoints
+  /^\/api\/digest(?:\/|$)/,         // User digest preferences
+  /^\/api\/ai-coaching(?:\/|$)/,    // AI chat sessions (real-time data)
+  /^\/api\/crisis-alerts(?:\/|$)/,  // Crisis alerts
+  /^\/api\/chat(?:\/|$)/,           // Chat/conversation data
+];
+
+// API endpoints safe to cache (static/public data only)
 const API_CACHE_PATTERNS = [
-  /^\/api\/coaches/,
-  /^\/api\/sessions/,
-  /^\/api\/assessments/,
-  /^\/api\/user/
+  /^\/api\/coaches$/,         // Coach list (semi-static)
+  /^\/api\/sessions$/,        // Session templates (semi-static)
 ];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing service worker v4...');
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
@@ -46,13 +57,13 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log('[SW] Activating service worker v4...');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
+            if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME && cacheName !== CACHE_NAME) {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -60,7 +71,7 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('[SW] Service worker activated');
+  console.log('[SW] Service worker v4 activated');
         return self.clients.claim();
       })
   );
@@ -73,11 +84,16 @@ self.addEventListener('fetch', (event) => {
 
   // Handle different types of requests with appropriate caching strategies
   if (request.method === 'GET') {
+    // NEVER cache sensitive/user-specific endpoints - Network Only
+    if (NEVER_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname))) {
+      console.log('[SW] Network-only (no cache):', url.pathname);
+      event.respondWith(networkOnly(request));
+    }
     // Static assets - Cache First strategy
-    if (STATIC_ASSETS.some(asset => url.pathname.includes(asset))) {
+    else if (STATIC_ASSETS.some(asset => url.pathname.includes(asset))) {
       event.respondWith(cacheFirst(request));
     }
-    // API requests - Network First strategy
+    // Safe API requests - Network First strategy (with cache fallback)
     else if (API_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname))) {
       event.respondWith(networkFirst(request));
     }
@@ -91,6 +107,25 @@ self.addEventListener('fetch', (event) => {
     }
   }
 });
+
+// Network Only strategy - NO caching for sensitive endpoints
+async function networkOnly(request) {
+  try {
+    const networkResponse = await fetch(request);
+    console.log('[SW] Network-only response:', request.url, networkResponse.status);
+    return networkResponse;
+  } catch (error) {
+    console.error('[SW] Network-only failed:', error);
+    // Return error response - do NOT serve stale cache for auth/user data
+    return new Response(JSON.stringify({ 
+      error: 'Network unavailable - Please check your connection',
+      offline: true 
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
 
 // Cache First strategy for static assets
 async function cacheFirst(request) {
@@ -123,7 +158,7 @@ async function cacheFirst(request) {
   }
 }
 
-// Network First strategy for API requests
+// Network First strategy for API requests (safe to cache)
 async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
