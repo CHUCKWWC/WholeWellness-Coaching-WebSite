@@ -16,6 +16,8 @@ export default function AdminLogin() {
     mutationFn: (oauthData: any) => apiRequest('POST', '/api/admin/auth/oauth-login', oauthData),
     onSuccess: (data) => {
       if (data.success) {
+        // Set flag to enable admin auth queries
+        sessionStorage.setItem('isAdmin', 'true');
         toast({
           title: 'Admin Access Granted',
           description: `Welcome, ${data.user.firstName}!`,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -7,15 +7,11 @@ import { Shield, Settings, Users, BarChart3, LogOut } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function AdminAccess() {
-  // Check if user has admin access
-  const { data: adminAuth } = useQuery({
-    queryKey: ['/api/admin/auth/me'],
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  // Check if user has admin access (relies on route-based guard in hook)
+  const { adminUser, permissions } = useAdminAuth();
 
   // If not authenticated as admin, show login button
-  if (!adminAuth?.user) {
+  if (!adminUser) {
     return (
       <Link href="/admin-login">
         <Button variant="outline" size="sm" className="hidden md:flex">
@@ -34,17 +30,17 @@ export default function AdminAccess() {
           <Shield className="h-4 w-4 mr-2" />
           Admin Panel
           <Badge variant="secondary" className="ml-2 text-xs">
-            {adminAuth.user.role === 'super_admin' ? 'Super' : 
-             adminAuth.user.role === 'admin' ? 'Admin' : 
-             adminAuth.user.role === 'moderator' ? 'Mod' : 'Coach'}
+            {adminUser.role === 'super_admin' ? 'Super' : 
+             adminUser.role === 'admin' ? 'Admin' : 
+             adminUser.role === 'moderator' ? 'Mod' : 'Coach'}
           </Badge>
         </Button>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="end" className="w-56">
         <div className="px-2 py-1.5">
-          <p className="text-sm font-medium">{adminAuth.user.firstName} {adminAuth.user.lastName}</p>
-          <p className="text-xs text-muted-foreground">{adminAuth.user.email}</p>
+          <p className="text-sm font-medium">{adminUser.firstName} {adminUser.lastName}</p>
+          <p className="text-xs text-muted-foreground">{adminUser.email}</p>
         </div>
         
         <DropdownMenuSeparator />
@@ -56,7 +52,7 @@ export default function AdminAccess() {
           </Link>
         </DropdownMenuItem>
         
-        {adminAuth.permissions?.includes('view_users') && (
+        {permissions?.includes('view_users') && (
           <DropdownMenuItem asChild>
             <Link href="/admin-dashboard?tab=users" className="flex w-full items-center">
               <Users className="h-4 w-4 mr-2" />
@@ -65,7 +61,7 @@ export default function AdminAccess() {
           </DropdownMenuItem>
         )}
         
-        {adminAuth.permissions?.includes('system_settings') && (
+        {permissions?.includes('system_settings') && (
           <DropdownMenuItem asChild>
             <Link href="/admin-dashboard?tab=settings" className="flex w-full items-center">
               <Settings className="h-4 w-4 mr-2" />
@@ -78,7 +74,12 @@ export default function AdminAccess() {
         
         <DropdownMenuItem 
           onClick={() => {
-            fetch('/api/admin/auth/logout', { method: 'POST' })
+            // Clear admin session flag
+            sessionStorage.removeItem('isAdmin');
+            fetch('/api/admin/auth/logout', { 
+              method: 'POST',
+              credentials: 'include'
+            })
               .then(() => {
                 window.location.reload();
               });

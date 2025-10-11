@@ -17,11 +17,27 @@ export interface AdminAuthResponse {
   sessionToken: string;
 }
 
-export function useAdminAuth() {
+export function useAdminAuth(options?: { enabled?: boolean }) {
+  // Check if we should attempt admin auth
+  // Only enabled if: explicitly requested OR session flag indicates admin login
+  const hasAdminSession = typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true';
+  const shouldCheck = options?.enabled ?? hasAdminSession;
+
   const { data: adminAuth, isLoading, error } = useQuery<AdminAuthResponse>({
     queryKey: ["/api/admin/auth/me"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/auth/me", {
+        credentials: "include", // Ensure cookies are sent
+      });
+      if (!response.ok) {
+        // Return null instead of throwing for graceful 401 handling
+        return null;
+      }
+      return response.json();
+    },
     retry: false,
     refetchOnWindowFocus: false,
+    enabled: shouldCheck, // Only fetch when explicitly enabled
   });
 
   return {
