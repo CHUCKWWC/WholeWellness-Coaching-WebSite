@@ -324,12 +324,12 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
                 }
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="true" />
-                  <Label htmlFor="true">True</Label>
+                  <RadioGroupItem value="true" id={`q${currentQuestion.id}-true`} />
+                  <Label htmlFor={`q${currentQuestion.id}-true`}>True</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="false" id="false" />
-                  <Label htmlFor="false">False</Label>
+                  <RadioGroupItem value="false" id={`q${currentQuestion.id}-false`} />
+                  <Label htmlFor={`q${currentQuestion.id}-false`}>False</Label>
                 </div>
               </RadioGroup>
             )}

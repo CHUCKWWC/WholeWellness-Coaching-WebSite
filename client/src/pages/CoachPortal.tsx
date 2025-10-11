@@ -493,7 +493,7 @@ export default function CoachPortal() {
                           <div>
                             <Label htmlFor="client">Client</Label>
                             <Select value={newSessionNote.clientId} onValueChange={(value) => setNewSessionNote({...newSessionNote, clientId: value})}>
-                              <SelectTrigger>
+                              <SelectTrigger id="client">
                                 <SelectValue placeholder="Select client" />
                               </SelectTrigger>
                               <SelectContent>
@@ -519,7 +519,7 @@ export default function CoachPortal() {
                           <div>
                             <Label htmlFor="sessionType">Session Type</Label>
                             <Select value={newSessionNote.sessionType} onValueChange={(value) => setNewSessionNote({...newSessionNote, sessionType: value})}>
-                              <SelectTrigger>
+                              <SelectTrigger id="sessionType">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -585,7 +585,7 @@ export default function CoachPortal() {
                           <div>
                             <Label htmlFor="riskAssessment">Risk Assessment</Label>
                             <Select value={newSessionNote.riskAssessment} onValueChange={(value) => setNewSessionNote({...newSessionNote, riskAssessment: value})}>
-                              <SelectTrigger>
+                              <SelectTrigger id="riskAssessment">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
