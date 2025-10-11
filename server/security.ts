@@ -61,56 +61,39 @@ export const authLimiter = rateLimit({
 // Security headers configuration
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
+    useDefaults: true,
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
+      "default-src": ["'self'"],
+      // SW fetches to third-parties must be permitted in connect-src
+      "connect-src": [
         "'self'",
-        "'unsafe-inline'", // Required for Vite in development
-        "js.stripe.com",
+        "https://api.stripe.com",
         "*.google.com",
-        "*.googletagmanager.com",
-        "replit.com",
-        "wellness-central-charleswatson6.replit.app",
-        "wholewellnesscoaching.org"
+        "*.googleapis.com",
+        "https://fonts.gstatic.com",
+        "https://fonts.googleapis.com"
       ],
-      styleSrc: [
+      // Images (including through SW)
+      "img-src": ["'self'", "data:", "blob:", "https://*"],
+      // Web fonts
+      "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
+      // Google Fonts CSS and inline styles
+      "style-src": [
         "'self'",
         "'unsafe-inline'", // Required for CSS-in-JS libraries
-        "fonts.googleapis.com",
-        "wellness-central-charleswatson6.replit.app",
-        "wholewellnesscoaching.org"
+        "https://fonts.googleapis.com"
       ],
-      fontSrc: [
+      // Scripts (Stripe, Vite, etc.)
+      "script-src": [
         "'self'",
-        "fonts.gstatic.com",
-        "data:"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "blob:",
-        "*.stripe.com",
-        "*.google.com",
-        "*.googleapis.com",
-        "fonts.gstatic.com"
-      ],
-      connectSrc: [
-        "'self'",
-        "api.stripe.com",
-        "*.google.com",
-        "*.googleapis.com",
-        "fonts.gstatic.com", // Required for SW fetch pipeline
-        "fonts.googleapis.com" // Google Fonts API
-      ],
-      frameSrc: [
-        "js.stripe.com",
+        "'unsafe-inline'", // Required for Vite in development
+        "https://js.stripe.com",
         "*.google.com"
       ],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'", "data:", "blob:"],
-      workerSrc: ["'self'", "blob:"],
-      childSrc: ["'self'"],
-      formAction: ["'self'"],
+      // Frames for Stripe iframes, etc.
+      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com"],
+      "worker-src": ["'self'", "blob:"],
+      "object-src": ["'none'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
     }
   },
