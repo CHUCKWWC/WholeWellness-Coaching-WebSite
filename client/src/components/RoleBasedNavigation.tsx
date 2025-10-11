@@ -30,6 +30,8 @@ export default function RoleBasedNavigation() {
   const handleLogout = async () => {
     try {
       await apiRequest("POST", "/api/auth/logout");
+      // Clear auth session flag
+      sessionStorage.removeItem('hasAuthSession');
       setLocation("/");
       window.location.reload();
     } catch (error) {

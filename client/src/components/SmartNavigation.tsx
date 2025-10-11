@@ -123,6 +123,8 @@ export default function SmartNavigation() {
       return response.json();
     },
     onSuccess: () => {
+      // Clear auth session flag
+      sessionStorage.removeItem('hasAuthSession');
       queryClient.setQueryData(["/api/auth/user"], null);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({

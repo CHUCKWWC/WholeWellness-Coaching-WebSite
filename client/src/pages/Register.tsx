@@ -64,6 +64,8 @@ export default function Register() {
         title: "Account Created!",
         description: "Welcome to WholeWellness! Complete your discovery process to get started.",
       });
+      // Set auth session flag to enable future auth checks
+      sessionStorage.setItem('hasAuthSession', 'true');
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       // Redirect to discovery process after registration

@@ -49,6 +49,8 @@ export default function Login() {
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
+      // Set auth session flag to enable future auth checks
+      sessionStorage.setItem('hasAuthSession', 'true');
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       

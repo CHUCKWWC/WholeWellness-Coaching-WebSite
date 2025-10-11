@@ -182,3 +182,15 @@ Preferred communication style: Simple, everyday language.
   - Replaced raw SQL joins with proper `.innerJoin(users, eq(users.id, digestPreferences.userId))`
   - Fixed in both `checkAndSendDigests()` and `sendDigestNow()` functions
 - **Impact**: Digest scheduler now runs correctly, users will receive scheduled email digests with AI-powered conversation summaries
+
+### User Auth Query Optimization (October 11, 2025)
+- **Problem**: 401 errors spamming console for logged-out users due to unconditional auth checks
+- **Root Cause**: `useAuth` hook making queries on every page load/component mount without checking session state
+- **Solution**: Implemented smart auth gating system
+  - Added sessionStorage flag (`hasAuthSession`) to track active sessions
+  - Query only fires once per session for logged-out users
+  - Set to `staleTime: 5min` and `gcTime: 10min` to prevent repeated queries
+  - Added `meta.suppressErrorLogging` for expected 401s
+  - Login/Register flows set flag; Logout clears it
+- **Files Updated**: `useAuth.ts`, `Login.tsx`, `Register.tsx`, `SmartNavigation.tsx`, `RoleBasedNavigation.tsx`
+- **Impact**: Eliminated 401 spam in console, improved performance, cleaner user experience for logged-out visitors
