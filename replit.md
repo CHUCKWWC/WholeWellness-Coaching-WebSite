@@ -113,3 +113,16 @@ Preferred communication style: Simple, everyday language.
 - **Solution**: Added `fonts.gstatic.com` and `fonts.googleapis.com` to `connect-src` CSP directive in server/security.ts
 - **Coverage**: Direct font loads (`fontSrc`), direct images (`imgSrc`), and SW fetch pipeline (`connectSrc`) all properly configured
 - **Impact**: Allows Google fonts and assets to load correctly through Service Worker without CSP violations
+
+### CSP Refactoring to Helmet useDefaults Pattern
+- **Refactored CSP**: Switched to cleaner Helmet pattern with `useDefaults: true` for secure baseline
+- **Improved Organization**: Added clear comments for each directive, simplified structure
+- **Maintained Coverage**: All critical domains preserved (Stripe, Google Tag Manager, Google Fonts, Google APIs)
+- **Service Worker Support**: connect-src properly configured for SW fetch pipeline (fonts.gstatic.com, fonts.googleapis.com)
+- **Flexibility**: Used `https://*` wildcard for img-src to support all secure image sources
+- **Impact**: More maintainable CSP configuration with better security defaults and clear documentation
+
+### React Version Conflict Resolution
+- **Problem**: Wix SDK packages required React 19 but app uses React 18.3.1, causing "Invalid hook call" errors
+- **Solution**: Uninstalled unused Wix SDK packages (@wix/sdk, @wix/stores, @wix/pricing-plans, @wix/data, @wix/bookings)
+- **Impact**: Resolved React version conflicts, eliminated TooltipProvider crashes, improved stability
