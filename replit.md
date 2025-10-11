@@ -173,3 +173,12 @@ Preferred communication style: Simple, everyday language.
   - Version-based cache management (v6)
   - Cache-first for static assets, network-first for dynamic content
   - **Impact**: Follows industry best practices for PWA caching
+
+### Database Connection Fix for Digest Scheduler (October 11, 2025)
+- **Problem**: SASL_SIGNATURE_MISMATCH error preventing digest scheduler from running
+- **Root Cause**: Raw SQL joins (`sql`users``) instead of proper Drizzle ORM table imports
+- **Solution**: 
+  - Added `users` table import from schema
+  - Replaced raw SQL joins with proper `.innerJoin(users, eq(users.id, digestPreferences.userId))`
+  - Fixed in both `checkAndSendDigests()` and `sendDigestNow()` functions
+- **Impact**: Digest scheduler now runs correctly, users will receive scheduled email digests with AI-powered conversation summaries
