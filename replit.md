@@ -107,3 +107,9 @@ Preferred communication style: Simple, everyday language.
 ```
 
 **Impact**: Eliminated stale data bugs, prevented undefined crashes, ensured all HTTP methods work correctly, improved code maintainability by 40%.
+
+### CSP Configuration for Service Worker Assets
+- **Problem**: Service Worker fetches Google assets (fonts.gstatic.com) treated as network connections, blocked by missing `connect-src` directive
+- **Solution**: Added `fonts.gstatic.com` and `fonts.googleapis.com` to `connect-src` CSP directive in server/security.ts
+- **Coverage**: Direct font loads (`fontSrc`), direct images (`imgSrc`), and SW fetch pipeline (`connectSrc`) all properly configured
+- **Impact**: Allows Google fonts and assets to load correctly through Service Worker without CSP violations
