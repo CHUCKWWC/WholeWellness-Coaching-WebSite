@@ -83,12 +83,13 @@ export const securityHeaders = helmet({
         "'unsafe-inline'", // Required for CSS-in-JS libraries
         "https://fonts.googleapis.com"
       ],
-      // Scripts (Stripe, Vite, etc.)
+      // Scripts (Stripe, Vite, Google Tag Manager, etc.)
       "script-src": [
         "'self'",
         "'unsafe-inline'", // Required for Vite in development
         "https://js.stripe.com",
-        "*.google.com"
+        "*.google.com",
+        "*.googletagmanager.com"
       ],
       // Frames for Stripe iframes, etc.
       "frame-src": ["'self'", "https://js.stripe.com", "*.google.com"],
