@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { db } from './db';
-import { digestPreferences, chatSummaries, sentDigests } from '../shared/schema';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { digestPreferences, chatSummaries, sentDigests, users } from '../shared/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { sendDigestEmail } from './sendgrid-service';
 import { generateConversationSummary } from './chat-summarization-service';
 
@@ -154,7 +154,7 @@ async function checkAndSendDigests() {
     const preferences = await db
       .select({
         userId: digestPreferences.userId,
-        email: sql<string>`users.email`,
+        email: users.email,
         frequency: digestPreferences.frequency,
         preferredDay: digestPreferences.preferredDay,
         preferredHour: digestPreferences.preferredHour,
@@ -164,7 +164,7 @@ async function checkAndSendDigests() {
         includeProgress: digestPreferences.includeProgress,
       })
       .from(digestPreferences)
-      .innerJoin(sql`users`, sql`users.id = digest_preferences.user_id`)
+      .innerJoin(users, eq(users.id, digestPreferences.userId))
       .where(
         and(
           eq(digestPreferences.isActive, true),
@@ -198,7 +198,7 @@ export async function sendDigestNow(userId: string) {
     const pref = await db
       .select({
         userId: digestPreferences.userId,
-        email: sql<string>`users.email`,
+        email: users.email,
         frequency: digestPreferences.frequency,
         preferredDay: digestPreferences.preferredDay,
         preferredHour: digestPreferences.preferredHour,
@@ -208,7 +208,7 @@ export async function sendDigestNow(userId: string) {
         includeProgress: digestPreferences.includeProgress,
       })
       .from(digestPreferences)
-      .innerJoin(sql`users`, sql`users.id = digest_preferences.user_id`)
+      .innerJoin(users, eq(users.id, digestPreferences.userId))
       .where(eq(digestPreferences.userId, userId))
       .limit(1);
 
