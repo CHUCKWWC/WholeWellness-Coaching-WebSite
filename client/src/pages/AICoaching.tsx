@@ -106,32 +106,32 @@ export default function AICoaching() {
   // Fallback responses for when AI is unavailable
   const getFallbackResponse = (coachType: string, persona: string) => {
     const fallbackResponses: Record<string, string[]> = {
-      charlene: [
+      mindfulness: [
         "I'm here to support your mindfulness journey. While I process your request, remember to take a deep breath and be present in this moment.",
         "Mindfulness is about being present. Let's explore this together with patience and compassion.",
         "Thank you for sharing. I'm processing your message and will provide thoughtful guidance shortly."
       ],
-      lisa: [
+      behavior: [
         "Your behavioral patterns are unique to you. I'm analyzing your message to provide personalized insights.",
         "Change happens one step at a time. Let's work together to identify positive patterns.",
         "I appreciate your openness. Processing your concerns to offer you the best behavioral strategies."
       ],
-      dasha: [
+      wellness: [
         "Holistic wellness touches every part of your life. I'm considering all aspects of your question.",
         "Your wellness journey is important. Let me gather my thoughts to give you comprehensive guidance.",
         "Balance is key. I'm formulating a response that addresses your whole wellbeing."
       ],
-      charles: [
+      relationship: [
         "Relationships are complex and deserve careful consideration. I'm reflecting on your message.",
         "Building healthy connections takes time and understanding. Let me provide you with thoughtful insights.",
         "Thank you for trusting me with this. I'm preparing guidance for your relationship concerns."
       ],
-      bobby: [
+      mentalhealth: [
         "Your mental health matters deeply. I'm processing your message with the care it deserves.",
         "It takes courage to reach out. I'm here to support you and will respond thoughtfully.",
         "Mental wellness is a journey. Let me provide you with supportive and evidence-based guidance."
       ],
-      aria: [
+      weightloss: [
         "Sustainable weight management is about lifestyle, not just diet. I'm considering all aspects of your goals.",
         "Every wellness journey is unique. I'm personalizing my response to your specific needs.",
         "Healthy habits take time to build. Let me provide you with practical, achievable guidance."
@@ -167,7 +167,7 @@ export default function AICoaching() {
     onError: (error: any) => {
       // Provide fallback response instead of just showing error
       const fallbackText = isAuthenticated 
-        ? getFallbackResponse(selectedCoach?.id || 'charlene', currentPersona)
+        ? getFallbackResponse(selectedCoach?.id || 'mindfulness', currentPersona)
         : "To get personalized AI coaching responses, please sign in to your account. In the meantime, I can share that your question is important and our AI coaches are designed to provide thoughtful, evidence-based guidance tailored to your unique needs.";
       
       const fallbackMessage = {

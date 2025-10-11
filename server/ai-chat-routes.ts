@@ -9,35 +9,35 @@ const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 
-// Coach configurations with OpenAI Assistant IDs
+// Coach configurations with OpenAI Assistant IDs (aligned with frontend IDs)
 const COACH_CONFIGS: Record<string, { name: string; assistantId: string; description: string }> = {
-  charlene: {
-    name: "Charlene - Mindfulness Coach",
+  mindfulness: {
+    name: "Mindfulness Coach",
     assistantId: "asst_abc123", // Replace with actual assistant ID
     description: "Mindfulness and meditation specialist"
   },
-  lisa: {
-    name: "Lisa - Behavior Coach",
+  behavior: {
+    name: "Behavior Coach",
     assistantId: "asst_def456", // Replace with actual assistant ID
     description: "Behavioral change and habit formation expert"
   },
-  dasha: {
-    name: "Dasha - Wellness Coach",
+  wellness: {
+    name: "Wellness Coach",
     assistantId: "asst_ghi789", // Replace with actual assistant ID
     description: "Holistic wellness and lifestyle coach"
   },
-  charles: {
-    name: "Charles - Relationship Coach",
+  relationship: {
+    name: "Relationship Coach",
     assistantId: "asst_jkl012", // Replace with actual assistant ID
     description: "Relationship and communication specialist"
   },
-  bobby: {
-    name: "Bobby - Mental Health Coach",
+  mentalhealth: {
+    name: "Mental Health Support",
     assistantId: "asst_mno345", // Replace with actual assistant ID
     description: "Mental health and emotional wellbeing expert"
   },
-  aria: {
-    name: "Aria - Weight Loss Coach",
+  weightloss: {
+    name: "Weight Loss Coach",
     assistantId: "asst_pqr678", // Replace with actual assistant ID
     description: "Weight management and healthy lifestyle coach"
   }

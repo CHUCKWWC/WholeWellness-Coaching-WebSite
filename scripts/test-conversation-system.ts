@@ -60,7 +60,7 @@ async function testConversationSystem() {
     try {
       await db.insert(chatSummaries).values({
         userId: user.id,
-        coachType: 'charles',
+        coachType: 'relationship',
         conversationDate: new Date(),
         messageCount: 5,
         summary: 'Test conversation about stress management and work-life balance.',
@@ -82,7 +82,7 @@ async function testConversationSystem() {
     try {
       await db.insert(crisisAlerts).values({
         userId: user.id,
-        coachType: 'bobby',
+        coachType: 'mentalhealth',
         triggerMessage: 'I have been feeling really overwhelmed lately',
         severityLevel: 'low',
         detectedKeywords: ['overwhelmed'],
