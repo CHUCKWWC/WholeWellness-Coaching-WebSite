@@ -140,3 +140,36 @@ Preferred communication style: Simple, everyday language.
 - **Runtime Fetching**: Third-party assets fetched at runtime through SW, permitted via connect-src CSP directive
 - **Cache Strategy**: Sensitive endpoints bypass cache, static assets use cache-first, others use network-first
 - **Impact**: Optimal performance without CSP violations or stale third-party resource issues
+
+### Debug Kit Implementation (October 11, 2025)
+- **Admin Auth 401 Prevention**: Implemented sessionStorage flag-based gating for admin queries
+  - Sets `sessionStorage.setItem('isAdmin', 'true')` on successful admin OAuth login
+  - useAdminAuth hook checks session flag before enabling queries
+  - Returns null instead of throwing on 401 for graceful handling
+  - Clears flag on logout to disable queries
+  - **Impact**: Eliminates 401 spam for non-admin users, clean admin session management
+
+- **100ms Video SDK Integration**: Successfully initialized with HMS credentials
+  - HMS_ACCESS_KEY and HMS_SECRET configured as environment secrets
+  - Server logs confirm "100ms SDK initialized successfully"
+  - Ready for professional coach video sessions
+  - **Impact**: Video conferencing capability fully operational
+
+- **React Query Devtools Added**: Enhanced debugging capabilities
+  - Installed @tanstack/react-query-devtools package
+  - Integrated into App.tsx with `initialIsOpen={false}`
+  - Provides visual query state inspection in development
+  - **Impact**: Improved developer experience and easier query debugging
+
+- **Error Boundary Already in Place**: Comprehensive error handling UI
+  - Custom ErrorBoundary component with retry and go-home actions
+  - Development mode shows error details and stack traces
+  - Production mode provides user-friendly error messages
+  - **Impact**: Graceful error handling prevents white screen of death
+
+- **Service Worker v6 Patterns Match Debug Kit Recommendations**:
+  - shouldBypassCache() helper for sensitive endpoints
+  - Network-only with { cache: 'no-store' } for auth/admin/user data
+  - Version-based cache management (v6)
+  - Cache-first for static assets, network-first for dynamic content
+  - **Impact**: Follows industry best practices for PWA caching
