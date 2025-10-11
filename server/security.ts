@@ -98,7 +98,9 @@ export const securityHeaders = helmet({
         "'self'",
         "api.stripe.com",
         "*.google.com",
-        "*.googleapis.com"
+        "*.googleapis.com",
+        "fonts.gstatic.com", // Required for SW fetch pipeline
+        "fonts.googleapis.com" // Google Fonts API
       ],
       frameSrc: [
         "js.stripe.com",
