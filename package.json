@@ -206,6 +206,10 @@
 
 
 
+    "@tanstack/react-query-devtools": "^5.90.2",
+
+
+
     "@types/bcrypt": "^5.0.2",
 
 
