@@ -120,7 +120,7 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
                     </div>
                     <div className="text-sm">
                       <div className="mb-2">
-                        <strong>Risk Factors:</strong> {prediction.riskFactors.join(', ')}
+                        <strong>Risk Factors:</strong> {(prediction?.riskFactors ?? []).join(', ')}
                       </div>
                       <div>
                         <strong>Recommendations:</strong>
@@ -280,7 +280,7 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{pattern.description}</p>
                     <div className="text-sm mb-2">
-                      <strong>Affected clients:</strong> {pattern.affectedClients.length}
+                      <strong>Affected clients:</strong> {(pattern?.affectedClients ?? []).length}
                     </div>
                     <div className="text-sm">
                       <strong>Suggested actions:</strong>
@@ -313,7 +313,7 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{pattern.description}</p>
                     <div className="text-sm mb-2">
-                      <strong>Benefiting clients:</strong> {pattern.affectedClients.length}
+                      <strong>Benefiting clients:</strong> {(pattern?.affectedClients ?? []).length}
                     </div>
                     <div className="text-sm">
                       <strong>Replication strategies:</strong>

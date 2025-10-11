@@ -285,14 +285,14 @@ export default function AdminCrisisAlerts() {
                         Coach: <span className="capitalize">{alert.coachType}</span>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {alert.detectedKeywords.slice(0, 3).map((keyword, i) => (
+                        {(alert?.detectedKeywords ?? []).slice(0, 3).map((keyword, i) => (
                           <Badge key={i} variant="outline" className="text-xs">
                             {keyword}
                           </Badge>
                         ))}
-                        {alert.detectedKeywords.length > 3 && (
+                        {(alert?.detectedKeywords ?? []).length > 3 && (
                           <Badge variant="outline" className="text-xs">
-                            +{alert.detectedKeywords.length - 3}
+                            +{(alert?.detectedKeywords ?? []).length - 3}
                           </Badge>
                         )}
                       </div>
@@ -365,14 +365,14 @@ export default function AdminCrisisAlerts() {
                           <TableCell className="capitalize">{alert.coachType}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {alert.detectedKeywords.slice(0, 3).map((keyword, i) => (
+                              {(alert?.detectedKeywords ?? []).slice(0, 3).map((keyword, i) => (
                                 <Badge key={i} variant="outline" className="text-xs">
                                   {keyword}
                                 </Badge>
                               ))}
-                              {alert.detectedKeywords.length > 3 && (
+                              {(alert?.detectedKeywords ?? []).length > 3 && (
                                 <Badge variant="outline" className="text-xs">
-                                  +{alert.detectedKeywords.length - 3}
+                                  +{(alert?.detectedKeywords ?? []).length - 3}
                                 </Badge>
                               )}
                             </div>

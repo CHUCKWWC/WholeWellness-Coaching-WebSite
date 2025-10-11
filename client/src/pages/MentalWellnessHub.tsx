@@ -634,10 +634,10 @@ export default function MentalWellnessHub() {
                     <Clock className="w-4 h-4" />
                     {resource.availability}
                   </div>
-                  {resource.languages.length > 0 && (
+                  {(resource?.languages ?? []).length > 0 && (
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Globe className="w-4 h-4" />
-                      {resource.languages.join(', ')}
+                      {(resource?.languages ?? []).join(', ')}
                     </div>
                   )}
                 </div>

@@ -170,9 +170,9 @@ export default function UserProfileView() {
                   </p>
                 )}
 
-                {profile.interests.length > 0 && (
+                {(profile?.interests ?? []).length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {profile.interests.slice(0, 3).map((interest, i) => (
+                    {(profile?.interests ?? []).slice(0, 3).map((interest, i) => (
                       <Badge key={i} variant="outline">{interest}</Badge>
                     ))}
                   </div>
@@ -265,11 +265,11 @@ export default function UserProfileView() {
               )}
 
               {/* Interests/Goals */}
-              {profile.interests.length > 0 && (
+              {(profile?.interests ?? []).length > 0 && (
                 <div className="mt-4">
                   <h3 className="font-semibold mb-2">Interests & Goals</h3>
                   <div className="flex flex-wrap gap-2">
-                    {profile.interests.map((interest, i) => (
+                    {(profile?.interests ?? []).map((interest, i) => (
                       <Badge 
                         key={i} 
                         variant="outline" 
@@ -285,11 +285,11 @@ export default function UserProfileView() {
             </Card>
 
             {/* Education/Background Card */}
-            {profile.educationHistory.length > 0 && (
+            {(profile?.educationHistory ?? []).length > 0 && (
               <Card className="p-6">
                 <h2 className="text-xl font-bold mb-4">Background</h2>
                 <div className="space-y-3">
-                  {profile.educationHistory.map((edu, i) => (
+                  {(profile?.educationHistory ?? []).map((edu, i) => (
                     <div 
                       key={i} 
                       className="flex items-start gap-3"

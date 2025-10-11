@@ -46,7 +46,7 @@ export default function AICoaching() {
         setShowChat(true);
         setMessages([{
           id: `welcome-${Date.now()}`,
-          text: `Hello! I'm ${coachData.coach}. I'm here to help you with ${coachData.specialties.join(', ').toLowerCase()}. What would you like to work on today?`,
+          text: `Hello! I'm ${coachData.coach}. I'm here to help you with ${(coachData?.specialties ?? []).join(', ').toLowerCase()}. What would you like to work on today?`,
           isUser: false,
           timestamp: new Date()
         }]);
@@ -259,7 +259,7 @@ export default function AICoaching() {
     setShowChat(true);
     setMessages([{
       id: `welcome-${Date.now()}`,
-      text: `Hello! I'm ${coach.coach}. I'm here to help you with ${coach.specialties.join(', ').toLowerCase()}. What would you like to work on today?`,
+      text: `Hello! I'm ${coach.coach}. I'm here to help you with ${(coach?.specialties ?? []).join(', ').toLowerCase()}. What would you like to work on today?`,
       isUser: false,
       timestamp: new Date()
     }]);

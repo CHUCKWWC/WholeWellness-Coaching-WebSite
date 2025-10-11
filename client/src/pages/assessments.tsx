@@ -250,7 +250,7 @@ export default function Assessments() {
                       </Badge>
                       
                       <div className="text-sm text-gray-600">
-                        <strong>Helpful for:</strong> {assessmentType.coachTypes.join(', ')}
+                        <strong>Helpful for:</strong> {(assessmentType?.coachTypes ?? []).join(', ')}
                       </div>
                       
                       <Button 
@@ -292,9 +292,9 @@ export default function Assessments() {
                       <p className="text-sm text-gray-600">
                         Completed on {new Date(assessment.completedAt).toLocaleDateString()}
                       </p>
-                      {assessment.tags.length > 0 && (
+                      {(assessment?.tags ?? []).length > 0 && (
                         <div className="flex gap-1 mt-2">
-                          {assessment.tags.map((tag, i) => (
+                          {(assessment?.tags ?? []).map((tag, i) => (
                             <Badge key={i} variant="outline" className="text-xs">
                               {tag}
                             </Badge>

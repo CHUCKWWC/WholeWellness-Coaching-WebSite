@@ -259,7 +259,7 @@ export default function DiscoveryQuiz() {
               Recommended Coaching Team
             </CardTitle>
             <CardDescription>
-              Based on your selections: {results.currentNeeds.join(', ')}
+              Based on your selections: {(results?.currentNeeds ?? []).join(', ')}
             </CardDescription>
           </CardHeader>
           <CardContent>

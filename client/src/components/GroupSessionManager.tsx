@@ -370,7 +370,7 @@ export default function GroupSessionManager({ coachId, isCoach }: GroupSessionMa
                       Last attended: {participant.lastAttended ? new Date(participant.lastAttended).toLocaleDateString() : 'Never'}
                     </div>
                     <div className="text-sm">
-                      <strong>Goals:</strong> {participant.goals.join(', ')}
+                      <strong>Goals:</strong> {(participant?.goals ?? []).join(', ')}
                     </div>
                     {participant.progressNotes && (
                       <div className="text-sm">
