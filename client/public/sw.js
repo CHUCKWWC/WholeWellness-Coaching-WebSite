@@ -95,6 +95,12 @@ self.addEventListener('fetch', (event) => {
 // Cache First strategy for static assets
 async function cacheFirst(request) {
   try {
+    // Skip chrome-extension and other unsupported schemes
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+      return fetch(request);
+    }
+
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       console.log('[SW] Serving from cache:', request.url);

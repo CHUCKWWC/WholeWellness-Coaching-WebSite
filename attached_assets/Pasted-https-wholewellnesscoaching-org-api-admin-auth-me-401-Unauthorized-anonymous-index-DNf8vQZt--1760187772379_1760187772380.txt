@@ -1,0 +1,122 @@
+https://wholewellnesscoaching.org/api/admin/auth/me 401 (Unauthorized)
+(anonymous) @ index-DNf8vQZt.js:49
+i @ index-DNf8vQZt.js:49
+x @ index-DNf8vQZt.js:49
+start @ index-DNf8vQZt.js:49
+fetch @ index-DNf8vQZt.js:49
+Ba @ index-DNf8vQZt.js:49
+onSubscribe @ index-DNf8vQZt.js:49
+subscribe @ index-DNf8vQZt.js:49
+(anonymous) @ index-DNf8vQZt.js:49
+rj @ index-DNf8vQZt.js:39
+qd @ index-DNf8vQZt.js:41
+To @ index-DNf8vQZt.js:41
+Yx @ index-DNf8vQZt.js:41
+Js @ index-DNf8vQZt.js:39
+dO @ index-DNf8vQZt.js:41
+li @ index-DNf8vQZt.js:41
+Mj @ index-DNf8vQZt.js:41
+S @ index-DNf8vQZt.js:26
+z @ index-DNf8vQZt.js:26Understand this error
+index-DNf8vQZt.js:49  GET https://wholewellnesscoaching.org/api/auth/user 401 (Unauthorized)
+(anonymous) @ index-DNf8vQZt.js:49
+i @ index-DNf8vQZt.js:49
+x @ index-DNf8vQZt.js:49
+start @ index-DNf8vQZt.js:49
+fetch @ index-DNf8vQZt.js:49
+Ba @ index-DNf8vQZt.js:49
+onSubscribe @ index-DNf8vQZt.js:49
+subscribe @ index-DNf8vQZt.js:49
+(anonymous) @ index-DNf8vQZt.js:49
+rj @ index-DNf8vQZt.js:39
+qd @ index-DNf8vQZt.js:41
+To @ index-DNf8vQZt.js:41
+Yx @ index-DNf8vQZt.js:41
+Js @ index-DNf8vQZt.js:39
+dO @ index-DNf8vQZt.js:41
+li @ index-DNf8vQZt.js:41
+Mj @ index-DNf8vQZt.js:41
+S @ index-DNf8vQZt.js:26
+z @ index-DNf8vQZt.js:26Understand this error
+index-DNf8vQZt.js:49  GET https://wholewellnesscoaching.org/api/auth/user 401 (Unauthorized)
+(anonymous) @ index-DNf8vQZt.js:49
+i @ index-DNf8vQZt.js:49
+x @ index-DNf8vQZt.js:49
+start @ index-DNf8vQZt.js:49
+fetch @ index-DNf8vQZt.js:49
+Ba @ index-DNf8vQZt.js:49
+onSubscribe @ index-DNf8vQZt.js:49
+subscribe @ index-DNf8vQZt.js:49
+(anonymous) @ index-DNf8vQZt.js:49
+rj @ index-DNf8vQZt.js:39
+qd @ index-DNf8vQZt.js:41
+To @ index-DNf8vQZt.js:41
+(anonymous) @ index-DNf8vQZt.js:41
+S @ index-DNf8vQZt.js:26
+z @ index-DNf8vQZt.js:26Understand this error
+index-DNf8vQZt.js:323 [PWA] Service Worker registered: ServiceWorkerRegistration {installing: ServiceWorker, waiting: null, active: null, navigationPreload: NavigationPreloadManager, scope: 'https://wholewellnesscoaching.org/', …}
+sw.js:30 [SW] Installing service worker...
+sw.js:34 [SW] Caching static assets
+ai-coaching:1 Refused to load the image 'https://fonts.gstatic.com/s/i/productlogos/voice_2020q4/v7/web-24dp/logo_voice_2020q4_color_2x_web_24dp.png' because it violates the following Content Security Policy directive: "img-src 'self' data: blob: *.stripe.com *.google.com *.googleapis.com".
+Understand this error
+sw.js:38 [SW] Static assets cached successfully
+sw.js:49 [SW] Activating service worker...
+sw.js:63 [SW] Service worker activated
+index-DNf8vQZt.js:49  POST https://wholewellnesscoaching.org/api/ai-coaching/chat 401 (Unauthorized)
+nf @ index-DNf8vQZt.js:49
+mutationFn @ AICoaching-zahglySN.js:6
+fn @ index-DNf8vQZt.js:49
+x @ index-DNf8vQZt.js:49
+start @ index-DNf8vQZt.js:49
+execute @ index-DNf8vQZt.js:49
+await in execute
+mutate @ index-DNf8vQZt.js:49
+(anonymous) @ index-DNf8vQZt.js:49
+P @ AICoaching-zahglySN.js:6
+onClick @ AICoaching-zahglySN.js:6
+AD @ index-DNf8vQZt.js:38
+RD @ index-DNf8vQZt.js:38
+ID @ index-DNf8vQZt.js:38
+bx @ index-DNf8vQZt.js:38
+$C @ index-DNf8vQZt.js:38
+(anonymous) @ index-DNf8vQZt.js:38
+$g @ index-DNf8vQZt.js:41
+dC @ index-DNf8vQZt.js:38
+ch @ index-DNf8vQZt.js:38
+mg @ index-DNf8vQZt.js:38
+QD @ index-DNf8vQZt.js:38Understand this error
+index-DNf8vQZt.js:49  POST https://wholewellnesscoaching.org/api/ai-coaching/chat 401 (Unauthorized)
+nf @ index-DNf8vQZt.js:49
+mutationFn @ AICoaching-zahglySN.js:6
+fn @ index-DNf8vQZt.js:49
+x @ index-DNf8vQZt.js:49
+start @ index-DNf8vQZt.js:49
+execute @ index-DNf8vQZt.js:49
+await in execute
+mutate @ index-DNf8vQZt.js:49
+(anonymous) @ index-DNf8vQZt.js:49
+P @ AICoaching-zahglySN.js:6
+onClick @ AICoaching-zahglySN.js:6
+AD @ index-DNf8vQZt.js:38
+RD @ index-DNf8vQZt.js:38
+ID @ index-DNf8vQZt.js:38
+bx @ index-DNf8vQZt.js:38
+$C @ index-DNf8vQZt.js:38
+(anonymous) @ index-DNf8vQZt.js:38
+$g @ index-DNf8vQZt.js:41
+dC @ index-DNf8vQZt.js:38
+ch @ index-DNf8vQZt.js:38
+mg @ index-DNf8vQZt.js:38
+QD @ index-DNf8vQZt.js:38Understand this error
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/favicon.ico
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/briefcase-C1Q0Oqz5.js
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/radio-group-Bi61Ftfo.js
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/DigitalOnboarding-C8CcDZjf.js
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/activity-dligqwDA.js
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/dollar-sign-B5oTtRFB.js
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/checkbox-DOGKVX2o.js
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/api/auth/user
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/api/chat/sessions
+index-DNf8vQZt.js:49  POST https://wholewellnesscoaching.org/api/ai-coaching/chat 400 (Bad Request)

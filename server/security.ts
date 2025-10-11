@@ -91,7 +91,8 @@ export const securityHeaders = helmet({
         "blob:",
         "*.stripe.com",
         "*.google.com",
-        "*.googleapis.com"
+        "*.googleapis.com",
+        "fonts.gstatic.com"
       ],
       connectSrc: [
         "'self'",
