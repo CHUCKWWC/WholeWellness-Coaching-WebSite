@@ -3,6 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    
+    <!-- Content Security Policy - mirrors server-side CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      connect-src 'self' https://api.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com;
+      img-src 'self' data: blob: https://*;
+      font-src 'self' https://fonts.gstatic.com data:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      script-src 'self' 'unsafe-inline' https://js.stripe.com *.google.com *.googletagmanager.com;
+      frame-src 'self' https://js.stripe.com *.google.com;
+      worker-src 'self' blob:;
+      object-src 'none';
+    ">
+    
     <meta name="description" content="WholeWellness Coaching Platform - Comprehensive nonprofit digital solution providing life coaching services to underserved individuals" />
     <meta name="theme-color" content="#2563eb" />
     <meta name="mobile-web-app-capable" content="yes" />
