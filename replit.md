@@ -126,3 +126,17 @@ Preferred communication style: Simple, everyday language.
 - **Problem**: Wix SDK packages required React 19 but app uses React 18.3.1, causing "Invalid hook call" errors
 - **Solution**: Uninstalled unused Wix SDK packages (@wix/sdk, @wix/stores, @wix/pricing-plans, @wix/data, @wix/bookings)
 - **Impact**: Resolved React version conflicts, eliminated TooltipProvider crashes, improved stability
+
+### CSP Meta Tag Added to index.html
+- **Implementation**: Added `<meta http-equiv="Content-Security-Policy">` tag to client/index.html
+- **Configuration**: Mirrors server-side Helmet CSP configuration exactly
+- **Coverage**: All directives match (connect-src, img-src, font-src, style-src, script-src, frame-src, worker-src, object-src)
+- **Service Worker Support**: CSP properly allows SW fetch pipeline for Google Fonts via connect-src
+- **Impact**: Client-side CSP enforcement for pages served without server headers
+
+### Service Worker Precaching Strategy Verified
+- **Local Assets Only**: SW precaches only local resources (/, /index.html, /manifest.json, /icons/*)
+- **No Third-Party Precaching**: Google Fonts and external assets NOT precached (best practice)
+- **Runtime Fetching**: Third-party assets fetched at runtime through SW, permitted via connect-src CSP directive
+- **Cache Strategy**: Sensitive endpoints bypass cache, static assets use cache-first, others use network-first
+- **Impact**: Optimal performance without CSP violations or stale third-party resource issues
