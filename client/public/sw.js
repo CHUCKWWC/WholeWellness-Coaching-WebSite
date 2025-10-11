@@ -1,6 +1,6 @@
-const CACHE_NAME = 'wholewellness-v5';
-const STATIC_CACHE_NAME = 'wholewellness-static-v5';
-const DYNAMIC_CACHE_NAME = 'wholewellness-dynamic-v5';
+const CURRENT_VERSION = 'v6';
+const STATIC_CACHE = `wholewellness-static-${CURRENT_VERSION}`;
+const DYNAMIC_CACHE = `wholewellness-dynamic-${CURRENT_VERSION}`;
 
 // Resources to cache on install
 const STATIC_ASSETS = [
@@ -22,45 +22,22 @@ const shouldBypassCache = (url) =>
   url.pathname.startsWith('/api/crisis-alerts') ||
   url.pathname.startsWith('/api/chat');
 
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v5...');
-  event.waitUntil(
-    caches.open(STATIC_CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => {
-        console.log('[SW] Static assets cached successfully');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW] Failed to cache static assets:', error);
-      })
-  );
+// Install event
+self.addEventListener('install', (e) => {
+  e.waitUntil((async () => {
+    const cache = await caches.open(STATIC_CACHE);
+    await cache.addAll(STATIC_ASSETS);
+  })());
+  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker v5...');
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME && cacheName !== CACHE_NAME) {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('[SW] Service worker v5 activated');
-        return self.clients.claim();
-      })
-  );
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => !k.includes(CURRENT_VERSION)).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
 // Fetch event handler
@@ -114,7 +91,7 @@ async function cacheFirst(request) {
 
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE_NAME);
+      const cache = await caches.open(STATIC_CACHE);
       cache.put(request, networkResponse.clone());
       console.log('[SW] Cached new resource:', request.url);
     }
@@ -133,7 +110,7 @@ async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
+      const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, networkResponse.clone());
       console.log('[SW] Updated cache from network:', request.url);
     }
