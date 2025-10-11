@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Brain, MessageCircle, Shield, Clock, Users, Zap, Send, User, Bot, Settings, Palette, Heart, Dumbbell, ExternalLink } from "lucide-react";
+import { Brain, MessageCircle, Shield, Clock, Users, Zap, Send, User, Bot, Settings, Palette, Heart, Dumbbell, ExternalLink, ArrowUp, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import HelpBubble from "@/components/HelpBubble";
@@ -23,11 +23,13 @@ export default function AICoaching() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isPopup, setIsPopup] = useState(false);
+  const [showSuggestedPrompts, setShowSuggestedPrompts] = useState(true);
   
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Check if opened in popup mode and load coach from URL
   useEffect(() => {
@@ -60,28 +62,28 @@ export default function AICoaching() {
   const personaConfig = {
     supportive: {
       name: "Supportive & Empathetic",
-      color: "#0D7377", // Brand teal
+      color: "#0D7377",
       description: "Warm, understanding, and encouraging approach",
       icon: Heart,
       sampleResponses: ["Let's explore that together with compassion", "I'm here to support you through this journey"]
     },
     motivational: {
       name: "Motivational & Energetic", 
-      color: "#F7B801", // Brand yellow
+      color: "#F7B801",
       description: "High-energy, inspiring, and goal-focused",
       icon: Zap,
       sampleResponses: ["You've got this! Let's make it happen!", "Time to turn those goals into reality!"]
     },
     analytical: {
       name: "Analytical & Strategic",
-      color: "#5E9A62", // Brand green
+      color: "#5E9A62",
       description: "Data-driven, logical, and solution-oriented",
       icon: Brain,
       sampleResponses: ["Let's break this down systematically", "Based on the data, here's what I recommend"]
     },
     gentle: {
       name: "Gentle & Nurturing",
-      color: "#8DB4C2", // Soft blue-green
+      color: "#8DB4C2",
       description: "Calm, patient, and understanding approach",
       icon: Users,
       sampleResponses: ["Take your time, there's no rush", "Every small step counts"]
@@ -165,7 +167,6 @@ export default function AICoaching() {
       }
     },
     onError: (error: any) => {
-      // Provide fallback response instead of just showing error
       const fallbackText = isAuthenticated 
         ? getFallbackResponse(selectedCoach?.id || 'mindfulness', currentPersona)
         : "To get personalized AI coaching responses, please sign in to your account. In the meantime, I can share that your question is important and our AI coaches are designed to provide thoughtful, evidence-based guidance tailored to your unique needs.";
@@ -178,7 +179,6 @@ export default function AICoaching() {
       };
       setMessages(prev => [...prev, fallbackMessage]);
 
-      // Only show toast for authenticated users (service unavailable)
       if (isAuthenticated) {
         toast({
           title: "Service Temporarily Unavailable",
@@ -192,7 +192,6 @@ export default function AICoaching() {
   const handleSendMessage = (message: string) => {
     if (!message.trim() || !selectedCoach) return;
 
-    // Add user message
     const userMessage = {
       id: `user-${Date.now()}`,
       text: message,
@@ -201,7 +200,6 @@ export default function AICoaching() {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Send to AI with persona context
     sendMessage.mutate({
       message: message,
       coachType: selectedCoach.id,
@@ -210,13 +208,13 @@ export default function AICoaching() {
     });
 
     setInputMessage("");
+    setShowSuggestedPrompts(false);
   };
 
   const handlePersonaChange = (newPersona: string) => {
     setCurrentPersona(newPersona);
     const config = personaConfig[newPersona as keyof typeof personaConfig];
     
-    // Add system message about persona change
     const systemMessage = {
       id: `system-${Date.now()}`,
       text: `Coaching style changed to: ${config.name}`,
@@ -232,7 +230,6 @@ export default function AICoaching() {
     });
   };
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTo({
@@ -242,16 +239,17 @@ export default function AICoaching() {
     }
   };
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     const timer = setTimeout(() => {
       scrollToBottom();
-    }, 100); // Small delay to ensure DOM is updated
+    }, 100);
     return () => clearTimeout(timer);
   }, [messages]);
 
   const handlePromptClick = (prompt: string) => {
     setInputMessage(prompt);
+    setShowSuggestedPrompts(false);
+    inputRef.current?.focus();
   };
 
   const handleCoachSelect = (coach: any) => {
@@ -266,7 +264,6 @@ export default function AICoaching() {
   };
 
   const openChatInNewWindow = (coach: any) => {
-    // Encode coach data in URL parameters
     const coachData = encodeURIComponent(JSON.stringify({
       id: coach.id,
       name: coach.name,
@@ -278,7 +275,6 @@ export default function AICoaching() {
       suggestedPrompts: coach.suggestedPrompts
     }));
     
-    // Open a new window with specific dimensions
     const windowFeatures = 'width=800,height=600,resizable=yes,scrollbars=yes,status=yes';
     const newWindow = window.open(
       `/ai-coaching?coach=${coachData}&popup=true`,
@@ -343,8 +339,7 @@ export default function AICoaching() {
         "Guide me through a 5-minute meditation",
         "How can I manage stress at work?",
         "Teach me mindful breathing techniques",
-        "Help me develop a daily mindfulness practice",
-        "Ways to stay present throughout the day"
+        "Help me develop a daily mindfulness practice"
       ]
     },
     {
@@ -359,8 +354,7 @@ export default function AICoaching() {
         "Help me break a bad habit",
         "Create a morning routine for productivity",
         "How to stay consistent with my goals",
-        "Strategies for overcoming procrastination",
-        "Building healthy lifestyle habits"
+        "Strategies for overcoming procrastination"
       ]
     },
     {
@@ -375,8 +369,7 @@ export default function AICoaching() {
         "Create a balanced wellness plan for me",
         "How to improve my sleep quality",
         "Natural ways to boost energy",
-        "Developing a self-care routine",
-        "Balancing work and personal life"
+        "Developing a self-care routine"
       ]
     },
     {
@@ -391,8 +384,7 @@ export default function AICoaching() {
         "How to improve communication with my partner",
         "Dealing with trust issues in relationships",
         "Setting healthy boundaries",
-        "Resolving conflicts constructively",
-        "Building emotional intimacy"
+        "Resolving conflicts constructively"
       ]
     },
     {
@@ -407,8 +399,7 @@ export default function AICoaching() {
         "I'm feeling overwhelmed today",
         "Coping strategies for anxiety",
         "How to deal with negative thoughts",
-        "Building emotional resilience",
-        "Finding motivation when feeling down"
+        "Building emotional resilience"
       ]
     },
     {
@@ -423,8 +414,7 @@ export default function AICoaching() {
         "Create a personalized meal plan for my goals",
         "Design a workout routine for beginners",
         "Help me overcome emotional eating",
-        "Track my progress and provide motivation",
-        "Suggest healthy snacks for busy days"
+        "Track my progress and provide motivation"
       ]
     }
   ];
@@ -454,245 +444,191 @@ export default function AICoaching() {
 
   if (showChat && selectedCoach) {
     return (
-      <div className={`bg-gray-50 ${isPopup ? 'h-screen' : 'min-h-screen py-8'}`}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          {!isPopup && (
-            <div className="mb-6">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowChat(false);
-                  setSelectedCoach(null);
-                  setMessages([]);
-                }}
-                className="mb-4"
-              >
-                ← Back to AI Coaching Overview
-              </Button>
+      <div className={`bg-white dark:bg-gray-900 ${isPopup ? 'h-screen' : 'min-h-screen'} flex flex-col`}>
+        {/* ChatGPT-style Header */}
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {!isPopup && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setShowChat(false);
+                    setSelectedCoach(null);
+                    setMessages([]);
+                  }}
+                  className="mr-2"
+                >
+                  ←
+                </Button>
+              )}
+              <div className="text-2xl">{selectedCoach.avatar}</div>
+              <div>
+                <h2 className="font-semibold text-gray-900 dark:text-white text-sm">{selectedCoach.coach}</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{currentPersonaConfig.name}</p>
+              </div>
             </div>
-          )}
+            
+            <Select value={currentPersona} onValueChange={setCurrentPersona}>
+              <SelectTrigger className="w-[180px] h-9 text-sm border-gray-300 dark:border-gray-600">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(personaConfig).map(([key, config]) => {
+                  const IconComponent = config.icon;
+                  return (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="h-3.5 w-3.5" style={{ color: config.color }} />
+                        <span className="text-sm">{config.name}</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          {/* Chat Interface - Mobile Optimized */}
-          <Card className={`${isPopup ? 'h-[calc(100vh-2rem)]' : isMobile ? 'h-[90vh]' : 'h-[700px]'} flex flex-col shadow-xl`}>
-            <CardHeader 
-              className={`border-b bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 ${isMobile ? 'p-3' : 'p-6'}`}
-              style={{ 
-                borderBottom: `3px solid ${currentPersonaConfig.color}`,
-                background: `linear-gradient(135deg, ${currentPersonaConfig.color}15 0%, ${currentPersonaConfig.color}05 100%)`
-              }}
-            >
-              <div className={`flex items-center ${isMobile ? 'flex-col gap-2' : 'justify-between'}`}>
-                <div className="flex items-center gap-3">
-                  <div className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>{selectedCoach.avatar}</div>
-                  <div>
-                    <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>{selectedCoach.name}</CardTitle>
-                    <CardDescription className={`${isMobile ? 'text-xs' : 'text-sm'}`}>{selectedCoach.coach}</CardDescription>
+        {/* Guest Preview Notice */}
+        {!isAuthenticated && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+            <div className="max-w-4xl mx-auto px-4 py-2">
+              <p className="text-sm text-blue-900 dark:text-blue-100">
+                <span className="font-medium">Guest Preview:</span> <a href="/register" className="underline hover:no-underline">Sign up free</a> to unlock full AI responses and conversation history.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Messages Container - ChatGPT Style */}
+        <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            {messages.map((message: any) => {
+              if (message.isSystem) {
+                return (
+                  <div key={message.id} className="flex justify-center my-4">
+                    <div className="bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-1.5 text-xs text-gray-600 dark:text-gray-400">
+                      {message.text}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={message.id}
+                  className={`group mb-6 ${message.isUser ? '' : 'bg-gray-50 dark:bg-gray-800/50'} ${message.isUser ? '' : '-mx-4 px-4 py-6'}`}
+                >
+                  <div className="max-w-3xl mx-auto flex gap-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      message.isUser 
+                        ? 'bg-gray-900 dark:bg-gray-100' 
+                        : 'bg-primary'
+                    }`}>
+                      {message.isUser ? (
+                        <User className="w-5 h-5 text-white dark:text-gray-900" />
+                      ) : (
+                        <Sparkles className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                        {message.isUser ? 'You' : selectedCoach.coach}
+                      </p>
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
+                          {message.text}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Persona Selector in Chat Header - Mobile Responsive */}
-                <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
-                  <Badge 
-                    variant="outline" 
-                    className={`${isMobile ? 'px-2 py-1 text-xs' : 'px-3 py-1'}`}
-                    style={{ 
-                      borderColor: currentPersonaConfig.color,
-                      color: currentPersonaConfig.color,
-                      backgroundColor: `${currentPersonaConfig.color}10`
-                    }}
-                  >
-                    {isMobile ? currentPersonaConfig.name.split(' ')[0] : currentPersonaConfig.name}
-                  </Badge>
-                  <Select value={currentPersona} onValueChange={setCurrentPersona}>
-                    <SelectTrigger className={`${isMobile ? 'w-[140px] text-xs' : 'w-[200px]'}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(personaConfig).map(([key, config]) => {
-                        const IconComponent = config.icon;
-                        return (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2">
-                              <IconComponent className="h-4 w-4" style={{ color: config.color }} />
-                              <span className={`${isMobile ? 'text-xs' : ''}`}>{config.name}</span>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardHeader>
+              );
+            })}
 
-            {/* Guest Preview Notice */}
-            {!isAuthenticated && (
-              <div className="bg-blue-50 border-b border-blue-200 p-3">
-                <div className="flex items-start gap-3">
-                  <div className="text-blue-600 mt-0.5">ℹ️</div>
+            {sendMessage.isPending && (
+              <div className="group mb-6 bg-gray-50 dark:bg-gray-800/50 -mx-4 px-4 py-6">
+                <div className="max-w-3xl mx-auto flex gap-4">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-primary">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
                   <div className="flex-1">
-                    <p className="text-sm text-blue-900 font-medium">Guest Preview Mode</p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      You're trying our AI coaching! <a href="/register" className="underline font-medium">Sign up free</a> to unlock full AI responses, conversation history, and personalized guidance.
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                      {selectedCoach.coach}
                     </p>
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Messages Area - Mobile Optimized with Fixed Scrolling */}
-            <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-              <div 
-                className={`flex-1 overflow-y-auto scroll-smooth ${isMobile ? 'p-2' : 'p-4'} ${isMobile ? 'space-y-2' : 'space-y-4'} bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-800/50 dark:to-gray-900`}
-                style={{
-                  maxHeight: isMobile ? 'calc(90vh - 180px)' : 'calc(700px - 180px)',
-                  minHeight: '300px'
-                }}
-                ref={messagesContainerRef}
-              >
-                {messages.map((message: any) => {
-                  // Handle system messages differently
-                  if (message.isSystem) {
-                    return (
-                      <div key={message.id} className="flex justify-center">
-                        <div className="bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 text-xs text-gray-600 dark:text-gray-300">
-                          {message.text}
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  return (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`flex gap-3 max-w-[85%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm shadow-md ${
-                          message.isUser 
-                            ? 'text-white'
-                            : 'text-white'
-                        }`}
-                        style={{
-                          backgroundColor: message.isUser ? currentPersonaConfig.color : '#6B7280'
-                        }}>
-                          {message.isUser ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
-                        </div>
-                        <div className={`rounded-2xl px-4 py-3 shadow-sm max-w-full ${
-                          message.isUser 
-                            ? 'text-white' 
-                            : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-600'
-                        }`}
-                        style={{
-                          backgroundColor: message.isUser ? currentPersonaConfig.color : undefined
-                        }}>
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
-                          <p className={`text-xs mt-2 ${
-                            message.isUser ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
-                          }`}>
-                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {sendMessage.isPending && (
-                  <div className="flex justify-start">
-                    <div className="flex gap-2 max-w-[80%]">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm bg-gray-200">
-                        <Bot className="w-4 h-4" />
-                      </div>
-                      <div className="rounded-lg p-3 bg-gray-100">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Suggested Prompts */}
-              <div className="border-t p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested prompts:</p>
-                  <div className="text-xs text-gray-500 flex items-center gap-1">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: currentPersonaConfig.color }}
-                    ></div>
-                    {currentPersonaConfig.name} style
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {selectedCoach.suggestedPrompts.map((prompt: string, index: number) => (
-                    <Button
+            {/* Suggested Prompts - Shows when no messages */}
+            {showSuggestedPrompts && messages.length <= 1 && (
+              <div className="mt-8 space-y-3">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Try asking:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {selectedCoach.suggestedPrompts.slice(0, 4).map((prompt: string, index: number) => (
+                    <button
                       key={index}
-                      variant="outline"
-                      size="sm"
                       onClick={() => handlePromptClick(prompt)}
-                      className="text-xs h-8 hover:shadow-sm transition-all duration-200"
-                      style={{
-                        borderColor: `${currentPersonaConfig.color}50`,
-                        backgroundColor: 'white',
-                        '--hover-bg': `${currentPersonaConfig.color}10`
-                      } as any}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${currentPersonaConfig.color}10`;
-                        e.currentTarget.style.borderColor = currentPersonaConfig.color;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'white';
-                        e.currentTarget.style.borderColor = `${currentPersonaConfig.color}50`;
-                      }}
+                      className="text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm text-gray-700 dark:text-gray-300"
+                      data-testid={`prompt-${index}`}
                     >
                       {prompt}
-                    </Button>
+                    </button>
                   ))}
                 </div>
-
-                {/* Message Input */}
-                <div className="flex gap-3">
-                  <div className="flex-1 relative">
-                    <Textarea
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder={`Type your message here... (${currentPersonaConfig.name} style)`}
-                      className="resize-none border-2 focus:border-current transition-colors pr-12"
-                      style={{ borderColor: `${currentPersonaConfig.color}30` }}
-                      rows={2}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage(inputMessage);
-                        }
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = currentPersonaConfig.color;
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = `${currentPersonaConfig.color}30`;
-                      }}
-                    />
-                  </div>
-                  <Button
-                    onClick={() => handleSendMessage(inputMessage)}
-                    disabled={!inputMessage.trim() || sendMessage.isPending}
-                    className="self-end px-6 shadow-md hover:shadow-lg transition-all duration-200"
-                    style={{ 
-                      backgroundColor: currentPersonaConfig.color,
-                      borderColor: currentPersonaConfig.color
-                    }}
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+        </div>
+
+        {/* ChatGPT-style Input Area - Fixed at bottom */}
+        <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky bottom-0">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="relative flex items-end gap-2">
+              <div className="flex-1 relative">
+                <Textarea
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Message..."
+                  className="resize-none min-h-[52px] max-h-[200px] pr-12 py-3 rounded-2xl border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-1 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(inputMessage);
+                    }
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, 200) + 'px';
+                  }}
+                  data-testid="input-message"
+                />
+                <Button
+                  onClick={() => handleSendMessage(inputMessage)}
+                  disabled={!inputMessage.trim() || sendMessage.isPending}
+                  size="sm"
+                  className="absolute right-2 bottom-2 h-8 w-8 p-0 rounded-lg bg-primary hover:bg-primary/90 disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:text-gray-400"
+                  data-testid="button-send"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+              AI can make mistakes. Consider checking important information.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -788,6 +724,7 @@ export default function AICoaching() {
                     <Button 
                       className="flex-1 bg-primary hover:bg-secondary text-white transition-colors"
                       onClick={() => handleCoachSelect(coach)}
+                      data-testid={`button-start-chat-${coach.id}`}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Start Chat
@@ -890,6 +827,7 @@ export default function AICoaching() {
                       onClick={() => handleCoachSelect(coach)}
                       className="w-full"
                       variant="default"
+                      data-testid={`button-coach-${coach.id}`}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Start Chat with {coach.coach.split(' - ')[0]}
