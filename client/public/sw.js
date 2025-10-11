@@ -1,6 +1,6 @@
-const CACHE_NAME = 'wholewellness-v1';
-const STATIC_CACHE_NAME = 'wholewellness-static-v1';
-const DYNAMIC_CACHE_NAME = 'wholewellness-dynamic-v1';
+const CACHE_NAME = 'wholewellness-v2';
+const STATIC_CACHE_NAME = 'wholewellness-static-v2';
+const DYNAMIC_CACHE_NAME = 'wholewellness-dynamic-v2';
 
 // Resources to cache on install
 const STATIC_ASSETS = [

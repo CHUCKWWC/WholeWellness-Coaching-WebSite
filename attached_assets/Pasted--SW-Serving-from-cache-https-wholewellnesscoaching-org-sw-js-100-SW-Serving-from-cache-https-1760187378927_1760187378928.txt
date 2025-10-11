@@ -1,0 +1,36 @@
+[SW] Serving from cache: https://wholewellnesscoaching.org/
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-Cq6fTPd0.js
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-D_bX5f5N.css
+sw.js:108 [SW] Cached new resource: chrome-extension://kejbdjndbnbjgmefkgdddjlbokphdefk/api/tag_assistant_api_bin.js
+sw.js:107 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at cacheFirst (sw.js:107:13)Understand this error
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/api/auth/user
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/api/testimonials
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_logo_1749818333586-BVtEx_CI.jpg
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_%20(5)_1751919370279-Bf0eZedt.jpg
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_%20(4)_1751919370276-D5h9FBg5.jpg
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_%20(2)_1751919370270-eBLu67Dl.jpg
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_%20(2)_1751919370272-TIxxjWX3.webp
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_%20(9)_1751919370287-DrNkBEcg.jpg
+api/admin/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-Cq6fTPd0.js:342 [PWA] Service Worker registered: ServiceWorkerRegistration
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/manifest.json
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/api/chat/sessions
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+wholewellnesscoaching.org/:1 Refused to load the image 'https://fonts.gstatic.com/s/i/productlogos/voice_2020q4/v7/web-24dp/logo_voice_2020q4_color_2x_web_24dp.png' because it violates the following Content Security Policy directive: "img-src 'self' data: blob: *.stripe.com *.google.com *.googleapis.com".
+Understand this error
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/AICoaching-DPB7V0qC.js
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/select-D5_Q0zzJ.js
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-BkzG02aV.js
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/zap-D5lnMiBm.js
+AICoaching-DPB7V0qC.js:1 Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.Understand this error
+select-D5_Q0zzJ.js:1 Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.Understand this error
+index-BkzG02aV.js:1 Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.Understand this error
+zap-D5lnMiBm.js:1 Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec.Understand this error
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+index-Cq6fTPd0.js:49 TypeError: Failed to fetch dynamically imported module: https://wholewellnesscoaching.org/assets/AICoaching-DPB7V0qC.js
+dC @ index-Cq6fTPd0.js:49Understand this error
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/ai-coaching
+sw.js:100 [SW] Serving from cache: https://wholewellnesscoaching.org/manifest.json
+sw.js:108 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/index-D_bX5f5N.css
+ai-coaching:1 Refused to apply style from 'https://wholewellnesscoaching.org/assets/index-D_bX5f5N.css' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
