@@ -100,8 +100,8 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {highRiskPredictions.map((prediction: RiskPrediction) => (
-                  <div key={prediction.clientId} className="bg-white rounded p-3 border">
+                {(highRiskPredictions ?? []).map((prediction: RiskPrediction, idx) => (
+                  <div key={prediction?.clientId ?? `pred-${idx}`} className="bg-white rounded p-3 border">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h4 className="font-medium">{prediction.clientName}</h4>
@@ -125,7 +125,7 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
                       <div>
                         <strong>Recommendations:</strong>
                         <ul className="list-disc list-inside ml-4 mt-1">
-                          {prediction.recommendations.map((rec, idx) => (
+                          {(prediction?.recommendations ?? []).map((rec, idx) => (
                             <li key={idx}>{rec}</li>
                           ))}
                         </ul>
@@ -139,10 +139,10 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
         )}
 
         <div className="grid gap-4">
-          {riskPredictions.filter((p: RiskPrediction) => 
-            p.predictedRiskLevel !== 'high' && p.predictedRiskLevel !== 'crisis'
-          ).map((prediction: RiskPrediction) => (
-            <Card key={prediction.clientId}>
+          {(riskPredictions ?? []).filter((p: RiskPrediction) => 
+            p?.predictedRiskLevel !== 'high' && p?.predictedRiskLevel !== 'crisis'
+          ).map((prediction: RiskPrediction, idx) => (
+            <Card key={prediction?.clientId ?? `pred-${idx}`}>
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
@@ -271,8 +271,8 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
               Concerning Patterns
             </h4>
             <div className="space-y-3">
-              {negativePatterns.map((pattern: PatternAnalysis, idx) => (
-                <Card key={idx} className="border-red-200">
+              {(negativePatterns ?? []).map((pattern: PatternAnalysis, idx) => (
+                <Card key={pattern?.pattern ?? `pattern-neg-${idx}`} className="border-red-200">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h5 className="font-medium">{pattern.pattern}</h5>
@@ -285,7 +285,7 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
                     <div className="text-sm">
                       <strong>Suggested actions:</strong>
                       <ul className="list-disc list-inside ml-4 mt-1">
-                        {pattern.suggestedActions.map((action, actionIdx) => (
+                        {(pattern?.suggestedActions ?? []).map((action, actionIdx) => (
                           <li key={actionIdx}>{action}</li>
                         ))}
                       </ul>
@@ -304,8 +304,8 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
               Positive Patterns
             </h4>
             <div className="space-y-3">
-              {positivePatterns.map((pattern: PatternAnalysis, idx) => (
-                <Card key={idx} className="border-green-200">
+              {(positivePatterns ?? []).map((pattern: PatternAnalysis, idx) => (
+                <Card key={pattern?.pattern ?? `pattern-pos-${idx}`} className="border-green-200">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h5 className="font-medium">{pattern.pattern}</h5>
@@ -318,7 +318,7 @@ export default function AIInsightsDashboard({ coachId }: AIInsightsDashboardProp
                     <div className="text-sm">
                       <strong>Replication strategies:</strong>
                       <ul className="list-disc list-inside ml-4 mt-1">
-                        {pattern.suggestedActions.map((action, actionIdx) => (
+                        {(pattern?.suggestedActions ?? []).map((action, actionIdx) => (
                           <li key={actionIdx}>{action}</li>
                         ))}
                       </ul>

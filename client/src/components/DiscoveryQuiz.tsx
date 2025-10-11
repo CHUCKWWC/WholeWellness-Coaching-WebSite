@@ -264,8 +264,8 @@ export default function DiscoveryQuiz() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {results.recommendedPath.coaches.map((coach, index) => (
-                <div key={index} className={`p-4 rounded-lg border ${coach.priority === 'primary' ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+              {(results?.recommendedPath?.coaches ?? []).map((coach, index) => (
+                <div key={coach?.specialty ?? `coach-${index}`} className={`p-4 rounded-lg border ${coach?.priority === 'primary' ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
                   <div className="flex items-start gap-3">
                     <div className="text-blue-600">{coach.icon}</div>
                     <div>

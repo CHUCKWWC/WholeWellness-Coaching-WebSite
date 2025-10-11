@@ -327,8 +327,8 @@ export default function GroupSessionManager({ coachId, isCoach }: GroupSessionMa
                   <DialogTitle>Add Participant</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  {availableClients.map((client: any) => (
-                    <div key={client.id} className="flex justify-between items-center p-3 border rounded">
+                  {(availableClients ?? []).map((client: any, idx) => (
+                    <div key={client?.id ?? client?.email ?? `client-${idx}`} className="flex justify-between items-center p-3 border rounded">
                       <div>
                         <div className="font-medium">{client.name}</div>
                         <div className="text-sm text-gray-600">{client.email}</div>
@@ -349,8 +349,8 @@ export default function GroupSessionManager({ coachId, isCoach }: GroupSessionMa
         </div>
 
         <div className="grid gap-4">
-          {session.participants.map((participant) => (
-            <Card key={participant.id}>
+          {(session?.participants ?? []).map((participant, idx) => (
+            <Card key={participant?.id ?? participant?.name ?? `participant-${idx}`}>
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
@@ -569,8 +569,8 @@ export default function GroupSessionManager({ coachId, isCoach }: GroupSessionMa
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {completedSessions.map((session: GroupSession) => (
-                <div key={session.id} className="border rounded p-4">
+              {(completedSessions ?? []).map((session: GroupSession, idx) => (
+                <div key={session?.id ?? session?.title ?? `session-${idx}`} className="border rounded p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-medium">{session.title}</h4>
                     <Badge>{new Date(session.scheduledDate).toLocaleDateString()}</Badge>
@@ -639,8 +639,8 @@ export default function GroupSessionManager({ coachId, isCoach }: GroupSessionMa
 
         <TabsContent value="sessions">
           <div className="space-y-4">
-            {groupSessions.map((session: GroupSession) => (
-              <Card key={session.id}>
+            {(groupSessions ?? []).map((session: GroupSession, idx) => (
+              <Card key={session?.id ?? session?.title ?? `session-${idx}`}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
@@ -673,8 +673,8 @@ export default function GroupSessionManager({ coachId, isCoach }: GroupSessionMa
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex flex-wrap gap-2">
-                      {session.tags.map((tag) => (
-                        <Badge key={tag} variant="outline">{tag}</Badge>
+                      {(session?.tags ?? []).map((tag, idx) => (
+                        <Badge key={tag ?? `tag-${idx}`} variant="outline">{tag}</Badge>
                       ))}
                     </div>
                     
