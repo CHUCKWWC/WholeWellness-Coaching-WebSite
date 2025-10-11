@@ -22,11 +22,12 @@ export default function AICoaching() {
   const [currentPersona, setCurrentPersona] = useState("supportive");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isPopup, setIsPopup] = useState(false);
+  
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [isPopup, setIsPopup] = useState(false);
 
   // Check if opened in popup mode and load coach from URL
   useEffect(() => {
