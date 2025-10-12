@@ -1,0 +1,146 @@
+Biggest issues I see
+
+Build artifacts & junk are in version control
+dist/, server.pid, tmp/mcp_output/, and even an uploaded ZIP are committed. These should be ignored, not tracked. 
+GitHub
+
+Duplicate configs (JS + TS) and mixed module styles
+Both vite.config.js and vite.config.ts exist at the root—classic source of env drift. Pick one (TS) and delete the other. 
+GitHub
+
+Temp/backup files in the repo
+package.json.backup, package.json.working, replit.md.backup clutter the root and confuse tooling. Remove them. 
+GitHub
+
+No .gitignore in root (or at least not visible)
+Given #1–#3, the repo is missing an effective ignore file. Add one and untrack the junk. 
+GitHub
+
+No CI workflow folder
+I don’t see .github/workflows/*. Add a minimal CI to keep main green (typecheck/lint/build). The repo shows a release (v3.0.0) but no visible CI. 
+GitHub
+
+Docs sprawl in root
+Tons of helpful markdowns (deployment, performance, UX) live at root. They should live under /docs/* to tame top-level noise. 
+GitHub
+
+JS/TS ratio suggests inconsistent codebase
+GitHub reports ~59% JS / ~40% TS. Standardize on TypeScript where possible to avoid type holes. 
+GitHub
+
+Monorepo without workspaces
+You have client/, server/, shared/ but no npm workspaces configured at root. This slows installs and makes scripts brittle. 
+GitHub
+
+Copy-paste fixes
+A. Add a proper .gitignore (root)
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+.yarn/*
+.yarnrc.yml
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temp & state
+server.pid
+tmp/
+*.log
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Archives
+*.zip
+
+# Replit
+.replit
+replit.nix
+
+
+Then untrack junk:
+
+git rm -r --cached dist tmp server.pid "*.zip" "package.json.backup" "package.json.working" "replit.md.backup"
+git add .gitignore
+git commit -m "chore: clean repo + add .gitignore"
+
+B. Standardize to TypeScript + ESM
+
+Keep vite.config.ts, delete vite.config.js:
+
+git rm vite.config.js
+git commit -m "chore: drop duplicate vite.config.js; standardize on TS"
+
+
+(If any server files use CJS: convert or run Node with "type": "module" and TS build output set to ESM.)
+
+C. Introduce npm workspaces
+
+package.json (root)
+
+{
+  "private": true,
+  "workspaces": ["client", "server", "shared"],
+  "type": "module",
+  "engines": { "node": ">=20 <21" },
+  "scripts": {
+    "build": "npm run -ws build",
+    "dev": "npm run -w server dev & npm run -w client dev",
+    "lint": "npm run -ws lint",
+    "typecheck": "npm run -ws typecheck",
+    "test": "npm run -ws test"
+  }
+}
+
+D. Add minimal CI
+
+.github/workflows/ci.yml
+
+name: CI
+on:
+  push: { branches: [ main ] }
+  pull_request:
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npm run typecheck || true
+      - run: npm run lint || true
+      - run: npm run build
+
+E. Tidy the docs
+
+Create /docs and move all the deployment/perf/UX markdowns there (keep concise READMEs at root). 
+GitHub
+
+Quick wins to verify
+
+After the cleanup, the root should no longer show dist/, server.pid, tmp/mcp_output/, or the ZIP. 
+GitHub
+
+Only one Vite config remains (vite.config.ts). 
+GitHub
+
+CI badge shows on PRs; releases stop breaking silently.
+
+Workspaces make npm ci faster and cross-package imports cleaner.
+
+If you want, I can generate a PR patch that deletes the dupes, adds .gitignore, introduces workspaces, and drops a working CI file—all ready to apply.
