@@ -1,0 +1,178 @@
+1) Add a tiny UI context to track “chat mode”
+
+Create: client/src/ui/ChatUIContext.tsx
+
+import { createContext, useContext, useMemo, useState, ReactNode } from "react";
+
+type ChatUIState = { chatActive: boolean; setChatActive: (v: boolean) => void };
+
+const ChatUI = createContext<ChatUIState | null>(null);
+
+export function ChatUIProvider({ children }: { children: ReactNode }) {
+  const [chatActive, setChatActive] = useState(false);
+  const value = useMemo(() => ({ chatActive, setChatActive }), [chatActive]);
+  return <ChatUI.Provider value={value}>{children}</ChatUI.Provider>;
+}
+
+export function useChatUI() {
+  const ctx = useContext(ChatUI);
+  if (!ctx) throw new Error("useChatUI must be used inside <ChatUIProvider/>");
+  return ctx;
+}
+
+2) Add a compact legal menu for chat screens
+
+Create: client/src/components/chat/LegalMenu.tsx
+
+import { useEffect, useRef, useState } from "react";
+
+export default function LegalMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen(v => !v)}
+        className="px-3 py-1 rounded-lg border text-sm"
+      >
+        Legal
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg p-1 text-sm z-50"
+        >
+          <a role="menuitem" className="block px-3 py-2 hover:bg-gray-50 rounded-lg" href="/privacy">Privacy Policy</a>
+          <a role="menuitem" className="block px-3 py-2 hover:bg-gray-50 rounded-lg" href="/terms">Terms of Service</a>
+          <a role="menuitem" className="block px-3 py-2 hover:bg-gray-50 rounded-lg" href="/accessibility">Accessibility</a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+3) Teach the layout to hide the footer for chat routes
+
+Edit: client/src/App.tsx
+Unified diff (minimal, safe):
+
+@@
+-import SmartNavigation from "./components/SmartNavigation";
+-import Footer from "./components/Footer";
++import SmartNavigation from "./components/SmartNavigation";
++import Footer from "./components/Footer";
++import { ChatUIProvider, useChatUI } from "./ui/ChatUIContext";
++import { useRoute } from "wouter";
+@@
+-export default function App() {
+-  return (
+-    <>
+-      <SmartNavigation />
+-      <main className="min-h-[60vh]">
+-        {/* ... your Switch/Routes ... */}
+-      </main>
+-      <Footer />
+-    </>
+-  );
+-}
++function AppShell({ children }: { children: React.ReactNode }) {
++  const [isAIChat] = useRoute("/ai-coaching/:rest*"); // matches /ai-coaching and subpaths
++  const { chatActive } = useChatUI(); // components can set this at runtime
++  const hideFooter = Boolean(isAIChat) || chatActive;
++  return (
++    <>
++      <SmartNavigation />
++      <main className="min-h-[60vh]">{children}</main>
++      {!hideFooter && <Footer />}
++    </>
++  );
++}
++
++export default function App() {
++  return (
++    <ChatUIProvider>
++      <AppShell>
++        {/* ... your Switch/Routes ... */}
++      </AppShell>
++    </ChatUIProvider>
++  );
++}
+
+
+Notes:
+
+We wrapped your app tree in ChatUIProvider.
+
+We decide hideFooter before render using both the route (/ai-coaching) and the context flag.
+
+No layout shift; Footer simply isn’t rendered in chat mode.
+
+4) Flip “chat mode” on the AI Coaching page
+
+Edit: client/src/pages/AICoaching.tsx
+Adds a small header with Exit + Legal menu and toggles the chat flag.
+
+@@
++import { useEffect } from "react";
++import { useChatUI } from "@/ui/ChatUIContext";
++import LegalMenu from "@/components/chat/LegalMenu";
+@@
+ export default function AICoaching() {
++  const { setChatActive } = useChatUI();
++  useEffect(() => {
++    setChatActive(true);
++    return () => setChatActive(false);
++  }, [setChatActive]);
++
+   return (
+-    <div className="px-4 py-6">
+-      {/* existing content */}
+-    </div>
++    <div className="flex flex-col min-h-[calc(100vh-0px)]">
++      <header className="h-14 flex items-center justify-between px-3 border-b bg-white">
++        <div className="font-semibold">AI Coaching</div>
++        <div className="flex items-center gap-2">
++          <a href="/" className="px-3 py-1 rounded-lg border text-sm">Exit chat</a>
++          <LegalMenu />
++        </div>
++      </header>
++      <div className="flex-1 px-4 py-4 overflow-auto">
++        {/* existing content */}
++      </div>
++    </div>
+   );
+ }
+
+
+If your page already renders its own title/header, you can drop the new <header> section and just keep the useEffect toggle; or move the LegalMenu into your existing header.
+
+What this gives you
+
+Footer never renders on /ai-coaching (and any nested paths), or whenever a chat component sets chatActive=true.
+
+Legal links remain one click away in the chat header, keeping Privacy/Terms/Accessibility discoverable.
+
+No layout shift or jank—visibility is decided at the layout level pre-render.
+
+Quick test checklist
+
+Go to any non-chat route → footer visible.
+
+Navigate to /ai-coaching → footer disappears immediately; no content jump.
+
+“Exit chat” returns you home and footer comes back.
+
+Legal menu opens, is keyboard-navigable, and links work.
+
+If you render a chatbot component in other routes, call setChatActive(true/false) on mount/unmount and the footer will hide/show accordingly.

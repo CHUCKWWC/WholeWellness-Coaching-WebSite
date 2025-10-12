@@ -13,8 +13,16 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useChatUI } from "@/ui/ChatUIContext";
+import LegalMenu from "@/components/chat/LegalMenu";
 
 export default function AICoaching() {
+  const { setChatActive } = useChatUI();
+  
+  useEffect(() => {
+    setChatActive(true);
+    return () => setChatActive(false);
+  }, [setChatActive]);
   const [showChat, setShowChat] = useState(false);
   const [selectedCoach, setSelectedCoach] = useState<any>(null);
   const [messages, setMessages] = useState<Array<{id: string, text: string, isUser: boolean, timestamp: Date, sessionId?: string}>>([]);
@@ -444,9 +452,20 @@ export default function AICoaching() {
 
   if (showChat && selectedCoach) {
     return (
-      <div className={`bg-white dark:bg-gray-900 ${isPopup ? 'h-screen' : 'min-h-screen'} flex flex-col`}>
-        {/* ChatGPT-style Header */}
-        <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
+      <div className={`bg-white dark:bg-gray-900 ${isPopup ? 'h-screen' : 'min-h-[calc(100vh-0px)]'} flex flex-col`}>
+        {/* Chat Header with Exit and Legal */}
+        {!isPopup && (
+          <header className="h-14 flex items-center justify-between px-3 border-b bg-white dark:bg-gray-800">
+            <div className="font-semibold text-gray-900 dark:text-white">AI Coaching - {selectedCoach.coach}</div>
+            <div className="flex items-center gap-2">
+              <a href="/" className="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-700">Exit chat</a>
+              <LegalMenu />
+            </div>
+          </header>
+        )}
+        
+        {/* ChatGPT-style Sub-Header */}
+        <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {!isPopup && (

@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useRoute } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -18,6 +18,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { LazyLoadWrapper, withLazyLoading } from "@/components/LazyLoadWrapper";
 import { useRoutePreloader } from "@/utils/routePreloader";
 import { useLocation } from "wouter";
+import { ChatUIProvider, useChatUI } from "@/ui/ChatUIContext";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -96,6 +97,9 @@ const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
 
 function Router() {
   const [location] = useLocation();
+  const [isAIChat] = useRoute("/ai-coaching/:rest*"); // matches /ai-coaching and subpaths
+  const { chatActive } = useChatUI(); // components can set this at runtime
+  const hideFooter = Boolean(isAIChat) || chatActive;
   
   // Temporarily disable preloading to fix re-render loop
   // const { preloadCriticalRoutes, preloadRelatedRoutes, preloadBasedOnUserRole } = useRoutePreloader();
@@ -211,7 +215,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
       {/* <Chatbot /> */}
       <HelpSystem />
       <FeatureSpotlight />
@@ -230,9 +234,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <EmpatheticHelpProvider>
-          <Router />
-          <Toaster />
-          {/* Temporarily disabled: <PerformanceMonitor /> */}
+          <ChatUIProvider>
+            <Router />
+            <Toaster />
+            {/* Temporarily disabled: <PerformanceMonitor /> */}
+          </ChatUIProvider>
         </EmpatheticHelpProvider>
       </TooltipProvider>
       <ReactQueryDevtools initialIsOpen={false} />
