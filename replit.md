@@ -194,3 +194,22 @@ Preferred communication style: Simple, everyday language.
   - Login/Register flows set flag; Logout clears it
 - **Files Updated**: `useAuth.ts`, `Login.tsx`, `Register.tsx`, `SmartNavigation.tsx`, `RoleBasedNavigation.tsx`
 - **Impact**: Eliminated 401 spam in console, improved performance, cleaner user experience for logged-out visitors
+
+**October 12, 2025**: Codebase cleanup and critical API bug fixes:
+
+### Codebase Organization & Standards
+- **Git Configuration**: Added comprehensive `.gitignore` excluding dist/, tmp/, server.pid, node_modules/, and other build artifacts
+- **File Cleanup**: Removed duplicate vite.config.js (kept TypeScript version), deleted backup files (package.json.backup, package.json.working, replit.md.backup)
+- **Documentation Organization**: Moved 30+ markdown files to `/docs` folder with categorized README index
+- **CI/CD Setup**: Added GitHub Actions workflow for automated testing and build verification
+- **Impact**: Professional codebase structure following industry best practices
+
+### PersonalizedRecommendations API Parameter Order Fix
+- **Problem**: TypeError "'/api/recommendations/generate' is not a valid HTTP method" preventing recommendation generation
+- **Root Cause**: Incorrect parameter order in `apiRequest()` calls - URL passed as method parameter
+- **Correct Signature**: `apiRequest(method: string, url: string, data?: unknown)`
+- **Solution**: Fixed 3 mutations in PersonalizedRecommendations.tsx:
+  - `generateRecommendations`: Changed from `apiRequest(url, options)` to `apiRequest('POST', url, data)`
+  - `trackUsage`: Corrected to `apiRequest('POST', '/api/recommendations/track', data)`
+  - `submitFeedback`: Corrected to `apiRequest('POST', '/api/recommendations/feedback', data)`
+- **Impact**: Recommendation generation now works correctly, users can generate personalized wellness recommendations
