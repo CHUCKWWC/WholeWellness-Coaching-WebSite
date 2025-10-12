@@ -107,11 +107,7 @@ export default function PersonalizedRecommendations() {
   // Generate recommendations mutation
   const generateRecommendations = useMutation({
     mutationFn: async (data: { userProfile: UserProfile; context: RecommendationContext }) => {
-      const response = await apiRequest('/api/recommendations/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('POST', '/api/recommendations/generate', data);
       return response.json();
     },
     onSuccess: (data) => {
@@ -134,11 +130,7 @@ export default function PersonalizedRecommendations() {
   // Track recommendation usage
   const trackUsage = useMutation({
     mutationFn: async (data: { recommendationId: string; action: string }) => {
-      await apiRequest('/api/recommendations/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      await apiRequest('POST', '/api/recommendations/track', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/recommendations/analytics'] });
@@ -148,11 +140,7 @@ export default function PersonalizedRecommendations() {
   // Submit feedback mutation
   const submitFeedback = useMutation({
     mutationFn: async (data: { recommendationId: string; feedback: string; wasHelpful: boolean }) => {
-      await apiRequest('/api/recommendations/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      await apiRequest('POST', '/api/recommendations/feedback', data);
     },
     onSuccess: () => {
       toast({
