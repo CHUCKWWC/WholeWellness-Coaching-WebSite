@@ -19,6 +19,9 @@ import { LazyLoadWrapper, withLazyLoading } from "@/components/LazyLoadWrapper";
 import { useRoutePreloader } from "@/utils/routePreloader";
 import { useLocation } from "wouter";
 import { ChatUIProvider, useChatUI } from "@/ui/ChatUIContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import CoachLayout from "@/layouts/CoachLayout";
+import MemberLayout from "@/layouts/MemberLayout";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -43,7 +46,8 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const CMS = lazy(() => import("@/pages/CMS"));
 const Donate = lazy(() => import("@/pages/Donate"));
 const MemberPortal = lazy(() => import("@/pages/MemberPortal"));
-const CoachDashboard = lazy(() => import("@/pages/CoachDashboard"));
+const CoachDashboardOld = lazy(() => import("@/pages/CoachDashboard"));
+const NewCoachDashboard = lazy(() => import("@/pages/coach/CoachDashboard"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const DonationPortal = lazy(() => import("@/pages/DonationPortal"));
@@ -212,6 +216,66 @@ function Router() {
           <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
           <Route path="/session/:sessionId/join" component={(props) => <LazyRoute component={SessionJoin} loadingText="Preparing session..." {...props} />} />
           <Route path="/session/:sessionId" component={(props) => <LazyRoute component={VideoSession} loadingText="Connecting..." {...props} />} />
+          
+          {/* Coach Routes - Protected */}
+          <Route path="/coach/dashboard" component={() => (
+            <ProtectedRoute requiredRole="coach">
+              <CoachLayout>
+                <LazyRoute component={NewCoachDashboard} loadingText="Loading coach dashboard..." />
+              </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          <Route path="/coach/clients" component={() => (
+            <ProtectedRoute requiredRole="coach">
+              <CoachLayout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold">Clients</h1>
+                  <p className="text-gray-600 mt-2">Client management coming soon...</p>
+                </div>
+              </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          <Route path="/coach/schedule" component={() => (
+            <ProtectedRoute requiredRole="coach">
+              <CoachLayout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold">Schedule</h1>
+                  <p className="text-gray-600 mt-2">Schedule management coming soon...</p>
+                </div>
+              </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          <Route path="/coach/assessments" component={() => (
+            <ProtectedRoute requiredRole="coach">
+              <CoachLayout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold">Client Assessments</h1>
+                  <p className="text-gray-600 mt-2">Assessment reviews coming soon...</p>
+                </div>
+              </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          <Route path="/coach/earnings" component={() => (
+            <ProtectedRoute requiredRole="coach">
+              <CoachLayout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold">Earnings</h1>
+                  <p className="text-gray-600 mt-2">Earnings dashboard coming soon...</p>
+                </div>
+              </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          <Route path="/coach/certification" component={() => (
+            <ProtectedRoute requiredRole="coach">
+              <CoachLayout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold">Certification</h1>
+                  <p className="text-gray-600 mt-2">Certification progress coming soon...</p>
+                </div>
+              </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          
           <Route component={NotFound} />
         </Switch>
       </main>
