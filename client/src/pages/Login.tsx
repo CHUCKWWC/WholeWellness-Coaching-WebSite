@@ -54,11 +54,16 @@ export default function Login() {
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
-      // Check if user has completed onboarding
-      if (data.hasCompletedOnboarding) {
-        setLocation("/dashboard");
-      } else {
+      // Role-based redirect
+      if (!data.hasCompletedOnboarding) {
         setLocation("/digital-onboarding");
+      } else if (data.role === "coach") {
+        setLocation("/coach/dashboard");
+      } else if (data.role === "admin" || data.role === "superadmin") {
+        setLocation("/admin-dashboard");
+      } else {
+        // Regular members/users
+        setLocation("/dashboard");
       }
     },
     onError: (error: any) => {
