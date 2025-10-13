@@ -7,8 +7,10 @@ import {
   TrendingUp, 
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Video
 } from "lucide-react";
+import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 
 export default function CoachDashboard() {
   const { user } = useAuth();
@@ -93,16 +95,33 @@ export default function CoachDashboard() {
     }
   ];
 
+  // Format clients for video session dialog
+  const clientsForSession = recentClients.map(client => ({
+    id: client.id.toString(),
+    name: client.name,
+  }));
+
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
       {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Welcome back, {user?.firstName}!
-        </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Here's what's happening with your coaching practice today.
-        </p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome back, {user?.firstName}!
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Here's what's happening with your coaching practice today.
+          </p>
+        </div>
+        <StartVideoSessionDialog 
+          clients={clientsForSession}
+          trigger={
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Video className="h-5 w-5 mr-2" />
+              Start Video Session
+            </Button>
+          }
+        />
       </div>
 
       {/* Stats Grid */}
