@@ -10,6 +10,8 @@ export interface AuthUser {
   rewardPoints: number | null;
   donationTotal: string | null;
   profileImageUrl: string | null;
+  role: string;
+  permissions: string[] | null;
 }
 
 export function useAuth() {
@@ -57,6 +59,10 @@ export function useAuth() {
     isLoading,
     isAuthenticated: !!user?.id,
     isPaidMember: user?.membershipLevel !== 'free' && user?.membershipLevel !== null,
+    isCoach: user?.role === 'coach',
+    isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
+    isMember: user?.role === 'user' || !user?.role,
+    role: user?.role || 'user',
     error,
   };
 }
