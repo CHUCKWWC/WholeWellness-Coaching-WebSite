@@ -25,6 +25,7 @@ Preferred communication style: Simple, everyday language.
 - **Multi-assessment System**: Comprehensive assessment types with database architecture and API.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
+- **Video Conferencing System**: 100ms-powered video sessions with coach-initiated session creation, client pre-registration with auth tokens, recording, transcription, and AI summaries.
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
@@ -37,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 - **SendGrid**: Transactional email service.
 - **Stripe**: Payment processing and subscription management.
 - **n8n**: Workflow automation and AI integration.
-- **Google Meet**: Video conferencing for coach sessions.
+- **100ms**: Video conferencing infrastructure for live coach-client sessions with recording and transcription capabilities.
 - **Google OAuth**: Social login and admin authentication.
 - **Gmail API**: Email sending for notifications.
 - **Drizzle ORM**: Type-safe database operations.
