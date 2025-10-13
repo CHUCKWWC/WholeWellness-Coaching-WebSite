@@ -20,12 +20,13 @@ import {
   generateRoomCode 
 } from "./video-service";
 import OpenAI from "openai";
+import { requireAuth, type AuthenticatedRequest } from "./auth";
 
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Create a new video session
-router.post("/sessions/create", async (req: any, res) => {
+router.post("/sessions/create", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { 
       bookingId,
@@ -141,7 +142,7 @@ router.post("/sessions/create", async (req: any, res) => {
 });
 
 // Get session details
-router.get("/sessions/:sessionId", async (req: any, res) => {
+router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
     
@@ -168,7 +169,7 @@ router.get("/sessions/:sessionId", async (req: any, res) => {
 });
 
 // Generate join token for participant
-router.post("/sessions/:sessionId/join-token", async (req: any, res) => {
+router.post("/sessions/:sessionId/join-token", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
     const userId = req.user.id;
@@ -216,7 +217,7 @@ router.post("/sessions/:sessionId/join-token", async (req: any, res) => {
 });
 
 // Start session
-router.post("/sessions/:sessionId/start", async (req: any, res) => {
+router.post("/sessions/:sessionId/start", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
 
@@ -235,7 +236,7 @@ router.post("/sessions/:sessionId/start", async (req: any, res) => {
 });
 
 // End session
-router.post("/sessions/:sessionId/end", async (req: any, res) => {
+router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
     const { transcript } = req.body;
@@ -312,7 +313,7 @@ router.post("/sessions/:sessionId/end", async (req: any, res) => {
 });
 
 // Get session transcript
-router.get("/sessions/:sessionId/transcript", async (req: any, res) => {
+router.get("/sessions/:sessionId/transcript", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
 
@@ -333,7 +334,7 @@ router.get("/sessions/:sessionId/transcript", async (req: any, res) => {
 });
 
 // Send transcript to participants
-router.post("/sessions/:sessionId/send-transcript", async (req: any, res) => {
+router.post("/sessions/:sessionId/send-transcript", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
 
@@ -375,7 +376,7 @@ router.post("/sessions/:sessionId/send-transcript", async (req: any, res) => {
 });
 
 // List coach's sessions
-router.get("/sessions", async (req: any, res) => {
+router.get("/sessions", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const coachId = req.user.id;
     const { status } = req.query;
@@ -399,7 +400,7 @@ router.get("/sessions", async (req: any, res) => {
 });
 
 // Create session from booking
-router.post("/sessions/from-booking/:bookingId", async (req: any, res) => {
+router.post("/sessions/from-booking/:bookingId", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { bookingId } = req.params;
     const coachId = req.user.id;

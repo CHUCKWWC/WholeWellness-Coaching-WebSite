@@ -22,6 +22,12 @@ export default function CoachDashboard() {
     enabled: !!user,
   });
 
+  // Fetch coach's clients
+  const { data: clients = [] } = useQuery({
+    queryKey: ["/api/coach/clients"],
+    enabled: !!user,
+  });
+
   // Placeholder data - will be replaced with real data later
   const stats = [
     {
@@ -102,11 +108,17 @@ export default function CoachDashboard() {
     }
   ];
 
-  // Format clients for video session dialog
-  const clientsForSession = recentClients.map(client => ({
-    id: client.id.toString(),
-    name: client.name,
-  }));
+  // Format clients for video session dialog - use real data if available
+  const clientsForSession = clients.length > 0 
+    ? clients.map((client: any) => ({
+        id: client.id || client.userId,
+        name: client.fullName || client.name,
+        email: client.email,
+      }))
+    : recentClients.map(client => ({
+        id: client.id.toString(),
+        name: client.name,
+      }));
 
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
