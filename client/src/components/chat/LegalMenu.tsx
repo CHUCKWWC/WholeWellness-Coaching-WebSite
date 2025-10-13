@@ -8,9 +8,16 @@ export default function LegalMenu() {
     const onDocClick = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) setOpen(false);
+    };
     document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, []);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   return (
     <div className="relative" ref={ref}>
@@ -29,7 +36,6 @@ export default function LegalMenu() {
         >
           <a role="menuitem" className="block px-3 py-2 hover:bg-gray-50 rounded-lg" href="/privacy">Privacy Policy</a>
           <a role="menuitem" className="block px-3 py-2 hover:bg-gray-50 rounded-lg" href="/terms">Terms of Service</a>
-          <a role="menuitem" className="block px-3 py-2 hover:bg-gray-50 rounded-lg" href="/accessibility">Accessibility</a>
         </div>
       )}
     </div>
