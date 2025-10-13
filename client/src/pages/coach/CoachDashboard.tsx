@@ -116,7 +116,7 @@ export default function CoachDashboard() {
         <StartVideoSessionDialog 
           clients={clientsForSession}
           trigger={
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700" data-testid="button-start-video-session-main">
               <Video className="h-5 w-5 mr-2" />
               Start Video Session
             </Button>

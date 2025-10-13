@@ -92,6 +92,7 @@ export default function StartVideoSessionDialog({
       );
 
       const response = await apiRequest("POST", "/api/video/sessions/create", {
+        clientId: data.clientId,
         sessionType: "one-on-one",
         title: data.title,
         description: data.description,

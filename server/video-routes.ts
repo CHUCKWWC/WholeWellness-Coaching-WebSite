@@ -29,6 +29,7 @@ router.post("/sessions/create", async (req: any, res) => {
   try {
     const { 
       bookingId,
+      clientId,
       sessionType, 
       title, 
       description,
@@ -81,6 +82,29 @@ router.post("/sessions/create", async (req: any, res) => {
       await db.insert(workshopDetails).values({
         sessionId: session.id,
         topic: title,
+      });
+    }
+
+    // Add client as participant if provided
+    if (clientId) {
+      // Generate auth token for the client
+      let authToken = `fallback_token_${clientId}_${Date.now()}`;
+      try {
+        authToken = await generateAuthToken(
+          session.roomId,
+          clientId,
+          "participant"
+        );
+      } catch (error) {
+        console.warn("100ms token generation failed for client, using fallback:", error);
+      }
+
+      await db.insert(sessionParticipants).values({
+        sessionId: session.id,
+        userId: clientId,
+        role: "participant",
+        isActive: true,
+        authToken,
       });
     }
 
