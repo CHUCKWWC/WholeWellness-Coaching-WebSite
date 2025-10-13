@@ -108,6 +108,26 @@ router.post("/sessions/create", async (req: any, res) => {
       });
     }
 
+    // Update booking if this session is linked to one
+    if (bookingId) {
+      try {
+        const meetingUrl = `/session/${session.id}/join`;
+        await db.update(videoSessions).set({
+          status: "confirmed"
+        }).where(eq(videoSessions.id, session.id));
+        
+        // Update booking with meeting URL
+        await db.update(bookings).set({
+          meetingUrl,
+          status: "confirmed",
+          updatedAt: new Date()
+        }).where(eq(bookings.id, bookingId));
+      } catch (updateError) {
+        console.error("Error updating booking:", updateError);
+        // Continue even if booking update fails
+      }
+    }
+
     res.json({ 
       success: true, 
       session,

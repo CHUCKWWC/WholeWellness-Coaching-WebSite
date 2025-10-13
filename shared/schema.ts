@@ -221,6 +221,7 @@ export const bookings = pgTable("bookings", {
   preferredTime: text("preferred_time"), // HH:MM format
   status: text("status").default("pending"), // pending, confirmed, completed, cancelled
   scheduledDate: timestamp("scheduled_date"),
+  coachId: varchar("coach_id").references(() => users.id), // Assigned coach
   confirmationSent: boolean("confirmation_sent").default(false),
   meetingUrl: text("meeting_url"), // Video call link
   reminderSent: boolean("reminder_sent").default(false),

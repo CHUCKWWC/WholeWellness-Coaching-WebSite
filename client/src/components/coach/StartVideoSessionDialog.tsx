@@ -35,6 +35,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Video, Copy, Check } from "lucide-react";
 
 const sessionSchema = z.object({
+  bookingId: z.string().optional(),
   clientId: z.string().min(1, "Please select a client"),
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().optional(),
@@ -53,25 +54,41 @@ interface Client {
   email?: string;
 }
 
+interface Booking {
+  id: number;
+  fullName: string;
+  email: string;
+  coachingArea: string;
+  serviceType?: string;
+  scheduledDate?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  status: string;
+}
+
 interface StartVideoSessionDialogProps {
   clients?: Client[];
+  bookings?: Booking[];
   trigger?: React.ReactNode;
   onSessionCreated?: (session: any) => void;
 }
 
 export default function StartVideoSessionDialog({
   clients = [],
+  bookings = [],
   trigger,
   onSessionCreated,
 }: StartVideoSessionDialogProps) {
   const [open, setOpen] = useState(false);
   const [sessionCreated, setSessionCreated] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const { toast } = useToast();
 
   const form = useForm<SessionForm>({
     resolver: zodResolver(sessionSchema),
     defaultValues: {
+      bookingId: "",
       clientId: "",
       title: "",
       description: "",
@@ -83,6 +100,51 @@ export default function StartVideoSessionDialog({
     },
   });
 
+  // Handle booking selection
+  const handleBookingSelect = (bookingId: string) => {
+    if (bookingId === "new") {
+      setSelectedBooking(null);
+      form.reset({
+        bookingId: "",
+        clientId: "",
+        title: "",
+        description: "",
+        scheduledStartTime: "",
+        duration: "60",
+        recordingEnabled: true,
+        transcriptEnabled: true,
+        aiSummaryEnabled: true,
+      });
+      return;
+    }
+
+    const booking = bookings.find(b => b.id.toString() === bookingId);
+    if (booking) {
+      setSelectedBooking(booking);
+      
+      // Pre-fill form with booking details
+      const scheduledTime = booking.scheduledDate || 
+        (booking.preferredDate && booking.preferredTime 
+          ? `${booking.preferredDate}T${booking.preferredTime}`
+          : "");
+
+      form.setValue("bookingId", booking.id.toString());
+      form.setValue("title", `${booking.serviceType || "Coaching"} Session - ${booking.fullName}`);
+      form.setValue("description", booking.coachingArea);
+      if (scheduledTime) {
+        form.setValue("scheduledStartTime", scheduledTime);
+      }
+      
+      // Try to find matching client
+      const client = clients.find(c => 
+        c.name === booking.fullName || c.email === booking.email
+      );
+      if (client) {
+        form.setValue("clientId", client.id);
+      }
+    }
+  };
+
   const createSessionMutation = useMutation({
     mutationFn: async (data: SessionForm) => {
       const scheduledStartTime = new Date(data.scheduledStartTime);
@@ -92,6 +154,7 @@ export default function StartVideoSessionDialog({
       );
 
       const response = await apiRequest("POST", "/api/video/sessions/create", {
+        bookingId: data.bookingId ? parseInt(data.bookingId) : undefined,
         clientId: data.clientId,
         sessionType: "one-on-one",
         title: data.title,
@@ -145,7 +208,18 @@ export default function StartVideoSessionDialog({
   const handleClose = () => {
     setOpen(false);
     setSessionCreated(null);
-    form.reset();
+    setSelectedBooking(null);
+    form.reset({
+      bookingId: "",
+      clientId: "",
+      title: "",
+      description: "",
+      scheduledStartTime: "",
+      duration: "60",
+      recordingEnabled: true,
+      transcriptEnabled: true,
+      aiSummaryEnabled: true,
+    });
   };
 
   // Get minimum datetime (current time)
@@ -180,6 +254,25 @@ export default function StartVideoSessionDialog({
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {bookings.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Create Session From</label>
+                    <Select onValueChange={handleBookingSelect}>
+                      <SelectTrigger data-testid="select-booking-source">
+                        <SelectValue placeholder="New session or from booking" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">New Session</SelectItem>
+                        {bookings.map((booking) => (
+                          <SelectItem key={booking.id} value={booking.id.toString()}>
+                            {booking.fullName} - {booking.serviceType || "Session"} ({booking.status})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="clientId"

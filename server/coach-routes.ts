@@ -79,6 +79,60 @@ router.patch('/clients/:clientId', requireAuth, async (req: AuthenticatedRequest
   }
 });
 
+// Bookings management
+router.get('/bookings', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const status = req.query.status as string;
+    
+    // Get all bookings for this coach
+    const allBookings = await storage.getAllBookings();
+    
+    // Filter by coachId
+    let coachBookings = allBookings.filter((booking: any) => booking.coachId === userId);
+    
+    // Filter by status if provided
+    if (status) {
+      coachBookings = coachBookings.filter((booking: any) => booking.status === status);
+    }
+    
+    // Sort by scheduled date
+    coachBookings.sort((a: any, b: any) => {
+      const dateA = a.scheduledDate ? new Date(a.scheduledDate).getTime() : 0;
+      const dateB = b.scheduledDate ? new Date(b.scheduledDate).getTime() : 0;
+      return dateB - dateA;
+    });
+    
+    res.json(coachBookings);
+  } catch (error) {
+    console.error('Error fetching coach bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+router.get('/bookings/:bookingId', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const { bookingId } = req.params;
+    
+    const booking = await storage.getBooking(parseInt(bookingId));
+    
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    
+    // Verify this booking belongs to the coach
+    if (booking.coachId !== userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    res.json(booking);
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    res.status(500).json({ error: 'Failed to fetch booking' });
+  }
+});
+
 // Session notes management
 router.get('/session-notes', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {

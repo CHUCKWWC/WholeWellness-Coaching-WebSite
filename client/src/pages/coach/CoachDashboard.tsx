@@ -11,9 +11,16 @@ import {
   Video
 } from "lucide-react";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CoachDashboard() {
   const { user } = useAuth();
+
+  // Fetch coach's bookings
+  const { data: bookings = [] } = useQuery({
+    queryKey: ["/api/coach/bookings"],
+    enabled: !!user,
+  });
 
   // Placeholder data - will be replaced with real data later
   const stats = [
@@ -115,6 +122,7 @@ export default function CoachDashboard() {
         </div>
         <StartVideoSessionDialog 
           clients={clientsForSession}
+          bookings={bookings}
           trigger={
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700" data-testid="button-start-video-session-main">
               <Video className="h-5 w-5 mr-2" />
