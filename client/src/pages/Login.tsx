@@ -59,11 +59,11 @@ export default function Login() {
         setLocation("/digital-onboarding");
       } else if (data.role === "coach") {
         setLocation("/coach/dashboard");
-      } else if (data.role === "admin" || data.role === "superadmin") {
+      } else if (data.role === "admin" || data.role === "super_admin") {
         setLocation("/admin-dashboard");
       } else {
         // Regular members/users
-        setLocation("/dashboard");
+        setLocation("/member-portal");
       }
     },
     onError: (error: any) => {
