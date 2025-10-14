@@ -5,11 +5,11 @@ import { storage } from "./supabase-client-storage";
 export async function createTestCoach(req: Request, res: Response) {
   try {
     // Check if user already exists
-    const existingUser = await storage.getUserByEmail('chuck');
+    const existingUser = await storage.getUserByEmail('chuck@wholewellness-coaching.org');
     
     if (existingUser) {
       return res.status(400).json({ 
-        message: 'Coach account already exists for username: chuck' 
+        message: 'Coach account already exists for email: chuck@wholewellness-coaching.org' 
       });
     }
 
@@ -19,7 +19,7 @@ export async function createTestCoach(req: Request, res: Response) {
     // Create the test coach account
     const newCoach = await storage.createUser({
       id: 'coach_chuck_' + Date.now(),
-      email: 'chuck',  // Using email field for username
+      email: 'chuck@wholewellness-coaching.org',
       passwordHash: passwordHash,
       firstName: 'Chuck',
       lastName: 'TestCoach',
@@ -42,7 +42,7 @@ export async function createTestCoach(req: Request, res: Response) {
       message: 'Test coach account created successfully!',
       coach: {
         id: newCoach.id,
-        username: 'chuck',
+        email: 'chuck@wholewellness-coaching.org',
         role: 'coach',
         name: `${newCoach.firstName} ${newCoach.lastName}`
       }

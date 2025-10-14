@@ -314,11 +314,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = loginSchema.parse(req.body);
       
       // Special handling for test coach account
-      if (email === 'chuck' && password === 'chucknice1') {
+      if (email === 'chuck@wholewellness-coaching.org' && password === 'chucknice1') {
         const testCoachId = 'coach_chuck_test';
         const sessionToken = AuthService.generateToken({
           id: testCoachId,
-          email: 'chuck',
+          email: 'chuck@wholewellness-coaching.org',
           firstName: 'Chuck',
           lastName: 'TestCoach',
           role: 'coach',
@@ -332,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return res.json({
           id: testCoachId,
-          email: 'chuck',
+          email: 'chuck@wholewellness-coaching.org',
           firstName: 'Chuck',
           lastName: 'TestCoach',
           membershipLevel: 'coach',
