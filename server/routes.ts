@@ -1992,7 +1992,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   setupWixWebhooks(app, wixIntegration);
   
   // Bookings
-  app.post("/api/bookings", async (req, res) => {
+  app.post("/api/bookings", requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       const booking = insertBookingSchema.parse(req.body);
       const newBooking = await storage.createBooking(booking);
@@ -2039,7 +2039,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  app.post("/api/testimonials", async (req, res) => {
+  app.post("/api/testimonials", requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       const testimonial = insertTestimonialSchema.parse(req.body);
       const newTestimonial = await storage.createTestimonial(testimonial);
@@ -2095,7 +2095,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Weight Loss Intakes
-  app.post("/api/weight-loss-intakes", async (req, res) => {
+  app.post("/api/weight-loss-intakes", requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       const intake = insertWeightLossIntakeSchema.parse(req.body);
       const newIntake = await storage.createWeightLossIntake(intake);
@@ -2109,8 +2109,13 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  app.get("/api/weight-loss-intakes", async (req, res) => {
+  app.get("/api/weight-loss-intakes", requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
+      // AUTHORIZATION: Only admins can view all intakes (sensitive data)
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+      
       const intakes = await storage.getAllWeightLossIntakes();
       res.json(intakes);
     } catch (error) {
