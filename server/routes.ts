@@ -2006,9 +2006,23 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  app.get("/api/bookings", async (req, res) => {
+  app.get("/api/bookings", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const bookings = await storage.getAllBookings();
+      const userId = req.user!.id;
+      const role = req.user!.role;
+
+      // AUTHORIZATION: Coaches see their bookings, admins see all, clients see their own
+      let bookings;
+      if (role === 'admin') {
+        bookings = await storage.getAllBookings();
+      } else if (role === 'coach') {
+        bookings = await storage.getCoachBookings(userId);
+      } else {
+        // For clients, filter by their email or user ID
+        const allBookings = await storage.getAllBookings();
+        bookings = allBookings.filter(b => b.userId === userId || b.email === req.user!.email);
+      }
+      
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -2162,8 +2176,13 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  app.get("/api/wix/bookings", async (req, res) => {
+  app.get("/api/wix/bookings", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      // AUTHORIZATION: Only admins and coaches can view Wix bookings
+      if (!['admin', 'coach'].includes(req.user!.role)) {
+        return res.status(403).json({ error: "Unauthorized: Admin or coach access required" });
+      }
+      
       const bookings = await wixIntegration.getBookings();
       res.json(bookings);
     } catch (error) {
@@ -2173,7 +2192,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Create a new booking
-  app.post("/api/wix/bookings", async (req, res) => {
+  app.post("/api/wix/bookings", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const bookingData = req.body;
       const booking = await wixIntegration.createBooking(bookingData);
@@ -2203,9 +2222,17 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Cancel a booking
-  app.delete("/api/wix/bookings/:bookingId", async (req, res) => {
+  app.delete("/api/wix/bookings/:bookingId", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { bookingId } = req.params;
+      
+      // AUTHORIZATION: Users can only cancel their own bookings, coaches/admins can cancel any
+      // Note: This needs booking data to verify ownership - for now allow coaches and admins
+      if (!['admin', 'coach'].includes(req.user!.role)) {
+        // TODO: Add ownership check for clients canceling their own bookings
+        return res.status(403).json({ error: "Unauthorized: Only coaches and admins can cancel bookings" });
+      }
+      
       const result = await wixIntegration.cancelBooking(bookingId);
       res.json({ success: result });
     } catch (error) {
@@ -2215,10 +2242,18 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Reschedule a booking
-  app.put("/api/wix/bookings/:bookingId/reschedule", async (req, res) => {
+  app.put("/api/wix/bookings/:bookingId/reschedule", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { bookingId } = req.params;
       const { newSlot } = req.body;
+      
+      // AUTHORIZATION: Users can only reschedule their own bookings, coaches/admins can reschedule any
+      // Note: This needs booking data to verify ownership - for now allow coaches and admins
+      if (!['admin', 'coach'].includes(req.user!.role)) {
+        // TODO: Add ownership check for clients rescheduling their own bookings
+        return res.status(403).json({ error: "Unauthorized: Only coaches and admins can reschedule bookings" });
+      }
+      
       const result = await wixIntegration.rescheduleBooking(bookingId, newSlot);
       res.json({ success: result });
     } catch (error) {

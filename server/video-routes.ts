@@ -42,7 +42,19 @@ router.post("/sessions/create", requireAuth, async (req: AuthenticatedRequest, r
       aiSummaryEnabled = true
     } = req.body;
 
-    const coachId = req.user.id;
+    const coachId = req.user!.id;
+
+    // AUTHORIZATION: If booking is specified, verify coach owns it
+    if (bookingId) {
+      const [booking] = await db
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, bookingId));
+
+      if (booking && booking.coachId !== coachId && req.user!.role !== 'admin') {
+        return res.status(403).json({ error: "Unauthorized: This booking is not assigned to you" });
+      }
+    }
     
     // Generate room code
     const roomCode = generateRoomCode();
@@ -145,6 +157,7 @@ router.post("/sessions/create", requireAuth, async (req: AuthenticatedRequest, r
 router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
+    const userId = req.user!.id;
     
     const [session] = await db
       .select()
@@ -153,6 +166,25 @@ router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest
 
     if (!session) {
       return res.status(404).json({ error: "Session not found" });
+    }
+
+    // AUTHORIZATION: Only coach, participants, or admins can view session
+    const isCoach = session.coachId === userId;
+    const isAdmin = req.user!.role === 'admin';
+    
+    // Check if user is a participant
+    const [participant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(and(
+        eq(sessionParticipants.sessionId, sessionId),
+        eq(sessionParticipants.userId, userId)
+      ));
+    
+    const isParticipant = !!participant;
+
+    if (!isCoach && !isParticipant && !isAdmin) {
+      return res.status(403).json({ error: "Unauthorized: You don't have access to this session" });
     }
 
     // Get participants
@@ -172,8 +204,7 @@ router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest
 router.post("/sessions/:sessionId/join-token", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user.id;
-    const { role = "guest" } = req.body;
+    const userId = req.user!.id;
 
     const [session] = await db
       .select()
@@ -184,32 +215,67 @@ router.post("/sessions/:sessionId/join-token", requireAuth, async (req: Authenti
       return res.status(404).json({ error: "Session not found" });
     }
 
+    // AUTHORIZATION: Only coach, invited participants, or admins can get join token
+    const isCoach = session.coachId === userId;
+    const isAdmin = req.user!.role === 'admin';
+    
+    // Check if user is an invited participant
+    const [existingParticipant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(and(
+        eq(sessionParticipants.sessionId, sessionId),
+        eq(sessionParticipants.userId, userId)
+      ));
+
+    if (!isCoach && !existingParticipant && !isAdmin) {
+      return res.status(403).json({ error: "Unauthorized: You are not invited to this session" });
+    }
+
+    // SECURITY FIX: Determine role server-side, NEVER trust client input
+    // Only coach or admin gets host role, everyone else is participant
+    const assignedRole = (isCoach || isAdmin) ? "host" : "participant";
+
     // Generate auth token for 100ms
     let authToken = `fallback_token_${userId}_${Date.now()}`;
     try {
       authToken = await generateAuthToken(
         session.roomId, 
         userId, 
-        session.coachId === userId ? "host" : role
+        assignedRole
       );
     } catch (error) {
       console.warn("100ms token generation failed, using fallback:", error);
     }
 
-    // Add participant to session
-    const [participant] = await db.insert(sessionParticipants).values({
-      sessionId,
-      userId,
-      role: session.coachId === userId ? "host" : "participant",
-      authToken,
-    }).returning();
-
-    res.json({ 
-      success: true, 
-      authToken,
-      roomId: session.roomId,
-      participant
-    });
+    // Add participant to session if not already added
+    if (!existingParticipant) {
+      const [participant] = await db.insert(sessionParticipants).values({
+        sessionId,
+        userId,
+        role: assignedRole,
+        authToken,
+      }).returning();
+      
+      res.json({ 
+        success: true, 
+        authToken,
+        roomId: session.roomId,
+        participant
+      });
+    } else {
+      // Update existing participant's auth token
+      await db.update(sessionParticipants)
+        .set({ authToken, role: assignedRole })
+        .where(eq(sessionParticipants.id, existingParticipant.id));
+      
+      res.json({ 
+        success: true, 
+        authToken,
+        roomId: session.roomId,
+        participant: { ...existingParticipant, role: assignedRole, authToken }
+      });
+    }
   } catch (error) {
     console.error("Error generating join token:", error);
     res.status(500).json({ error: "Failed to generate join token" });
@@ -220,6 +286,21 @@ router.post("/sessions/:sessionId/join-token", requireAuth, async (req: Authenti
 router.post("/sessions/:sessionId/start", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
+    const userId = req.user!.id;
+
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // AUTHORIZATION: Only the coach or admin can start the session
+    if (session.coachId !== userId && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Unauthorized: Only the session coach can start this session" });
+    }
 
     await db.update(videoSessions)
       .set({ 
@@ -240,6 +321,7 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
   try {
     const { sessionId } = req.params;
     const { transcript } = req.body;
+    const userId = req.user!.id;
 
     const [session] = await db
       .select()
@@ -248,6 +330,11 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
 
     if (!session) {
       return res.status(404).json({ error: "Session not found" });
+    }
+
+    // AUTHORIZATION: Only the coach or admin can end the session
+    if (session.coachId !== userId && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Unauthorized: Only the session coach can end this session" });
     }
 
     // End 100ms session
@@ -316,6 +403,34 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
 router.get("/sessions/:sessionId/transcript", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
+    const userId = req.user!.id;
+
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // AUTHORIZATION: Only coach, participants, or admins can view transcript
+    const isCoach = session.coachId === userId;
+    const isAdmin = req.user!.role === 'admin';
+    
+    const [participant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(and(
+        eq(sessionParticipants.sessionId, sessionId),
+        eq(sessionParticipants.userId, userId)
+      ));
+    
+    const isParticipant = !!participant;
+
+    if (!isCoach && !isParticipant && !isAdmin) {
+      return res.status(403).json({ error: "Unauthorized: You don't have access to this transcript" });
+    }
 
     const [transcript] = await db
       .select()
@@ -337,6 +452,21 @@ router.get("/sessions/:sessionId/transcript", requireAuth, async (req: Authentic
 router.post("/sessions/:sessionId/send-transcript", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { sessionId } = req.params;
+    const userId = req.user!.id;
+
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // AUTHORIZATION: Only the coach or admin can send transcripts
+    if (session.coachId !== userId && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Unauthorized: Only the session coach can send transcripts" });
+    }
 
     const [transcript] = await db
       .select()
@@ -346,11 +476,6 @@ router.post("/sessions/:sessionId/send-transcript", requireAuth, async (req: Aut
     if (!transcript) {
       return res.status(404).json({ error: "Transcript not found" });
     }
-
-    const [session] = await db
-      .select()
-      .from(videoSessions)
-      .where(eq(videoSessions.id, sessionId));
 
     const participants = await db
       .select()
@@ -403,7 +528,7 @@ router.get("/sessions", requireAuth, async (req: AuthenticatedRequest, res) => {
 router.post("/sessions/from-booking/:bookingId", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { bookingId } = req.params;
-    const coachId = req.user.id;
+    const coachId = req.user!.id;
 
     // Get booking details
     const [booking] = await db
@@ -413,6 +538,11 @@ router.post("/sessions/from-booking/:bookingId", requireAuth, async (req: Authen
 
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
+    }
+
+    // AUTHORIZATION: Only the assigned coach or admin can create session from booking
+    if (booking.coachId !== coachId && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Unauthorized: This booking is not assigned to you" });
     }
 
     // Generate room code
