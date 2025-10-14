@@ -1,49 +1,11 @@
-import { storage } from "./supabase-client-storage.js";
+import { supabase } from "./supabase-client-storage.js";
 
-export async function seedAssessmentTypes() {
+async function seedAssessmentsDirect() {
   const assessmentTypes = [
-    {
-      id: "weight-loss-intake",
-      name: "weight-loss-intake",
-      displayName: "Weight Loss & Wellness Intake",
-      category: "health",
-      description: "Comprehensive intake form for weight loss and wellness coaching. Helps us understand your goals, challenges, and create a personalized plan.",
-      fields: {
-        sections: [
-          {
-            title: "Personal Information",
-            fields: [
-              { name: "currentWeight", label: "Current Weight (lbs)", type: "number", required: true },
-              { name: "goalWeight", label: "Goal Weight (lbs)", type: "number", required: true },
-              { name: "height", label: "Height (inches)", type: "number", required: true },
-              { name: "age", label: "Age", type: "number", required: true }
-            ]
-          },
-          {
-            title: "Health Background",
-            fields: [
-              { name: "medicalConditions", label: "Current medical conditions", type: "textarea", required: false },
-              { name: "medications", label: "Current medications", type: "textarea", required: false },
-              { name: "allergies", label: "Food allergies or restrictions", type: "textarea", required: false }
-            ]
-          },
-          {
-            title: "Lifestyle & Goals",
-            fields: [
-              { name: "activityLevel", label: "Activity Level", type: "select", required: true, options: ["Sedentary", "Lightly Active", "Moderately Active", "Very Active"] },
-              { name: "goals", label: "Primary Goals", type: "checkbox", options: ["Weight Loss", "Muscle Gain", "Better Nutrition", "Increased Energy", "Stress Management"] },
-              { name: "challenges", label: "Main Challenges", type: "textarea", required: true }
-            ]
-          }
-        ]
-      },
-      coachTypes: ["Weight Loss Coach", "Life Coach", "Wellness Coach"],
-      isActive: true
-    },
     {
       id: "attachment-style",
       name: "attachment-style",
-      displayName: "Attachment Style Assessment",
+      display_name: "Attachment Style Assessment",
       category: "relationships",
       description: "Discover your attachment style and how it impacts your relationships. This assessment helps identify patterns in how you connect with others.",
       fields: {
@@ -60,13 +22,13 @@ export async function seedAssessmentTypes() {
           }
         ]
       },
-      coachTypes: ["Relationship Coach", "Life Coach"],
-      isActive: true
+      coach_types: ["Relationship Coach", "Life Coach"],
+      is_active: true
     },
     {
       id: "mental-health-screening",
       name: "mental-health-screening",
-      displayName: "Mental Health Screening",
+      display_name: "Mental Health Screening",
       category: "mental_health",
       description: "A brief screening to assess your current mental health and emotional wellbeing. Helps us provide appropriate support and resources.",
       fields: {
@@ -90,13 +52,13 @@ export async function seedAssessmentTypes() {
           }
         ]
       },
-      coachTypes: ["Life Coach", "Wellness Coach", "Trauma Recovery Coach"],
-      isActive: true
+      coach_types: ["Life Coach", "Wellness Coach", "Trauma Recovery Coach"],
+      is_active: true
     },
     {
       id: "career-goals",
       name: "career-goals",
-      displayName: "Career Goals & Aspirations",
+      display_name: "Career Goals & Aspirations",
       category: "career",
       description: "Identify your career goals, strengths, and areas for development. Helps create a roadmap for professional growth.",
       fields: {
@@ -120,13 +82,13 @@ export async function seedAssessmentTypes() {
           }
         ]
       },
-      coachTypes: ["Career Coach", "Life Coach"],
-      isActive: true
+      coach_types: ["Career Coach", "Life Coach"],
+      is_active: true
     },
     {
       id: "trauma-recovery-intake",
       name: "trauma-recovery-intake",
-      displayName: "Trauma Recovery Intake",
+      display_name: "Trauma Recovery Intake",
       category: "mental_health",
       description: "Sensitive intake assessment for survivors seeking trauma-informed support. All information is confidential and used to provide appropriate care.",
       fields: {
@@ -151,13 +113,13 @@ export async function seedAssessmentTypes() {
           }
         ]
       },
-      coachTypes: ["Trauma Recovery Coach", "Life Coach"],
-      isActive: true
+      coach_types: ["Trauma Recovery Coach", "Life Coach"],
+      is_active: true
     },
     {
       id: "life-balance",
       name: "life-balance",
-      displayName: "Life Balance Assessment",
+      display_name: "Life Balance Assessment",
       category: "health",
       description: "Evaluate different areas of your life to identify imbalances and areas that need attention for overall wellbeing.",
       fields: {
@@ -183,46 +145,47 @@ export async function seedAssessmentTypes() {
           }
         ]
       },
-      coachTypes: ["Life Coach", "Wellness Coach"],
-      isActive: true
+      coach_types: ["Life Coach", "Wellness Coach"],
+      is_active: true
     }
   ];
 
-  try {
-    console.log("Starting to seed assessment types...");
-    
-    for (const assessmentType of assessmentTypes) {
-      try {
-        const existing = await storage.getAssessmentTypeById(assessmentType.id);
-        
-        if (existing) {
-          console.log(`Assessment type "${assessmentType.displayName}" already exists, skipping...`);
+  console.log("Starting direct Supabase insert...");
+  
+  for (const assessmentType of assessmentTypes) {
+    try {
+      // Check if it exists
+      const { data: existing } = await supabase
+        .from('assessment_types')
+        .select('id')
+        .eq('id', assessmentType.id)
+        .single();
+
+      if (existing) {
+        console.log(`✓ Assessment "${assessmentType.display_name}" already exists`);
+      } else {
+        // Insert new assessment
+        const { data, error } = await supabase
+          .from('assessment_types')
+          .insert(assessmentType);
+
+        if (error) {
+          console.error(`✗ Error inserting "${assessmentType.display_name}":`, error);
         } else {
-          await storage.createAssessmentType(assessmentType);
-          console.log(`✓ Created assessment type: ${assessmentType.displayName}`);
+          console.log(`✓ Successfully inserted "${assessmentType.display_name}"`);
         }
-      } catch (error) {
-        console.error(`Error creating assessment type "${assessmentType.displayName}":`, error);
       }
+    } catch (error) {
+      console.error(`Error processing "${assessmentType.display_name}":`, error);
     }
-    
-    console.log(`\n✓ Successfully seeded ${assessmentTypes.length} assessment types`);
-  } catch (error) {
-    console.error("Error seeding assessment types:", error);
-    throw error;
   }
+
+  console.log("\n✓ Direct seeding completed");
 }
 
-// Run seeding if this file is executed directly
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-if (isMainModule) {
-  seedAssessmentTypes()
-    .then(() => {
-      console.log("Assessment types seeding completed");
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error("Failed to seed assessment types:", error);
-      process.exit(1);
-    });
-}
+seedAssessmentsDirect()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("Seeding failed:", error);
+    process.exit(1);
+  });

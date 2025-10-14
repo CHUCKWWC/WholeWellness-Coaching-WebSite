@@ -1,7 +1,5 @@
-import { Storage } from "./storage.js";
+import { storage } from "./supabase-client-storage.js";
 import { resources } from "../shared/schema.js";
-
-const storage = new Storage();
 
 export async function seedResources() {
   const sampleResources = [

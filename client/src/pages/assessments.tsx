@@ -68,13 +68,13 @@ export default function Assessments() {
   const [showForm, setShowForm] = useState(false);
 
   // Get available assessment types
-  const { data: assessmentTypes = [], isLoading: typesLoading } = useQuery({
+  const { data: assessmentTypes = [], isLoading: typesLoading } = useQuery<AssessmentType[]>({
     queryKey: ["/api/assessments/assessment-types"],
     enabled: isAuthenticated,
   });
 
   // Get user's completed assessments
-  const { data: userAssessments = [], isLoading: assessmentsLoading } = useQuery({
+  const { data: userAssessments = [], isLoading: assessmentsLoading } = useQuery<UserAssessment[]>({
     queryKey: ["/api/assessments/user", user?.id],
     enabled: isAuthenticated && !!user?.id,
   });
