@@ -1,0 +1,64 @@
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/assessments
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/index-DCdKJpjM.js
+sw.js:115 [SW] Updated cache from network: chrome-extension://kejbdjndbnbjgmefkgdddjlbokphdefk/api/tag_assistant_api_bin.js
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/index-BKhnU3xO.css
+sw.js:114 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at networkFirst (sw.js:114:13)
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/select-BttSbVaJ.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-Bnh5n9BI.js
+sw.js:49 [SW] Network-only (no cache): /api/auth/user
+sw.js:49 [SW] Network-only (no cache): /api/admin/auth/me
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_logo_1749818333586-BVtEx_CI.jpg
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/clipboard-list-D9VWDD5O.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/assessments-XKnbOtwa.js
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/checkbox-CApR1WdY.js
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/save-BUZNKb2L.js
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/slider-bRwO7YR8.js
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/manifest.json
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/assessments
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-Dosfn9--.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-BTg8r1N8.css
+sw.js:115 [SW] Updated cache from network: chrome-extension://kejbdjndbnbjgmefkgdddjlbokphdefk/api/tag_assistant_api_bin.js
+sw.js:114 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at networkFirst (sw.js:114:13)
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/wwc_logo_1749818333586-BVtEx_CI.jpg
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/assessments-BUefNJN1.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/select-CaVRqifz.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/index-nuP2fwzE.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/checkbox-gKUf0AoD.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/slider-D2xNRcXQ.js
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/assets/save-BuX5hkTb.js
+sw.js:49 [SW] Network-only (no cache): /api/auth/user
+index-Dosfn9--.js:354 [PWA] Service Worker registered: ServiceWorkerRegistration
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/manifest.json
+sw.js:49 [SW] Network-only (no cache): /api/assessments/assessment-types
+sw.js:49 [SW] Network-only (no cache): /api/assessments/user
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/assessments
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/index-BTg8r1N8.css
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/manifest.json
+sw.js:49 [SW] Network-only (no cache): /api/assessments/submit
+index-Dosfn9--.js:49  POST https://wholewellnesscoaching.org/api/assessments/submit 500 (Internal Server Error)
+lf @ index-Dosfn9--.js:49
+mutationFn @ assessments-BUefNJN1.js:1
+fn @ index-Dosfn9--.js:49
+x @ index-Dosfn9--.js:49
+start @ index-Dosfn9--.js:49
+execute @ index-Dosfn9--.js:49
+await in execute
+mutate @ index-Dosfn9--.js:49
+(anonymous) @ index-Dosfn9--.js:49
+m @ assessments-BUefNJN1.js:1
+o @ assessments-BUefNJN1.js:1
+ZD @ index-Dosfn9--.js:38
+XD @ index-Dosfn9--.js:38
+JD @ index-Dosfn9--.js:38
+Ex @ index-Dosfn9--.js:38
+ZC @ index-Dosfn9--.js:38
+(anonymous) @ index-Dosfn9--.js:38
+Gg @ index-Dosfn9--.js:41
+wC @ index-Dosfn9--.js:38
+hh @ index-Dosfn9--.js:38
+_g @ index-Dosfn9--.js:38
+mM @ index-Dosfn9--.js:38

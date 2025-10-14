@@ -1579,9 +1579,15 @@ export class SupabaseClientStorage implements IStorage {
   // User Assessment Management
   async createUserAssessment(assessment: InsertUserAssessment): Promise<UserAssessment> {
     try {
+      // Explicitly generate UUID to avoid relying on database default (gen_random_uuid)
+      const assessmentWithId = {
+        ...assessment,
+        id: randomUUID(),
+      };
+      
       const { data, error } = await supabase
         .from('user_assessments')
-        .insert(assessment)
+        .insert(assessmentWithId)
         .select()
         .single();
       

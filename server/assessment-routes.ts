@@ -54,10 +54,27 @@ router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
     });
   } catch (error) {
     console.error("Error submitting assessment:", error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid assessment data", details: error.errors });
+    // Only log sensitive data in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Request body:", req.body);
+    } else {
+      console.error("Assessment type ID:", req.body?.assessmentTypeId);
+      console.error("User ID:", req.user?.id);
     }
-    res.status(500).json({ error: "Failed to submit assessment" });
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        error: "Invalid assessment data", 
+        details: error.errors 
+      });
+    }
+    
+    // Provide more detailed error message
+    const errorMessage = error instanceof Error ? error.message : "Failed to submit assessment";
+    res.status(500).json({ 
+      error: "Failed to submit assessment",
+      message: errorMessage
+    });
   }
 });
 
