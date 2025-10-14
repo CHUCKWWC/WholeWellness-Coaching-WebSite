@@ -1558,9 +1558,15 @@ export class SupabaseClientStorage implements IStorage {
 
   async createAssessmentType(assessmentType: InsertAssessmentType): Promise<AssessmentType> {
     try {
+      // Explicitly generate UUID to avoid relying on database default (gen_random_uuid)
+      const assessmentWithId = {
+        ...assessmentType,
+        id: randomUUID(),
+      };
+      
       const { data, error } = await supabase
         .from('assessment_types')
-        .insert(assessmentType)
+        .insert(assessmentWithId)
         .select()
         .single();
       
@@ -1692,9 +1698,15 @@ export class SupabaseClientStorage implements IStorage {
   // Coach Interaction Tracking
   async createCoachInteraction(interaction: InsertCoachInteraction): Promise<CoachInteraction> {
     try {
-      const { data, error } = await supabase
+      // Explicitly generate UUID to avoid relying on database default (gen_random_uuid)
+      const interactionWithId = {
+        ...interaction,
+        id: randomUUID(),
+      };
+      
+      const { data, error} = await supabase
         .from('coach_interactions')
-        .insert(interaction)
+        .insert(interactionWithId)
         .select()
         .single();
       
