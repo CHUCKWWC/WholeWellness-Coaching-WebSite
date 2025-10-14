@@ -39,7 +39,7 @@ router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const assessmentData = insertUserAssessmentSchema.parse({
       ...req.body,
-      userId: req.user.id,
+      userId: req.user!.id,
     });
     
     const assessment = await storage.createUserAssessment(assessmentData);
@@ -64,7 +64,7 @@ router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
 // Get current user's completed assessments (no userId param needed)
 router.get("/user", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const assessments = await storage.getUserAssessments(req.user.id);
+    const assessments = await storage.getUserAssessments(req.user!.id);
     res.json(assessments);
   } catch (error) {
     console.error("Error fetching user assessments:", error);
@@ -78,7 +78,7 @@ router.get("/user/:userId", requireAuth, async (req: AuthenticatedRequest, res) 
     const { userId } = req.params;
     
     // Only allow users to access their own assessments or admins to access any
-    if (req.user.id !== userId && req.user.role !== 'admin') {
+    if (req.user!.id !== userId && req.user!.role !== 'admin') {
       return res.status(403).json({ error: "Unauthorized access" });
     }
     
@@ -96,7 +96,7 @@ router.get("/coach/:coachType/user/:userId", requireAuth, async (req: Authentica
     const { coachType, userId } = req.params;
     
     // Only allow users to access their own data or coaches/admins to access client data
-    if (req.user.id !== userId && !['admin', 'coach'].includes(req.user.role)) {
+    if (req.user!.id !== userId && !['admin', 'coach'].includes(req.user!.role)) {
       return res.status(403).json({ error: "Unauthorized access" });
     }
     
@@ -124,7 +124,7 @@ router.get("/summary/user/:userId", requireAuth, async (req: AuthenticatedReques
     const { userId } = req.params;
     
     // Only allow coaches and admins to access summaries
-    if (!['admin', 'coach'].includes(req.user.role)) {
+    if (!['admin', 'coach'].includes(req.user!.role)) {
       return res.status(403).json({ error: "Unauthorized access" });
     }
     
@@ -139,7 +139,7 @@ router.get("/summary/user/:userId", requireAuth, async (req: AuthenticatedReques
 // Create new assessment type (admin only)
 router.post("/assessment-types", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    if (req.user.role !== 'admin') {
+    if (req.user!.role !== 'admin') {
       return res.status(403).json({ error: "Admin access required" });
     }
     
@@ -165,7 +165,7 @@ router.post("/weight-loss-intake", requireAuth, async (req: AuthenticatedRequest
   try {
     // Convert legacy weight loss intake to new assessment format
     const weightLossAssessment = {
-      userId: req.user.id,
+      userId: req.user!.id,
       assessmentTypeId: "weight-loss-intake", // This should exist in assessment_types
       responses: req.body,
     };
