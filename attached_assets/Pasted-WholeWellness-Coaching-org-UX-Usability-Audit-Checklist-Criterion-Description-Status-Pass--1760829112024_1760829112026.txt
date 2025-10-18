@@ -1,0 +1,24 @@
+WholeWellness-Coaching.org — UX & Usability Audit Checklist
+
+#	Criterion	Description	Status (Pass / Fail / Needs Improvement)	Notes / Recommendations
+
+1	First-impression clarity	Within 5 seconds, user knows what the site offers and how to start.	☐	Add tagline + CTA above the fold.
+2	Navigation simplicity	Main nav bar logical, consistent, and visible.	☐	Add “Start Here” or “How It Works.”
+3	Homepage call-to-action visibility	Primary CTA stands out visually and textually.	☐	Use accent color and verb (“Get Coaching”).
+4	Information hierarchy	Headings and layout guide the eye naturally.	☐	Use larger type for H1/H2; trim text blocks.
+5	Readability	Font size ≥ 16 px, good line spacing, clear contrast.	☐	Test WCAG contrast; unify body text size.
+6	Mobile responsiveness	Layout adapts cleanly on phones/tablets.	☐	Audit forms + buttons for touch targets.
+7	Load speed	Pages load under 3 seconds on 4G mobile.	☐	Compress hero images, lazy-load media.
+8	Consistency	Buttons, colors, icons follow one design language.	☐	Define color palette + component library.
+9	Error prevention & handling	Forms validate inline, friendly error text.	☐	Add field-level hints + clear recovery path.
+10	Accessibility basics	Alt-text, heading order, keyboard nav.	☐	Run WAVE / Lighthouse accessibility scan.
+11	Trust signals	Bios, credentials, contact info, policies.	☐	Add verified badges, testimonials.
+12	Content clarity	Copy concise, free of jargon, benefits-focused.	☐	Rewrite paragraphs for plain language.
+13	Visual appeal / emotion	Imagery reinforces calm, empowerment.	☐	Replace stock photos with authentic ones.
+14	Task efficiency	Register → book → pay workflow ≤ 3 clicks each.	☐	Map journey; remove redundant steps.
+15	Search / findability	Users can find topics, FAQs, contact easily.	☐	Add search or prominent FAQ link.
+16	Feedback / confirmation	Each action shows visible success message.	☐	Add toasts/modals for submissions.
+17	Accessibility of support	Help/chat/email visible on every page.	☐	Persistent “Need help?” button.
+18	Privacy transparency	Clear plain-English privacy summary.	☐	TL;DR box linking to full policy.
+19	User trust & social proof	Testimonials, success metrics, partnerships.	☐	Add rotating testimonial slider.
+20	Delight factor	Subtle animation, intuitive transitions.	☐	Add micro-interactions; avoid overload
