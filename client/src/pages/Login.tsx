@@ -58,7 +58,7 @@ export default function Login() {
       if (!data.hasCompletedOnboarding) {
         setLocation("/digital-onboarding");
       } else if (data.role === "coach") {
-        setLocation("/coach/dashboard");
+        setLocation("/coach-dashboard");
       } else if (data.role === "admin" || data.role === "super_admin") {
         setLocation("/admin-dashboard");
       } else {
@@ -116,6 +116,7 @@ export default function Login() {
                           <Input
                             placeholder="Enter your email"
                             className="pl-10"
+                            data-testid="input-email"
                             {...field}
                           />
                         </div>
@@ -138,6 +139,7 @@ export default function Login() {
                             type="password"
                             placeholder="Enter your password"
                             className="pl-10"
+                            data-testid="input-password"
                             {...field}
                           />
                         </div>
@@ -151,6 +153,7 @@ export default function Login() {
                   type="submit" 
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={loginMutation.isPending}
+                  data-testid="button-login"
                 >
                   {loginMutation.isPending ? "Signing In..." : "Sign In"}
                 </Button>

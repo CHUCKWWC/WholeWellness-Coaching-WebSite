@@ -12,18 +12,29 @@ import {
 } from "lucide-react";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 import { useQuery } from "@tanstack/react-query";
+import type { Booking } from "@shared/schema";
+
+interface CoachClient {
+  id: string;
+  userId?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  lastSession?: string;
+  status?: string;
+}
 
 export default function CoachDashboard() {
   const { user } = useAuth();
 
   // Fetch coach's bookings
-  const { data: bookings = [] } = useQuery({
+  const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/coach/bookings"],
     enabled: !!user,
   });
 
   // Fetch coach's clients
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<CoachClient[]>({
     queryKey: ["/api/coach/clients"],
     enabled: !!user,
   });
@@ -110,9 +121,9 @@ export default function CoachDashboard() {
 
   // Format clients for video session dialog - use real data if available
   const clientsForSession = clients.length > 0 
-    ? clients.map((client: any) => ({
-        id: client.id || client.userId,
-        name: client.fullName || client.name,
+    ? clients.map((client) => ({
+        id: client.id || client.userId || '',
+        name: client.fullName || client.name || 'Unknown',
         email: client.email,
       }))
     : recentClients.map(client => ({
