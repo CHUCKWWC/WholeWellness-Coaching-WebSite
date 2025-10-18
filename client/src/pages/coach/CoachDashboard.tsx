@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 import { useQuery } from "@tanstack/react-query";
-import type { Booking } from "@shared/schema";
+import type { Booking as SchemaBooking } from "@shared/schema";
 
 interface CoachClient {
   id: string;
@@ -24,14 +24,48 @@ interface CoachClient {
   status?: string;
 }
 
+// Booking type expected by StartVideoSessionDialog component
+interface ComponentBooking {
+  id: number;
+  fullName: string;
+  email: string;
+  coachingArea: string;
+  serviceType?: string;
+  scheduledDate?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  status: string;
+}
+
+// Normalize schema Booking to component-expected Booking
+// Note: API returns JSON where dates are already strings, so we safely handle both string and Date formats
+const normalizeBooking = (booking: SchemaBooking): ComponentBooking => ({
+  id: booking.id,
+  fullName: booking.fullName,
+  email: booking.email,
+  coachingArea: booking.coachingArea,
+  serviceType: booking.serviceType ?? undefined,
+  scheduledDate: booking.scheduledDate 
+    ? (typeof booking.scheduledDate === 'string' 
+        ? booking.scheduledDate 
+        : booking.scheduledDate.toISOString())
+    : undefined,
+  preferredDate: booking.preferredDate ?? undefined,
+  preferredTime: booking.preferredTime ?? undefined,
+  status: booking.status ?? 'pending',
+});
+
 export default function CoachDashboard() {
   const { user } = useAuth();
 
   // Fetch coach's bookings
-  const { data: bookings = [] } = useQuery<Booking[]>({
+  const { data: rawBookings = [] } = useQuery<SchemaBooking[]>({
     queryKey: ["/api/coach/bookings"],
     enabled: !!user,
   });
+
+  // Normalize bookings to component-expected format
+  const bookings: ComponentBooking[] = rawBookings.map(normalizeBooking);
 
   // Fetch coach's clients
   const { data: clients = [] } = useQuery<CoachClient[]>({
