@@ -177,7 +177,11 @@ function Router() {
           <Route path="/coach-onboarding" component={(props) => <LazyRoute component={CoachOnboarding} loadingText="Loading coach setup..." {...props} />} />
           <Route path="/coach-signup" component={(props) => <LazyRoute component={CoachSignup} loadingText="Loading coach registration..." {...props} />} />
           <Route path="/coach-login" component={(props) => <LazyRoute component={CoachLogin} loadingText="Loading coach login..." {...props} />} />
-          <Route path="/coach-profile" component={(props) => <LazyRoute component={CoachProfile} loadingText="Loading coach profile..." {...props} />} />
+          <Route path="/coach-profile" component={(props) => (
+            <ProtectedRoute requiredRole="coach">
+              <LazyRoute component={CoachProfile} loadingText="Loading coach profile..." {...props} />
+            </ProtectedRoute>
+          )} />
           <Route path="/coach/:coachId" component={(props) => <LazyRoute component={CoachProfileView} loadingText="Loading coach profile..." {...props} />} />
           <Route path="/user/:userId" component={(props) => <LazyRoute component={UserProfileView} loadingText="Loading user profile..." {...props} />} />
           <Route path="/checkout" component={(props) => <LazyRoute component={Checkout} loadingText="Securing payment..." {...props} />} />
