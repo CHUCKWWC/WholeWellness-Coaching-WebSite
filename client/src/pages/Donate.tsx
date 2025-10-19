@@ -15,17 +15,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ContextualHelpTrigger } from '@/components/HelpSystem';
 import HelpBubble from '@/components/HelpBubble';
 
-// Declare Stripe buy button custom element type
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'stripe-buy-button': {
-        'buy-button-id': string;
-        'publishable-key': string;
-      };
-    }
-  }
-}
 
 interface DonationPreset {
   id: string;
@@ -173,17 +162,6 @@ export default function Donate() {
     return Math.floor(basePoints * bonusMultiplier * loyaltyBonus);
   };
 
-  // Load Stripe buy button script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/buy-button.js';
-    script.async = true;
-    document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -295,12 +273,21 @@ export default function Donate() {
               <p className="text-center text-sm text-gray-600 dark:text-gray-400 max-w-xl">
                 Support our mission with a secure donation through Stripe. Your contribution helps provide life-changing coaching to those who need it most.
               </p>
-              <div className="flex items-center justify-center">
-                <stripe-buy-button
-                  buy-button-id="buy_btn_1SK57KFHAup9QfDRdulGI1XX"
-                  publishable-key="pk_live_51RZWPDFHAup9QfDR9nOmIfophtS5wsyFRYf6rTzzB9jg1PjHYSWEAtzL8me4CLAo07aWY1UnnxGZ9dZni9A4WOzC00xaDMx9fU"
-                />
-              </div>
+              <a 
+                href="https://donate.stripe.com/eVq28rbau9tM4PI5lT" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <Button 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg font-semibold"
+                  data-testid="button-stripe-donate"
+                >
+                  <Heart className="h-5 w-5 mr-2" />
+                  Donate Now with Stripe
+                </Button>
+              </a>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>🔒 Secure checkout</span>
                 <span>•</span>
