@@ -72,14 +72,20 @@ export default function Donate() {
   const [showRewardAnimation, setShowRewardAnimation] = useState(false);
 
   // Fetch donation presets
-  const { data: presets = [] } = useQuery<DonationPreset[]>({
+  const { data: presetsData = [] } = useQuery<DonationPreset[]>({
     queryKey: ["/api/donations/donation-presets"],
   });
+  
+  // Ensure presets is always an array
+  const presets = Array.isArray(presetsData) ? presetsData : [];
 
   // Fetch active campaigns
-  const { data: campaigns = [] } = useQuery<Campaign[]>({
+  const { data: campaignsData = [] } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns/active"],
   });
+  
+  // Ensure campaigns is always an array
+  const campaigns = Array.isArray(campaignsData) ? campaignsData : [];
 
   // Fetch user's impact metrics
   const { data: userImpact } = useQuery({

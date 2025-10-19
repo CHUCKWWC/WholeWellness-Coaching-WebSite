@@ -1,0 +1,80 @@
+sw.js:115 [SW] Updated cache from network: chrome-extension://kejbdjndbnbjgmefkgdddjlbokphdefk/api/tag_assistant_api_bin.js
+sw.js:114 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Request scheme 'chrome-extension' is unsupported
+    at networkFirst (sw.js:114:13)
+networkFirst @ sw.js:114
+await in networkFirst
+(anonymous) @ sw.js:74
+sw.js:96 [SW] Cached new resource: https://wholewellnesscoaching.org/assets/index-DOZiRfSy.css
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/manifest.json
+sw.js:49 [SW] Network-only (no cache): /api/auth/user
+index-raEkAB9I.js:354 [PWA] Service Worker registered: ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'https://wholewellnesscoaching.org/', …}
+sw.js:88 [SW] Serving from cache: https://wholewellnesscoaching.org/favicon.ico
+sw.js:111 Refused to connect to 'https://js.stripe.com/v3/buy-button.js' because it violates the following Content Security Policy directive: "connect-src 'self' https://api.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com".
+
+networkFirst @ sw.js:111
+(anonymous) @ sw.js:74
+sw.js:111 Fetch API cannot load https://js.stripe.com/v3/buy-button.js. Refused to connect because it violates the document's Content Security Policy.
+networkFirst @ sw.js:111
+(anonymous) @ sw.js:74
+sw.js:119 [SW] Network failed, serving from cache: https://js.stripe.com/v3/buy-button.js
+Donate-CyYVmTd6.js:1  GET https://js.stripe.com/v3/buy-button.js net::ERR_ABORTED 503 (Service Unavailable)
+(anonymous) @ Donate-CyYVmTd6.js:1
+Xd @ index-raEkAB9I.js:41
+Do @ index-raEkAB9I.js:41
+a0 @ index-raEkAB9I.js:41
+ei @ index-raEkAB9I.js:39
+RO @ index-raEkAB9I.js:41
+li @ index-raEkAB9I.js:41
+Hj @ index-raEkAB9I.js:41
+S @ index-raEkAB9I.js:26
+z @ index-raEkAB9I.js:26
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/api/campaigns/active
+sw.js:115 [SW] Updated cache from network: https://wholewellnesscoaching.org/api/donations/donation-presets
+index-raEkAB9I.js:41 TypeError: U.map is not a function
+    at ye (Donate-CyYVmTd6.js:1:7755)
+    at zg (index-raEkAB9I.js:39:17007)
+    at zp (index-raEkAB9I.js:41:3139)
+    at Yj (index-raEkAB9I.js:41:44804)
+    at Gj (index-raEkAB9I.js:41:39766)
+    at PO (index-raEkAB9I.js:41:39694)
+    at id (index-raEkAB9I.js:41:39547)
+    at Yp (index-raEkAB9I.js:41:35914)
+    at a0 (index-raEkAB9I.js:41:36717)
+    at ei (index-raEkAB9I.js:39:3274)
+Vp @ index-raEkAB9I.js:41
+Pj.i.componentDidCatch.n.callback @ index-raEkAB9I.js:41
+Bx @ index-raEkAB9I.js:39
+s0 @ index-raEkAB9I.js:41
+Wj @ index-raEkAB9I.js:41
+TO @ index-raEkAB9I.js:41
+RO @ index-raEkAB9I.js:41
+li @ index-raEkAB9I.js:41
+a0 @ index-raEkAB9I.js:41
+ei @ index-raEkAB9I.js:39
+(anonymous) @ index-raEkAB9I.js:41
+setTimeout
+PL @ index-raEkAB9I.js:49
+o @ index-raEkAB9I.js:49
+batch @ index-raEkAB9I.js:49
+Lr @ index-raEkAB9I.js:49
+setData @ index-raEkAB9I.js:49
+onSuccess @ index-raEkAB9I.js:49
+f @ index-raEkAB9I.js:49
+Promise.then
+x @ index-raEkAB9I.js:49
+start @ index-raEkAB9I.js:49
+fetch @ index-raEkAB9I.js:49
+Ga @ index-raEkAB9I.js:49
+onSubscribe @ index-raEkAB9I.js:49
+subscribe @ index-raEkAB9I.js:49
+(anonymous) @ index-raEkAB9I.js:49
+hj @ index-raEkAB9I.js:39
+Xd @ index-raEkAB9I.js:41
+Do @ index-raEkAB9I.js:41
+a0 @ index-raEkAB9I.js:41
+ei @ index-raEkAB9I.js:39
+RO @ index-raEkAB9I.js:41
+li @ index-raEkAB9I.js:41
+Hj @ index-raEkAB9I.js:41
+S @ index-raEkAB9I.js:26
+z @ index-raEkAB9I.js:26

@@ -68,6 +68,7 @@ export const securityHeaders = helmet({
       "connect-src": [
         "'self'",
         "https://api.stripe.com",
+        "https://js.stripe.com",
         "*.google.com",
         "*.googleapis.com",
         "https://fonts.gstatic.com",
