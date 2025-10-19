@@ -27,6 +27,8 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { ChatSummary } from "@shared/schema";
 
+type ActionItem = string | { item: string; priority?: string };
+
 interface ClientGoal {
   id: string;
   clientId: string;
@@ -578,11 +580,11 @@ export default function ClientDetailView({ clientId, clientName, clientEmail, on
                                 </div>
                               )}
 
-                              {insight.actionItems && Array.isArray(insight.actionItems) && (insight.actionItems as any[]).length > 0 && (
+                              {insight.actionItems && Array.isArray(insight.actionItems) && insight.actionItems.length > 0 && (
                                 <div>
                                   <Label className="text-xs text-gray-500">Action Items</Label>
                                   <ul className="list-disc list-inside text-sm mt-1 space-y-1">
-                                    {(insight.actionItems as any[]).map((item: any, idx) => (
+                                    {(insight.actionItems as ActionItem[]).map((item, idx) => (
                                       <li key={idx}>
                                         {typeof item === 'string' ? item : item.item}
                                         {typeof item === 'object' && item.priority && (

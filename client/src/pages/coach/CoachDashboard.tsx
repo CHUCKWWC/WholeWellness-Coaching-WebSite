@@ -30,6 +30,7 @@ interface CoachClient {
   email?: string;
   lastSession?: string;
   status?: string;
+  totalSessions?: number;
 }
 
 // Booking type expected by StartVideoSessionDialog component
@@ -220,7 +221,7 @@ export default function CoachDashboard() {
         lastSession: lastSessionDisplay,
         progress: client.status === 'active' ? 'Active' : 'On track',
         status: client.status || 'active',
-        totalSessions: (client as any).totalSessions || 0
+        totalSessions: client.totalSessions || 0
       };
     });
 

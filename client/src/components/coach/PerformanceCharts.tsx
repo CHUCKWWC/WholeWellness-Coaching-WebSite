@@ -69,22 +69,22 @@ export default function PerformanceCharts({ bookings, clients }: PerformanceChar
   const clientActivityData = [
     { 
       name: 'Highly Active', 
-      value: clients.filter(c => (c as any).totalSessions >= 10).length,
+      value: clients.filter(c => (c.totalSessions ?? 0) >= 10).length,
       color: '#10b981'
     },
     { 
       name: 'Active', 
-      value: clients.filter(c => (c as any).totalSessions >= 5 && (c as any).totalSessions < 10).length,
+      value: clients.filter(c => (c.totalSessions ?? 0) >= 5 && (c.totalSessions ?? 0) < 10).length,
       color: '#3b82f6'
     },
     { 
       name: 'Moderate', 
-      value: clients.filter(c => (c as any).totalSessions >= 1 && (c as any).totalSessions < 5).length,
+      value: clients.filter(c => (c.totalSessions ?? 0) >= 1 && (c.totalSessions ?? 0) < 5).length,
       color: '#f59e0b'
     },
     { 
       name: 'New', 
-      value: clients.filter(c => !(c as any).totalSessions || (c as any).totalSessions === 0).length,
+      value: clients.filter(c => (c.totalSessions ?? 0) === 0).length,
       color: '#6b7280'
     },
   ].filter(item => item.value > 0);
