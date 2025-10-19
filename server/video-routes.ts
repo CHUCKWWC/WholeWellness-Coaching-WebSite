@@ -20,13 +20,13 @@ import {
   generateRoomCode 
 } from "./video-service";
 import OpenAI from "openai";
-import { requireAuth, type AuthenticatedRequest } from "./auth";
+import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth";
 
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Create a new video session
-router.post("/sessions/create", requireAuth, async (req: AuthenticatedRequest, res) => {
+// Create a new video session (coach-only)
+router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
     const { 
       bookingId,
@@ -500,10 +500,10 @@ router.post("/sessions/:sessionId/send-transcript", requireAuth, async (req: Aut
   }
 });
 
-// List coach's sessions
-router.get("/sessions", requireAuth, async (req: AuthenticatedRequest, res) => {
+// List coach's sessions (coach-only)
+router.get("/sessions", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
-    const coachId = req.user.id;
+    const coachId = req.user!.id;
     const { status } = req.query;
 
     let query = db
@@ -524,8 +524,8 @@ router.get("/sessions", requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Create session from booking
-router.post("/sessions/from-booking/:bookingId", requireAuth, async (req: AuthenticatedRequest, res) => {
+// Create session from booking (coach-only)
+router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
     const { bookingId } = req.params;
     const coachId = req.user!.id;
