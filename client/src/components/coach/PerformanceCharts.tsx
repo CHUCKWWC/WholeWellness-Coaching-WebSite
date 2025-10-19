@@ -2,9 +2,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { TrendingUp, Users, Calendar, Clock } from "lucide-react";
 
+interface Booking {
+  id: number;
+  fullName: string;
+  email: string;
+  scheduledDate?: string;
+  status: string;
+}
+
+interface Client {
+  id?: string;
+  userId?: string;
+  fullName?: string;
+  name?: string;
+  status?: string;
+  email: string;
+  lastSession?: string;
+  totalSessions?: number;
+}
+
 interface PerformanceChartsProps {
-  bookings: any[];
-  clients: any[];
+  bookings: Booking[];
+  clients: Client[];
 }
 
 export default function PerformanceCharts({ bookings, clients }: PerformanceChartsProps) {

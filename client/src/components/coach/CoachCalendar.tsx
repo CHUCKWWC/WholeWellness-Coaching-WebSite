@@ -15,6 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface Booking {
+  id: number;
+  fullName: string;
+  scheduledDate?: string;
+  status: string;
+}
+
 interface AvailabilitySlot {
   id: string;
   dayOfWeek: number;
@@ -33,7 +40,7 @@ interface CalendarEvent {
 }
 
 interface CoachCalendarProps {
-  bookings?: any[];
+  bookings: Booking[];
   availability?: AvailabilitySlot[];
   onAddAvailability?: (slot: AvailabilitySlot) => void;
   onRemoveAvailability?: (id: string) => void;

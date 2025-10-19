@@ -69,7 +69,7 @@ export default function CoachDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch coach's bookings
-  const { data: rawBookings = [] } = useQuery<SchemaBooking[]>({
+  const { data: rawBookings = [], isLoading: isLoadingBookings, error: bookingsError } = useQuery<SchemaBooking[]>({
     queryKey: ["/api/coach/bookings"],
     enabled: !!user,
   });
@@ -78,10 +78,13 @@ export default function CoachDashboard() {
   const bookings: ComponentBooking[] = rawBookings.map(normalizeBooking);
 
   // Fetch coach's clients
-  const { data: clients = [] } = useQuery<CoachClient[]>({
+  const { data: clients = [], isLoading: isLoadingClients, error: clientsError } = useQuery<CoachClient[]>({
     queryKey: ["/api/coach/clients"],
     enabled: !!user,
   });
+
+  const isLoading = isLoadingBookings || isLoadingClients;
+  const error = bookingsError || clientsError;
 
   // Calculate real stats from data
   const now = new Date();
@@ -232,6 +235,46 @@ export default function CoachDashboard() {
         id: client.id.toString(),
         name: client.name,
       }));
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="py-6 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="py-6 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Failed to Load Dashboard
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {error instanceof Error ? error.message : 'An error occurred while loading your data'}
+            </p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+              data-testid="button-reload"
+            >
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
