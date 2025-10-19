@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -10,10 +11,14 @@ import {
   CheckCircle,
   AlertCircle,
   Video,
-  Eye
+  Eye,
+  BarChart3,
+  CalendarDays
 } from "lucide-react";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 import ClientDetailView from "@/components/coach/ClientDetailView";
+import CoachCalendar from "@/components/coach/CoachCalendar";
+import PerformanceCharts from "@/components/coach/PerformanceCharts";
 import { useQuery } from "@tanstack/react-query";
 import type { Booking as SchemaBooking } from "@shared/schema";
 
@@ -61,6 +66,7 @@ const normalizeBooking = (booking: SchemaBooking): ComponentBooking => ({
 export default function CoachDashboard() {
   const { user } = useAuth();
   const [selectedClient, setSelectedClient] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch coach's bookings
   const { data: rawBookings = [] } = useQuery<SchemaBooking[]>({
@@ -251,8 +257,27 @@ export default function CoachDashboard() {
         />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      {/* Main Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
+            <Users className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
+            <CalendarDays className="h-4 w-4" />
+            Calendar
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2" data-testid="tab-analytics">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -272,9 +297,9 @@ export default function CoachDashboard() {
             </Card>
           );
         })}
-      </div>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Sessions */}
         <Card>
           <CardHeader>
@@ -379,10 +404,10 @@ export default function CoachDashboard() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
-      {/* Quick Actions */}
-      <div className="mt-8">
+          {/* Quick Actions */}
+          <div className="mt-8">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-add-client">
@@ -401,8 +426,25 @@ export default function CoachDashboard() {
             <Clock className="h-5 w-5" />
             <span>Client Notes</span>
           </Button>
-        </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        {/* Calendar Tab */}
+        <TabsContent value="calendar">
+          <CoachCalendar
+            bookings={bookings}
+            availability={[]}
+          />
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <PerformanceCharts
+            bookings={bookings}
+            clients={clients}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Client Detail View Modal */}
       {selectedClient && (
