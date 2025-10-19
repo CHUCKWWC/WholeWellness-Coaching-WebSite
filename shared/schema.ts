@@ -533,6 +533,29 @@ export const coachSessionNotes = pgTable("coach_session_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const clientGoals = pgTable("client_goals", {
+  id: serial("id").primaryKey(),
+  coachId: integer("coach_id").references(() => coaches.id),
+  clientId: varchar("client_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category"), // health, career, relationships, personal_growth, financial, other
+  targetDate: timestamp("target_date"),
+  status: varchar("status").default("active"), // active, completed, on_hold, cancelled
+  priority: varchar("priority").default("medium"), // low, medium, high, urgent
+  progress: integer("progress").default(0), // 0-100
+  milestones: jsonb("milestones").$type<Array<{
+    id: string;
+    title: string;
+    completed: boolean;
+    completedAt?: string;
+  }>>().default([]),
+  notes: text("notes"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const coachMessageTemplates = pgTable("coach_message_templates", {
   id: serial("id").primaryKey(),
   coachId: integer("coach_id").references(() => coaches.id).notNull(),
@@ -1362,6 +1385,12 @@ export const insertCoachSessionNotesSchema = createInsertSchema(coachSessionNote
   updatedAt: true,
 });
 
+export const insertClientGoalSchema = createInsertSchema(clientGoals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertCoachMessageTemplateSchema = createInsertSchema(coachMessageTemplates).omit({
   id: true,
   createdAt: true,
@@ -1510,6 +1539,8 @@ export type CoachClient = typeof coachClients.$inferSelect;
 export type InsertCoachClient = z.infer<typeof insertCoachClientSchema>;
 export type CoachSessionNotes = typeof coachSessionNotes.$inferSelect;
 export type InsertCoachSessionNotes = z.infer<typeof insertCoachSessionNotesSchema>;
+export type ClientGoal = typeof clientGoals.$inferSelect;
+export type InsertClientGoal = z.infer<typeof insertClientGoalSchema>;
 export type CoachMessageTemplate = typeof coachMessageTemplates.$inferSelect;
 export type InsertCoachMessageTemplate = z.infer<typeof insertCoachMessageTemplateSchema>;
 export type CoachClientCommunication = typeof coachClientCommunications.$inferSelect;

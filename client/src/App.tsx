@@ -46,8 +46,7 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const CMS = lazy(() => import("@/pages/CMS"));
 const Donate = lazy(() => import("@/pages/Donate"));
 const MemberPortal = lazy(() => import("@/pages/MemberPortal"));
-const CoachDashboardOld = lazy(() => import("@/pages/CoachDashboard"));
-const NewCoachDashboard = lazy(() => import("@/pages/coach/CoachDashboard"));
+const CoachDashboard = lazy(() => import("@/pages/coach/CoachDashboard"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const DonationPortal = lazy(() => import("@/pages/DonationPortal"));
@@ -150,7 +149,7 @@ function Router() {
           <Route path="/cms" component={(props) => <LazyRoute component={CMS} loadingText="Loading Content Management..." {...props} />} />
           <Route path="/donate" component={(props) => <LazyRoute component={Donate} loadingText="Loading Donation Portal..." {...props} />} />
           <Route path="/member-portal" component={(props) => <LazyRoute component={MemberPortal} loadingText="Loading Member Dashboard..." {...props} />} />
-          <Route path="/coach-dashboard" component={(props) => <LazyRoute component={NewCoachDashboard} loadingText="Loading Coach Dashboard..." {...props} />} />
+          <Route path="/coach-dashboard" component={(props) => <LazyRoute component={CoachDashboard} loadingText="Loading Coach Dashboard..." {...props} />} />
           <Route path="/assessments" component={(props) => <LazyRoute component={Assessments} loadingText="Loading Assessments..." {...props} />} />
           <Route path="/user-profile" component={(props) => <LazyRoute component={UserProfile} loadingText="Loading Profile..." {...props} />} />
           <Route path="/settings" component={(props) => <LazyRoute component={Settings} loadingText="Loading Settings..." {...props} />} />
@@ -221,7 +220,7 @@ function Router() {
           <Route path="/coach/dashboard" component={() => (
             <ProtectedRoute requiredRole="coach">
               <CoachLayout>
-                <LazyRoute component={NewCoachDashboard} loadingText="Loading coach dashboard..." />
+                <LazyRoute component={CoachDashboard} loadingText="Loading coach dashboard..." />
               </CoachLayout>
             </ProtectedRoute>
           )} />

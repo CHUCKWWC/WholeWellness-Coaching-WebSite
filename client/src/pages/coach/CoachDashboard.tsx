@@ -73,85 +73,143 @@ export default function CoachDashboard() {
     enabled: !!user,
   });
 
-  // Placeholder data - will be replaced with real data later
+  // Calculate real stats from data
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  // Active clients (status: active)
+  const activeClients = clients.filter(c => c.status === 'active').length;
+  
+  // Sessions this week (bookings with scheduledDate in the past week)
+  const sessionsThisWeek = bookings.filter(b => {
+    if (!b.scheduledDate) return false;
+    const sessionDate = new Date(b.scheduledDate);
+    return sessionDate >= oneWeekAgo && sessionDate <= now && b.status === 'confirmed';
+  }).length;
+  
+  // Upcoming sessions count
+  const upcomingCount = bookings.filter(b => {
+    if (!b.scheduledDate) return false;
+    const sessionDate = new Date(b.scheduledDate);
+    return sessionDate > now && (b.status === 'confirmed' || b.status === 'pending');
+  }).length;
+  
+  // Total sessions this month
+  const sessionsThisMonth = bookings.filter(b => {
+    if (!b.scheduledDate) return false;
+    const sessionDate = new Date(b.scheduledDate);
+    return sessionDate >= oneMonthAgo && sessionDate <= now && b.status === 'confirmed';
+  }).length;
+  
+  // Estimated hours (assuming 1 hour per session)
+  const hoursLogged = sessionsThisMonth;
+
   const stats = [
     {
       title: "Active Clients",
-      value: "12",
-      change: "+2 this month",
+      value: activeClients.toString(),
+      change: clients.length > 0 ? `${clients.length} total` : 'No clients yet',
       icon: Users,
       color: "text-blue-600"
     },
     {
       title: "Sessions This Week",
-      value: "8",
-      change: "2 upcoming",
+      value: sessionsThisWeek.toString(),
+      change: upcomingCount > 0 ? `${upcomingCount} upcoming` : 'No upcoming sessions',
       icon: Calendar,
       color: "text-green-600"
     },
     {
       title: "Hours Logged",
-      value: "24.5",
+      value: hoursLogged.toString(),
       change: "This month",
       icon: Clock,
       color: "text-purple-600"
     },
     {
-      title: "Earnings (MTD)",
-      value: "$2,450",
-      change: "+12% vs last month",
+      title: "Total Sessions",
+      value: bookings.filter(b => b.status === 'confirmed').length.toString(),
+      change: "All time",
       icon: TrendingUp,
       color: "text-emerald-600"
     }
   ];
 
-  const upcomingSessions = [
-    {
-      id: 1,
-      clientName: "Sarah Johnson",
-      time: "Today, 2:00 PM",
-      type: "Individual Coaching",
-      status: "confirmed"
-    },
-    {
-      id: 2,
-      clientName: "Michael Chen",
-      time: "Today, 4:30 PM",
-      type: "Follow-up Session",
-      status: "confirmed"
-    },
-    {
-      id: 3,
-      clientName: "Emily Rodriguez",
-      time: "Tomorrow, 10:00 AM",
-      type: "Initial Consultation",
-      status: "pending"
-    }
-  ];
+  // Get upcoming sessions from real bookings
+  const upcomingSessions = bookings
+    .filter(b => {
+      if (!b.scheduledDate) return false;
+      const sessionDate = new Date(b.scheduledDate);
+      return sessionDate > now && (b.status === 'confirmed' || b.status === 'pending');
+    })
+    .sort((a, b) => {
+      const dateA = a.scheduledDate ? new Date(a.scheduledDate).getTime() : 0;
+      const dateB = b.scheduledDate ? new Date(b.scheduledDate).getTime() : 0;
+      return dateA - dateB;
+    })
+    .slice(0, 5)
+    .map(booking => {
+      const sessionDate = booking.scheduledDate ? new Date(booking.scheduledDate) : new Date();
+      const isToday = sessionDate.toDateString() === now.toDateString();
+      const isTomorrow = sessionDate.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString();
+      
+      let timeDisplay = '';
+      if (isToday) {
+        timeDisplay = `Today, ${sessionDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      } else if (isTomorrow) {
+        timeDisplay = `Tomorrow, ${sessionDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      } else {
+        timeDisplay = sessionDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        });
+      }
+      
+      return {
+        id: booking.id,
+        clientName: booking.fullName,
+        time: timeDisplay,
+        type: booking.serviceType === 'intensive' ? 'Intensive Coaching' : 
+              booking.serviceType === 'individual' ? 'Individual Coaching' : 'Consultation',
+        status: booking.status
+      };
+    });
 
-  const recentClients = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      lastSession: "2 days ago",
-      progress: "On track",
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      lastSession: "5 days ago",
-      progress: "Good progress",
-      status: "active"
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      lastSession: "1 week ago",
-      progress: "Needs attention",
-      status: "attention"
-    }
-  ];
+  // Get recent clients from real data
+  const recentClients = clients
+    .slice(0, 5)
+    .map(client => {
+      const lastSessionDate = client.lastSession ? new Date(client.lastSession) : null;
+      let lastSessionDisplay = 'No sessions yet';
+      
+      if (lastSessionDate) {
+        const daysDiff = Math.floor((now.getTime() - lastSessionDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 0) {
+          lastSessionDisplay = 'Today';
+        } else if (daysDiff === 1) {
+          lastSessionDisplay = '1 day ago';
+        } else if (daysDiff < 7) {
+          lastSessionDisplay = `${daysDiff} days ago`;
+        } else if (daysDiff < 30) {
+          const weeks = Math.floor(daysDiff / 7);
+          lastSessionDisplay = `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+        } else {
+          lastSessionDisplay = lastSessionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+      }
+      
+      return {
+        id: client.id || client.userId || '',
+        name: client.fullName || client.name || 'Unknown',
+        lastSession: lastSessionDisplay,
+        progress: client.status === 'active' ? 'Active' : 'On track',
+        status: client.status || 'active',
+        totalSessions: (client as any).totalSessions || 0
+      };
+    });
 
   // Format clients for video session dialog - use real data if available
   const clientsForSession = clients.length > 0 

@@ -25,6 +25,7 @@ import {
   insertCoachAvailabilitySchema,
   insertCoachClientSchema,
   insertCoachSessionNotesSchema,
+  insertClientGoalSchema,
   insertCoachMessageTemplateSchema,
   insertCoachClientCommunicationSchema,
   insertEventSchema,
@@ -2704,6 +2705,240 @@ When to refer to licensed therapists and emergency resources for relationship cr
       const availability = await coachStorage.getCoachAvailability(coach.id);
       res.json(availability);
     } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get coach bookings - returns bookings assigned to this coach
+  app.get("/api/coach/bookings", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      // Get bookings where this user is the assigned coach
+      const bookings = await storage.getCoachBookings(userId);
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching coach bookings:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get coach clients - returns clients assigned to this coach
+  app.get("/api/coach/clients", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      // Try to get the professional coach profile first
+      const coach = await coachStorage.getCoachByUserId(userId);
+      
+      if (coach) {
+        // If coach profile exists, get clients from coach_clients table
+        const clients = await coachStorage.getCoachClients(coach.id);
+        
+        // Enrich with user data
+        const enrichedClients = await Promise.all(
+          clients.map(async (client) => {
+            try {
+              const user = await storage.getUserById(client.clientId);
+              return {
+                id: client.id,
+                userId: client.clientId,
+                name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+                fullName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Unknown',
+                email: user?.email || '',
+                lastSession: client.lastContactDate ? new Date(client.lastContactDate).toISOString() : undefined,
+                status: client.status || 'active',
+                specialtyArea: client.specialtyArea,
+                totalSessions: client.totalSessions || 0,
+              };
+            } catch (err) {
+              console.error(`Error enriching client ${client.clientId}:`, err);
+              return {
+                id: client.id,
+                userId: client.clientId,
+                name: 'Unknown',
+                fullName: 'Unknown',
+                email: '',
+                status: client.status || 'active',
+                specialtyArea: client.specialtyArea,
+                totalSessions: client.totalSessions || 0,
+              };
+            }
+          })
+        );
+        
+        return res.json(enrichedClients);
+      }
+      
+      // Fallback: get clients from bookings if no coach profile exists
+      const allBookings = await storage.getAllBookings();
+      const coachBookings = allBookings.filter(b => b.coachId === userId);
+      
+      // Create unique client list from bookings
+      const clientMap = new Map();
+      coachBookings.forEach(booking => {
+        const key = booking.email;
+        if (!clientMap.has(key)) {
+          clientMap.set(key, {
+            id: booking.id,
+            userId: booking.userId,
+            name: booking.fullName,
+            fullName: booking.fullName,
+            email: booking.email,
+            lastSession: booking.scheduledDate ? new Date(booking.scheduledDate).toISOString() : undefined,
+            status: booking.status || 'pending',
+          });
+        }
+      });
+      
+      res.json(Array.from(clientMap.values()));
+    } catch (error) {
+      console.error("Error fetching coach clients:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Client Goals Management - Get all goals for a specific client
+  app.get("/api/coach/clients/:clientId/goals", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { clientId } = req.params;
+      const userId = req.user.id;
+      
+      // Get coach profile to ensure authorization
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Note: When database is synced, this will query the clientGoals table
+      // For now, return empty array as placeholder
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching client goals:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create a new goal for a client
+  app.post("/api/coach/clients/:clientId/goals", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { clientId } = req.params;
+      const userId = req.user.id;
+      
+      // Get coach profile
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Validate goal data
+      const goalData = insertClientGoalSchema.parse({
+        ...req.body,
+        coachId: coach.id,
+        clientId: clientId,
+      });
+      
+      // Note: When database is synced, this will create the goal
+      // For now, return the goal data with a temporary ID
+      const newGoal = {
+        id: Date.now(),
+        ...goalData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      res.json(newGoal);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid goal data", errors: error.errors });
+      } else {
+        console.error("Error creating client goal:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  // Update a goal
+  app.put("/api/coach/goals/:id", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      
+      // Get coach profile
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Validate goal data
+      const goalData = insertClientGoalSchema.partial().parse(req.body);
+      
+      // Note: When database is synced, this will update the goal
+      const updatedGoal = {
+        id: parseInt(id),
+        ...goalData,
+        updatedAt: new Date(),
+      };
+      
+      res.json(updatedGoal);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid goal data", errors: error.errors });
+      } else {
+        console.error("Error updating client goal:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
+  // Update goal progress
+  app.patch("/api/coach/goals/:id/progress", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { progress } = req.body;
+      const userId = req.user.id;
+      
+      // Get coach profile
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Validate progress (0-100)
+      if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+        return res.status(400).json({ message: "Progress must be between 0 and 100" });
+      }
+      
+      // Note: When database is synced, this will update the goal progress
+      const updatedGoal = {
+        id: parseInt(id),
+        progress,
+        status: progress === 100 ? 'completed' : 'active',
+        completedAt: progress === 100 ? new Date() : null,
+        updatedAt: new Date(),
+      };
+      
+      res.json(updatedGoal);
+    } catch (error) {
+      console.error("Error updating goal progress:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete a goal
+  app.delete("/api/coach/goals/:id", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      
+      // Get coach profile
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Note: When database is synced, this will delete the goal
+      res.json({ message: "Goal deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting client goal:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
