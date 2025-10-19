@@ -9,11 +9,23 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Heart, Star, Gift, Zap, Users, Target, Sparkles, Award } from "lucide-react";
+import { Heart, Star, Gift, Zap, Users, Target, Sparkles, Award, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ContextualHelpTrigger } from '@/components/HelpSystem';
 import HelpBubble from '@/components/HelpBubble';
+
+// Declare Stripe buy button custom element type
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'stripe-buy-button': {
+        'buy-button-id': string;
+        'publishable-key': string;
+      };
+    }
+  }
+}
 
 interface DonationPreset {
   id: string;
@@ -155,6 +167,18 @@ export default function Donate() {
     return Math.floor(basePoints * bonusMultiplier * loyaltyBonus);
   };
 
+  // Load Stripe buy button script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/buy-button.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* Reward Animation Overlay */}
@@ -235,9 +259,63 @@ export default function Donate() {
         </motion.div>
       )}
 
+      {/* Quick Donate Card - Stripe Buy Button */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <CreditCard className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Quick Donate with Stripe</CardTitle>
+                  <CardDescription className="text-gray-700 dark:text-gray-300">
+                    Secure one-click donation - Fast, safe, and simple
+                  </CardDescription>
+                </div>
+              </div>
+              <Badge className="bg-green-500 text-white">
+                Most Popular
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center py-4 gap-4">
+              <p className="text-center text-sm text-gray-600 dark:text-gray-400 max-w-xl">
+                Support our mission with a secure donation through Stripe. Your contribution helps provide life-changing coaching to those who need it most.
+              </p>
+              <div className="flex items-center justify-center">
+                <stripe-buy-button
+                  buy-button-id="buy_btn_1SK57KFHAup9QfDRdulGI1XX"
+                  publishable-key="pk_live_51RZWPDFHAup9QfDR9nOmIfophtS5wsyFRYf6rTzzB9jg1PjHYSWEAtzL8me4CLAo07aWY1UnnxGZ9dZni9A4WOzC00xaDMx9fU"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>🔒 Secure checkout</span>
+                <span>•</span>
+                <span>💳 All payment methods</span>
+                <span>•</span>
+                <span>📧 Instant receipt</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <div className="flex items-center gap-4 my-8">
+        <div className="flex-1 border-t border-gray-300"></div>
+        <span className="text-sm text-gray-500 font-medium">OR CUSTOMIZE YOUR DONATION</span>
+        <div className="flex-1 border-t border-gray-300"></div>
+      </div>
+
       <Tabs defaultValue="donate" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="donate">Make a Donation</TabsTrigger>
+          <TabsTrigger value="donate">Custom Donation</TabsTrigger>
           <TabsTrigger value="campaigns">Support a Campaign</TabsTrigger>
         </TabsList>
 

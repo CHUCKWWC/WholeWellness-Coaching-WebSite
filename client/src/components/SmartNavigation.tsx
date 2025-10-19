@@ -57,11 +57,11 @@ const mainNavItems = [
     tooltip: "Discover your wellness needs with comprehensive evaluations" 
   },
   { 
-    href: "/register", 
-    label: "Get Started", 
-    tooltip: "Create your account to begin your wellness journey",
-    badge: "Free",
-    badgeColor: "bg-green-100 text-green-700"
+    href: "/donate", 
+    label: "Donate", 
+    tooltip: "Support our mission to provide life-changing coaching",
+    badge: "❤️",
+    badgeColor: "bg-red-100 text-red-700"
   }
 ];
 
