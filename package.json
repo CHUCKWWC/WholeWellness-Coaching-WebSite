@@ -210,6 +210,18 @@
 
 
 
+    "@testing-library/jest-dom": "^6.9.1",
+
+
+
+    "@testing-library/react": "^16.3.0",
+
+
+
+    "@testing-library/user-event": "^14.6.1",
+
+
+
     "@types/bcrypt": "^5.0.2",
 
 
@@ -251,6 +263,10 @@
 
 
     "@types/uuid": "^10.0.0",
+
+
+
+    "@vitest/ui": "^3.2.4",
 
 
 
@@ -331,6 +347,10 @@
 
 
     "input-otp": "^1.4.2",
+
+
+
+    "jsdom": "^27.0.1",
 
 
 
@@ -443,6 +463,10 @@
 
 
     "vaul": "^1.1.2",
+
+
+
+    "vitest": "^3.2.4",
 
 
 
