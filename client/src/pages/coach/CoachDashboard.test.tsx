@@ -28,7 +28,7 @@ describe('Coach Dashboard', () => {
         id: '123',
         email: 'coach@example.com',
         role: 'coach',
-        fullName: 'John Coach',
+        firstName: 'John',
       },
     });
     vi.clearAllMocks();
@@ -45,17 +45,17 @@ describe('Coach Dashboard', () => {
   describe('Rendering', () => {
     it('renders welcome message with coach name', () => {
       renderDashboard();
-      expect(screen.getByText(/Welcome back, John Coach/)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome back, John!/)).toBeInTheDocument();
     });
 
     it('renders all stat cards', () => {
       renderDashboard();
 
       // Stats should be visible
-      expect(screen.getByText('Total Clients')).toBeInTheDocument();
-      expect(screen.getByText('This Month')).toBeInTheDocument();
-      expect(screen.getByText('This Week')).toBeInTheDocument();
-      expect(screen.getByText('Completion Rate')).toBeInTheDocument();
+      expect(screen.getByText('Active Clients')).toBeInTheDocument();
+      expect(screen.getByText('Sessions This Week')).toBeInTheDocument();
+      expect(screen.getByText('Hours Logged')).toBeInTheDocument();
+      expect(screen.getByText('Earnings (MTD)')).toBeInTheDocument();
     });
 
     it('renders Start Video Session button', () => {
@@ -67,20 +67,17 @@ describe('Coach Dashboard', () => {
       renderDashboard();
       expect(screen.getByText('Upcoming Sessions')).toBeInTheDocument();
     });
-
-    it('renders recent activity section', () => {
-      renderDashboard();
-      expect(screen.getByText('Recent Activity')).toBeInTheDocument();
-    });
   });
 
   describe('Data Display', () => {
     it('displays stat values', () => {
       renderDashboard();
 
-      // Check that numeric values are displayed
-      const statsSection = screen.getByText('Total Clients').closest('div');
-      expect(statsSection).toBeInTheDocument();
+      // Check that stat cards are displayed with their values
+      expect(screen.getByText('Active Clients')).toBeInTheDocument();
+      expect(screen.getByText('12')).toBeInTheDocument();
+      expect(screen.getByText('Sessions This Week')).toBeInTheDocument();
+      expect(screen.getByText('8')).toBeInTheDocument();
     });
 
     it('renders VideoSessionDialog component', () => {
@@ -96,15 +93,15 @@ describe('Coach Dashboard', () => {
           id: '123',
           email: 'coach@example.com',
           role: 'coach',
-          fullName: 'Jane Doe',
+          firstName: 'Jane',
         },
       });
 
       renderDashboard();
-      expect(screen.getByText(/Welcome back, Jane Doe/)).toBeInTheDocument();
+      expect(screen.getByText(/Welcome back, Jane!/)).toBeInTheDocument();
     });
 
-    it('handles user without fullName', () => {
+    it('handles user without firstName', () => {
       mockUseAuth.mockReturnValue({
         user: {
           id: '123',
@@ -119,13 +116,15 @@ describe('Coach Dashboard', () => {
     });
   });
 
-  describe('Quick Actions', () => {
-    it('displays all quick action cards', () => {
+  describe('Dashboard Sections', () => {
+    it('displays upcoming sessions section', () => {
       renderDashboard();
-
-      // The dashboard shows upcoming sessions and recent activity
       expect(screen.getByText('Upcoming Sessions')).toBeInTheDocument();
-      expect(screen.getByText('Recent Activity')).toBeInTheDocument();
+    });
+
+    it('displays session information', () => {
+      renderDashboard();
+      expect(screen.getByText('Your scheduled coaching sessions')).toBeInTheDocument();
     });
   });
 });
