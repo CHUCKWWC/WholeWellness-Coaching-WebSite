@@ -2943,6 +2943,60 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // Get session notes for a specific client
+  app.get("/api/coach/session-notes/:clientId", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { clientId } = req.params;
+      const userId = req.user.id;
+      
+      // Get coach profile
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Get session notes from coachSessionNotes table
+      const sessionNotes = await db.query.coachSessionNotes.findMany({
+        where: and(
+          eq(coachSessionNotes.coachId, coach.id),
+          eq(coachSessionNotes.clientId, clientId)
+        ),
+        orderBy: desc(coachSessionNotes.sessionDate),
+      });
+      
+      res.json(sessionNotes);
+    } catch (error) {
+      console.error("Error fetching session notes:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get AI insights (chat summaries) for a specific client
+  app.get("/api/coach/client-ai-insights/:clientId", requireCoachRole as any, async (req: any, res) => {
+    try {
+      const { clientId } = req.params;
+      const userId = req.user.id;
+      
+      // Get coach profile
+      const coach = await coachStorage.getCoachByUserId(userId);
+      if (!coach) {
+        return res.status(404).json({ message: "Coach profile not found" });
+      }
+      
+      // Get chat summaries for this client
+      const aiInsights = await db.query.chatSummaries.findMany({
+        where: eq(chatSummaries.userId, clientId),
+        orderBy: desc(chatSummaries.conversationDate),
+        limit: 20, // Get most recent 20 conversations
+      });
+      
+      res.json(aiInsights);
+    } catch (error) {
+      console.error("Error fetching AI insights:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Google Meet Integration Routes
   
   // Check Google Meet connection status

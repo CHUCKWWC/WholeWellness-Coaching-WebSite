@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,11 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Video
+  Video,
+  Eye
 } from "lucide-react";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
+import ClientDetailView from "@/components/coach/ClientDetailView";
 import { useQuery } from "@tanstack/react-query";
 import type { Booking as SchemaBooking } from "@shared/schema";
 
@@ -57,6 +60,7 @@ const normalizeBooking = (booking: SchemaBooking): ComponentBooking => ({
 
 export default function CoachDashboard() {
   const { user } = useAuth();
+  const [selectedClient, setSelectedClient] = useState<{ id: string; name: string; email: string } | null>(null);
 
   // Fetch coach's bookings
   const { data: rawBookings = [] } = useQuery<SchemaBooking[]>({
@@ -324,7 +328,7 @@ export default function CoachDashboard() {
               {recentClients.map((client) => (
                 <div
                   key={client.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   data-testid={`client-${client.id}`}
                 >
                   <div className="flex-1">
@@ -334,6 +338,11 @@ export default function CoachDashboard() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Last session: {client.lastSession}
                     </p>
+                    {client.totalSessions > 0 && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        {client.totalSessions} session{client.totalSessions !== 1 ? 's' : ''}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span
@@ -345,6 +354,22 @@ export default function CoachDashboard() {
                     >
                       {client.progress}
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        // Find the corresponding full client data
+                        const fullClient = clients.find(c => c.id === client.id || c.userId === client.id);
+                        setSelectedClient({
+                          id: fullClient?.userId || client.id,
+                          name: fullClient?.fullName || fullClient?.name || client.name,
+                          email: fullClient?.email || ''
+                        });
+                      }}
+                      data-testid={`button-view-client-${client.id}`}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -378,6 +403,16 @@ export default function CoachDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Client Detail View Modal */}
+      {selectedClient && (
+        <ClientDetailView
+          clientId={selectedClient.id}
+          clientName={selectedClient.name}
+          clientEmail={selectedClient.email}
+          onClose={() => setSelectedClient(null)}
+        />
+      )}
     </div>
   );
 }
