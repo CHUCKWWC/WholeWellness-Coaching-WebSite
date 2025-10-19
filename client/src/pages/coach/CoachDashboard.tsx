@@ -322,154 +322,155 @@ export default function CoachDashboard() {
         <TabsContent value="overview" className="space-y-6">
           {/* Stats Grid */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {stat.title}
-                </CardTitle>
-                <Icon className={`h-4 w-4 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {stat.change}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={stat.title}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      {stat.title}
+                    </CardTitle>
+                    <Icon className={`h-4 w-4 ${stat.color}`} />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {stat.change}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming Sessions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              Upcoming Sessions
-            </CardTitle>
-            <CardDescription>Your scheduled coaching sessions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {session.clientName}
-                    </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{session.type}</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{session.time}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {session.status === 'confirmed' ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-yellow-500" />
-                    )}
-                  </div>
+            {/* Upcoming Sessions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Upcoming Sessions
+                </CardTitle>
+                <CardDescription>Your scheduled coaching sessions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {upcomingSessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {session.clientName}
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{session.type}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{session.time}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {session.status === 'confirmed' ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-5 w-5 text-yellow-500" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-4" data-testid="button-view-schedule">
-              View Full Schedule
-            </Button>
-          </CardContent>
-        </Card>
+                <Button variant="outline" className="w-full mt-4" data-testid="button-view-schedule">
+                  View Full Schedule
+                </Button>
+              </CardContent>
+            </Card>
 
-        {/* Recent Clients */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              Recent Clients
-            </CardTitle>
-            <CardDescription>Clients you've worked with recently</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentClients.map((client) => (
-                <div
-                  key={client.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  data-testid={`client-${client.id}`}
-                >
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {client.name}
-                    </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Last session: {client.lastSession}
-                    </p>
-                    {client.totalSessions > 0 && (
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {client.totalSessions} session{client.totalSessions !== 1 ? 's' : ''}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        client.status === 'active'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-                      }`}
+            {/* Recent Clients */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  Recent Clients
+                </CardTitle>
+                <CardDescription>Clients you've worked with recently</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentClients.map((client) => (
+                    <div
+                      key={client.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      data-testid={`client-${client.id}`}
                     >
-                      {client.progress}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        // Find the corresponding full client data
-                        const fullClient = clients.find(c => c.id === client.id || c.userId === client.id);
-                        setSelectedClient({
-                          id: fullClient?.userId || client.id,
-                          name: fullClient?.fullName || fullClient?.name || client.name,
-                          email: fullClient?.email || ''
-                        });
-                      }}
-                      data-testid={`button-view-client-${client.id}`}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {client.name}
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Last session: {client.lastSession}
+                        </p>
+                        {client.totalSessions > 0 && (
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            {client.totalSessions} session{client.totalSessions !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            client.status === 'active'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
+                          }`}
+                        >
+                          {client.progress}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            // Find the corresponding full client data
+                            const fullClient = clients.find(c => c.id === client.id || c.userId === client.id);
+                            setSelectedClient({
+                              id: fullClient?.userId || client.id,
+                              name: fullClient?.fullName || fullClient?.name || client.name,
+                              email: fullClient?.email || ''
+                            });
+                          }}
+                          data-testid={`button-view-client-${client.id}`}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-4" data-testid="button-view-clients">
-              View All Clients
-            </Button>
-          </CardContent>
-        </Card>
+                <Button variant="outline" className="w-full mt-4" data-testid="button-view-clients">
+                  View All Clients
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Quick Actions */}
           <div className="mt-8">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-add-client">
-            <Users className="h-5 w-5" />
-            <span>Add New Client</span>
-          </Button>
-          <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-schedule-session">
-            <Calendar className="h-5 w-5" />
-            <span>Schedule Session</span>
-          </Button>
-          <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-view-assessments">
-            <CheckCircle className="h-5 w-5" />
-            <span>View Assessments</span>
-          </Button>
-          <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-client-notes">
-            <Clock className="h-5 w-5" />
-            <span>Client Notes</span>
-          </Button>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-add-client">
+                <Users className="h-5 w-5" />
+                <span>Add New Client</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-schedule-session">
+                <Calendar className="h-5 w-5" />
+                <span>Schedule Session</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-view-assessments">
+                <CheckCircle className="h-5 w-5" />
+                <span>View Assessments</span>
+              </Button>
+              <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-client-notes">
+                <Clock className="h-5 w-5" />
+                <span>Client Notes</span>
+              </Button>
+            </div>
           </div>
         </TabsContent>
 
