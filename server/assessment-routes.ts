@@ -3,6 +3,7 @@ import { storage } from "./supabase-client-storage";
 import { requireAuth, type AuthenticatedRequest } from "./auth";
 import { z } from "zod";
 import { insertUserAssessmentSchema, insertAssessmentTypeSchema } from "@shared/schema";
+import { getAssessmentQuestions } from "./assessment-questions";
 
 const router = Router();
 
@@ -21,6 +22,14 @@ router.get("/assessment-types", async (req, res) => {
 router.get("/assessment-types/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Try to get from hardcoded questions first
+    const hardcodedQuestions = getAssessmentQuestions(id);
+    if (hardcodedQuestions) {
+      return res.json(hardcodedQuestions);
+    }
+    
+    // Fall back to database
     const assessmentType = await storage.getAssessmentTypeById(id);
     
     if (!assessmentType) {

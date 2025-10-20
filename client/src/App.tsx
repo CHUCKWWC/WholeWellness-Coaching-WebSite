@@ -75,6 +75,7 @@ const SubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
 const VolunteerApplication = lazy(() => import("@/pages/VolunteerApplication"));
 const WixBooking = lazy(() => import("@/pages/WixBooking"));
 const Assessments = lazy(() => import("@/pages/assessments"));
+const TakeAssessment = lazy(() => import("@/pages/TakeAssessment"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const EnhancedOnboarding = lazy(() => import("@/pages/EnhancedOnboarding"));
 const CoachCertifications = lazy(() => import("@/pages/CoachCertifications"));
@@ -161,6 +162,7 @@ function Router() {
             </ProtectedRoute>
           )} />
           <Route path="/assessments" component={(props) => <LazyRoute component={Assessments} loadingText="Loading Assessments..." {...props} />} />
+          <Route path="/assessments/take/:id" component={(props) => <LazyRoute component={TakeAssessment} loadingText="Loading Assessment..." {...props} />} />
           <Route path="/user-profile" component={(props) => <LazyRoute component={UserProfile} loadingText="Loading Profile..." {...props} />} />
           <Route path="/settings" component={(props) => <LazyRoute component={Settings} loadingText="Loading Settings..." {...props} />} />
           <Route path="/admin-login" component={(props) => <LazyRoute component={AdminLogin} loadingText="Loading Admin Login..." {...props} />} />

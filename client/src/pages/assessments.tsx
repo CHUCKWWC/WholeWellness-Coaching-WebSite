@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ export default function Assessments() {
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch user's completed programs
   const { data: userPrograms = [], isLoading: programsLoading } = useQuery<UserProgram[]>({
@@ -137,13 +139,14 @@ export default function Assessments() {
       });
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, assessmentId) => {
       toast({
         title: "Assessment Started",
-        description: "Your assessment has been created. Complete it to see your results.",
+        description: "Redirecting to your assessment...",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/programs'] });
-      // Navigate to assessment questions (would be implemented)
+      // Navigate to take the assessment
+      setLocation(`/assessments/take/${assessmentId}`);
     },
     onError: (error: any) => {
       toast({
