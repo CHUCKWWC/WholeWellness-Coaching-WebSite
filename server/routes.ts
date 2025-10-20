@@ -4319,31 +4319,55 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  // Assessment payment intent
-  app.post("/api/create-payment-intent", async (req, res) => {
+  // Assessment payment checkout session
+  app.post("/api/create-payment-intent", requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
+      const user = req.user;
       const { assessmentId, amount } = req.body;
       
       if (!stripe) {
         return res.status(400).json({ error: "Stripe not configured" });
       }
       
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: "usd",
+      // Get base URL for redirect
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+        : `http://localhost:${process.env.PORT || 5000}`;
+      
+      // Create Stripe Checkout Session
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Wellness Assessment',
+                description: `${assessmentId} assessment results`,
+              },
+              unit_amount: Math.round(amount * 100), // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        customer_email: user.email,
+        client_reference_id: user.id,
         metadata: {
           assessmentId,
-          userId: req.user?.id || 'anonymous'
-        }
+          userId: user.id,
+          type: 'assessment'
+        },
+        success_url: `${baseUrl}/assessments?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/assessments?canceled=true`,
       });
       
       res.json({ 
-        clientSecret: paymentIntent.client_secret,
-        sessionId: paymentIntent.id 
+        sessionId: session.id 
       });
     } catch (error: any) {
-      console.error("Error creating payment intent:", error);
-      res.status(500).json({ error: "Failed to create payment intent" });
+      console.error("Error creating checkout session:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
     }
   });
 
