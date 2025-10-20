@@ -372,7 +372,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         membershipLevel: user.membershipLevel,
         rewardPoints: user.rewardPoints,
         donationTotal: user.donationTotal,
-        hasCompletedOnboarding: user.hasCompletedOnboarding || false
+        hasCompletedOnboarding: user.hasCompletedOnboarding || false,
+        token: sessionToken // Include token in response for API testing
       });
     } catch (error: any) {
       console.error('Login error:', error);

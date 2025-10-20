@@ -12,8 +12,10 @@
 const baseUrl = 'http://localhost:5000';
 
 // Test user credentials
+// Generate unique email to avoid conflicts
+const timestamp = Date.now();
 const testUser = {
-  email: 'test@example.com',
+  email: `test${timestamp}@example.com`,
   password: 'Test123!@#',
   firstName: 'Test',
   lastName: 'User'
@@ -93,11 +95,11 @@ async function registerUser() {
   if (response.ok) {
     logSuccess(`User registered successfully`);
     return true;
-  } else if (response.status === 400 && data.error?.includes('already exists')) {
+  } else if (response.status === 400 && (data.message?.includes('already registered') || data.error?.includes('already exists'))) {
     logInfo('User already exists, will attempt login');
     return true;
   } else {
-    logError(`Registration failed: ${data.error || response.statusText}`);
+    logError(`Registration failed: ${data.message || data.error || response.statusText}`);
     return false;
   }
 }
@@ -116,7 +118,7 @@ async function loginUser() {
     logInfo(`Token: ${authToken.substring(0, 20)}...`);
     return true;
   } else {
-    logError(`Login failed: ${data.error || response.statusText}`);
+    logError(`Login failed: ${data.message || data.error || response.statusText}`);
     return false;
   }
 }
@@ -126,13 +128,13 @@ async function getCsrfToken() {
   
   const { response, data } = await makeRequest('GET', '/api/csrf-token', null, true);
 
-  if (response.ok && data.token) {
-    csrfToken = data.token;
+  if (response.ok && data.csrfToken) {
+    csrfToken = data.csrfToken;
     logSuccess('CSRF token fetched');
     logInfo(`Token: ${csrfToken.substring(0, 20)}...`);
     return true;
   } else {
-    logError(`Failed to get CSRF token: ${data.error || response.statusText}`);
+    logError(`Failed to get CSRF token: ${data.message || data.error || response.statusText} - Response: ${JSON.stringify(data).substring(0, 100)}`);
     return false;
   }
 }
