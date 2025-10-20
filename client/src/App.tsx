@@ -89,7 +89,8 @@ const WellnessJourneyRecommender = lazy(() => import("@/pages/WellnessJourneyRec
 const AdminCertifications = lazy(() => import("@/pages/AdminCertifications"));
 const AdminTestPayment = lazy(() => import("@/pages/AdminTestPayment"));
 const CustomOnboarding = lazy(() => import("@/pages/CustomOnboarding"));
-const ComingEvents = lazy(() => import("@/pages/ComingEvents"));
+const Events = lazy(() => import("@/pages/Events"));
+const EventDetail = lazy(() => import("@/pages/EventDetail"));
 const CoachProfileView = lazy(() => import("@/pages/CoachProfileView"));
 const UserProfileView = lazy(() => import("@/pages/UserProfileView"));
 const VideoSession = lazy(() => import("@/pages/VideoSession"));
@@ -146,7 +147,8 @@ function Router() {
           <Route path="/programs" component={(props) => <LazyRoute component={Programs} loadingText="Loading Programs..." {...props} />} />
           <Route path="/ai-coaching" component={(props) => <LazyRoute component={AICoaching} loadingText="Initializing AI Coaching..." {...props} />} />
           <Route path="/resources" component={(props) => <LazyRoute component={Resources} loadingText="Loading Resources..." {...props} />} />
-          <Route path="/events" component={(props) => <LazyRoute component={ComingEvents} loadingText="Loading Events..." {...props} />} />
+          <Route path="/events" component={(props) => <LazyRoute component={Events} loadingText="Loading Events..." {...props} />} />
+          <Route path="/events/:eventId" component={(props) => <LazyRoute component={EventDetail} loadingText="Loading Event..." {...props} />} />
           <Route path="/contact" component={Contact} />
           <Route path="/booking" component={(props) => <LazyRoute component={Booking} loadingText="Loading Booking System..." {...props} />} />
           <Route path="/members" component={(props) => <LazyRoute component={Members} loadingText="Loading Member Portal..." {...props} />} />

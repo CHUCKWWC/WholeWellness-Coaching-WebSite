@@ -209,8 +209,11 @@ export const rolePermissions = pgTable("role_permissions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Bookings - 1-on-1 appointments (enhanced with userId and eventId for unified booking system)
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id), // Link to user account if logged in
+  eventId: varchar("event_id").references(() => events.id), // Link to event if booking is for an event
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
@@ -1292,6 +1295,7 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   status: true,
   scheduledDate: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export const insertProgramSchema = createInsertSchema(programs).omit({
@@ -1670,7 +1674,7 @@ export const events = pgTable("events", {
 export const eventRegistrations = pgTable("event_registrations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   eventId: varchar("event_id").notNull().references(() => events.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").references(() => users.id), // Optional - supports guest registrations
   userName: varchar("user_name"), // Denormalized
   userEmail: varchar("user_email"), // Denormalized
   registeredAt: timestamp("registered_at").defaultNow(),

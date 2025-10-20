@@ -19,6 +19,7 @@ import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog"
 import ClientDetailView from "@/components/coach/ClientDetailView";
 import CoachCalendar from "@/components/coach/CoachCalendar";
 import PerformanceCharts from "@/components/coach/PerformanceCharts";
+import CoachEventManagement from "@/components/coach/CoachEventManagement";
 import { useQuery } from "@tanstack/react-query";
 import type { Booking as SchemaBooking } from "@shared/schema";
 
@@ -303,7 +304,7 @@ export default function CoachDashboard() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
             <Users className="h-4 w-4" />
             Overview
@@ -311,6 +312,10 @@ export default function CoachDashboard() {
           <TabsTrigger value="calendar" className="flex items-center gap-2" data-testid="tab-calendar">
             <CalendarDays className="h-4 w-4" />
             Calendar
+          </TabsTrigger>
+          <TabsTrigger value="events" className="flex items-center gap-2" data-testid="tab-events">
+            <Calendar className="h-4 w-4" />
+            Events
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2" data-testid="tab-analytics">
             <BarChart3 className="h-4 w-4" />
@@ -480,6 +485,11 @@ export default function CoachDashboard() {
             bookings={bookings}
             availability={[]}
           />
+        </TabsContent>
+
+        {/* Events Tab */}
+        <TabsContent value="events">
+          <CoachEventManagement />
         </TabsContent>
 
         {/* Analytics Tab */}

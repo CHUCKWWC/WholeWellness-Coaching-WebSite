@@ -134,6 +134,7 @@ import { GoogleDriveService, type DriveFile, type CourseMaterial } from "./googl
 import { googleDriveDemoService } from "./google-drive-demo";
 import { registerWellnessJourneyRoutes } from "./wellness-journey-routes";
 import videoRoutes from "./video-routes";
+import eventsRoutes from "./events-routes";
 import { migrateVideoSchema } from "./migrate-video-schema";
 // import { migrateChatSchema } from "./migrate-chat-schema"; // TEMPORARILY DISABLED - file missing
 
@@ -3954,6 +3955,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.use('/api/assessments', assessmentRoutes);
   app.use(onboardingNewRoutes);
   app.use('/api/video', videoRoutes);
+  app.use('/api/events', eventsRoutes);
   
   // Chat summarization and digest routes
   // TEMPORARILY DISABLED - chat-digest-routes file missing
