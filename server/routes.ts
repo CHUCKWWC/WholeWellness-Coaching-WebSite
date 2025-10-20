@@ -4321,7 +4321,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Assessment payment checkout session
-  app.post("/api/create-payment-intent", requireAuth as any, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/create-assessment-payment", requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user;
       const { assessmentId, amount } = req.body;

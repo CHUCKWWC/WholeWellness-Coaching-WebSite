@@ -96,9 +96,9 @@ export default function Assessments() {
   // Create payment intent mutation
   const createPaymentMutation = useMutation({
     mutationFn: async (assessmentId: string) => {
-      const response = await apiRequest('POST', '/api/create-payment-intent', {
+      const response = await apiRequest('POST', '/api/create-assessment-payment', {
         assessmentId,
-        amount: 9.99
+        amount: 9.99 // Amount in dollars (backend converts to cents)
       });
       return response;
     },
