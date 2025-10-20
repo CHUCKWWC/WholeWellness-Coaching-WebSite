@@ -65,7 +65,7 @@ export default function TakeAssessment() {
 
   // Fetch assessment type structure
   const { data: assessmentType, isLoading, error } = useQuery<AssessmentType>({
-    queryKey: ['/api/assessment-types', assessmentId],
+    queryKey: ['/api/assessments/assessment-types', assessmentId],
     enabled: !!assessmentId,
   });
 
