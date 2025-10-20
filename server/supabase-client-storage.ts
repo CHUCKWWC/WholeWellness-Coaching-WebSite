@@ -2837,7 +2837,7 @@ export class SupabaseClientStorage implements IStorage {
   async getProgram(id: string): Promise<Program | undefined> {
     try {
       const { data, error } = await supabase
-        .from('assessment_programs')
+        .from('programs')
         .select('*')
         .eq('id', id)
         .single();
@@ -2857,10 +2857,10 @@ export class SupabaseClientStorage implements IStorage {
   async getUserPrograms(userId: string): Promise<Program[]> {
     try {
       const { data, error } = await supabase
-        .from('assessment_programs')
+        .from('programs')
         .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .eq('userId', userId)
+        .order('createdAt', { ascending: false });
       
       if (error) {
         console.error('Error getting user programs:', error);
@@ -2878,17 +2878,15 @@ export class SupabaseClientStorage implements IStorage {
     try {
       const dbProgram = {
         id: randomUUID(),
-        user_id: program.userId,
-        program_type: program.programType,
+        userId: program.userId,
+        assessmentType: program.assessmentType,
         results: program.results,
-        payment_required: program.paymentRequired || false,
-        payment_completed: program.paymentCompleted || false,
-        created_at: new Date(),
-        updated_at: new Date()
+        paid: program.paid || false,
+        createdAt: new Date()
       };
 
       const { data, error } = await supabase
-        .from('assessment_programs')
+        .from('programs')
         .insert(dbProgram)
         .select()
         .single();
@@ -2898,16 +2896,7 @@ export class SupabaseClientStorage implements IStorage {
         throw new Error('Failed to create program');
       }
 
-      return {
-        id: data.id,
-        userId: data.user_id,
-        programType: data.program_type,
-        results: data.results,
-        paymentRequired: data.payment_required,
-        paymentCompleted: data.payment_completed,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      } as Program;
+      return data as Program;
     } catch (error) {
       console.error('Error creating program:', error);
       throw error;
@@ -2916,16 +2905,13 @@ export class SupabaseClientStorage implements IStorage {
 
   async updateProgram(id: string, program: Partial<InsertProgram>): Promise<Program | undefined> {
     try {
-      const updateData = {
-        ...(program.programType && { program_type: program.programType }),
-        ...(program.results && { results: program.results }),
-        ...(program.paymentRequired !== undefined && { payment_required: program.paymentRequired }),
-        ...(program.paymentCompleted !== undefined && { payment_completed: program.paymentCompleted }),
-        updated_at: new Date()
-      };
+      const updateData: any = {};
+      if (program.assessmentType) updateData.assessmentType = program.assessmentType;
+      if (program.results !== undefined) updateData.results = program.results;
+      if (program.paid !== undefined) updateData.paid = program.paid;
 
       const { data, error } = await supabase
-        .from('assessment_programs')
+        .from('programs')
         .update(updateData)
         .eq('id', id)
         .select()
@@ -2936,16 +2922,7 @@ export class SupabaseClientStorage implements IStorage {
         return undefined;
       }
 
-      return {
-        id: data.id,
-        userId: data.user_id,
-        programType: data.program_type,
-        results: data.results,
-        paymentRequired: data.payment_required,
-        paymentCompleted: data.payment_completed,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      } as Program;
+      return data as Program;
     } catch (error) {
       console.error('Error updating program:', error);
       return undefined;
