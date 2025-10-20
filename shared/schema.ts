@@ -232,11 +232,11 @@ export const bookings = pgTable("bookings", {
 // Assessment system for paid results
 export const programs = pgTable("programs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  assessmentType: varchar("assessment_type").notNull(),
+  userId: varchar("userId").notNull().references(() => users.id),
+  assessmentType: varchar("assessmentType").notNull(),
   results: jsonb("results"),
   paid: boolean("paid").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 // Chat sessions for AI coach memory
@@ -1294,6 +1294,11 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   createdAt: true,
 });
 
+export const insertProgramSchema = createInsertSchema(programs).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTestimonialSchema = createInsertSchema(testimonials).omit({
   id: true,
   isApproved: true,
@@ -1508,6 +1513,8 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type Program = typeof programs.$inferSelect;
+export type InsertProgram = z.infer<typeof insertProgramSchema>;
 export type Testimonial = typeof testimonials.$inferSelect;
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
 export type Resource = typeof resources.$inferSelect;
