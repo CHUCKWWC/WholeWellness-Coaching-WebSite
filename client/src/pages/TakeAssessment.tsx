@@ -72,6 +72,15 @@ export default function TakeAssessment() {
   // Fetch assessment type structure
   const { data: assessmentType, isLoading, error } = useQuery<AssessmentType>({
     queryKey: ['/api/assessments/assessment-types', assessmentId],
+    queryFn: async () => {
+      const res = await fetch(`/api/assessments/assessment-types/${assessmentId}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch assessment: ${res.statusText}`);
+      }
+      return res.json();
+    },
     enabled: !!assessmentId,
   });
 
