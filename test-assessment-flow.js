@@ -83,7 +83,7 @@ async function makeRequest(method, endpoint, body = null, requiresAuth = false) 
 async function registerUser() {
   logStep('STEP 1', 'Registering test user');
   
-  const { response, data } = await makeRequest('POST', '/api/register', {
+  const { response, data } = await makeRequest('POST', '/api/auth/register', {
     email: testUser.email,
     password: testUser.password,
     firstName: testUser.firstName,
@@ -105,7 +105,7 @@ async function registerUser() {
 async function loginUser() {
   logStep('STEP 2', 'Logging in');
   
-  const { response, data } = await makeRequest('POST', '/api/login', {
+  const { response, data } = await makeRequest('POST', '/api/auth/login', {
     email: testUser.email,
     password: testUser.password
   });
