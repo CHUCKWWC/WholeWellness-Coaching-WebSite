@@ -1388,15 +1388,41 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
       try {
         await storage.createPasswordResetToken(user.id, resetToken, expiresAt);
-        
-        // TODO: Send email with reset link
-        // For now, just return success (in production, integrate with email service)
-        console.log(`Password reset token for ${email}: ${resetToken}`);
-        
-        res.json({ 
-          message: 'If an account exists with this email, you will receive a password reset link.',
-          // Remove this in production - only for testing
-          resetToken: resetToken
+
+        // Send password reset email
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
+
+        try {
+          await sendEmail({
+            to: email,
+            subject: 'WholeWellness Coaching - Password Reset Request',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2c7a7b;">Password Reset Request</h2>
+                <p>Hello ${user.firstName || 'there'},</p>
+                <p>We received a request to reset your password for your WholeWellness Coaching account.</p>
+                <p>Click the button below to reset your password:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetUrl}" style="background-color: #2c7a7b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    Reset Password
+                  </a>
+                </div>
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="color: #666; word-break: break-all;">${resetUrl}</p>
+                <p><strong>This link will expire in 1 hour.</strong></p>
+                <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
+              </div>
+            `,
+            text: `Password Reset Request\n\nHello ${user.firstName || 'there'},\n\nWe received a request to reset your password. Click the link below:\n${resetUrl}\n\nThis link expires in 1 hour.`
+          });
+          console.log(`Password reset email sent to ${email}`);
+        } catch (emailError) {
+          console.error('Error sending password reset email:', emailError);
+          // Continue anyway to avoid revealing if email service failed
+        }
+
+        res.json({
+          message: 'If an account exists with this email, you will receive a password reset link.'
         });
       } catch (tokenError) {
         console.error('Error creating password reset token:', tokenError);

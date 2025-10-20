@@ -6,11 +6,11 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  BookOpen, 
-  Play, 
-  CheckCircle, 
-  Clock, 
+import {
+  BookOpen,
+  Play,
+  CheckCircle,
+  Clock,
   Award,
   ArrowLeft,
   ArrowRight,
@@ -24,6 +24,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import DOMPurify from "dompurify";
 
 // Enhanced types for the comprehensive certification system
 interface CourseModule {
@@ -98,6 +99,15 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Sanitize HTML content to prevent XSS attacks
+  const sanitizeHTML = (html: string) => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'blockquote', 'code', 'pre', 'img', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
+      ALLOW_DATA_ATTR: false,
+    });
+  };
 
   // Fetch course modules
   const { data: modules = [], isLoading: modulesLoading } = useQuery({
@@ -249,7 +259,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
               </div>
             )}
             <div className="prose max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: selectedModule.content || "" }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(selectedModule.content || "") }} />
             </div>
           </div>
         );
@@ -257,7 +267,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
       case 'text':
         return (
           <div className="prose max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: selectedModule.content || "" }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(selectedModule.content || "") }} />
           </div>
         );
 
@@ -270,7 +280,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
       default:
         return (
           <div className="prose max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: selectedModule.content || "" }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(selectedModule.content || "") }} />
           </div>
         );
     }
@@ -385,7 +395,7 @@ export default function ModuleLearning({ courseId, enrollmentId }: ModuleLearnin
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: selectedModule.assignment.instructions }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(selectedModule.assignment.instructions) }} />
             </div>
             <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="text-sm">

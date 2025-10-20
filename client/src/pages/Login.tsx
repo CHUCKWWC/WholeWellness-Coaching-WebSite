@@ -149,8 +149,20 @@ export default function Login() {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
+                <div className="flex items-center justify-end mb-2">
+                  <Link href="/forgot-password">
+                    <button
+                      type="button"
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      data-testid="link-forgot-password"
+                    >
+                      Forgot password?
+                    </button>
+                  </Link>
+                </div>
+
+                <Button
+                  type="submit"
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={loginMutation.isPending}
                   data-testid="button-login"

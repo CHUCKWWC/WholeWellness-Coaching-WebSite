@@ -83,7 +83,13 @@ export const adminOAuthSchema = z.object({
 });
 
 export class AdminAuthService {
-  private static readonly JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+  private static readonly JWT_SECRET = process.env.JWT_SECRET || (() => {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET environment variable must be set in production');
+    }
+    console.warn('WARNING: Using development JWT secret. DO NOT use in production!');
+    return 'development-secret-key-for-local-testing-only';
+  })();
   private static readonly JWT_EXPIRES_IN = '24h';
 
   // Generate JWT token for admin

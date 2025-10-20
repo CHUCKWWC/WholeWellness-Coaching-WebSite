@@ -13,7 +13,7 @@ import Footer from "@/components/Footer";
 import HelpSystem from "@/components/HelpSystem";
 import EmpatheticHelpProvider from "@/components/EmpatheticHelpProvider";
 import { Suspense, lazy, useEffect } from "react";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { EnhancedErrorBoundary } from "@/components/EnhancedErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { LazyLoadWrapper, withLazyLoading } from "@/components/LazyLoadWrapper";
 import { useRoutePreloader } from "@/utils/routePreloader";
@@ -22,6 +22,9 @@ import { ChatUIProvider, useChatUI } from "@/ui/ChatUIContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import CoachLayout from "@/layouts/CoachLayout";
 import MemberLayout from "@/layouts/MemberLayout";
+import { CrisisSupportBanner } from "@/components/CrisisSupportBanner";
+import { SafetyExit, FloatingSafetyExit } from "@/components/SafetyExit";
+import { SkipToContent } from "@/components/SkipToContent";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -55,6 +58,7 @@ const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const OnboardingWizard = lazy(() => import("@/pages/OnboardingWizard"));
 const PasswordReset = lazy(() => import("@/pages/PasswordReset"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const EmailVerification = lazy(() => import("@/pages/EmailVerification"));
 const HelpDemo = lazy(() => import("@/pages/HelpDemo"));
 const MentalWellnessHub = lazy(() => import("@/pages/MentalWellnessHub"));
@@ -126,8 +130,10 @@ function Router() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SkipToContent />
+      <CrisisSupportBanner />
       <SmartNavigation />
-      <main className="flex-1 safe-bottom md:pb-0">
+      <main id="main-content" className="flex-1 safe-bottom md:pb-0">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/about" component={About} />
@@ -169,6 +175,7 @@ function Router() {
           <Route path="/terms" component={(props) => <LazyRoute component={Terms} loadingText="Loading Terms of Service..." {...props} />} />
           <Route path="/onboarding" component={(props) => <LazyRoute component={OnboardingWizard} loadingText="Setting up your journey..." {...props} />} />
           <Route path="/reset-password" component={(props) => <LazyRoute component={PasswordReset} loadingText="Loading password reset..." {...props} />} />
+          <Route path="/forgot-password" component={(props) => <LazyRoute component={ForgotPassword} loadingText="Loading password recovery..." {...props} />} />
           <Route path="/verify-email" component={(props) => <LazyRoute component={EmailVerification} loadingText="Verifying email..." {...props} />} />
           <Route path="/help-demo" component={(props) => <LazyRoute component={HelpDemo} loadingText="Loading help system..." {...props} />} />
           <Route path="/mental-wellness" component={(props) => <LazyRoute component={MentalWellnessHub} loadingText="Loading wellness resources..." {...props} />} />
@@ -293,6 +300,7 @@ function Router() {
       <ProgressIndicator />
       <KeyboardShortcuts />
       <KeyboardShortcutsHint />
+      <FloatingSafetyExit />
     </div>
   );
 }
@@ -306,7 +314,9 @@ function App() {
       <TooltipProvider>
         <EmpatheticHelpProvider>
           <ChatUIProvider>
-            <Router />
+            <EnhancedErrorBoundary>
+              <Router />
+            </EnhancedErrorBoundary>
             <Toaster />
             {/* Temporarily disabled: <PerformanceMonitor /> */}
           </ChatUIProvider>

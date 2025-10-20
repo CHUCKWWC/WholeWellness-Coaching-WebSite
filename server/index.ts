@@ -5,14 +5,22 @@ import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 import { initializeDigestScheduler } from "./digest-scheduler";
 import { setupSecurity, securityErrorHandler } from "./security";
+import { setupCsrfProtection } from "./csrf-protection";
 import { requestLogger, errorLogger, log as logger } from "./logger";
 import { errorHandler, notFoundHandler, successResponse } from "./error-handler";
 import { performanceMonitor } from "./performance-monitor";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
-// Apply security middleware first
+// Apply cookie parser first (required for CSRF)
+app.use(cookieParser());
+
+// Apply security middleware
 setupSecurity(app);
+
+// Apply CSRF protection
+setupCsrfProtection(app);
 
 // Add health check endpoint - only /health, not root
 app.get('/health', (req: Request, res: Response) => {

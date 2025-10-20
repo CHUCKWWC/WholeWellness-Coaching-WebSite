@@ -21,8 +21,14 @@ export interface AuthenticatedRequest extends Request {
   user?: AuthenticatedUser;
 }
 
-// JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+// JWT configuration - enforce strong secret in production
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL: JWT_SECRET environment variable must be set in production');
+  }
+  console.warn('WARNING: Using development JWT secret. DO NOT use in production!');
+  return 'development-secret-key-for-local-testing-only';
+})();
 const JWT_EXPIRES_IN = '7d'; // 7 days
 
 // User registration schema

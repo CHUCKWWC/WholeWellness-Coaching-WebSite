@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Menu, User, LogOut, ChevronDown, Sparkles, Star, Clock, Search } from "lucide-react";
 import SmartSearch from "@/components/SmartSearch";
+import { SafetyExit } from "@/components/SafetyExit";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -236,6 +237,11 @@ export default function SmartNavigation() {
 
             {/* User Section */}
             <div className="flex items-center space-x-4">
+              {/* Safety Exit Button - Desktop */}
+              <div className="hidden md:block">
+                <SafetyExit showButton={true} />
+              </div>
+
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
