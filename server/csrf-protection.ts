@@ -59,8 +59,15 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
   // 1. Safe HTTP methods (GET, HEAD, OPTIONS)
   // 2. Health check endpoints
   // 3. Webhook endpoints that use other authentication
+  // 4. Requests with Bearer token authentication (API clients)
   const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
   const skipPaths = ['/health', '/api/webhooks'];
+
+  // Skip CSRF for requests authenticated with Bearer tokens (API testing/clients)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return next();
+  }
 
   if (safeMethods.includes(req.method) || skipPaths.some(path => req.path.startsWith(path))) {
     return next();
