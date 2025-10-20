@@ -58,18 +58,22 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
   // Skip CSRF validation for:
   // 1. Safe HTTP methods (GET, HEAD, OPTIONS)
   // 2. Health check endpoints
-  // 3. Webhook endpoints that use other authentication
-  // 4. Requests with Bearer token authentication (API clients)
+  // 3. Webhook endpoints that use other authentication  
   const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
   const skipPaths = ['/health', '/api/webhooks'];
 
-  // Skip CSRF for requests authenticated with Bearer tokens (API testing/clients)
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (safeMethods.includes(req.method) || skipPaths.some(path => req.path.startsWith(path))) {
     return next();
   }
-
-  if (safeMethods.includes(req.method) || skipPaths.some(path => req.path.startsWith(path))) {
+  
+  // Skip CSRF ONLY for truly authenticated Bearer token requests
+  // This requires auth middleware to run first and populate req.user
+  // We check both that the token exists AND that the user is authenticated
+  const authHeader = req.headers.authorization;
+  const hasBearerToken = authHeader && authHeader.startsWith('Bearer ');
+  const isAuthenticated = (req as any).user !== undefined;
+  
+  if (hasBearerToken && isAuthenticated) {
     return next();
   }
 
