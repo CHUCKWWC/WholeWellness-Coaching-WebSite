@@ -1,316 +1,312 @@
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { AssessmentForm } from "@/components/assessment-form";
-import { 
-  ClipboardList, 
-  Heart, 
-  Brain, 
-  Users, 
-  Calendar,
-  CheckCircle,
-  AlertCircle
-} from "lucide-react";
+import { Loader2, CheckCircle, Lock, Star } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
 
-interface AssessmentType {
+interface Assessment {
   id: string;
-  name: string;
-  displayName: string;
-  category: string;
+  title: string;
   description: string;
-  fields: any;
-  coachTypes: string[];
-  isActive: boolean;
+  category: string;
+  questions: number;
+  duration: string;
+  price: number;
 }
 
-interface UserAssessment {
+interface UserProgram {
   id: string;
-  userId: string;
-  assessmentTypeId: string;
-  responses: any;
-  summary?: string;
-  tags: string[];
-  completedAt: string;
-  assessmentType: {
-    name: string;
-    displayName: string;
-    category: string;
-  };
+  assessmentType: string;
+  results: any;
+  paid: boolean;
+  createdAt: string;
 }
 
-const categoryIcons = {
-  health: Heart,
-  relationships: Users,
-  mental_health: Brain,
-  career: ClipboardList,
-  default: ClipboardList
-};
+const AVAILABLE_ASSESSMENTS: Assessment[] = [
+  {
+    id: "wellness_personality",
+    title: "Wellness Personality Assessment",
+    description: "Discover your unique wellness style and personalized recommendations for optimal health and happiness.",
+    category: "Wellness",
+    questions: 25,
+    duration: "10 minutes",
+    price: 9.99
+  },
+  {
+    id: "career_alignment",
+    title: "Career Alignment Analysis",
+    description: "Uncover your career strengths, values, and ideal work environment for professional fulfillment.",
+    category: "Career",
+    questions: 30,
+    duration: "12 minutes",
+    price: 9.99
+  },
+  {
+    id: "relationship_patterns",
+    title: "Relationship Patterns Assessment",
+    description: "Understand your attachment style and communication patterns in personal relationships.",
+    category: "Relationships",
+    questions: 20,
+    duration: "8 minutes", 
+    price: 9.99
+  },
+  {
+    id: "stress_resilience",
+    title: "Stress & Resilience Profile",
+    description: "Assess your stress management skills and discover personalized coping strategies.",
+    category: "Mental Health",
+    questions: 22,
+    duration: "9 minutes",
+    price: 9.99
+  },
+  {
+    id: "nutrition_lifestyle",
+    title: "Nutrition & Lifestyle Analysis",
+    description: "Get a comprehensive evaluation of your eating habits and lifestyle factors affecting your health.",
+    category: "Nutrition",
+    questions: 28,
+    duration: "11 minutes",
+    price: 9.99
+  }
+];
 
-const categoryColors = {
-  health: "bg-green-100 text-green-800",
-  relationships: "bg-pink-100 text-pink-800", 
-  mental_health: "bg-blue-100 text-blue-800",
-  career: "bg-purple-100 text-purple-800",
-  default: "bg-gray-100 text-gray-800"
-};
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 
 export default function Assessments() {
-  const { user, isAuthenticated } = useAuth();
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedAssessment, setSelectedAssessment] = useState<AssessmentType | null>(null);
-  const [showForm, setShowForm] = useState(false);
 
-  // Get available assessment types
-  const { data: assessmentTypes = [], isLoading: typesLoading } = useQuery<AssessmentType[]>({
-    queryKey: ["/api/assessments/assessment-types"],
-    enabled: isAuthenticated,
+  // Fetch user's completed programs
+  const { data: userPrograms = [], isLoading: programsLoading } = useQuery<UserProgram[]>({
+    queryKey: ['/api/programs'],
+    retry: false,
   });
 
-  // Get user's completed assessments
-  const { data: userAssessments = [], isLoading: assessmentsLoading } = useQuery<UserAssessment[]>({
-    queryKey: ["/api/assessments/user", user?.id],
-    enabled: isAuthenticated && !!user?.id,
-  });
+  // Count free assessments used
+  const freeAssessmentsUsed = userPrograms.filter(program => !program.paid).length;
+  const remainingFreeAssessments = Math.max(0, 3 - freeAssessmentsUsed);
 
-  // Submit assessment mutation
-  const submitAssessment = useMutation({
-    mutationFn: async (data: { assessmentTypeId: string; responses: any }) => {
-      return apiRequest("POST", "/api/assessments/submit", data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Assessment Completed",
-        description: "Your assessment has been saved successfully.",
+  // Create payment intent mutation
+  const createPaymentMutation = useMutation({
+    mutationFn: async (assessmentId: string) => {
+      const response = await apiRequest('/api/create-payment-intent', 'POST', {
+        assessmentId,
+        amount: 9.99
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments/user", user?.id] });
-      setShowForm(false);
-      setSelectedAssessment(null);
+      return response;
+    },
+    onSuccess: async (data) => {
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
+      }
+
+      // Redirect to Stripe Checkout
+      const result = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
+
+      if (result.error) {
+        toast({
+          title: "Payment Error",
+          description: result.error.message,
+          variant: "destructive",
+        });
+      }
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit assessment",
+        title: "Payment Failed",
+        description: error.message || "Failed to process payment",
         variant: "destructive",
       });
     },
   });
 
-  const handleStartAssessment = (assessmentType: AssessmentType) => {
-    setSelectedAssessment(assessmentType);
-    setShowForm(true);
+  // Start assessment mutation
+  const startAssessmentMutation = useMutation({
+    mutationFn: async (assessmentId: string) => {
+      const response = await apiRequest('/api/programs', 'POST', {
+        assessmentType: assessmentId,
+        paid: remainingFreeAssessments > 0 ? false : true
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Assessment Started",
+        description: "Your assessment has been created. Complete it to see your results.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/programs'] });
+      // Navigate to assessment questions (would be implemented)
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Assessment Failed",
+        description: error.message || "Failed to start assessment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleStartAssessment = async (assessment: Assessment) => {
+    // Check if user needs to pay
+    if (remainingFreeAssessments === 0) {
+      // Start payment flow
+      createPaymentMutation.mutate(assessment.id);
+    } else {
+      // Start free assessment
+      startAssessmentMutation.mutate(assessment.id);
+    }
   };
 
-  const handleSubmitAssessment = (responses: any) => {
-    if (!selectedAssessment) return;
-    
-    submitAssessment.mutate({
-      assessmentTypeId: selectedAssessment.id,
-      responses,
-    });
+  const isAssessmentCompleted = (assessmentId: string) => {
+    return userPrograms.some(program => program.assessmentType === assessmentId);
   };
 
-  const isAssessmentCompleted = (assessmentTypeId: string) => {
-    return userAssessments.some((assessment: UserAssessment) => 
-      assessment.assessmentTypeId === assessmentTypeId
-    );
+  const getAssessmentResults = (assessmentId: string) => {
+    return userPrograms.find(program => program.assessmentType === assessmentId);
   };
 
-  const getCompletionProgress = () => {
-    if (assessmentTypes.length === 0) return 0;
-    return (userAssessments.length / assessmentTypes.length) * 100;
-  };
-
-  if (!isAuthenticated) {
+  if (programsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-            <CardTitle>Authentication Required</CardTitle>
-            <CardDescription>
-              Please log in to access your assessments and begin your wellness journey.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              className="w-full" 
-              onClick={() => window.location.href = '/api/login'}
-            >
-              Log In to Continue
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Loading your assessments...</span>
+        </div>
       </div>
     );
   }
 
-  if (showForm && selectedAssessment) {
-    return (
-      <AssessmentForm
-        assessmentType={selectedAssessment}
-        onSubmit={handleSubmitAssessment}
-        onCancel={() => {
-          setShowForm(false);
-          setSelectedAssessment(null);
-        }}
-        isSubmitting={submitAssessment.isPending}
-      />
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Your Wellness Assessments
+            Personal Wellness Assessments
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Complete these personalized assessments to help our AI coaches and human professionals 
-            provide you with the most effective support for your journey.
+            Discover insights about yourself with our evidence-based assessments. 
+            Get 3 free results, then unlock additional assessments for just $9.99 each.
           </p>
-        </div>
-
-        {/* Progress Overview */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
-              Assessment Progress
-            </CardTitle>
-            <CardDescription>
-              Complete all assessments to unlock personalized coaching recommendations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span>Completed: {userAssessments.length} of {assessmentTypes.length}</span>
-                <span>{Math.round(getCompletionProgress())}%</span>
-              </div>
-              <Progress value={getCompletionProgress()} className="h-2" />
+          
+          {/* Free assessments counter */}
+          <div className="mt-6 p-4 bg-white rounded-lg shadow-md inline-block">
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500" />
+              <span className="font-semibold">
+                {remainingFreeAssessments} free assessment{remainingFreeAssessments !== 1 ? 's' : ''} remaining
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            {remainingFreeAssessments === 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Additional assessments are $9.99 each
+              </p>
+            )}
+          </div>
+        </div>
 
         {/* Assessment Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {typesLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {AVAILABLE_ASSESSMENTS.map((assessment) => {
+            const completed = isAssessmentCompleted(assessment.id);
+            const results = getAssessmentResults(assessment.id);
+            const needsPayment = remainingFreeAssessments === 0 && !completed;
+
+            return (
+              <Card key={assessment.id} className="relative hover:shadow-lg transition-shadow">
+                {completed && (
+                  <div className="absolute top-4 right-4">
+                    <CheckCircle className="w-6 h-6 text-green-500" />
+                  </div>
+                )}
+                
                 <CardHeader>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant="outline">{assessment.category}</Badge>
+                    {needsPayment && <Lock className="w-4 h-4 text-gray-400" />}
+                  </div>
+                  <CardTitle className="text-lg">{assessment.title}</CardTitle>
+                  <CardDescription>{assessment.description}</CardDescription>
                 </CardHeader>
+                
                 <CardContent>
-                  <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            assessmentTypes.map((assessmentType: AssessmentType) => {
-              const IconComponent = categoryIcons[assessmentType.category as keyof typeof categoryIcons] || categoryIcons.default;
-              const isCompleted = isAssessmentCompleted(assessmentType.id);
-              
-              return (
-                <Card 
-                  key={assessmentType.id} 
-                  className={`transition-all duration-200 hover:shadow-lg ${
-                    isCompleted ? 'ring-2 ring-green-200 bg-green-50' : 'hover:shadow-md'
-                  }`}
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <IconComponent className="h-5 w-5 text-blue-600" />
-                        <CardTitle className="text-lg">{assessmentType.displayName}</CardTitle>
-                      </div>
-                      {isCompleted && (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      )}
+                  <div className="space-y-3">
+                    {/* Assessment details */}
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>{assessment.questions} questions</span>
+                      <span>{assessment.duration}</span>
                     </div>
-                    <CardDescription>{assessmentType.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <Badge 
-                        variant="secondary" 
-                        className={categoryColors[assessmentType.category as keyof typeof categoryColors] || categoryColors.default}
-                      >
-                        {assessmentType.category.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                      
-                      <div className="text-sm text-gray-600">
-                        <strong>Helpful for:</strong> {(assessmentType?.coachTypes ?? []).join(', ')}
+                    
+                    {/* Price or completion status */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        {completed ? (
+                          <span className="text-green-600 font-medium">Completed</span>
+                        ) : needsPayment ? (
+                          <span className="text-lg font-bold text-teal-600">${assessment.price}</span>
+                        ) : (
+                          <span className="text-lg font-bold text-green-600">FREE</span>
+                        )}
                       </div>
                       
+                      {/* Action button */}
                       <Button 
-                        onClick={() => handleStartAssessment(assessmentType)}
-                        className="w-full"
-                        variant={isCompleted ? "outline" : "default"}
+                        onClick={() => handleStartAssessment(assessment)}
+                        disabled={createPaymentMutation.isPending || startAssessmentMutation.isPending}
+                        variant={completed ? "outline" : "default"}
+                        className={needsPayment ? "bg-teal-600 hover:bg-teal-700" : ""}
                       >
-                        {isCompleted ? "Retake Assessment" : "Start Assessment"}
+                        {createPaymentMutation.isPending || startAssessmentMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : null}
+                        
+                        {completed 
+                          ? "View Results" 
+                          : needsPayment 
+                            ? "Purchase & Start" 
+                            : "Start Assessment"
+                        }
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
+                    
+                    {/* Results preview */}
+                    {completed && results && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600">
+                          Completed on {new Date(results.createdAt).toLocaleDateString()}
+                        </p>
+                        {results.paid && (
+                          <Badge className="mt-1" variant="secondary">Paid Assessment</Badge>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
-        {/* Completed Assessments */}
-        {userAssessments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Your Completed Assessments
-              </CardTitle>
-              <CardDescription>
-                View your assessment history and results
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {userAssessments.map((assessment: UserAssessment) => (
-                  <div 
-                    key={assessment.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <h4 className="font-medium">{assessment.assessmentType.displayName}</h4>
-                      <p className="text-sm text-gray-600">
-                        Completed on {new Date(assessment.completedAt).toLocaleDateString()}
-                      </p>
-                      {(assessment?.tags ?? []).length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {(assessment?.tags ?? []).map((tag, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <Badge className="bg-green-100 text-green-800">
-                      Completed
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Additional info */}
+        <div className="mt-12 text-center">
+          <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-3">Why Take These Assessments?</h3>
+            <ul className="text-left text-gray-600 space-y-2">
+              <li>• Get personalized insights based on evidence-based psychology</li>
+              <li>• Receive customized recommendations for your wellness journey</li>
+              <li>• Track your progress over time with follow-up assessments</li>
+              <li>• Share results with your coach for more targeted support</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
