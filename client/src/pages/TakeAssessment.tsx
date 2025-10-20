@@ -39,6 +39,12 @@ interface AssessmentType {
 
 // Helper function to flatten sections into a single fields array
 function flattenAssessmentFields(assessmentType: AssessmentType) {
+  // Check if fields property exists
+  if (!assessmentType.fields) {
+    console.error('Assessment type missing fields property:', assessmentType);
+    return assessmentType;
+  }
+  
   if (assessmentType.fields.fields) {
     // Already flat
     return assessmentType;
