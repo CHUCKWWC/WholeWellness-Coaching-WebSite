@@ -7,14 +7,46 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// CSRF token cache
+let csrfToken: string | null = null;
+
+// Helper to get CSRF token from server
+async function getCsrfToken(): Promise<string> {
+  if (csrfToken) {
+    return csrfToken;
+  }
+
+  try {
+    const response = await fetch('/api/csrf-token', {
+      credentials: 'include',
+    });
+    const data = await response.json();
+    csrfToken = data.csrfToken;
+    return csrfToken!;
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error);
+    return '';
+  }
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  
+  // Add CSRF token for state-changing requests
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+    const token = await getCsrfToken();
+    if (token) {
+      headers['x-csrf-token'] = token;
+    }
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
