@@ -158,6 +158,14 @@ export default function Assessments() {
   });
 
   const handleStartAssessment = async (assessment: Assessment) => {
+    // Check if assessment is already completed
+    const completedProgram = getAssessmentResults(assessment.id);
+    if (completedProgram) {
+      // Navigate to results page
+      setLocation(`/assessments/results/${completedProgram.id}`);
+      return;
+    }
+
     // Check if user needs to pay
     if (remainingFreeAssessments === 0) {
       // Start payment flow
