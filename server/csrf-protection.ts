@@ -140,7 +140,7 @@ export function setupCsrfProtection(app: any) {
   // You can be more selective based on your needs
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
     // Skip CSRF for initial auth endpoints to avoid chicken-and-egg problem
-    const authSkipPaths = ['/api/auth/login', '/api/auth/register', '/api/csrf-token'];
+    const authSkipPaths = ['/api/auth/login', '/api/auth/register', '/api/login', '/api/register', '/api/csrf-token'];
 
     if (authSkipPaths.includes(req.path)) {
       return next();
