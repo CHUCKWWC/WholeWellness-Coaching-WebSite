@@ -107,7 +107,7 @@ export default function WixBooking() {
         throw new Error('Selected time slot is no longer available');
       }
 
-      const response = await apiRequest('/api/wix/bookings', 'POST', {
+      const response = await apiRequest('POST', '/api/wix/bookings', {
         serviceId: bookingData.serviceId,
         userId: 'temp-user-id', // Will be replaced with actual user ID
         contactDetails: {

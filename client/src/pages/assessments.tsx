@@ -94,7 +94,7 @@ export default function Assessments() {
   // Create payment intent mutation
   const createPaymentMutation = useMutation({
     mutationFn: async (assessmentId: string) => {
-      const response = await apiRequest('/api/create-payment-intent', 'POST', {
+      const response = await apiRequest('POST', '/api/create-payment-intent', {
         assessmentId,
         amount: 9.99
       });
@@ -131,7 +131,7 @@ export default function Assessments() {
   // Start assessment mutation
   const startAssessmentMutation = useMutation({
     mutationFn: async (assessmentId: string) => {
-      const response = await apiRequest('/api/programs', 'POST', {
+      const response = await apiRequest('POST', '/api/programs', {
         assessmentType: assessmentId,
         paid: remainingFreeAssessments > 0 ? false : true
       });
