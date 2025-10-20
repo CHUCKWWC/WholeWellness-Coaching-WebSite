@@ -108,6 +108,12 @@ async function cacheFirst(request) {
 // Network First strategy with cache fallback
 async function networkFirst(request) {
   try {
+    // Skip chrome-extension and other unsupported schemes
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+      return fetch(request);
+    }
+
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
       const cache = await caches.open(DYNAMIC_CACHE);

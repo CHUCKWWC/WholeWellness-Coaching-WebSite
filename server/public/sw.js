@@ -1,100 +1,88 @@
-const CACHE_NAME = 'wholewellness-v1';
-const STATIC_CACHE_NAME = 'wholewellness-static-v1';
-const DYNAMIC_CACHE_NAME = 'wholewellness-dynamic-v1';
+const CURRENT_VERSION = 'v6';
+const STATIC_CACHE = `wholewellness-static-${CURRENT_VERSION}`;
+const DYNAMIC_CACHE = `wholewellness-dynamic-${CURRENT_VERSION}`;
 
 // Resources to cache on install
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/src/main.tsx',
-  '/src/index.css',
-  '/src/App.tsx',
   '/manifest.json',
-  // Add core CSS and JS files
-  '/src/components/',
-  '/src/pages/',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
 ];
 
-// API endpoints to cache
-const API_CACHE_PATTERNS = [
-  /^\/api\/coaches/,
-  /^\/api\/sessions/,
-  /^\/api\/assessments/,
-  /^\/api\/user/
-];
+// Helper: Check if URL should bypass cache (sensitive/dynamic data)
+const shouldBypassCache = (url) =>
+  url.pathname.startsWith('/api/auth') ||
+  url.pathname.startsWith('/api/admin') ||
+  url.pathname.startsWith('/api/user') ||
+  url.pathname.startsWith('/api/assessments') ||
+  url.pathname.startsWith('/api/digest') ||
+  url.pathname.startsWith('/api/ai-coaching') ||
+  url.pathname.startsWith('/api/crisis-alerts') ||
+  url.pathname.startsWith('/api/chat');
 
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
-  event.waitUntil(
-    caches.open(STATIC_CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => {
-        console.log('[SW] Static assets cached successfully');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW] Failed to cache static assets:', error);
-      })
-  );
+// Install event
+self.addEventListener('install', (e) => {
+  e.waitUntil((async () => {
+    const cache = await caches.open(STATIC_CACHE);
+    await cache.addAll(STATIC_ASSETS);
+  })());
+  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('[SW] Service worker activated');
-        return self.clients.claim();
-      })
-  );
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => !k.includes(CURRENT_VERSION)).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-// Fetch event - implement caching strategies
+// Fetch event handler
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+  const url = new URL(event.request.url);
 
-  // Handle different types of requests with appropriate caching strategies
-  if (request.method === 'GET') {
-    // Static assets - Cache First strategy
-    if (STATIC_ASSETS.some(asset => url.pathname.includes(asset))) {
-      event.respondWith(cacheFirst(request));
-    }
-    // API requests - Network First strategy
-    else if (API_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname))) {
-      event.respondWith(networkFirst(request));
-    }
-    // Images - Cache First with WebP optimization
-    else if (request.destination === 'image') {
-      event.respondWith(imageOptimization(request));
-    }
-    // Other requests - Stale While Revalidate
-    else {
-      event.respondWith(staleWhileRevalidate(request));
-    }
+  // Bypass cache for sensitive/dynamic endpoints - always fetch fresh
+  if (shouldBypassCache(url)) {
+    console.log('[SW] Network-only (no cache):', url.pathname);
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .catch(() => new Response(null, { status: 503 }))
+    );
+    return;
   }
+
+  // Only apply caching strategies to GET requests
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Cache-first for static assets only
+  if (url.origin === location.origin &&
+      (url.pathname.startsWith('/assets') || 
+       url.pathname.endsWith('.webmanifest') || 
+       url.pathname.endsWith('/favicon.ico') ||
+       url.pathname.includes('/icons/'))) {
+    event.respondWith(cacheFirst(event.request));
+    return;
+  }
+
+  // Everything else (GET requests only): network-first with cache fallback
+  event.respondWith(networkFirst(event.request));
 });
 
 // Cache First strategy for static assets
 async function cacheFirst(request) {
   try {
+    // Skip chrome-extension and other unsupported schemes
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+      return fetch(request);
+    }
+
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       console.log('[SW] Serving from cache:', request.url);
@@ -103,7 +91,7 @@ async function cacheFirst(request) {
 
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE_NAME);
+      const cache = await caches.open(STATIC_CACHE);
       cache.put(request, networkResponse.clone());
       console.log('[SW] Cached new resource:', request.url);
     }
@@ -117,12 +105,18 @@ async function cacheFirst(request) {
   }
 }
 
-// Network First strategy for API requests
+// Network First strategy with cache fallback
 async function networkFirst(request) {
   try {
+    // Skip chrome-extension and other unsupported schemes
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+      return fetch(request);
+    }
+
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
+      const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, networkResponse.clone());
       console.log('[SW] Updated cache from network:', request.url);
     }
@@ -140,55 +134,6 @@ async function networkFirst(request) {
       status: 503,
       headers: { 'Content-Type': 'application/json' }
     });
-  }
-}
-
-// Stale While Revalidate strategy
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(DYNAMIC_CACHE_NAME);
-  const cachedResponse = await cache.match(request);
-
-  const networkResponse = fetch(request).then((response) => {
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  }).catch(() => null);
-
-  return cachedResponse || networkResponse;
-}
-
-// Image optimization with WebP support
-async function imageOptimization(request) {
-  try {
-    const url = new URL(request.url);
-    
-    // Check if browser supports WebP
-    const acceptHeader = request.headers.get('Accept') || '';
-    const supportsWebP = acceptHeader.includes('image/webp');
-    
-    if (supportsWebP && !url.pathname.includes('.webp')) {
-      // Try to fetch WebP version first
-      const webpUrl = url.pathname.replace(/\.(jpg|jpeg|png)$/i, '.webp');
-      const webpRequest = new Request(webpUrl, request);
-      
-      try {
-        const webpResponse = await fetch(webpRequest);
-        if (webpResponse.ok) {
-          const cache = await caches.open(STATIC_CACHE_NAME);
-          cache.put(webpRequest, webpResponse.clone());
-          return webpResponse;
-        }
-      } catch (webpError) {
-        console.log('[SW] WebP version not available, falling back to original');
-      }
-    }
-
-    // Fallback to cache-first for original image
-    return cacheFirst(request);
-  } catch (error) {
-    console.error('[SW] Image optimization failed:', error);
-    return cacheFirst(request);
   }
 }
 
