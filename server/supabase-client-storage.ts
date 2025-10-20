@@ -2833,6 +2833,23 @@ export class SupabaseClientStorage implements IStorage {
     }
   }
 
+  // Helper function to transform program data from snake_case to camelCase
+  private transformProgramData(dbProgram: any): Program {
+    return {
+      id: dbProgram.id,
+      userId: dbProgram.user_id,
+      assessmentType: dbProgram.assessment_type,
+      status: dbProgram.status,
+      completionPercentage: dbProgram.completion_percentage,
+      paid: dbProgram.paid,
+      paymentIntentId: dbProgram.payment_intent_id,
+      responses: dbProgram.responses,
+      result: dbProgram.result,
+      createdAt: dbProgram.created_at,
+      updatedAt: dbProgram.updated_at
+    };
+  }
+
   // Assessment Programs
   async getProgram(id: string): Promise<Program | undefined> {
     try {
@@ -2847,7 +2864,7 @@ export class SupabaseClientStorage implements IStorage {
         return undefined;
       }
       
-      return data as Program;
+      return data ? this.transformProgramData(data) : undefined;
     } catch (error) {
       console.error('Error getting program:', error);
       return undefined;
@@ -2859,15 +2876,15 @@ export class SupabaseClientStorage implements IStorage {
       const { data, error } = await supabase
         .from('programs')
         .select('*')
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error getting user programs:', error);
         return [];
       }
       
-      return data as Program[];
+      return data ? data.map(p => this.transformProgramData(p)) : [];
     } catch (error) {
       console.error('Error getting user programs:', error);
       return [];
@@ -2878,11 +2895,16 @@ export class SupabaseClientStorage implements IStorage {
     try {
       const dbProgram = {
         id: randomUUID(),
-        userId: program.userId,
-        assessmentType: program.assessmentType,
-        results: program.results,
+        user_id: program.userId,
+        assessment_type: program.assessmentType,
+        status: program.status || 'in_progress',
+        completion_percentage: program.completionPercentage || 0,
         paid: program.paid || false,
-        createdAt: new Date()
+        payment_intent_id: program.paymentIntentId,
+        responses: program.responses || {},
+        result: program.result || {},
+        created_at: new Date(),
+        updated_at: new Date()
       };
 
       const { data, error } = await supabase
@@ -2896,7 +2918,7 @@ export class SupabaseClientStorage implements IStorage {
         throw new Error('Failed to create program');
       }
 
-      return data as Program;
+      return this.transformProgramData(data);
     } catch (error) {
       console.error('Error creating program:', error);
       throw error;

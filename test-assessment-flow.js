@@ -182,15 +182,15 @@ async function createPaymentSession(assessmentId) {
   
   const { response, data } = await makeRequest('POST', '/api/create-payment-intent', {
     assessmentId,
-    amount: 9.99
+    amount: 999 // Amount in cents ($9.99)
   }, true);
 
-  if (response.ok && data.sessionId) {
+  if (response.ok && (data.sessionId || data.clientSecret)) {
     logSuccess(`Payment session created`);
-    logInfo(`Session ID: ${data.sessionId}`);
+    logInfo(`Payment ID: ${data.sessionId || data.paymentIntentId}`);
     return data;
   } else {
-    logError(`Failed to create payment session: ${data.error || response.statusText}`);
+    logError(`Failed to create payment session: ${data.error || data.message || response.statusText}`);
     return null;
   }
 }

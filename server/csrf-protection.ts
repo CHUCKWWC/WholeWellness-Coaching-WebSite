@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 /**
  * Modern CSRF Protection using Double Submit Cookie Pattern
@@ -66,15 +67,21 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
     return next();
   }
   
-  // Skip CSRF ONLY for truly authenticated Bearer token requests
-  // This requires auth middleware to run first and populate req.user
-  // We check both that the token exists AND that the user is authenticated
+  // Skip CSRF for authenticated Bearer token requests
+  // We verify the token directly here since auth middleware hasn't run yet
   const authHeader = req.headers.authorization;
-  const hasBearerToken = authHeader && authHeader.startsWith('Bearer ');
-  const isAuthenticated = (req as any).user !== undefined;
-  
-  if (hasBearerToken && isAuthenticated) {
-    return next();
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    try {
+      // Verify the JWT token
+      const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
+      jwt.verify(token, jwtSecret);
+      // Token is valid, skip CSRF for this API client request
+      return next();
+    } catch (error) {
+      // Invalid token, continue to CSRF validation
+      // (will likely fail both CSRF and auth, which is correct)
+    }
   }
 
   // Get token from cookie and header
