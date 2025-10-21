@@ -12,7 +12,8 @@ import type {
   ResourceUsageAnalytics, InsertResourceUsageAnalytics,
   Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage,
   AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment,
-  CoachInteraction, InsertCoachInteraction
+  CoachInteraction, InsertCoachInteraction,
+  UserMedia, InsertUserMedia
 } from "@shared/schema";
 
 export interface IStorage {
@@ -22,8 +23,16 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  updateUserProfile(userId: string, updates: Partial<User>): Promise<User | undefined>;
   updateUserRole(id: string, role: string): Promise<User | undefined>;
   deleteUser(id: string): Promise<boolean>;
+  
+  // User Media
+  getUserMedia(userId: string): Promise<UserMedia[]>;
+  getUserMediaById(id: string): Promise<UserMedia | undefined>;
+  createUserMedia(media: InsertUserMedia): Promise<UserMedia>;
+  updateUserMedia(id: string, updates: Partial<InsertUserMedia>): Promise<UserMedia | undefined>;
+  deleteUserMedia(id: string): Promise<boolean>;
   
   // Bookings
   getBooking(id: number): Promise<Booking | undefined>;
@@ -670,6 +679,195 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error updating user role:', error);
       return undefined;
+    }
+  }
+
+  async updateUserProfile(userId: string, updates: Partial<User>): Promise<User | undefined> {
+    return this.updateUser(userId, updates);
+  }
+
+  // User Media Methods
+  async getUserMedia(userId: string): Promise<UserMedia[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_media')
+        .select('*')
+        .eq('user_id', userId)
+        .order('display_order', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching user media:', error);
+        return [];
+      }
+      
+      return data.map(media => ({
+        id: media.id,
+        userId: media.user_id,
+        mediaType: media.media_type,
+        fileName: media.file_name,
+        filePath: media.file_path,
+        fileSize: media.file_size,
+        mimeType: media.mime_type,
+        title: media.title,
+        description: media.description,
+        isPublic: media.is_public,
+        displayOrder: media.display_order,
+        createdAt: media.created_at,
+        updatedAt: media.updated_at
+      }));
+    } catch (error) {
+      console.error('Error getting user media:', error);
+      return [];
+    }
+  }
+
+  async getUserMediaById(id: string): Promise<UserMedia | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('user_media')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user media by id:', error);
+        return undefined;
+      }
+      
+      return {
+        id: data.id,
+        userId: data.user_id,
+        mediaType: data.media_type,
+        fileName: data.file_name,
+        filePath: data.file_path,
+        fileSize: data.file_size,
+        mimeType: data.mime_type,
+        title: data.title,
+        description: data.description,
+        isPublic: data.is_public,
+        displayOrder: data.display_order,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+    } catch (error) {
+      console.error('Error getting user media by id:', error);
+      return undefined;
+    }
+  }
+
+  async createUserMedia(media: InsertUserMedia): Promise<UserMedia> {
+    try {
+      const dbMedia = {
+        id: randomUUID(),
+        user_id: media.userId,
+        media_type: media.mediaType,
+        file_name: media.fileName,
+        file_path: media.filePath,
+        file_size: media.fileSize,
+        mime_type: media.mimeType,
+        title: media.title,
+        description: media.description,
+        is_public: media.isPublic ?? true,
+        display_order: media.displayOrder ?? 0
+      };
+
+      const { data, error } = await supabase
+        .from('user_media')
+        .insert(dbMedia)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating user media:', error);
+        throw error;
+      }
+      
+      return {
+        id: data.id,
+        userId: data.user_id,
+        mediaType: data.media_type,
+        fileName: data.file_name,
+        filePath: data.file_path,
+        fileSize: data.file_size,
+        mimeType: data.mime_type,
+        title: data.title,
+        description: data.description,
+        isPublic: data.is_public,
+        displayOrder: data.display_order,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+    } catch (error) {
+      console.error('Error creating user media:', error);
+      throw error;
+    }
+  }
+
+  async updateUserMedia(id: string, updates: Partial<InsertUserMedia>): Promise<UserMedia | undefined> {
+    try {
+      const dbUpdates: any = {};
+      
+      if (updates.mediaType !== undefined) dbUpdates.media_type = updates.mediaType;
+      if (updates.fileName !== undefined) dbUpdates.file_name = updates.fileName;
+      if (updates.filePath !== undefined) dbUpdates.file_path = updates.filePath;
+      if (updates.fileSize !== undefined) dbUpdates.file_size = updates.fileSize;
+      if (updates.mimeType !== undefined) dbUpdates.mime_type = updates.mimeType;
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic;
+      if (updates.displayOrder !== undefined) dbUpdates.display_order = updates.displayOrder;
+      
+      dbUpdates.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('user_media')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating user media:', error);
+        return undefined;
+      }
+      
+      return {
+        id: data.id,
+        userId: data.user_id,
+        mediaType: data.media_type,
+        fileName: data.file_name,
+        filePath: data.file_path,
+        fileSize: data.file_size,
+        mimeType: data.mime_type,
+        title: data.title,
+        description: data.description,
+        isPublic: data.is_public,
+        displayOrder: data.display_order,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+    } catch (error) {
+      console.error('Error updating user media:', error);
+      return undefined;
+    }
+  }
+
+  async deleteUserMedia(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('user_media')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting user media:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user media:', error);
+      return false;
     }
   }
 
