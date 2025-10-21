@@ -26,6 +26,7 @@ import { CrisisSupportBanner } from "@/components/CrisisSupportBanner";
 import { SafetyExit, FloatingSafetyExit } from "@/components/SafetyExit";
 import { SkipToContent } from "@/components/SkipToContent";
 import DashboardRouter from "@/components/DashboardRouter";
+import SmartOnboarding from "@/components/SmartOnboarding";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -187,7 +188,8 @@ function Router() {
           <Route path="/coach-portal" component={(props) => <LazyRoute component={CoachPortal} loadingText="Loading Coach Portal..." {...props} />} />
           <Route path="/privacy" component={(props) => <LazyRoute component={Privacy} loadingText="Loading Privacy Policy..." {...props} />} />
           <Route path="/terms" component={(props) => <LazyRoute component={Terms} loadingText="Loading Terms of Service..." {...props} />} />
-          <Route path="/onboarding" component={(props) => <LazyRoute component={OnboardingWizard} loadingText="Setting up your journey..." {...props} />} />
+          <Route path="/onboarding" component={SmartOnboarding} />
+          <Route path="/onboarding-wizard" component={(props) => <LazyRoute component={OnboardingWizard} loadingText="Setting up your journey..." {...props} />} />
           <Route path="/reset-password" component={(props) => <LazyRoute component={PasswordReset} loadingText="Loading password reset..." {...props} />} />
           <Route path="/forgot-password" component={(props) => <LazyRoute component={ForgotPassword} loadingText="Loading password recovery..." {...props} />} />
           <Route path="/verify-email" component={(props) => <LazyRoute component={EmailVerification} loadingText="Verifying email..." {...props} />} />

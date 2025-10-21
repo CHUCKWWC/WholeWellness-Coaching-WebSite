@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { useOnboarding } from './OnboardingContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import StepProgressIndicator from '@/components/StepProgressIndicator';
 
 // Import step components
 import WelcomeExplanationStep from './steps/WelcomeExplanationStep';
@@ -59,21 +60,39 @@ export default function ClientOnboardingFlow() {
     setIsValidStep(true); // Previous steps are already valid
   };
 
+  // Prepare step data for visual progress indicator
+  const progressSteps = steps.map((step, index) => ({
+    id: `step-${index}`,
+    title: step.title,
+    status: index < currentStep ? 'completed' as const : index === currentStep ? 'current' as const : 'upcoming' as const
+  }));
+
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Visual Step Progress Indicator */}
+      <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+        <StepProgressIndicator 
+          steps={progressSteps}
+          currentStep={currentStep}
+          orientation="horizontal"
+          showDescriptions={false}
+        />
+      </div>
+
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-2xl font-bold">Your Personalized Coaching Journey</h2>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               Step {currentStep + 1} of {totalSteps}
             </span>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => window.location.href = '/'}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              data-testid="button-skip-onboarding"
             >
               Skip Onboarding
             </Button>
