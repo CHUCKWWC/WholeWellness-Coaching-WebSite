@@ -4,11 +4,22 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Plus, Edit, Eye, Star, Play, Upload } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { X, Plus, Edit, Eye, Star, Play, Upload, Camera, Video as VideoIcon, Save, Image as ImageIcon, Facebook, Twitter, Instagram, Linkedin, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SimpleFileUploader } from "@/components/ObjectUploader";
+import { MediaGallery } from "@/components/MediaGallery";
 
 interface CoachProfileData {
   profilePic: string;

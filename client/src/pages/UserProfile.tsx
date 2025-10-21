@@ -8,6 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   User, 
   Activity, 
@@ -22,13 +33,46 @@ import {
   AlertCircle,
   BarChart3,
   PieChart,
-  LineChart
+  LineChart,
+  Edit,
+  Camera,
+  Video as VideoIcon,
+  Save,
+  X,
+  Upload,
+  Image as ImageIcon,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Globe
 } from "lucide-react";
+import { SimpleFileUploader } from "@/components/ObjectUploader";
+import { MediaGallery } from "@/components/MediaGallery";
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadType, setUploadType] = useState<'profile' | 'cover' | 'video'>('profile');
+  
+  // Form state for profile editing
+  const [formData, setFormData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    bio: user?.bio || '',
+    phone: user?.phone || '',
+    location: user?.location || '',
+    websiteUrl: user?.websiteUrl || '',
+    facebookUrl: user?.facebookUrl || '',
+    twitterUrl: user?.twitterUrl || '',
+    instagramUrl: user?.instagramUrl || '',
+    linkedinUrl: user?.linkedinUrl || '',
+  });
 
   // Get user's assessment completion status
   const { data: assessments = [], isLoading: assessmentsLoading } = useQuery({
@@ -47,6 +91,132 @@ export default function UserProfile() {
     queryKey: ["/api/user/progress-metrics", user?.id],
     enabled: isAuthenticated && !!user?.id,
   });
+
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updates: any) => {
+      return apiRequest('/api/profile', {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been updated successfully.',
+      });
+      setIsEditMode(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Update failed',
+        description: error instanceof Error ? error.message : 'Failed to update profile',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Profile image mutation
+  const updateProfileImageMutation = useMutation({
+    mutationFn: async (imageURL: string) => {
+      return apiRequest('/api/profile/image', {
+        method: 'PUT',
+        body: JSON.stringify({ imageURL }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: 'Profile image updated',
+        description: 'Your profile image has been updated successfully.',
+      });
+      setUploadDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to update profile image',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Cover photo mutation
+  const updateCoverPhotoMutation = useMutation({
+    mutationFn: async (imageURL: string) => {
+      return apiRequest('/api/profile/cover', {
+        method: 'PUT',
+        body: JSON.stringify({ imageURL }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: 'Cover photo updated',
+        description: 'Your cover photo has been updated successfully.',
+      });
+      setUploadDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to update cover photo',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Intro video mutation
+  const updateIntroVideoMutation = useMutation({
+    mutationFn: async (videoURL: string) => {
+      return apiRequest('/api/profile/video', {
+        method: 'PUT',
+        body: JSON.stringify({ videoURL }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: 'Intro video updated',
+        description: 'Your intro video has been updated successfully.',
+      });
+      setUploadDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to update intro video',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle file upload completion
+  const handleUploadComplete = (uploadURL: string, fileName: string, fileSize: number, mimeType: string) => {
+    switch (uploadType) {
+      case 'profile':
+        updateProfileImageMutation.mutate(uploadURL);
+        break;
+      case 'cover':
+        updateCoverPhotoMutation.mutate(uploadURL);
+        break;
+      case 'video':
+        updateIntroVideoMutation.mutate(uploadURL);
+        break;
+    }
+  };
+
+  // Handle profile save
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate(formData);
+  };
+
+  // Open upload dialog
+  const openUpload = (type: 'profile' | 'cover' | 'video') => {
+    setUploadType(type);
+    setUploadDialogOpen(true);
+  };
 
   if (!isAuthenticated) {
     return (
@@ -111,11 +281,12 @@ export default function UserProfile() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="assessments">Assessments</TabsTrigger>
-            <TabsTrigger value="coaching">Coaching History</TabsTrigger>
-            <TabsTrigger value="progress">Progress Tracking</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="dashboard" data-testid="tab-dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
+            <TabsTrigger value="assessments" data-testid="tab-assessments">Assessments</TabsTrigger>
+            <TabsTrigger value="coaching" data-testid="tab-coaching">Coaching History</TabsTrigger>
+            <TabsTrigger value="progress" data-testid="tab-progress">Progress Tracking</TabsTrigger>
           </TabsList>
 
           {/* Dashboard Tab */}
@@ -232,6 +403,368 @@ export default function UserProfile() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            {/* Edit Mode Toggle */}
+            <div className="flex justify-end gap-2">
+              {isEditMode ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditMode(false)}
+                    data-testid="button-cancel-edit"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfileMutation.isPending}
+                    data-testid="button-save-profile"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setIsEditMode(true)} data-testid="button-edit-profile">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+
+            {/* Cover Photo */}
+            <Card>
+              <div className="relative h-48 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg overflow-hidden">
+                {user?.coverPhotoUrl && (
+                  <img
+                    src={user.coverPhotoUrl}
+                    alt="Cover"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                {isEditMode && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="secondary"
+                      onClick={() => openUpload('cover')}
+                      data-testid="button-upload-cover"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Change Cover Photo
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <CardContent className="pt-16">
+                <div className="flex flex-col md:flex-row gap-6 -mt-24">
+                  {/* Profile Picture */}
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden">
+                      {user?.profileImageUrl ? (
+                        <img
+                          src={user.profileImageUrl}
+                          alt={`${user.firstName || ''} ${user.lastName || ''}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-primary flex items-center justify-center">
+                          <User className="w-16 h-16 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    {isEditMode && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="absolute bottom-0 right-0"
+                        onClick={() => openUpload('profile')}
+                        data-testid="button-upload-profile"
+                      >
+                        <Camera className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Profile Info */}
+                  <div className="flex-1">
+                    {isEditMode ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input
+                              id="firstName"
+                              value={formData.firstName}
+                              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                              data-testid="input-first-name"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                              id="lastName"
+                              value={formData.lastName}
+                              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                              data-testid="input-last-name"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="bio">Bio</Label>
+                          <Textarea
+                            id="bio"
+                            value={formData.bio}
+                            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                            placeholder="Tell us about yourself..."
+                            rows={4}
+                            data-testid="input-bio"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="phone">Phone</Label>
+                            <Input
+                              id="phone"
+                              type="tel"
+                              value={formData.phone}
+                              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                              data-testid="input-phone"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="location">Location</Label>
+                            <Input
+                              id="location"
+                              value={formData.location}
+                              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                              placeholder="City, State"
+                              data-testid="input-location"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h2 className="text-2xl font-bold">
+                          {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0] || 'Member'}
+                        </h2>
+                        <p className="text-muted-foreground">{user?.email}</p>
+                        {user?.bio && (
+                          <p className="mt-4 text-gray-700">{user.bio}</p>
+                        )}
+                        <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          {user?.phone && (
+                            <span>📞 {user.phone}</span>
+                          )}
+                          {user?.location && (
+                            <span>📍 {user.location}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Intro Video */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <VideoIcon className="h-5 w-5" />
+                    Intro Video
+                  </span>
+                  {isEditMode && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openUpload('video')}
+                      data-testid="button-upload-video"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Video
+                    </Button>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Share a short video introducing yourself
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {user?.introVideoUrl ? (
+                  <video
+                    src={user.introVideoUrl}
+                    controls
+                    className="w-full rounded-lg"
+                    data-testid="video-intro"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <div className="text-center text-muted-foreground">
+                      <VideoIcon className="h-12 w-12 mx-auto mb-2" />
+                      <p>No intro video uploaded yet</p>
+                      {isEditMode && (
+                        <Button
+                          className="mt-4"
+                          onClick={() => openUpload('video')}
+                          data-testid="button-add-video"
+                        >
+                          Add Intro Video
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+                <CardDescription>
+                  Connect your social media profiles
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isEditMode ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-5 w-5 text-gray-500" />
+                      <Input
+                        placeholder="Website URL"
+                        value={formData.websiteUrl}
+                        onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                        data-testid="input-website"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Facebook className="h-5 w-5 text-blue-600" />
+                      <Input
+                        placeholder="Facebook URL"
+                        value={formData.facebookUrl}
+                        onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })}
+                        data-testid="input-facebook"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Twitter className="h-5 w-5 text-sky-500" />
+                      <Input
+                        placeholder="Twitter URL"
+                        value={formData.twitterUrl}
+                        onChange={(e) => setFormData({ ...formData, twitterUrl: e.target.value })}
+                        data-testid="input-twitter"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Instagram className="h-5 w-5 text-pink-600" />
+                      <Input
+                        placeholder="Instagram URL"
+                        value={formData.instagramUrl}
+                        onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
+                        data-testid="input-instagram"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Linkedin className="h-5 w-5 text-blue-700" />
+                      <Input
+                        placeholder="LinkedIn URL"
+                        value={formData.linkedinUrl}
+                        onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+                        data-testid="input-linkedin"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-4">
+                    {user?.websiteUrl && (
+                      <a
+                        href={user.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:underline"
+                        data-testid="link-website"
+                      >
+                        <Globe className="h-4 w-4" />
+                        Website
+                      </a>
+                    )}
+                    {user?.facebookUrl && (
+                      <a
+                        href={user.facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:underline"
+                        data-testid="link-facebook"
+                      >
+                        <Facebook className="h-4 w-4" />
+                        Facebook
+                      </a>
+                    )}
+                    {user?.twitterUrl && (
+                      <a
+                        href={user.twitterUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sky-500 hover:underline"
+                        data-testid="link-twitter"
+                      >
+                        <Twitter className="h-4 w-4" />
+                        Twitter
+                      </a>
+                    )}
+                    {user?.instagramUrl && (
+                      <a
+                        href={user.instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-pink-600 hover:underline"
+                        data-testid="link-instagram"
+                      >
+                        <Instagram className="h-4 w-4" />
+                        Instagram
+                      </a>
+                    )}
+                    {user?.linkedinUrl && (
+                      <a
+                        href={user.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-700 hover:underline"
+                        data-testid="link-linkedin"
+                      >
+                        <Linkedin className="h-4 w-4" />
+                        LinkedIn
+                      </a>
+                    )}
+                    {!user?.websiteUrl && !user?.facebookUrl && !user?.twitterUrl && !user?.instagramUrl && !user?.linkedinUrl && (
+                      <p className="text-muted-foreground">No social links added yet</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Media Gallery */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  My Media
+                </CardTitle>
+                <CardDescription>
+                  Your uploaded photos, videos, and documents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MediaGallery editable={isEditMode} showAddButton={isEditMode} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Assessments Tab */}
@@ -491,6 +1024,41 @@ export default function UserProfile() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Upload Dialog */}
+        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+          <DialogContent data-testid="dialog-upload">
+            <DialogHeader>
+              <DialogTitle>
+                Upload {uploadType === 'profile' ? 'Profile Image' : uploadType === 'cover' ? 'Cover Photo' : 'Intro Video'}
+              </DialogTitle>
+              <DialogDescription>
+                Select a file to upload. Maximum file size: 50MB.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <SimpleFileUploader
+                onUploadComplete={handleUploadComplete}
+                accept={uploadType === 'video' ? 'video/*' : 'image/*'}
+                buttonText="Choose File"
+                disabled={
+                  updateProfileImageMutation.isPending ||
+                  updateCoverPhotoMutation.isPending ||
+                  updateIntroVideoMutation.isPending
+                }
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setUploadDialogOpen(false)}
+                data-testid="button-cancel-upload"
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
