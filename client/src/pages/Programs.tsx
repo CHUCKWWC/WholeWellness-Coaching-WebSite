@@ -243,11 +243,16 @@ export default function Programs() {
           <div className="bg-gray-50 rounded-2xl p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <img 
-                  src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
-                  alt="Community gathering and support" 
-                  className="rounded-2xl shadow-lg w-full h-auto" 
-                />
+                <div 
+                  className="rounded-2xl shadow-lg w-full h-[400px] bg-gradient-to-br from-blue-50 via-teal-50 to-green-50 flex items-center justify-center"
+                >
+                  <div className="text-center p-8">
+                    <div className="text-6xl mb-4">📚</div>
+                    <p className="text-lg font-semibold text-gray-700">
+                      Comprehensive Resource Library
+                    </p>
+                  </div>
+                </div>
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-secondary mb-6">Member Access Benefits</h3>

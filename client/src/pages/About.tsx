@@ -44,11 +44,16 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <img 
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
-                alt="Diverse women in supportive community setting" 
-                className="rounded-2xl shadow-lg" 
-              />
+              <div 
+                className="rounded-2xl shadow-lg bg-gradient-to-br from-teal-50 via-purple-50 to-pink-50 h-[400px] flex items-center justify-center"
+              >
+                <div className="text-center p-8">
+                  <div className="text-6xl mb-4">🤝</div>
+                  <p className="text-lg font-semibold text-gray-700">
+                    Building Supportive Communities
+                  </p>
+                </div>
+              </div>
             </div>
             <div>
               <h2 className="text-3xl font-bold text-secondary mb-6">Our Story</h2>
