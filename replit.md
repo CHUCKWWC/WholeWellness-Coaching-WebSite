@@ -24,6 +24,17 @@ Preferred communication style: Simple, everyday language.
   - EmptyState component with clear CTAs for empty data states
   - Role-specific quick actions and dashboard layouts
   - Consolidated duplicate pages for cleaner navigation (unified login, single assessments page)
+- **Unified Onboarding System**:
+  - SmartOnboarding component that detects user type and adapts flow dynamically
+  - Automatic role detection from authentication state or manual selection
+  - Unified entry point at /onboarding route
+  - Seamless integration of client (8-step) and coach (7-step) onboarding flows
+- **Progress Indicators**:
+  - StepProgressIndicator with visual milestones for multi-step processes
+  - CompactProgressIndicator for tight spaces
+  - MilestoneProgressIndicator for journey tracking
+  - Color-coded states: completed (green), current (purple), upcoming (gray)
+  - Integrated into all onboarding flows for clear position awareness
 
 ### Technical Implementations
 - **Backend**: Node.js with Express.js, TypeScript, ES modules.
