@@ -363,27 +363,47 @@ export default function CoachDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {upcomingSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {session.clientName}
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{session.type}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{session.time}</p>
+                  {upcomingSessions.map((session) => {
+                    const sessionBooking = bookings.find(b => b.id === session.id);
+                    return (
+                      <div
+                        key={session.id}
+                        className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {session.clientName}
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{session.type}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{session.time}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {session.status === 'confirmed' && sessionBooking && (
+                            <StartVideoSessionDialog 
+                              clients={clientsForSession}
+                              bookings={bookings}
+                              preselectedBooking={sessionBooking}
+                              trigger={
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+                                  data-testid={`button-video-session-${session.id}`}
+                                >
+                                  <Video className="h-4 w-4" />
+                                </Button>
+                              }
+                            />
+                          )}
+                          {session.status === 'confirmed' ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <AlertCircle className="h-5 w-5 text-yellow-500" />
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {session.status === 'confirmed' ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <AlertCircle className="h-5 w-5 text-yellow-500" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <Button variant="outline" className="w-full mt-4" data-testid="button-view-schedule">
                   View Full Schedule
@@ -402,54 +422,79 @@ export default function CoachDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentClients.map((client) => (
-                    <div
-                      key={client.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      data-testid={`client-${client.id}`}
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {client.name}
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Last session: {client.lastSession}
-                        </p>
-                        {client.totalSessions > 0 && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                            {client.totalSessions} session{client.totalSessions !== 1 ? 's' : ''}
+                  {recentClients.map((client) => {
+                    // Find the full client data with email for video session
+                    const fullClient = clients.find(c => c.id === client.id || c.userId === client.id);
+                    const clientForVideo = fullClient && fullClient.email ? {
+                      id: fullClient.id || fullClient.userId || '',
+                      name: fullClient.fullName || fullClient.name || client.name,
+                      email: fullClient.email
+                    } : null;
+                    
+                    return (
+                      <div
+                        key={client.id}
+                        className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        data-testid={`client-${client.id}`}
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {client.name}
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Last session: {client.lastSession}
                           </p>
-                        )}
+                          {client.totalSessions > 0 && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                              {client.totalSessions} session{client.totalSessions !== 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              client.status === 'active'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
+                            }`}
+                          >
+                            {client.progress}
+                          </span>
+                          {clientForVideo && (
+                            <StartVideoSessionDialog 
+                              clients={clientsForSession}
+                              bookings={bookings}
+                              preselectedClient={clientForVideo}
+                              trigger={
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+                                  data-testid={`button-video-client-${client.id}`}
+                                >
+                                  <Video className="h-4 w-4" />
+                                </Button>
+                              }
+                            />
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedClient({
+                                id: fullClient?.userId || client.id,
+                                name: fullClient?.fullName || fullClient?.name || client.name,
+                                email: fullClient?.email || ''
+                              });
+                            }}
+                            data-testid={`button-view-client-${client.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            client.status === 'active'
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-                          }`}
-                        >
-                          {client.progress}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            // Find the corresponding full client data
-                            const fullClient = clients.find(c => c.id === client.id || c.userId === client.id);
-                            setSelectedClient({
-                              id: fullClient?.userId || client.id,
-                              name: fullClient?.fullName || fullClient?.name || client.name,
-                              email: fullClient?.email || ''
-                            });
-                          }}
-                          data-testid={`button-view-client-${client.id}`}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <Button variant="outline" className="w-full mt-4" data-testid="button-view-clients">
                   View All Clients
@@ -461,7 +506,21 @@ export default function CoachDashboard() {
           {/* Quick Actions */}
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <StartVideoSessionDialog 
+                clients={clientsForSession}
+                bookings={bookings}
+                trigger={
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-center gap-2 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-950" 
+                    data-testid="button-quick-video-session"
+                  >
+                    <Video className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">Video Session</span>
+                  </Button>
+                }
+              />
               <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" data-testid="button-add-client">
                 <Users className="h-5 w-5" />
                 <span>Add New Client</span>
