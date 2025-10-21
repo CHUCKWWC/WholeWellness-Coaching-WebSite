@@ -1,5 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import "@uppy/core/dist/style.min.css";
+import "@uppy/dashboard/dist/style.min.css";
 import "./index.css";
 
 // Register service worker for PWA functionality
