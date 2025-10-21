@@ -42,6 +42,7 @@ export const users = pgTable("users", {
   googleId: varchar("google_id"),
   provider: varchar("provider").default("local"), // local, google, facebook, apple
   role: varchar("role").default("user"), // user, admin, super_admin, coach, moderator
+  roleActivatedAt: timestamp("role_activated_at"), // when the current role was assigned
   permissions: jsonb("permissions"), // JSON array of permission strings
   isActive: boolean("is_active").default(true),
   hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
