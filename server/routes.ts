@@ -5446,6 +5446,193 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // ===== OBJECT STORAGE ROUTES (Referenced from javascript_object_storage integration) =====
+  const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
+  const { ObjectPermission } = await import("./objectAcl");
+
+  // Serve uploaded objects (with ACL check for protected file uploading)
+  app.get("/objects/:objectPath(*)", requireAuth as any, async (req: any, res) => {
+    const userId = req.user?.id;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Get upload URL for an object entity
+  app.post("/api/objects/upload", requireAuth as any, async (req: any, res) => {
+    const objectStorageService = new ObjectStorageService();
+    const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+    res.json({ uploadURL });
+  });
+
+  // Update profile image
+  app.put("/api/profile/image", requireAuth as any, async (req: any, res) => {
+    if (!req.body.imageURL) {
+      return res.status(400).json({ error: "imageURL is required" });
+    }
+
+    const userId = req.user?.id;
+
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.imageURL,
+        {
+          owner: userId,
+          visibility: "public", // Profile images are public
+        },
+      );
+
+      // Update user's profile image in database
+      await storage.updateUserProfile(userId, { profileImageUrl: objectPath });
+
+      res.status(200).json({ objectPath });
+    } catch (error) {
+      console.error("Error setting profile image:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update cover photo
+  app.put("/api/profile/cover", requireAuth as any, async (req: any, res) => {
+    if (!req.body.imageURL) {
+      return res.status(400).json({ error: "imageURL is required" });
+    }
+
+    const userId = req.user?.id;
+
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.imageURL,
+        {
+          owner: userId,
+          visibility: "public", // Cover photos are public
+        },
+      );
+
+      // Update user's cover photo in database
+      await storage.updateUserProfile(userId, { coverPhotoUrl: objectPath });
+
+      res.status(200).json({ objectPath });
+    } catch (error) {
+      console.error("Error setting cover photo:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update intro video
+  app.put("/api/profile/video", requireAuth as any, async (req: any, res) => {
+    if (!req.body.videoURL) {
+      return res.status(400).json({ error: "videoURL is required" });
+    }
+
+    const userId = req.user?.id;
+
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.videoURL,
+        {
+          owner: userId,
+          visibility: "public", // Intro videos are public
+        },
+      );
+
+      // Update user's intro video in database
+      await storage.updateUserProfile(userId, { introVideoUrl: objectPath });
+
+      res.status(200).json({ objectPath });
+    } catch (error) {
+      console.error("Error setting intro video:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get user's media files
+  app.get("/api/user/media", requireAuth as any, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      const media = await storage.getUserMedia(userId);
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching user media:", error);
+      res.status(500).json({ message: "Failed to fetch media files" });
+    }
+  });
+
+  // Add media file
+  app.post("/api/user/media", requireAuth as any, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      const objectStorageService = new ObjectStorageService();
+      
+      // Set ACL policy for uploaded file
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.filePath,
+        {
+          owner: userId,
+          visibility: req.body.isPublic ? "public" : "private",
+        },
+      );
+
+      const mediaData = {
+        userId,
+        mediaType: req.body.mediaType,
+        fileName: req.body.fileName,
+        filePath: objectPath,
+        fileSize: req.body.fileSize,
+        mimeType: req.body.mimeType,
+        title: req.body.title,
+        description: req.body.description,
+        isPublic: req.body.isPublic ?? true,
+        displayOrder: req.body.displayOrder ?? 0,
+      };
+
+      const media = await storage.createUserMedia(mediaData);
+      res.status(201).json(media);
+    } catch (error) {
+      console.error("Error adding media file:", error);
+      res.status(500).json({ message: "Failed to add media file" });
+    }
+  });
+
+  // Delete media file
+  app.delete("/api/user/media/:id", requireAuth as any, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      const mediaId = req.params.id;
+      
+      // Verify ownership
+      const media = await storage.getUserMediaById(mediaId);
+      if (!media || media.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      await storage.deleteUserMedia(mediaId);
+      res.json({ message: "Media file deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting media file:", error);
+      res.status(500).json({ message: "Failed to delete media file" });
+    }
+  });
+
   // AI Chat Routes with Memory - Direct Implementation
   // TEMPORARILY DISABLED - ai-chat-routes file missing
   // registerAIChatRoutes(app);

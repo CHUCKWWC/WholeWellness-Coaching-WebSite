@@ -52,6 +52,40 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User media files table for additional uploaded content
+export const userMedia = pgTable("user_media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  mediaType: varchar("media_type").notNull(), // image, video, document, audio
+  fileName: varchar("file_name").notNull(),
+  filePath: varchar("file_path").notNull(), // object storage path
+  fileSize: integer("file_size"), // in bytes
+  mimeType: varchar("mime_type"),
+  title: varchar("title"),
+  description: text("description"),
+  isPublic: boolean("is_public").default(true),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Relations for user media
+export const userMediaRelations = relations(userMedia, ({ one }) => ({
+  user: one(users, {
+    fields: [userMedia.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert and select schemas for user media
+export const insertUserMediaSchema = createInsertSchema(userMedia).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type UserMedia = typeof userMedia.$inferSelect;
+export type InsertUserMedia = z.infer<typeof insertUserMediaSchema>;
+
 // Certification courses that coaches can access
 export const certificationCourses = pgTable("certification_courses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
