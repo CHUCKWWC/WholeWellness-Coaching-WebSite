@@ -1,0 +1,64 @@
+index-DpYG0EYt.js:49  GET https://wholewellnesscoaching.org/api/coach/bookings 500 (Internal Server Error)
+(anonymous) @ index-DpYG0EYt.js:49
+o @ index-DpYG0EYt.js:49
+b @ index-DpYG0EYt.js:49
+start @ index-DpYG0EYt.js:49
+fetch @ index-DpYG0EYt.js:49
+Ul @ index-DpYG0EYt.js:49
+onSubscribe @ index-DpYG0EYt.js:49
+subscribe @ index-DpYG0EYt.js:49
+(anonymous) @ index-DpYG0EYt.js:49
+fT @ index-DpYG0EYt.js:39
+dh @ index-DpYG0EYt.js:41
+ba @ index-DpYG0EYt.js:41
+(anonymous) @ index-DpYG0EYt.js:41
+_ @ index-DpYG0EYt.js:26
+F @ index-DpYG0EYt.js:26
+index-DpYG0EYt.js:49  GET https://wholewellnesscoaching.org/api/coach/bookings 500 (Internal Server Error)
+(anonymous) @ index-DpYG0EYt.js:49
+o @ index-DpYG0EYt.js:49
+b @ index-DpYG0EYt.js:49
+(anonymous) @ index-DpYG0EYt.js:49
+Promise.then
+(anonymous) @ index-DpYG0EYt.js:49
+Promise.catch
+b @ index-DpYG0EYt.js:49
+start @ index-DpYG0EYt.js:49
+fetch @ index-DpYG0EYt.js:49
+Ul @ index-DpYG0EYt.js:49
+onSubscribe @ index-DpYG0EYt.js:49
+subscribe @ index-DpYG0EYt.js:49
+(anonymous) @ index-DpYG0EYt.js:49
+fT @ index-DpYG0EYt.js:39
+dh @ index-DpYG0EYt.js:41
+ba @ index-DpYG0EYt.js:41
+(anonymous) @ index-DpYG0EYt.js:41
+_ @ index-DpYG0EYt.js:26
+F @ index-DpYG0EYt.js:26
+index-DpYG0EYt.js:49  GET https://wholewellnesscoaching.org/api/coach/bookings 500 (Internal Server Error)
+(anonymous) @ index-DpYG0EYt.js:49
+o @ index-DpYG0EYt.js:49
+b @ index-DpYG0EYt.js:49
+(anonymous) @ index-DpYG0EYt.js:49
+Promise.then
+(anonymous) @ index-DpYG0EYt.js:49
+Promise.catch
+b @ index-DpYG0EYt.js:49
+(anonymous) @ index-DpYG0EYt.js:49
+Promise.then
+(anonymous) @ index-DpYG0EYt.js:49
+Promise.catch
+b @ index-DpYG0EYt.js:49
+start @ index-DpYG0EYt.js:49
+fetch @ index-DpYG0EYt.js:49
+Ul @ index-DpYG0EYt.js:49
+onSubscribe @ index-DpYG0EYt.js:49
+subscribe @ index-DpYG0EYt.js:49
+(anonymous) @ index-DpYG0EYt.js:49
+fT @ index-DpYG0EYt.js:39
+dh @ index-DpYG0EYt.js:41
+ba @ index-DpYG0EYt.js:41
+(anonymous) @ index-DpYG0EYt.js:41
+_ @ index-DpYG0EYt.js:26
+F @ index-DpYG0EYt.js:26
+user-profile:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.

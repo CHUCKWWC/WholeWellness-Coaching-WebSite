@@ -28,6 +28,7 @@ export interface IStorage {
   // Bookings
   getBooking(id: number): Promise<Booking | undefined>;
   getAllBookings(): Promise<Booking[]>;
+  getCoachBookings(coachId: string): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
   
@@ -708,6 +709,26 @@ export class SupabaseClientStorage implements IStorage {
     } catch (error) {
       console.error('Error getting all bookings:', error);
       return [];
+    }
+  }
+
+  async getCoachBookings(coachId: string): Promise<Booking[]> {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error getting coach bookings:', error, 'Error code:', error.code);
+        throw new Error(`Failed to get coach bookings: ${error.message}`);
+      }
+      
+      return data as Booking[];
+    } catch (error) {
+      console.error('Error getting coach bookings:', error);
+      throw error;
     }
   }
 

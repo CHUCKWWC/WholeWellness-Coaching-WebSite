@@ -16,6 +16,7 @@ export interface IStorage {
   // Bookings
   getBooking(id: number): Promise<Booking | undefined>;
   getAllBookings(): Promise<Booking[]>;
+  getCoachBookings(coachId: string): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
   
@@ -227,6 +228,12 @@ export class MemoryStorage implements IStorage {
 
   async getAllBookings(): Promise<Booking[]> {
     return [...this.bookings].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getCoachBookings(coachId: string): Promise<Booking[]> {
+    return this.bookings
+      .filter(b => b.coachId === coachId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
