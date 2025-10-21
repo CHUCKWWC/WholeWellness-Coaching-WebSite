@@ -1,0 +1,64 @@
+user-profile:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+CoachProfileView-OXgJG5m5.js:1  GET https://wholewellnesscoaching.org/api/coach/profile/schedule 404 (Not Found)
+queryFn @ CoachProfileView-OXgJG5m5.js:1
+o @ index-uFtL_FiA.js:49
+b @ index-uFtL_FiA.js:49
+start @ index-uFtL_FiA.js:49
+fetch @ index-uFtL_FiA.js:49
+Ul @ index-uFtL_FiA.js:49
+onSubscribe @ index-uFtL_FiA.js:49
+subscribe @ index-uFtL_FiA.js:49
+(anonymous) @ index-uFtL_FiA.js:49
+fT @ index-uFtL_FiA.js:39
+dh @ index-uFtL_FiA.js:41
+ba @ index-uFtL_FiA.js:41
+(anonymous) @ index-uFtL_FiA.js:41
+_ @ index-uFtL_FiA.js:26
+F @ index-uFtL_FiA.js:26
+CoachProfileView-OXgJG5m5.js:1  GET https://wholewellnesscoaching.org/api/coach/profile/schedule 404 (Not Found)
+queryFn @ CoachProfileView-OXgJG5m5.js:1
+o @ index-uFtL_FiA.js:49
+b @ index-uFtL_FiA.js:49
+(anonymous) @ index-uFtL_FiA.js:49
+Promise.then
+(anonymous) @ index-uFtL_FiA.js:49
+Promise.catch
+b @ index-uFtL_FiA.js:49
+start @ index-uFtL_FiA.js:49
+fetch @ index-uFtL_FiA.js:49
+Ul @ index-uFtL_FiA.js:49
+onSubscribe @ index-uFtL_FiA.js:49
+subscribe @ index-uFtL_FiA.js:49
+(anonymous) @ index-uFtL_FiA.js:49
+fT @ index-uFtL_FiA.js:39
+dh @ index-uFtL_FiA.js:41
+ba @ index-uFtL_FiA.js:41
+(anonymous) @ index-uFtL_FiA.js:41
+_ @ index-uFtL_FiA.js:26
+F @ index-uFtL_FiA.js:26
+CoachProfileView-OXgJG5m5.js:1  GET https://wholewellnesscoaching.org/api/coach/profile/schedule 404 (Not Found)
+queryFn @ CoachProfileView-OXgJG5m5.js:1
+o @ index-uFtL_FiA.js:49
+b @ index-uFtL_FiA.js:49
+(anonymous) @ index-uFtL_FiA.js:49
+Promise.then
+(anonymous) @ index-uFtL_FiA.js:49
+Promise.catch
+b @ index-uFtL_FiA.js:49
+(anonymous) @ index-uFtL_FiA.js:49
+Promise.then
+(anonymous) @ index-uFtL_FiA.js:49
+Promise.catch
+b @ index-uFtL_FiA.js:49
+start @ index-uFtL_FiA.js:49
+fetch @ index-uFtL_FiA.js:49
+Ul @ index-uFtL_FiA.js:49
+onSubscribe @ index-uFtL_FiA.js:49
+subscribe @ index-uFtL_FiA.js:49
+(anonymous) @ index-uFtL_FiA.js:49
+fT @ index-uFtL_FiA.js:39
+dh @ index-uFtL_FiA.js:41
+ba @ index-uFtL_FiA.js:41
+(anonymous) @ index-uFtL_FiA.js:41
+_ @ index-uFtL_FiA.js:26
+F @ index-uFtL_FiA.js:26

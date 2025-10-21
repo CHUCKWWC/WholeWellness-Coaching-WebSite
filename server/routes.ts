@@ -3383,6 +3383,22 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // Get coach schedule/availability (stub endpoint to prevent 404 errors)
+  app.get("/api/coach/profile/schedule", optionalAuth as any, async (req: any, res) => {
+    try {
+      // TODO: Implement coach scheduling/availability system
+      // For now, return empty schedule to prevent 404 errors
+      res.json({
+        availableSlots: [],
+        timezone: "America/New_York",
+        bookingEnabled: false
+      });
+    } catch (error) {
+      console.error("Error fetching coach schedule:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Google OAuth Routes - Updated for secure browser compliance
   app.get('/auth/google', (req, res, next) => {
     // Use the correct Replit domain for OAuth
