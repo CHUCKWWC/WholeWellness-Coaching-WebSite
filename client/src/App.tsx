@@ -49,6 +49,7 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const CMS = lazy(() => import("@/pages/CMS"));
 const Donate = lazy(() => import("@/pages/Donate"));
 const MemberPortal = lazy(() => import("@/pages/MemberPortal"));
+const MemberDashboard = lazy(() => import("@/pages/MemberDashboard"));
 const CoachDashboard = lazy(() => import("@/pages/coach/CoachDashboard"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -159,6 +160,13 @@ function Router() {
           <Route path="/cms" component={(props) => <LazyRoute component={CMS} loadingText="Loading Content Management..." {...props} />} />
           <Route path="/donate" component={(props) => <LazyRoute component={Donate} loadingText="Loading Donation Portal..." {...props} />} />
           <Route path="/member-portal" component={(props) => <LazyRoute component={MemberPortal} loadingText="Loading Member Dashboard..." {...props} />} />
+          <Route path="/member-dashboard" component={(props) => (
+            <ProtectedRoute requiredRole="user">
+              <MemberLayout>
+                <LazyRoute component={MemberDashboard} loadingText="Loading Member Dashboard..." {...props} />
+              </MemberLayout>
+            </ProtectedRoute>
+          )} />
           <Route path="/coach-dashboard" component={(props) => (
             <ProtectedRoute requiredRole="coach">
               <LazyRoute component={CoachDashboard} loadingText="Loading Coach Dashboard..." {...props} />
