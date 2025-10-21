@@ -196,8 +196,9 @@ export class ObjectStorageService {
       objectEntityDir = `${objectEntityDir}/`;
     }
 
+    // SECURITY: Only accept paths under PRIVATE_OBJECT_DIR
     if (!rawObjectPath.startsWith(objectEntityDir)) {
-      return rawObjectPath;
+      throw new Error(`Invalid object path: must be under private directory`);
     }
 
     // Extract the entity ID from the path
@@ -216,6 +217,17 @@ export class ObjectStorageService {
     }
 
     const objectFile = await this.getObjectEntityFile(normalizedPath);
+    
+    // SECURITY: Check existing ACL to prevent cross-account takeover
+    const existingAcl = await getObjectAclPolicy(objectFile);
+    if (existingAcl) {
+      // File already has an owner - verify it matches the new owner
+      if (existingAcl.owner !== aclPolicy.owner) {
+        throw new Error(`Access denied: cannot modify file owned by another user`);
+      }
+    }
+    // If no existing ACL, this is a new upload - allow setting the ACL
+    
     await setObjectAclPolicy(objectFile, aclPolicy);
     return normalizedPath;
   }

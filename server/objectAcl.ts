@@ -3,60 +3,17 @@ import { File } from "@google-cloud/storage";
 
 const ACL_POLICY_METADATA_KEY = "custom:aclPolicy";
 
-// The type of the access group (empty enum for basic use case)
-export enum ObjectAccessGroupType {}
-
-// The logic user group that can access the object
-export interface ObjectAccessGroup {
-  type: ObjectAccessGroupType;
-  id: string;
-}
-
+// SECURITY NOTE: Group-based access is not implemented in this version
+// Only owner and visibility-based access control is supported
 export enum ObjectPermission {
   READ = "read",
   WRITE = "write",
-}
-
-export interface ObjectAclRule {
-  group: ObjectAccessGroup;
-  permission: ObjectPermission;
 }
 
 // The ACL policy of the object
 export interface ObjectAclPolicy {
   owner: string;
   visibility: "public" | "private";
-  aclRules?: Array<ObjectAclRule>;
-}
-
-// Check if the requested permission is allowed based on the granted permission
-function isPermissionAllowed(
-  requested: ObjectPermission,
-  granted: ObjectPermission,
-): boolean {
-  if (requested === ObjectPermission.READ) {
-    return [ObjectPermission.READ, ObjectPermission.WRITE].includes(granted);
-  }
-  return granted === ObjectPermission.WRITE;
-}
-
-// The base class for all access groups
-abstract class BaseObjectAccessGroup implements ObjectAccessGroup {
-  constructor(
-    public readonly type: ObjectAccessGroupType,
-    public readonly id: string,
-  ) {}
-
-  public abstract hasMember(userId: string): Promise<boolean>;
-}
-
-function createObjectAccessGroup(
-  group: ObjectAccessGroup,
-): BaseObjectAccessGroup {
-  switch (group.type) {
-    default:
-      throw new Error(`Unknown access group type: ${group.type}`);
-  }
 }
 
 // Sets the ACL policy to the object metadata
@@ -121,16 +78,6 @@ export async function canAccessObject({
     return true;
   }
 
-  // Go through the ACL rules to check if the user has the required permission
-  for (const rule of aclPolicy.aclRules || []) {
-    const accessGroup = createObjectAccessGroup(rule.group);
-    if (
-      (await accessGroup.hasMember(userId)) &&
-      isPermissionAllowed(requestedPermission, rule.permission)
-    ) {
-      return true;
-    }
-  }
-
+  // Group-based access is not implemented - only owner and visibility
   return false;
 }

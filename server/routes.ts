@@ -5491,10 +5491,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
     try {
       const objectStorageService = new ObjectStorageService();
+      
+      // SECURITY: Validate and set ACL - will throw if path is invalid
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         req.body.imageURL,
         {
-          owner: userId,
+          owner: userId, // SECURITY: Ensures only user can set their own image
           visibility: "public", // Profile images are public
         },
       );
@@ -5505,7 +5507,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.status(200).json({ objectPath });
     } catch (error) {
       console.error("Error setting profile image:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(400).json({ error: "Invalid image URL or unauthorized access" });
     }
   });
 
@@ -5519,10 +5521,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
     try {
       const objectStorageService = new ObjectStorageService();
+      
+      // SECURITY: Validate and set ACL - will throw if path is invalid
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         req.body.imageURL,
         {
-          owner: userId,
+          owner: userId, // SECURITY: Ensures only user can set their own cover
           visibility: "public", // Cover photos are public
         },
       );
@@ -5533,7 +5537,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.status(200).json({ objectPath });
     } catch (error) {
       console.error("Error setting cover photo:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(400).json({ error: "Invalid image URL or unauthorized access" });
     }
   });
 
@@ -5547,10 +5551,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
     try {
       const objectStorageService = new ObjectStorageService();
+      
+      // SECURITY: Validate and set ACL - will throw if path is invalid
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         req.body.videoURL,
         {
-          owner: userId,
+          owner: userId, // SECURITY: Ensures only user can set their own video
           visibility: "public", // Intro videos are public
         },
       );
@@ -5561,7 +5567,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.status(200).json({ objectPath });
     } catch (error) {
       console.error("Error setting intro video:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(400).json({ error: "Invalid video URL or unauthorized access" });
     }
   });
 
@@ -5583,17 +5589,28 @@ When to refer to licensed therapists and emergency resources for relationship cr
       const userId = req.user?.id;
       const objectStorageService = new ObjectStorageService();
       
-      // Set ACL policy for uploaded file
-      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-        req.body.filePath,
-        {
-          owner: userId,
-          visibility: req.body.isPublic ? "public" : "private",
-        },
-      );
+      // SECURITY: Ensure only authenticated user's files can be uploaded
+      if (!req.body.filePath) {
+        return res.status(400).json({ message: "filePath is required" });
+      }
+
+      // SECURITY: Validate the path is under the user's private directory
+      let objectPath: string;
+      try {
+        objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+          req.body.filePath,
+          {
+            owner: userId,
+            visibility: req.body.isPublic ? "public" : "private",
+          },
+        );
+      } catch (error) {
+        console.error("Invalid file path:", error);
+        return res.status(400).json({ message: "Invalid file path" });
+      }
 
       const mediaData = {
-        userId,
+        userId, // SECURITY: Always use authenticated user's ID
         mediaType: req.body.mediaType,
         fileName: req.body.fileName,
         filePath: objectPath,
