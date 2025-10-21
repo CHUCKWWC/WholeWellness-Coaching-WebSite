@@ -48,6 +48,14 @@ Preferred communication style: Simple, everyday language.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
 - **Video Conferencing System**: 100ms-powered video sessions with coach-initiated session creation, client pre-registration with auth tokens, recording, transcription, and AI summaries.
+- **Media Upload System**: Comprehensive media upload capabilities using Replit Object Storage with presigned URLs, supporting pictures, videos, documents, and audio. Features include:
+  - Uppy.js-powered multi-file upload with progress tracking
+  - Direct-to-storage uploads via presigned URLs for security and performance
+  - Owner-verified ACL policies preventing cross-account access
+  - MediaGallery component with filtering, preview, and delete
+  - Integration with user and coach profiles for profile pictures, cover photos, and intro videos
+  - Backend tracks all uploaded media with metadata in PostgreSQL
+  - SimpleFileUploader component for single-file scenarios
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
