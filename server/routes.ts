@@ -3399,6 +3399,21 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // Get coach clients (stub endpoint to prevent 404 errors)
+  app.get("/api/coach/profile/:coachId/clients", optionalAuth as any, async (req: any, res) => {
+    try {
+      // TODO: Implement coach-client relationship system
+      // For now, return empty clients array to prevent 404 errors
+      res.json({
+        clients: [],
+        totalClients: 0
+      });
+    } catch (error) {
+      console.error("Error fetching coach clients:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Google OAuth Routes - Updated for secure browser compliance
   app.get('/auth/google', (req, res, next) => {
     // Use the correct Replit domain for OAuth
