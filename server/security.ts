@@ -72,7 +72,8 @@ export const securityHeaders = helmet({
         "*.google.com",
         "*.googleapis.com",
         "https://fonts.gstatic.com",
-        "https://fonts.googleapis.com"
+        "https://fonts.googleapis.com",
+        "https://images.unsplash.com"
       ],
       // Images (including through SW)
       "img-src": ["'self'", "data:", "blob:", "https://*"],
