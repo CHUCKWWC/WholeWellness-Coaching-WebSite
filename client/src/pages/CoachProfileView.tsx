@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MapPin, 
   Globe, 
@@ -17,9 +19,14 @@ import {
   Twitter,
   Facebook,
   Camera,
-  Edit
+  Edit,
+  Video,
+  MoreHorizontal,
+  GraduationCap,
+  Briefcase
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 
 interface CoachProfile {
   id: number;
@@ -56,6 +63,7 @@ interface CoachProfile {
 export default function CoachProfileView() {
   const { coachId } = useParams();
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("about");
 
   const { data: profile, isLoading } = useQuery<CoachProfile>({
     queryKey: ['/api/coach/profile', coachId],
@@ -71,10 +79,9 @@ export default function CoachProfileView() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <Skeleton className="h-64 w-full rounded-lg mb-4" />
-          <Skeleton className="h-32 w-full rounded-lg" />
+      <div className="min-h-screen bg-[#e4e6eb] dark:bg-gray-900">
+        <div className="max-w-[1440px] mx-auto">
+          <Skeleton className="h-[656px] w-full" />
         </div>
       </div>
     );
@@ -82,7 +89,7 @@ export default function CoachProfileView() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#e4e6eb] dark:bg-gray-900 flex items-center justify-center">
         <Card className="p-6">
           <p className="text-gray-600 dark:text-gray-400">Coach profile not found</p>
         </Card>
@@ -98,247 +105,445 @@ export default function CoachProfileView() {
   };
 
   const isOwnProfile = user?.role === 'coach' && user?.id === profile.coachId;
+  const fullName = `${profile.firstName} ${profile.lastName}`;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        
-        {/* Profile Header */}
-        <Card className="mb-6 overflow-hidden">
-          {/* Cover Photo */}
-          <div className="relative h-64 bg-gradient-to-r from-teal-500 to-teal-600">
-            {profile.coverPhotoUrl && (
+    <div className="min-h-screen bg-[#e4e6eb] dark:bg-gray-900">
+      {/* Profile Header Section */}
+      <div className="bg-white dark:bg-gray-800 shadow-md">
+        <div className="max-w-[1440px] mx-auto">
+          {/* Cover Photo with Gradient Overlay */}
+          <div className="relative h-[438px] overflow-hidden rounded-bl-3xl rounded-br-3xl">
+            {profile.coverPhotoUrl ? (
               <img 
                 src={profile.coverPhotoUrl} 
                 alt="Cover" 
                 className="w-full h-full object-cover"
               />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500" />
             )}
+            
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-[168px] bg-gradient-to-t from-black/60 to-transparent" />
+            
+            {/* Name and Specialties Overlay */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+              <h1 className="text-5xl font-bold text-white mb-4">{fullName}</h1>
+              <div className="flex items-center justify-center gap-4 text-white text-2xl font-medium">
+                {profile.specialties.slice(0, 4).map((specialty, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    {i > 0 && <div className="w-1.5 h-1.5 rounded-full bg-white/80" />}
+                    <span>{specialty}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Profile Info */}
-          <div className="px-6 pb-6">
-            <div className="flex flex-col md:flex-row md:items-end gap-6 -mt-20">
+          {/* Profile Info Bar */}
+          <div className="px-12 py-8">
+            <div className="flex items-end gap-6">
               {/* Profile Picture */}
-              <div className="relative">
-                <div className="w-40 h-40 rounded-full border-4 border-white dark:border-gray-800 bg-white dark:bg-gray-800 overflow-hidden">
+              <div className="relative -mt-32">
+                <div className="w-40 h-40 rounded-full border-4 border-white dark:border-gray-800 bg-white dark:bg-gray-800 overflow-hidden shadow-lg">
                   {profile.profileImage ? (
                     <img 
                       src={profile.profileImage} 
-                      alt={`${profile.firstName} ${profile.lastName}`}
+                      alt={fullName}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 text-4xl font-bold">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-teal-600 text-white text-5xl font-bold">
                       {profile.firstName[0]}{profile.lastName[0]}
                     </div>
                   )}
                 </div>
                 {isOwnProfile && (
                   <button 
-                    className="absolute bottom-2 right-2 p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    className="absolute bottom-2 right-2 p-2 bg-[#e4e6eb] dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     data-testid="button-edit-profile-photo"
                   >
-                    <Camera className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                    <Camera className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>
                 )}
               </div>
 
               {/* Name and Info */}
-              <div className="flex-1 mt-6 md:mt-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {profile.firstName} {profile.lastName}
-                  </h1>
+              <div className="flex-1 mb-2">
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {fullName}
+                  </h2>
                   {profile.isVerified && (
-                    <Badge variant="default" className="bg-teal-600">
+                    <Badge className="bg-[#0866ff] hover:bg-[#0866ff]/90">
                       <Award className="w-3 h-3 mr-1" />
-                      Verified
+                      Verified Coach
                     </Badge>
                   )}
                 </div>
-                
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-3">
-                  <Users className="w-4 h-4" />
-                  <span className="font-semibold" data-testid="text-client-count">
-                    {profile.clientCount} clients
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {profile.languages.slice(0, 3).map((lang, i) => (
-                    <Badge key={i} variant="outline">{lang}</Badge>
-                  ))}
-                </div>
+                <p className="text-[#626262] dark:text-gray-400 font-semibold mb-2">
+                  {profile.clientCount} clients
+                </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-2">
                 {isOwnProfile ? (
-                  <Button variant="outline" data-testid="button-edit-profile">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
+                  <>
+                    <Button className="bg-[#0866ff] hover:bg-[#0866ff]/90 text-white" data-testid="button-add-story">
+                      <Video className="w-4 h-4 mr-2" />
+                      Add Story
+                    </Button>
+                    <Button variant="secondary" className="bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white" data-testid="button-edit-profile">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                    <StartVideoSessionDialog 
+                      trigger={
+                        <Button 
+                          variant="secondary" 
+                          className="bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white px-3"
+                          data-testid="button-start-video-session"
+                        >
+                          <Video className="w-4 h-4" />
+                        </Button>
+                      }
+                    />
+                  </>
                 ) : (
                   <>
-                    <Button className="bg-teal-600 hover:bg-teal-700" data-testid="button-book-session">
+                    <Button className="bg-[#0866ff] hover:bg-[#0866ff]/90 text-white" data-testid="button-book-session">
                       <Calendar className="w-4 h-4 mr-2" />
                       Book Session
                     </Button>
-                    <Button variant="outline" data-testid="button-message-coach">
+                    <Button variant="secondary" className="bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white" data-testid="button-message-coach">
                       <Mail className="w-4 h-4 mr-2" />
                       Message
                     </Button>
+                    <StartVideoSessionDialog 
+                      trigger={
+                        <Button 
+                          variant="secondary" 
+                          className="bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white" 
+                          data-testid="button-join-video-session"
+                        >
+                          <Video className="w-4 h-4 mr-2" />
+                          Video Call
+                        </Button>
+                      }
+                    />
                   </>
                 )}
+                <Button 
+                  variant="secondary" 
+                  className="bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white px-3"
+                  data-testid="button-more-options"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
-        </Card>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Left Column - Intro & Details */}
-          <div className="md:col-span-1 space-y-6">
-            
-            {/* Intro Card */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">About</h2>
-              
-              {profile.bio && (
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 text-center">
-                  {profile.bio}
-                </p>
-              )}
-              
-              {isOwnProfile && (
-                <Button variant="outline" className="w-full mb-4" data-testid="button-edit-bio">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Bio
-                </Button>
-              )}
-
-              <div className="space-y-3">
-                {profile.experience !== null && (
-                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-                    <Award className="w-5 h-5 opacity-70" />
-                    <span className="text-sm">{profile.experience} years of experience</span>
-                  </div>
-                )}
-                
-                {profile.location && (
-                  <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-                    <MapPin className="w-5 h-5 opacity-70" />
-                    <span className="text-sm">{profile.location}</span>
-                  </div>
-                )}
-                
-                {profile.website && (
-                  <a 
-                    href={profile.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-teal-600 dark:text-teal-400 hover:underline"
-                    data-testid="link-website"
+          {/* Tab Navigation */}
+          <div className="border-t border-gray-200 dark:border-gray-700">
+            <div className="px-12">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="bg-transparent h-auto p-0 border-b-0 gap-3">
+                  <TabsTrigger 
+                    value="about" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#0866ff] data-[state=active]:text-[#0866ff] rounded-none bg-transparent px-3 py-3 font-semibold"
+                    data-testid="tab-about"
                   >
-                    <Globe className="w-5 h-5 opacity-70" />
-                    <span className="text-sm">{profile.website}</span>
-                  </a>
-                )}
-
-                {Object.entries(profile.socialLinks || {}).map(([platform, url]) => {
-                  if (!url) return null;
-                  const Icon = socialIcons[platform as keyof typeof socialIcons];
-                  return (
-                    <a
-                      key={platform}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-gray-600 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400"
-                      data-testid={`link-social-${platform}`}
-                    >
-                      <Icon className="w-5 h-5 opacity-70" />
-                      <span className="text-sm capitalize">{platform}</span>
-                    </a>
-                  );
-                })}
-              </div>
-
-              {isOwnProfile && (
-                <Button variant="outline" className="w-full mt-4" data-testid="button-edit-details">
-                  Edit Details
-                </Button>
-              )}
-
-              {/* Specialties */}
-              {profile.specialties.length > 0 && (
-                <div className="mt-4">
-                  <div className="flex flex-wrap gap-2">
-                    {profile.specialties.map((specialty, i) => (
-                      <Badge 
-                        key={i} 
-                        variant="outline" 
-                        className="border-teal-600 text-teal-600"
-                      >
-                        {specialty}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* Right Column - Credentials & Reviews */}
-          <div className="md:col-span-2 space-y-6">
-            
-            {/* Credentials Card */}
-            {profile.credentials.length > 0 && (
-              <Card className="p-6">
-                <h2 className="text-xl font-bold mb-4">Certifications & Credentials</h2>
-                <div className="space-y-4">
-                  {profile.credentials.map((credential, i) => (
-                    <div 
-                      key={i} 
-                      className="flex items-start gap-3 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0"
-                      data-testid={`credential-${i}`}
-                    >
-                      <Award className="w-5 h-5 text-teal-600 mt-1" />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {credential.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {credential.issuingOrganization}
-                        </p>
-                        {credential.issueDate && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Issued {new Date(credential.issueDate).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                      {credential.verificationStatus === 'verified' && (
-                        <Badge variant="outline" className="border-green-600 text-green-600">
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {/* Reviews Section (Placeholder) */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">Client Reviews</h2>
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <Star className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No reviews yet</p>
-              </div>
-            </Card>
+                    About
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="credentials" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#0866ff] data-[state=active]:text-[#0866ff] rounded-none bg-transparent px-3 py-3 font-semibold"
+                    data-testid="tab-credentials"
+                  >
+                    Credentials
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="reviews" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#0866ff] data-[state=active]:text-[#0866ff] rounded-none bg-transparent px-3 py-3 font-semibold"
+                    data-testid="tab-reviews"
+                  >
+                    Reviews
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="availability" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#0866ff] data-[state=active]:text-[#0866ff] rounded-none bg-transparent px-3 py-3 font-semibold"
+                    data-testid="tab-availability"
+                  >
+                    Availability
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Content Area */}
+      <div className="max-w-[1440px] mx-auto px-12 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Left Sidebar - Intro */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Intro Card */}
+            <Card className="border border-gray-200 dark:border-gray-700">
+              <div className="p-4">
+                <h2 className="text-xl font-bold mb-4">Intro</h2>
+                
+                {profile.bio && (
+                  <p className="text-[#4d4d4d] dark:text-gray-400 text-sm text-center mb-4">
+                    {profile.bio}
+                  </p>
+                )}
+                
+                {isOwnProfile && (
+                  <Button variant="secondary" className="w-full mb-4 bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white" data-testid="button-edit-bio">
+                    Edit Bio
+                  </Button>
+                )}
+
+                <div className="space-y-3">
+                  {profile.experience !== null && (
+                    <div className="flex items-start gap-3 text-[#4d4d4d] dark:text-gray-400">
+                      <Briefcase className="w-5 h-5 opacity-70 mt-0.5" />
+                      <span className="text-sm">{profile.experience} years of coaching experience</span>
+                    </div>
+                  )}
+
+                  {profile.credentials.length > 0 && (
+                    <div className="flex items-start gap-3 text-[#4d4d4d] dark:text-gray-400">
+                      <GraduationCap className="w-5 h-5 opacity-70 mt-0.5" />
+                      <span className="text-sm">{profile.credentials[0].title}</span>
+                    </div>
+                  )}
+                  
+                  {profile.location && (
+                    <div className="flex items-start gap-3 text-[#4d4d4d] dark:text-gray-400">
+                      <MapPin className="w-5 h-5 opacity-70 mt-0.5" />
+                      <span className="text-sm">{profile.location}</span>
+                    </div>
+                  )}
+                  
+                  {profile.website && (
+                    <a 
+                      href={profile.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 text-[#4d4d4d] dark:text-gray-400 hover:text-[#0866ff]"
+                      data-testid="link-website"
+                    >
+                      <Globe className="w-5 h-5 opacity-70 mt-0.5" />
+                      <span className="text-sm break-all">{profile.website}</span>
+                    </a>
+                  )}
+
+                  {Object.entries(profile.socialLinks || {}).map(([platform, url]) => {
+                    if (!url) return null;
+                    const Icon = socialIcons[platform as keyof typeof socialIcons];
+                    const username = url.split('/').pop() || platform;
+                    return (
+                      <a
+                        key={platform}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 text-[#4d4d4d] dark:text-gray-400 hover:text-[#0866ff]"
+                        data-testid={`link-social-${platform}`}
+                      >
+                        <Icon className="w-5 h-5 opacity-70 mt-0.5" />
+                        <span className="text-sm">{username}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+
+                {isOwnProfile && (
+                  <Button variant="secondary" className="w-full mt-4 bg-[#e4e6eb] hover:bg-gray-300 text-black dark:bg-gray-700 dark:text-white" data-testid="button-edit-details">
+                    Edit Details
+                  </Button>
+                )}
+
+                {/* Specialties */}
+                {profile.specialties.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex flex-wrap gap-2">
+                      {profile.specialties.map((specialty, i) => (
+                        <Badge 
+                          key={i} 
+                          variant="outline" 
+                          className="border-gray-300 text-sm"
+                        >
+                          {specialty}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Languages */}
+                {profile.languages.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="font-semibold mb-2">Languages</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.languages.map((lang, i) => (
+                        <Badge 
+                          key={i} 
+                          variant="outline" 
+                          className="border-gray-300 text-sm"
+                        >
+                          {lang}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Content Area */}
+          <div className="lg:col-span-2 space-y-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsContent value="about" className="mt-0">
+                <Card className="border border-gray-200 dark:border-gray-700">
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold mb-4">About {profile.firstName}</h2>
+                    
+                    {profile.bio ? (
+                      <div className="prose dark:prose-invert max-w-none">
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {profile.bio}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 italic">
+                        No bio available yet.
+                      </p>
+                    )}
+
+                    {/* Coaching Approach */}
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                      <h3 className="font-bold text-lg mb-3">Coaching Approach</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {profile.specialties.map((specialty, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#0866ff]" />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{specialty}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Experience Highlight */}
+                    {profile.experience !== null && (
+                      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3">Experience</h3>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+                            <Award className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white">{profile.experience}+ Years</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Professional Coaching Experience</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="credentials" className="mt-0">
+                <Card className="border border-gray-200 dark:border-gray-700">
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold mb-4">Certifications & Credentials</h2>
+                    {profile.credentials.length > 0 ? (
+                      <div className="space-y-4">
+                        {profile.credentials.map((credential, i) => (
+                          <div 
+                            key={i} 
+                            className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
+                            data-testid={`credential-${i}`}
+                          >
+                            <div className="w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-900 flex items-center justify-center flex-shrink-0">
+                              <Award className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 dark:text-white">
+                                {credential.title}
+                              </h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {credential.issuingOrganization}
+                              </p>
+                              {credential.issueDate && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Issued {new Date(credential.issueDate).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            {credential.verificationStatus === 'verified' && (
+                              <Badge className="bg-green-600 hover:bg-green-700">
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 italic text-center py-8">
+                        No credentials listed yet.
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="reviews" className="mt-0">
+                <Card className="border border-gray-200 dark:border-gray-700">
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold mb-4">Client Reviews</h2>
+                    <div className="text-center py-12">
+                      <Star className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                      <p className="text-gray-500 dark:text-gray-400 mb-2">No reviews yet</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500">
+                        Be the first to work with {profile.firstName} and leave a review
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="availability" className="mt-0">
+                <Card className="border border-gray-200 dark:border-gray-700">
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold mb-4">Availability & Booking</h2>
+                    <div className="text-center py-12">
+                      <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                      <p className="text-gray-500 dark:text-gray-400 mb-4">
+                        View {profile.firstName}'s availability and book a session
+                      </p>
+                      {!isOwnProfile && (
+                        <Button className="bg-[#0866ff] hover:bg-[#0866ff]/90" data-testid="button-book-now">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Book Now
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

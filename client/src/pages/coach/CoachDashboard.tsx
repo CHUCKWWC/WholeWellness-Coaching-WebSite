@@ -228,14 +228,17 @@ export default function CoachDashboard() {
 
   // Format clients for video session dialog - use real data if available
   const clientsForSession = clients.length > 0 
-    ? clients.map((client) => ({
-        id: client.id || client.userId || '',
-        name: client.fullName || client.name || 'Unknown',
-        email: client.email,
-      }))
+    ? clients
+        .filter((client) => client.email) // Only include clients with email
+        .map((client) => ({
+          id: client.id || client.userId || '',
+          name: client.fullName || client.name || 'Unknown',
+          email: client.email || '', // Email is guaranteed here due to filter
+        }))
     : recentClients.map(client => ({
         id: client.id.toString(),
         name: client.name,
+        email: '', // Optional for recent clients fallback
       }));
 
   // Show loading state
