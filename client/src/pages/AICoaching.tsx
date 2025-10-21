@@ -510,12 +510,34 @@ export default function AICoaching() {
           </div>
         </div>
 
+        {/* Subscription Notice */}
+        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-primary/20">
+          <div className="max-w-4xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <p className="text-sm text-gray-900 dark:text-gray-100">
+                  <span className="font-semibold">Unlock Unlimited AI Coaching</span> — Get personalized support 24/7 for $19.99/month with a 7-day free trial
+                </p>
+              </div>
+              <Button 
+                size="sm" 
+                className="bg-primary hover:bg-secondary text-white whitespace-nowrap"
+                onClick={() => window.open('https://buy.stripe.com/4gMdR992mfSabe601z3oA0', '_blank')}
+                data-testid="button-subscribe"
+              >
+                Start Free Trial
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {/* Guest Preview Notice */}
         {!isAuthenticated && (
           <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
             <div className="max-w-4xl mx-auto px-4 py-2">
               <p className="text-sm text-blue-900 dark:text-blue-100">
-                <span className="font-medium">Guest Preview:</span> <a href="/register" className="underline hover:no-underline">Sign up free</a> to unlock full AI responses and conversation history.
+                <span className="font-medium">Guest Preview:</span> <a href="/register" className="underline hover:no-underline">Sign up free</a> to save your conversation history.
               </p>
             </div>
           </div>
@@ -925,38 +947,79 @@ export default function AICoaching() {
         </div>
       </section>
 
-      {/* Call to Action Section */}
-      <section className="py-16 bg-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-            Ready to Start Your AI Coaching Journey?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Choose your specialized AI coach and begin personalized conversations 
-            that support your growth and transformation.
-          </p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-8 mx-auto max-w-md">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">$299</div>
-              <div className="text-white/90 text-sm">6 AI Coaching Sessions</div>
-              <div className="text-white/80 text-xs">50% off live coaching rates</div>
-            </div>
+      {/* Pricing & CTA Section */}
+      <section className="py-16 bg-gradient-to-br from-primary to-secondary">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+              Unlock Unlimited AI Coaching
+            </h2>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">
+              Get 24/7 access to all specialized AI coaches with unlimited conversations
+            </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          
+          <Card className="max-w-2xl mx-auto border-2 border-white/20 shadow-2xl">
+            <CardHeader className="text-center pb-8 pt-8">
+              <div className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                BEST VALUE
+              </div>
+              <div className="mb-2">
+                <span className="text-5xl font-bold text-gray-900">$19.99</span>
+                <span className="text-gray-600 text-lg">/month</span>
+              </div>
+              <div className="text-primary font-semibold text-lg">
+                7-Day Free Trial
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 px-8 pb-8">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <p className="text-gray-700">Unlimited conversations with all 6 specialized AI coaches</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <p className="text-gray-700">24/7 availability - chat anytime, anywhere</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <p className="text-gray-700">Personalized coaching across mindfulness, wellness, relationships, mental health & more</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <p className="text-gray-700">Conversation history & progress tracking</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <p className="text-gray-700">Cancel anytime - no commitments</p>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <Button 
+                  size="lg" 
+                  className="w-full bg-primary hover:bg-secondary text-white font-semibold py-6 text-lg transition-all hover:shadow-lg"
+                  onClick={() => window.open('https://buy.stripe.com/4gMdR992mfSabe601z3oA0', '_blank')}
+                  data-testid="button-subscribe-main"
+                >
+                  Start Your Free Trial
+                </Button>
+                <p className="text-center text-xs text-gray-500 mt-3">
+                  7 days free, then $19.99/month. Cancel anytime.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="text-center mt-8">
             <Button 
               size="lg" 
-              variant="secondary"
+              variant="outline"
               onClick={() => document.getElementById('ai-coaches')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-white text-primary hover:bg-gray-100"
+              className="border-white text-white hover:bg-white hover:text-primary"
             >
-              Choose Your AI Coach
-            </Button>
-            <Button 
-              size="lg" 
-              className="bg-secondary hover:bg-secondary/90 text-white"
-              onClick={() => window.location.href = '/subscribe?plan=ai_coaching'}
-            >
-              Purchase AI Package - $299
+              Explore AI Coaches First
             </Button>
           </div>
         </div>
