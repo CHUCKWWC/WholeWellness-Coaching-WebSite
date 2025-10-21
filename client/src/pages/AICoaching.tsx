@@ -523,7 +523,7 @@ export default function AICoaching() {
               <Button 
                 size="sm" 
                 className="bg-primary hover:bg-secondary text-white whitespace-nowrap"
-                onClick={() => window.open('https://buy.stripe.com/4gMdR992mfSabe601z3oA0', '_blank')}
+                onClick={() => window.location.href = '/subscribe'}
                 data-testid="button-subscribe"
               >
                 Start Free Trial
@@ -1000,7 +1000,7 @@ export default function AICoaching() {
                 <Button 
                   size="lg" 
                   className="w-full bg-primary hover:bg-secondary text-white font-semibold py-6 text-lg transition-all hover:shadow-lg"
-                  onClick={() => window.open('https://buy.stripe.com/4gMdR992mfSabe601z3oA0', '_blank')}
+                  onClick={() => window.location.href = '/subscribe'}
                   data-testid="button-subscribe-main"
                 >
                   Start Your Free Trial

@@ -190,7 +190,7 @@ export default function WellnessJourneyRecommender() {
   });
 
   const handleStartJourney = () => {
-    createJourneyMutation.mutate();
+    window.location.href = '/onboarding';
   };
 
   const handleUpdateProgress = (recommendationId: string, progress: number) => {
@@ -245,21 +245,12 @@ export default function WellnessJourneyRecommender() {
             <CardContent>
               <Button 
                 onClick={handleStartJourney}
-                disabled={createJourneyMutation.isPending}
                 className="w-full"
                 size="lg"
+                data-testid="button-start-journey"
               >
-                {createJourneyMutation.isPending ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Creating Your Journey...
-                  </>
-                ) : (
-                  <>
-                    <ArrowRight className="h-4 w-4 mr-2" />
-                    Begin My Wellness Journey
-                  </>
-                )}
+                <ArrowRight className="h-4 w-4 mr-2" />
+                Begin My Wellness Journey
               </Button>
             </CardContent>
           </Card>

@@ -220,6 +220,16 @@ export default function SmartNavigation() {
                       </Link>
                     ))}
                     
+                    {/* Public Profile Link */}
+                    {user && (
+                      <Link href={user.role === 'coach' ? `/coach/${user.id}` : `/user/${user.id}`}>
+                        <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
+                          <span className="text-lg">👁️</span>
+                          View My Public Profile
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
+                    
                     {/* Admin Dashboard Access - Only show to authenticated admin users */}
                     {isAdminAuthenticated && (
                       <>
