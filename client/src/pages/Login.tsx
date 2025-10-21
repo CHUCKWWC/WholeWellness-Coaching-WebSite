@@ -51,6 +51,12 @@ export default function Login() {
       });
       // Set auth session flag to enable future auth checks
       sessionStorage.setItem('hasAuthSession', 'true');
+      
+      // Set admin flag for admin users
+      if (data.role === "admin" || data.role === "super_admin") {
+        sessionStorage.setItem('isAdmin', 'true');
+      }
+      
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
@@ -63,7 +69,7 @@ export default function Login() {
         setLocation("/admin-dashboard");
       } else {
         // Regular members/users
-        setLocation("/member-portal");
+        setLocation("/member-dashboard");
       }
     },
     onError: (error: any) => {

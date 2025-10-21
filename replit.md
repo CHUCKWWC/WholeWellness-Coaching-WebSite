@@ -13,6 +13,17 @@ Preferred communication style: Simple, everyday language.
 - **UI Components**: Radix UI with Tailwind CSS for a custom design system.
 - **Styling**: Tailwind CSS.
 - **UX Optimization**: Guided welcome flows, smart navigation, quick-start dashboards, guided tours, and visual progress indicators.
+- **Navigation System**: 
+  - Role-aware navigation that adapts menu items based on user role (guest, user/member, coach, admin, super_admin)
+  - Unified login system with automatic role detection and smart redirects
+  - DashboardRouter component for automatic role-based dashboard routing
+  - Breadcrumb navigation on key pages for location awareness
+  - Mobile-optimized quick access navigation with role-specific items
+- **User Guidance**:
+  - HelpTooltip component for contextual inline help
+  - EmptyState component with clear CTAs for empty data states
+  - Role-specific quick actions and dashboard layouts
+  - Consolidated duplicate pages for cleaner navigation (unified login, single assessments page)
 
 ### Technical Implementations
 - **Backend**: Node.js with Express.js, TypeScript, ES modules.

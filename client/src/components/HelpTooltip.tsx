@@ -1,0 +1,38 @@
+import { HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+interface HelpTooltipProps {
+  content: string;
+  side?: "top" | "right" | "bottom" | "left";
+}
+
+/**
+ * HelpTooltip component provides contextual help inline
+ * Shows a help icon that reveals helpful text on hover
+ */
+export function HelpTooltip({ content, side = "top" }: HelpTooltipProps) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button 
+            type="button" 
+            className="inline-flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            data-testid="help-tooltip-trigger"
+          >
+            <HelpCircle className="h-4 w-4" />
+            <span className="sr-only">Help</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side={side} className="max-w-xs">
+          <p className="text-sm">{content}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}

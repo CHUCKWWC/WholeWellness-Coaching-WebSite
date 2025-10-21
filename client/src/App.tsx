@@ -25,6 +25,7 @@ import MemberLayout from "@/layouts/MemberLayout";
 import { CrisisSupportBanner } from "@/components/CrisisSupportBanner";
 import { SafetyExit, FloatingSafetyExit } from "@/components/SafetyExit";
 import { SkipToContent } from "@/components/SkipToContent";
+import DashboardRouter from "@/components/DashboardRouter";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -51,7 +52,6 @@ const Donate = lazy(() => import("@/pages/Donate"));
 const MemberPortal = lazy(() => import("@/pages/MemberPortal"));
 const MemberDashboard = lazy(() => import("@/pages/MemberDashboard"));
 const CoachDashboard = lazy(() => import("@/pages/coach/CoachDashboard"));
-const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const DonationPortal = lazy(() => import("@/pages/DonationPortal"));
 const CoachPortal = lazy(() => import("@/pages/CoachPortal"));
@@ -67,7 +67,6 @@ const PersonalizedRecommendations = lazy(() => import("@/pages/PersonalizedRecom
 const DigitalOnboarding = lazy(() => import("@/pages/DigitalOnboarding"));
 const CoachOnboarding = lazy(() => import("@/pages/CoachOnboarding"));
 const CoachSignup = lazy(() => import("@/pages/CoachSignup"));
-const CoachLogin = lazy(() => import("@/pages/CoachLogin"));
 const CoachProfile = lazy(() => import("@/pages/CoachProfile"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
 const PaymentSuccess = lazy(() => import("@/pages/PaymentSuccess"));
@@ -75,7 +74,7 @@ const Subscribe = lazy(() => import("@/pages/Subscribe"));
 const SubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
 const VolunteerApplication = lazy(() => import("@/pages/VolunteerApplication"));
 const WixBooking = lazy(() => import("@/pages/WixBooking"));
-const Assessments = lazy(() => import("@/pages/assessments"));
+const Assessments = lazy(() => import("@/pages/Assessments"));
 const TakeAssessment = lazy(() => import("@/pages/TakeAssessment"));
 const AssessmentResults = lazy(() => import("@/pages/AssessmentResults"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
@@ -140,6 +139,7 @@ function Router() {
       <main id="main-content" className="flex-1 safe-bottom md:pb-0">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/dashboard" component={DashboardRouter} />
           <Route path="/about" component={About} />
           <Route path="/services" component={Services} />
           <Route path="/login" component={Login} />
@@ -177,7 +177,7 @@ function Router() {
           <Route path="/assessments/results/:id" component={(props) => <LazyRoute component={AssessmentResults} loadingText="Loading Results..." {...props} />} />
           <Route path="/user-profile" component={(props) => <LazyRoute component={UserProfile} loadingText="Loading Profile..." {...props} />} />
           <Route path="/settings" component={(props) => <LazyRoute component={Settings} loadingText="Loading Settings..." {...props} />} />
-          <Route path="/admin-login" component={(props) => <LazyRoute component={AdminLogin} loadingText="Loading Admin Login..." {...props} />} />
+          <Route path="/admin-login" component={() => <Login />} />
           <Route path="/admin-dashboard" component={(props) => <LazyRoute component={AdminDashboard} loadingText="Loading Admin Dashboard..." {...props} />} />
           <Route path="/admin-security" component={(props) => <LazyRoute component={AdminSecurity} loadingText="Loading Security Settings..." {...props} />} />
           <Route path="/admin-coupons" component={(props) => <LazyRoute component={AdminCoupons} loadingText="Loading Coupon Management..." {...props} />} />
@@ -197,7 +197,7 @@ function Router() {
           <Route path="/digital-onboarding" component={(props) => <LazyRoute component={DigitalOnboarding} loadingText="Preparing onboarding..." {...props} />} />
           <Route path="/coach-onboarding" component={(props) => <LazyRoute component={CoachOnboarding} loadingText="Loading coach setup..." {...props} />} />
           <Route path="/coach-signup" component={(props) => <LazyRoute component={CoachSignup} loadingText="Loading coach registration..." {...props} />} />
-          <Route path="/coach-login" component={(props) => <LazyRoute component={CoachLogin} loadingText="Loading coach login..." {...props} />} />
+          <Route path="/coach-login" component={() => <Login />} />
           <Route path="/coach-profile" component={(props) => (
             <ProtectedRoute requiredRole="coach">
               <LazyRoute component={CoachProfile} loadingText="Loading coach profile..." {...props} />

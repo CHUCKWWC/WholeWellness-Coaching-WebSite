@@ -12,6 +12,13 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  getMainNavItems, 
+  getDropdownCategories, 
+  getUserDropdownItems,
+  getQuickAccessItems,
+  type UserRole 
+} from "@/config/navigationConfig";
 
 import Logo from "@/components/Logo";
 
@@ -31,77 +38,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Simplified core navigation
-const mainNavItems = [
-  { 
-    href: "/", 
-    label: "Home", 
-    tooltip: "Your wellness dashboard and starting point" 
-  },
-  { 
-    href: "/ai-coaching", 
-    label: "AI Coaching", 
-    tooltip: "Instant support from 6 specialized AI coaches",
-    badge: "Popular",
-    badgeColor: "bg-blue-100 text-blue-700"
-  },
-  { 
-    href: "/wellness-journey", 
-    label: "Wellness Journey", 
-    tooltip: "Personalized plans, goal tracking, and AI insights",
-    badge: "New",
-    badgeColor: "bg-green-100 text-green-700"
-  },
-  { 
-    href: "/assessments", 
-    label: "Assessments", 
-    tooltip: "Discover your wellness needs with comprehensive evaluations" 
-  },
-  { 
-    href: "/donate", 
-    label: "Donate", 
-    tooltip: "Support our mission to provide life-changing coaching",
-    badge: "❤️",
-    badgeColor: "bg-red-100 text-red-700"
-  }
-];
-
-// Organized dropdown items by category
-const dropdownCategories = [
-  {
-    title: "Professional Development",
-    items: [
-      { href: "/coach-certifications", label: "Certification Courses", icon: "🎓" },
-      { href: "/coach-signup", label: "Become a Coach", icon: "👩‍🏫" },
-      { href: "/coach-login", label: "Coach Sign In", icon: "🔑" }
-    ]
-  },
-  {
-    title: "Wellness Tools",
-    items: [
-      { href: "/personalized-recommendations", label: "Personal Recommendations", icon: "⭐" },
-      { href: "/mental-wellness", label: "Mental Wellness", icon: "🧠" },
-      { href: "/resources", label: "Resources", icon: "📚" }
-    ]
-  },
-  {
-    title: "Connect & Support",
-    items: [
-      { href: "/events", label: "Coming Events", icon: "📆" },
-      { href: "/wix-booking", label: "Book Appointment", icon: "📅" },
-      { href: "/contact", label: "Contact", icon: "💬" },
-      { href: "/about", label: "About", icon: "ℹ️" }
-    ]
-  }
-];
-
-// User dropdown items for authenticated users
-const userDropdownItems = [
-  { href: "/user-profile", label: "Profile & Settings", icon: "👤" },
-  { href: "/coach-certifications", label: "Certification Courses", icon: "🎓" },
-  { href: "/subscribe", label: "Premium Access", icon: "💎" }
-];
-
 export default function SmartNavigation() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -110,6 +46,26 @@ export default function SmartNavigation() {
   const { isAdminAuthenticated, adminUser } = useAdminAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Determine user role for navigation
+  // Normalize "member" role to "user" for navigation config
+  const normalizeRole = (role: string | undefined): UserRole => {
+    if (!role) return 'guest';
+    if (role === 'member') return 'user';
+    return role as UserRole;
+  };
+  
+  const userRole: UserRole = isAdminAuthenticated 
+    ? (adminUser?.role === 'super_admin' ? 'super_admin' : 'admin')
+    : isAuthenticated 
+      ? normalizeRole(user?.role)
+      : 'guest';
+  
+  // Get role-specific navigation items
+  const mainNavItems = getMainNavItems(userRole);
+  const dropdownCategories = getDropdownCategories(userRole);
+  const userDropdownItems = getUserDropdownItems(userRole);
+  const quickAccessItems = getQuickAccessItems(userRole);
 
   // Listen for custom search event from keyboard shortcuts
   useEffect(() => {
@@ -171,15 +127,6 @@ export default function SmartNavigation() {
       </Tooltip>
     </TooltipProvider>
   );
-
-  // Quick access navigation for mobile
-  const quickAccessItems = [
-    { href: "/ai-coaching", label: "AI Coaching", icon: "🤖", color: "bg-blue-50 text-blue-700 border-blue-200" },
-    { href: "/wellness-journey", label: "Wellness Journey", icon: "🎯", color: "bg-green-50 text-green-700 border-green-200" },
-    { href: "/assessments", label: "Assessments", icon: "📋", color: "bg-purple-50 text-purple-700 border-purple-200" },
-    { href: "/wix-booking", label: "Book Session", icon: "📅", color: "bg-orange-50 text-orange-700 border-orange-200" },
-    { href: "/resources", label: "Resources", icon: "📚", color: "bg-teal-50 text-teal-700 border-teal-200" },
-  ];
 
   return (
     <TooltipProvider>
@@ -398,12 +345,12 @@ export default function SmartNavigation() {
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 whitespace-nowrap",
                       location === item.href 
-                        ? item.color + " shadow-sm" 
+                        ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm" 
                         : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                     )}
                     data-testid={`chip-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                   >
-                    <span className="text-base">{item.icon}</span>
+                    {item.icon && <span className="text-base">{item.icon}</span>}
                     {item.label}
                   </button>
                 </Link>

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, Lock, Star } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 interface Assessment {
   id: string;
@@ -187,6 +188,9 @@ export default function Assessments() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb items={[{ label: 'Assessments' }]} />
+        
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">

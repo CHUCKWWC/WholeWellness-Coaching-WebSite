@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 export default function MemberDashboard() {
   const { user, isAuthenticated } = useAuth();
@@ -101,6 +102,9 @@ export default function MemberDashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb items={[{ label: 'Member Dashboard' }]} />
+      
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-8 text-white">
         <div className="flex items-center gap-4 mb-4">
