@@ -23,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import RoleIndicator from "@/components/RoleIndicator";
 
 interface CoachLayoutProps {
   children: React.ReactNode;
@@ -55,6 +56,7 @@ export default function CoachLayout({ children }: CoachLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <RoleIndicator role="coach" roleActivatedAt={user?.roleActivatedAt} />
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
