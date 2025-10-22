@@ -417,7 +417,7 @@ router.get('/sessions', requireAdminAuth, requireSuperAdmin, async (req: Authent
     // Enhance with user data
     const sessionsWithUsers = await Promise.all(
       sessions.map(async (session) => {
-        const user = await storage.getUser(session.userId);
+        const user = await storage.getUserById(session.userId);
         return {
           ...session,
           user: user ? {

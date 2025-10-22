@@ -211,7 +211,7 @@ export class AdminAuthService {
       }
 
       // For now, use regular user storage since admin storage may not exist
-      const user = await storage.getUser(decoded.adminId);
+      const user = await storage.getUserById(decoded.adminId);
       
       if (!user || !user.isActive || (user.role !== 'admin' && user.role !== 'super_admin')) {
         return null;

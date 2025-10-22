@@ -72,7 +72,7 @@ export function setupGoogleAuth() {
   // Deserialize user from session
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
+      const user = await storage.getUserById(id);
       done(null, user);
     } catch (error) {
       done(error, null);

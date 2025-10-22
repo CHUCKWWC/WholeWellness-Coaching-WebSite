@@ -17,11 +17,11 @@ class DrizzleStorage implements Partial<IStorage> {
     }
   }
 
-  async getUser(id: string): Promise<User | undefined> {
+  async getUserById(id: string): Promise<User | undefined> {
     try {
-      console.log('[DrizzleStorage] getUser called with ID:', id);
+      console.log('[DrizzleStorage] getUserById called with ID:', id);
       const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-      console.log('[DrizzleStorage] getUser result:', result[0] ? `Found user ${result[0].email}` : 'No user found');
+      console.log('[DrizzleStorage] getUserById result:', result[0] ? `Found user ${result[0].email}` : 'No user found');
       return result[0];
     } catch (error) {
       console.error('[DrizzleStorage] Error getting user by ID:', error);
@@ -50,6 +50,18 @@ class DrizzleStorage implements Partial<IStorage> {
     } catch (error) {
       console.error('Error updating user:', error);
       return undefined;
+    }
+  }
+
+  async updateUserLastLogin(userId: string): Promise<void> {
+    try {
+      console.log('[DrizzleStorage] updateUserLastLogin called for:', userId);
+      await db
+        .update(users)
+        .set({ lastLogin: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      console.error('[DrizzleStorage] Error updating last login:', error);
     }
   }
 }

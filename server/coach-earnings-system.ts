@@ -15,7 +15,7 @@ export class CoachEarningsSystem {
   static async trackEarnings(userId: string, amount: number, source: string = 'session'): Promise<void> {
     try {
       // Get current user
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) {
         throw new Error('User not found');
       }
@@ -107,7 +107,7 @@ export class CoachEarningsSystem {
    */
   static async checkCoachEligibility(userId: string): Promise<boolean> {
     try {
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) return false;
       
       return (user.donationTotal || 0) >= 99.00;
@@ -122,7 +122,7 @@ export class CoachEarningsSystem {
    */
   static async getEarningsSummary(userId: string): Promise<CoachEarnings | null> {
     try {
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) return null;
       
       return {
@@ -142,7 +142,7 @@ export class CoachEarningsSystem {
    */
   static async manualCoachUpgrade(adminUserId: string, targetUserId: string, reason: string = 'Manual upgrade'): Promise<void> {
     try {
-      const targetUser = await storage.getUser(targetUserId);
+      const targetUser = await storage.getUserById(targetUserId);
       if (!targetUser) {
         throw new Error('Target user not found');
       }

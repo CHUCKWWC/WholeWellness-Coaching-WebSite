@@ -16,7 +16,7 @@ export function registerAdminCertificationRoutes(app: Express) {
       // Transform data for admin view
       const enrollmentDetails = await Promise.all(
         enrollments.map(async (enrollment: any) => {
-          const user = await storage.getUser(enrollment.userId);
+          const user = await storage.getUserById(enrollment.userId);
           const courses = await storage.getCertificationCourses();
           const course = courses.find((c: any) => c.id === enrollment.courseId);
           

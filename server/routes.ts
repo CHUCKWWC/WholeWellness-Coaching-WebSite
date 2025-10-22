@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Session management functions
   async function createSession(userId: string): Promise<string> {
-    const user = await storage.getUser(userId);
+    const user = await storage.getUserById(userId);
     if (!user) {
       throw new Error('User not found');
     }
@@ -355,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update last login
-      await donationStorage.updateUser(user.id, { lastLogin: new Date() });
+      await storage.updateUser(user.id, { lastLogin: new Date() });
       
       // Create session
       const sessionToken = await createSession(user.id);
@@ -1501,7 +1501,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
     
     // Fetch complete user data from database to ensure role is included
     try {
-      const user = await storage.getUser(req.user.id);
+      const user = await storage.getUserById(req.user.id);
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
@@ -1888,7 +1888,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
       }
 
       // Create or retrieve Stripe customer
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
@@ -3249,7 +3249,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Get current user profile
   app.get("/api/user/profile", requireAuth as any, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.id);
+      const user = await storage.getUserById(req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User profile not found" });
       }
@@ -3267,7 +3267,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.get("/api/user/profile/:userId", optionalAuth as any, async (req: any, res) => {
     try {
       const { userId } = req.params;
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });

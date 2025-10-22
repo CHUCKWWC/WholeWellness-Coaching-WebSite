@@ -12,7 +12,7 @@ async function testCoachUpgrade() {
     const testUserId = '76703324-b93e-45f6-a893-44f0e0ee41d9'; // coachchuck@wwctest.com
     
     // Get current user status
-    const userBefore = await storage.getUser(testUserId);
+    const userBefore = await storage.getUserById(testUserId);
     if (!userBefore) {
       console.error('❌ Test user not found');
       return;
@@ -29,7 +29,7 @@ async function testCoachUpgrade() {
     await CoachEarningsSystem.trackEarnings(testUserId, 99.00, 'test_application_fee');
     
     // Get updated user status
-    const userAfter = await storage.getUser(testUserId);
+    const userAfter = await storage.getUserById(testUserId);
     if (!userAfter) {
       console.error('❌ User not found after upgrade');
       return;
