@@ -3335,7 +3335,23 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   
-  // Get public coach profile by coach ID
+  // Get coach schedule/availability (MUST be before :coachId route)
+  app.get("/api/coach/profile/schedule", optionalAuth as any, async (req: any, res) => {
+    try {
+      // TODO: Implement coach scheduling/availability system
+      // For now, return empty schedule to prevent 404 errors
+      res.json({
+        availableSlots: [],
+        timezone: "America/New_York",
+        bookingEnabled: false
+      });
+    } catch (error) {
+      console.error("Error fetching coach schedule:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get public coach profile by coach ID (MUST be after specific routes like /schedule)
   app.get("/api/coach/profile/:coachId", optionalAuth as any, async (req: any, res) => {
     try {
       const { coachId } = req.params;
@@ -3379,22 +3395,6 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.json(publicProfile);
     } catch (error) {
       console.error("Error fetching public coach profile:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Get coach schedule/availability (stub endpoint to prevent 404 errors)
-  app.get("/api/coach/profile/schedule", optionalAuth as any, async (req: any, res) => {
-    try {
-      // TODO: Implement coach scheduling/availability system
-      // For now, return empty schedule to prevent 404 errors
-      res.json({
-        availableSlots: [],
-        timezone: "America/New_York",
-        bookingEnabled: false
-      });
-    } catch (error) {
-      console.error("Error fetching coach schedule:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
