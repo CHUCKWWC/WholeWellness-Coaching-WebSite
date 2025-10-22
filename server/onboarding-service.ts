@@ -1,5 +1,5 @@
 import { emailService } from './email-service';
-import { storage } from './supabase-client-storage';
+import { storage } from './app-storage';
 import { AuthService } from './auth';
 
 export interface OnboardingStep {

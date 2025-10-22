@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { randomBytes } from 'crypto';
-import { storage } from './supabase-client-storage';
+import { storage } from './app-storage';
 import { google } from 'googleapis';
 
 interface EmailTemplate {

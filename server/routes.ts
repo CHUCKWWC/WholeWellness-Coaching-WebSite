@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { storage } from "./supabase-client-storage";
+import { storage } from "./app-storage";
 import { 
   insertBookingSchema, 
   insertContactSchema, 
