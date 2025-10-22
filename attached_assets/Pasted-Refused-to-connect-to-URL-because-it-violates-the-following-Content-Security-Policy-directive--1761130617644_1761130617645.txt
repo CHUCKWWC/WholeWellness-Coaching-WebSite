@@ -1,0 +1,35 @@
+Refused to connect to '<URL>' because it violates the following Content Security Policy directive: "connect-src 'self' <URL> <URL> *.google.com *.googleapis.com <URL> <URL>".
+Understand this error
+sw.js:117 Refused to connect to 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop' because it violates the following Content Security Policy directive: "connect-src 'self' https://api.stripe.com https://js.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com".
+
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Refused to connect to 'https://placehold.co/400x225/e5e7eb/6b7280?text=Mindful%20Mornings' because it violates the following Content Security Policy directive: "connect-src 'self' https://api.stripe.com https://js.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com".
+
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Refused to connect to 'https://placehold.co/400x225/e5e7eb/6b7280?text=Wellness%20Fundamentals' because it violates the following Content Security Policy directive: "connect-src 'self' https://api.stripe.com https://js.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com".
+
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Refused to connect to 'https://placehold.co/400x225/e5e7eb/6b7280?text=Effective%20Communication' because it violates the following Content Security Policy directive: "connect-src 'self' https://api.stripe.com https://js.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com".
+
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Refused to connect to 'https://placehold.co/400x225/e5e7eb/6b7280?text=Work-Life%20Balance' because it violates the following Content Security Policy directive: "connect-src 'self' https://api.stripe.com https://js.stripe.com *.google.com *.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com".
+
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Fetch API cannot load https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop. Refused to connect because it violates the document's Content Security Policy.
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Fetch API cannot load https://placehold.co/400x225/e5e7eb/6b7280?text=Mindful%20Mornings. Refused to connect because it violates the document's Content Security Policy.
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Fetch API cannot load https://placehold.co/400x225/e5e7eb/6b7280?text=Wellness%20Fundamentals. Refused to connect because it violates the document's Content Security Policy.
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Fetch API cannot load https://placehold.co/400x225/e5e7eb/6b7280?text=Effective%20Communication. Refused to connect because it violates the document's Content Security Policy.
+networkFirst @ sw.js:117Understand this error
+sw.js:117 Fetch API cannot load https://placehold.co/400x225/e5e7eb/6b7280?text=Work-Life%20Balance. Refused to connect because it violates the document's Content Security Policy.
+networkFirst @ sw.js:117Understand this error
+api/create-payment-intent:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+api/coach/profile/clients:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/coach/profile/clients:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/coach/profile/clients:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+coach/clients:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.Understand this error
+api/coach/profile/76703324-b93e-45f6-a893-44f0e0ee41d9:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/coach/profile/76703324-b93e-45f6-a893-44f0e0ee41d9:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+api/coach/profile/76703324-b93e-45f6-a893-44f0e0ee41d9:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
