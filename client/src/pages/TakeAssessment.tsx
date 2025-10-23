@@ -97,7 +97,6 @@ export default function TakeAssessment() {
         title: "Assessment Complete!",
         description: "Your responses have been saved. Generating your results...",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/programs'] });
       queryClient.invalidateQueries({ queryKey: ['/api/assessments/user'] });
       // Navigate back to assessments page
       setLocation('/assessments');

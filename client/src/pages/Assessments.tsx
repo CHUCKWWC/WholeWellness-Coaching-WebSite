@@ -84,9 +84,9 @@ export default function Assessments() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Fetch user's completed programs
+  // Fetch user's completed assessments
   const { data: userPrograms = [], isLoading: programsLoading } = useQuery<UserProgram[]>({
-    queryKey: ['/api/programs'],
+    queryKey: ['/api/assessments/user'],
     retry: false,
   });
 
@@ -145,7 +145,7 @@ export default function Assessments() {
         title: "Assessment Started",
         description: "Your assessment has been created. Complete it to see your results.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/programs'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assessments/user'] });
       // Navigate to assessment questions
       setLocation(`/assessments/take/${data.assessmentId}`);
     },
