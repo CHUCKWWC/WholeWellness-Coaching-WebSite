@@ -1,10 +1,13 @@
-import { 
+import {
   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
   type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
   type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting,
   type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage
 } from "@shared/schema";
+import { mediaLibrary, navigationMenus, siteSettings } from "@shared/cms-schema";
+import { db } from "./db";
+import { asc, desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
