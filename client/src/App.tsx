@@ -242,6 +242,7 @@ function Router() {
           <Route path="/certification-dashboard" component={(props) => <LazyRoute component={CertificationDashboard} loadingText="Loading certification dashboard..." {...props} />} />
           <Route path="/certification-guide" component={(props) => <LazyRoute component={CertificationGuide} loadingText="Loading certification guide..." {...props} />} />
           <Route path="/wellness-journey" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Creating your wellness journey..." {...props} />} />
+          <Route path="/wellness-journey/:journeyId" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Loading wellness journey..." {...props} />} />
           <Route path="/admin/test-payment" component={(props) => <LazyRoute component={AdminTestPayment} loadingText="Loading payment test..." {...props} />} />
           <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
           <Route path="/session/:sessionId/join" component={(props) => <LazyRoute component={SessionJoin} loadingText="Preparing session..." {...props} />} />

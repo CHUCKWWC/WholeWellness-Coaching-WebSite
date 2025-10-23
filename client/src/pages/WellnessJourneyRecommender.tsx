@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useRoute } from "wouter";
 
 interface WellnessJourney {
   id: string;
@@ -117,10 +118,17 @@ export default function WellnessJourneyRecommender() {
   const [activeTab, setActiveTab] = useState("overview");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [match, params] = useRoute("/wellness-journey/:journeyId");
+  
+  // Determine which API endpoint to use based on route
+  const journeyId = params?.journeyId;
+  const apiEndpoint = journeyId 
+    ? `/api/wellness-journey/${journeyId}` 
+    : "/api/wellness-journey/current";
 
-  // Fetch current wellness journey
+  // Fetch wellness journey (either current or specific by ID)
   const { data: journeyData, isLoading: loadingJourney, error } = useQuery<JourneyAnalytics>({
-    queryKey: ["/api/wellness-journey/current"],
+    queryKey: [apiEndpoint],
     retry: false,
   });
 
