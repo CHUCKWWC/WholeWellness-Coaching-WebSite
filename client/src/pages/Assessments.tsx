@@ -99,7 +99,7 @@ export default function Assessments() {
     mutationFn: async (assessmentId: string) => {
       const response = await apiRequest('POST', '/api/create-payment-intent', {
         assessmentId,
-        amount: 9.99
+        amount: 999  // Amount in cents for Stripe
       });
       return response;
     },
