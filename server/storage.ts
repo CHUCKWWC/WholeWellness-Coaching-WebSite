@@ -119,9 +119,18 @@ export interface IStorage {
   getWellnessJourney(id: string): Promise<any | undefined>;
   updateJourneyProgress(journeyId: string): Promise<any | undefined>;
   createWellnessGoal(goal: any): Promise<any>;
+  createJourneyPhase(phase: any): Promise<any>;
+  createUserPreferences(preferences: any): Promise<any>;
+  createLifestyleAssessment(assessment: any): Promise<any>;
+  getJourneyPhases(journeyId: string): Promise<any[]>;
   createJourneyMilestone(milestone: any): Promise<any>;
+  createWellnessRecommendation(recommendation: any): Promise<any>;
+  getWellnessRecommendation(id: string): Promise<any | undefined>;
+  updateRecommendationProgress(id: string, progress: number): Promise<any | undefined>;
+  createProgressTracking(progress: any): Promise<any>;
   recordProgress(progress: any): Promise<any>;
   createAIInsight(insight: any): Promise<any>;
+  createAiInsight(insight: any): Promise<any>;
   getJourneyAnalytics(userId: string): Promise<any>;
   completeJourneyMilestone(milestoneId: string, userId: string): Promise<any | undefined>;
   adaptWellnessJourney(journeyId: string, adaptationData: any): Promise<any | undefined>;

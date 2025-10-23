@@ -7,10 +7,14 @@ import {
   bookings,
   wellnessJourneys,
   wellnessGoals,
+  journeyPhases,
+  userPreferences,
+  lifestyleAssessments,
   journeyMilestones,
   progressTracking,
   aiInsights,
-  journeyAdaptations
+  journeyAdaptations,
+  wellnessRecommendations
 } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import type { User, InsertUser, Booking, InsertBooking } from "@shared/schema";
@@ -206,6 +210,67 @@ class DrizzleStorage implements Partial<IStorage> {
     } catch (error) {
       console.error('[DrizzleStorage] Error creating wellness goal:', error);
       throw error;
+    }
+  }
+
+  async createJourneyPhase(phase: any): Promise<any> {
+    try {
+      console.log('[DrizzleStorage] createJourneyPhase called with:', phase);
+      const [result] = await db
+        .insert(journeyPhases)
+        .values(phase)
+        .returning();
+      console.log('[DrizzleStorage] createJourneyPhase result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating journey phase:', error);
+      throw error;
+    }
+  }
+
+  async createUserPreferences(preferences: any): Promise<any> {
+    try {
+      console.log('[DrizzleStorage] createUserPreferences called with:', preferences);
+      const [result] = await db
+        .insert(userPreferences)
+        .values(preferences)
+        .returning();
+      console.log('[DrizzleStorage] createUserPreferences result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating user preferences:', error);
+      throw error;
+    }
+  }
+
+  async createLifestyleAssessment(assessment: any): Promise<any> {
+    try {
+      console.log('[DrizzleStorage] createLifestyleAssessment called with:', assessment);
+      const [result] = await db
+        .insert(lifestyleAssessments)
+        .values(assessment)
+        .returning();
+      console.log('[DrizzleStorage] createLifestyleAssessment result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating lifestyle assessment:', error);
+      throw error;
+    }
+  }
+
+  async getJourneyPhases(journeyId: string): Promise<any[]> {
+    try {
+      console.log('[DrizzleStorage] getJourneyPhases called for journey:', journeyId);
+      const result = await db
+        .select()
+        .from(journeyPhases)
+        .where(eq(journeyPhases.journeyId, journeyId))
+        .orderBy(journeyPhases.phaseOrder);
+      console.log('[DrizzleStorage] getJourneyPhases result:', result.length, 'phases found');
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting journey phases:', error);
+      return [];
     }
   }
 
@@ -420,6 +485,70 @@ class DrizzleStorage implements Partial<IStorage> {
       console.error('[DrizzleStorage] Error adapting wellness journey:', error);
       return undefined;
     }
+  }
+
+  async createWellnessRecommendation(recommendation: any): Promise<any> {
+    try {
+      console.log('[DrizzleStorage] createWellnessRecommendation called with:', recommendation);
+      const [result] = await db
+        .insert(wellnessRecommendations)
+        .values(recommendation)
+        .returning();
+      console.log('[DrizzleStorage] createWellnessRecommendation result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating wellness recommendation:', error);
+      throw error;
+    }
+  }
+
+  async getWellnessRecommendation(id: string): Promise<any | undefined> {
+    try {
+      console.log('[DrizzleStorage] getWellnessRecommendation called with id:', id);
+      const result = await db
+        .select()
+        .from(wellnessRecommendations)
+        .where(eq(wellnessRecommendations.id, id))
+        .limit(1);
+      
+      console.log('[DrizzleStorage] getWellnessRecommendation result:', result[0] ? `Found recommendation ${result[0].id}` : 'Recommendation not found');
+      return result[0];
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting wellness recommendation:', error);
+      return undefined;
+    }
+  }
+
+  async updateRecommendationProgress(id: string, progress: number): Promise<any | undefined> {
+    try {
+      console.log('[DrizzleStorage] updateRecommendationProgress called with:', { id, progress });
+      const [result] = await db
+        .update(wellnessRecommendations)
+        .set({ 
+          userProgress: progress,
+          lastAccessed: new Date(),
+          timesAccessed: db.sql`${wellnessRecommendations.timesAccessed} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(wellnessRecommendations.id, id))
+        .returning();
+      
+      console.log('[DrizzleStorage] updateRecommendationProgress result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error updating recommendation progress:', error);
+      return undefined;
+    }
+  }
+
+  async createProgressTracking(progress: any): Promise<any> {
+    // This is an alias for recordProgress since they both insert into progressTracking table
+    return this.recordProgress(progress);
+  }
+
+  async createAiInsight(insight: any): Promise<any> {
+    // This is an alias for createAIInsight (different casing in route calls)
+    return this.createAIInsight(insight);
   }
 }
 
