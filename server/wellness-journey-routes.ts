@@ -1,9 +1,8 @@
 import type { Express } from "express";
 import { z } from "zod";
 import { storage } from "./storage";
-import { eq, and, desc } from "drizzle-orm";
-import { 
-  wellnessJourneys, 
+import {
+  wellnessJourneys,
   wellnessGoals, 
   lifestyleAssessments, 
   userPreferences,
@@ -14,6 +13,7 @@ import {
   progressTracking,
   aiInsights
 } from "@shared/schema";
+import type { AuthenticatedRequest } from "./auth";
 
 // Validation schemas
 const wellnessGoalSchema = z.object({
@@ -57,13 +57,58 @@ const generateJourneySchema = z.object({
   preferences: preferencesSchema,
 });
 
+type WellnessGoalInput = z.infer<typeof wellnessGoalSchema>;
+type LifestyleAssessmentInput = z.infer<typeof lifestyleAssessmentSchema>;
+type PreferencesInput = z.infer<typeof preferencesSchema>;
+
+interface JourneyPhase {
+  name: string;
+  description: string;
+  order: number;
+  estimated_duration: string;
+  goals: string[];
+  milestones: string[];
+}
+
+interface JourneyRecommendationResource {
+  type: string;
+  title: string;
+  url: string;
+  duration?: number;
+}
+
+interface JourneyRecommendation {
+  type: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: number;
+  estimated_time: number;
+  difficulty_level: string;
+  ai_reasoning: string;
+  action_steps: string[];
+  success_metrics: string[];
+  resources: JourneyRecommendationResource[];
+  expected_outcomes: string[];
+  progress_tracking?: Record<string, unknown>;
+}
+
+interface JourneyInsight {
+  type: string;
+  title: string;
+  description: string;
+  confidence: number;
+  impact_level: "high" | "medium" | "low";
+  suggested_actions: string[];
+}
+
 // AI-powered recommendation engine
 class WellnessRecommendationEngine {
   static async generateJourney(
     userId: string,
-    goals: any[],
-    lifestyle: any,
-    preferences: any
+    goals: WellnessGoalInput[],
+    lifestyle: LifestyleAssessmentInput,
+    preferences: PreferencesInput,
   ) {
     // Determine journey type based on goals and lifestyle
     const journeyType = this.determineJourneyType(goals, lifestyle);
@@ -86,7 +131,10 @@ class WellnessRecommendationEngine {
     };
   }
 
-  private static determineJourneyType(goals: any[], lifestyle: any): string {
+  private static determineJourneyType(
+    goals: WellnessGoalInput[],
+    lifestyle: LifestyleAssessmentInput,
+  ): string {
     const highPriorityGoals = goals.filter(g => g.priority === 'high').length;
     const stressLevel = lifestyle.stress_level;
     const supportSystem = lifestyle.support_system;
@@ -102,31 +150,41 @@ class WellnessRecommendationEngine {
     }
   }
 
-  private static calculateEstimatedCompletion(goals: any[], preferences: any): Date {
+  private static calculateEstimatedCompletion(
+    goals: WellnessGoalInput[],
+    preferences: PreferencesInput,
+  ): Date {
     const baseWeeks = goals.length * 4; // 4 weeks per goal base
-    const intensityMultiplier = {
-      'gentle': 1.5,
-      'moderate': 1.0,
-      'intense': 0.7
-    }[preferences.intensity_preference] || 1.0;
-    
-    const frequencyMultiplier = {
-      'daily': 0.8,
-      'every_other_day': 1.0,
-      'weekly': 1.5,
-      'bi_weekly': 2.0,
-      'monthly': 3.0
-    }[preferences.frequency] || 1.0;
+    const intensityMultipliers: Record<PreferencesInput["intensity_preference"], number> = {
+      gentle: 1.5,
+      moderate: 1.0,
+      intense: 0.7,
+    };
+
+    const frequencyMultipliers: Record<PreferencesInput["frequency"], number> = {
+      daily: 0.8,
+      every_other_day: 1.0,
+      weekly: 1.5,
+      bi_weekly: 2.0,
+      monthly: 3.0,
+    };
+
+    const intensityMultiplier = intensityMultipliers[preferences.intensity_preference] ?? 1.0;
+    const frequencyMultiplier = frequencyMultipliers[preferences.frequency] ?? 1.0;
 
     const adjustedWeeks = baseWeeks * intensityMultiplier * frequencyMultiplier;
     const completionDate = new Date();
     completionDate.setDate(completionDate.getDate() + (adjustedWeeks * 7));
-    
+
     return completionDate;
   }
 
-  private static generatePhases(goals: any[], lifestyle: any, preferences: any): any[] {
-    const phases = [];
+  private static generatePhases(
+    goals: WellnessGoalInput[],
+    lifestyle: LifestyleAssessmentInput,
+    preferences: PreferencesInput,
+  ): JourneyPhase[] {
+    const phases: JourneyPhase[] = [];
     
     // Foundation Phase (Always first)
     phases.push({
@@ -139,7 +197,7 @@ class WellnessRecommendationEngine {
     });
 
     // Development Phase(s) - based on goals
-    const goalCategories = [...new Set(goals.map(g => g.category))];
+    const goalCategories = Array.from(new Set(goals.map(g => g.category)));
     goalCategories.forEach((category, index) => {
       phases.push({
         name: `${category.charAt(0).toUpperCase() + category.slice(1)} Development`,
@@ -164,8 +222,13 @@ class WellnessRecommendationEngine {
     return phases;
   }
 
-  private static generateRecommendations(goals: any[], lifestyle: any, preferences: any, phases: any[]): any[] {
-    const recommendations = [];
+  private static generateRecommendations(
+    goals: WellnessGoalInput[],
+    lifestyle: LifestyleAssessmentInput,
+    preferences: PreferencesInput,
+    phases: JourneyPhase[],
+  ): JourneyRecommendation[] {
+    const recommendations: JourneyRecommendation[] = [];
     
     // Generate foundation recommendations
     recommendations.push({
@@ -258,8 +321,12 @@ class WellnessRecommendationEngine {
     return recommendations;
   }
 
-  private static generateInitialInsights(goals: any[], lifestyle: any, preferences: any): any[] {
-    const insights = [];
+  private static generateInitialInsights(
+    goals: WellnessGoalInput[],
+    lifestyle: LifestyleAssessmentInput,
+    preferences: PreferencesInput,
+  ): JourneyInsight[] {
+    const insights: JourneyInsight[] = [];
     
     // Stress level insight
     if (lifestyle.stress_level >= 7) {

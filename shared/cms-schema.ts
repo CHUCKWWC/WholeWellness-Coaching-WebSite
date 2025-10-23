@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, timestamp, boolean, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, integer, jsonb, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -57,13 +57,18 @@ export const navigationMenus = pgTable("navigation_menus", {
   name: varchar("name").notNull(),
   label: varchar("label").notNull(),
   url: text("url").notNull(),
-  parentId: integer("parent_id").references(() => navigationMenus.id),
+  parentId: integer("parent_id"),
   order: integer("order").default(0),
   isExternal: boolean("is_external").default(false),
   isActive: boolean("is_active").default(true),
   menuLocation: varchar("menu_location").default("main"), // main, footer, sidebar
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  parentReference: foreignKey({
+    columns: [table.parentId],
+    foreignColumns: [table.id],
+  }),
+}));
 
 // Site settings table
 export const siteSettings = pgTable("site_settings", {
