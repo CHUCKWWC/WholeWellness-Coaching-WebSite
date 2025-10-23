@@ -64,9 +64,7 @@ export default function OnboardingWizard() {
   // Complete step mutation
   const completeStepMutation = useMutation({
     mutationFn: async (stepId: string) => {
-      return apiRequest(`/api/onboarding/complete-step/${stepId}`, {
-        method: 'POST',
-      });
+      return apiRequest('POST', `/api/onboarding/complete-step/${stepId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/onboarding/progress'] });
@@ -87,10 +85,7 @@ export default function OnboardingWizard() {
   // Coaching selection mutation
   const coachingSelectionMutation = useMutation({
     mutationFn: async (specialties: string[]) => {
-      return apiRequest('/api/onboarding/coaching-selection', {
-        method: 'POST',
-        body: JSON.stringify({ specialties }),
-      });
+      return apiRequest('POST', '/api/onboarding/coaching-selection', { specialties });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/onboarding/progress'] });
@@ -126,11 +121,12 @@ export default function OnboardingWizard() {
     setFlowResponses(newResponses);
 
     try {
-      const response = await apiRequest('/api/onboarding/coaching-flow', {
-        method: 'POST',
-        body: JSON.stringify({ step: 'category_selected', response: responseId }),
+      const response = await apiRequest('POST', '/api/onboarding/coaching-flow', {
+        step: 'category_selected',
+        response: responseId,
       });
-      setCoachingFlow(response);
+      const data = await response.json();
+      setCoachingFlow(data);
     } catch (error) {
       toast({
         title: "Error",

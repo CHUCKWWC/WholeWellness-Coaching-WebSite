@@ -19,10 +19,7 @@ export default function EmailVerification() {
   // Verify email mutation
   const verifyEmailMutation = useMutation({
     mutationFn: async (token: string) => {
-      return apiRequest('/api/onboarding/verify-email', {
-        method: 'POST',
-        body: JSON.stringify({ token }),
-      });
+      return apiRequest('POST', '/api/onboarding/verify-email', { token });
     },
     onSuccess: () => {
       setVerificationStatus('success');
@@ -46,9 +43,7 @@ export default function EmailVerification() {
   // Resend verification mutation
   const resendVerificationMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/onboarding/resend-verification', {
-        method: 'POST',
-      });
+      return apiRequest('POST', '/api/onboarding/resend-verification');
     },
     onSuccess: () => {
       toast({

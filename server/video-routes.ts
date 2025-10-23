@@ -506,16 +506,21 @@ router.get("/sessions", requireCoachRole, async (req: AuthenticatedRequest, res)
     const coachId = req.user!.id;
     const { status } = req.query;
 
-    let query = db
+    const statusFilter = typeof status === "string" && status.length > 0
+      ? status
+      : undefined;
+
+    const sessions = await db
       .select()
       .from(videoSessions)
-      .where(eq(videoSessions.coachId, coachId));
-
-    if (status) {
-      query = query.where(eq(videoSessions.status, status as string));
-    }
-
-    const sessions = await query;
+      .where(
+        statusFilter
+          ? and(
+              eq(videoSessions.coachId, coachId),
+              eq(videoSessions.status, statusFilter),
+            )
+          : eq(videoSessions.coachId, coachId),
+      );
 
     res.json(sessions);
   } catch (error) {

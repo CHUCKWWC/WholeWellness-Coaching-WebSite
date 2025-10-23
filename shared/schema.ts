@@ -1,13 +1,14 @@
-import { 
-  pgTable, 
-  text, 
-  serial, 
-  integer, 
-  boolean, 
-  timestamp, 
-  varchar, 
-  decimal, 
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  varchar,
+  decimal,
   jsonb,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -936,12 +937,17 @@ export const knowledgeBaseCategories = pgTable("knowledge_base_categories", {
   description: text("description"),
   icon: varchar("icon"), // Icon name or URL
   color: varchar("color"), // Hex color code
-  parentId: integer("parent_id").references(() => knowledgeBaseCategories.id),
+  parentId: integer("parent_id"),
   sortOrder: integer("sort_order").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  parentReference: foreignKey({
+    columns: [table.parentId],
+    foreignColumns: [table.id],
+  }),
+}));
 
 export const knowledgeBaseFeedback = pgTable("knowledge_base_feedback", {
   id: serial("id").primaryKey(),

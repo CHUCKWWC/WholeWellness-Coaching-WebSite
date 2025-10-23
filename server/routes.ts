@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./app-storage";
+import { db } from "./db";
 import { 
   insertBookingSchema, 
   insertContactSchema, 
@@ -32,6 +33,7 @@ import {
   insertEventRegistrationSchema
 } from "@shared/schema";
 import { z } from "zod";
+import { and, desc, eq } from "drizzle-orm";
 import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
 import { coachStorage } from "./coach-storage";
 import { 
@@ -57,6 +59,7 @@ import { onboardingNewRoutes } from "./onboarding-new-routes";
 import { authLimiter } from "./security";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
+import { coachSessionNotes, chatSummaries } from "@shared/schema";
 // Admin auth now uses OAuth only - no password login exports
 
 // Sample resources seeding function
@@ -2972,10 +2975,14 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Get session notes for a specific client
-  app.get("/api/coach/session-notes/:clientId", requireCoachRole as any, async (req: any, res) => {
+  app.get("/api/coach/session-notes/:clientId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
     try {
       const { clientId } = req.params;
-      const userId = req.user.id;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       // Get coach profile
       const coach = await coachStorage.getCoachByUserId(userId);
@@ -3000,10 +3007,14 @@ When to refer to licensed therapists and emergency resources for relationship cr
   });
 
   // Get AI insights (chat summaries) for a specific client
-  app.get("/api/coach/client-ai-insights/:clientId", requireCoachRole as any, async (req: any, res) => {
+  app.get("/api/coach/client-ai-insights/:clientId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
     try {
       const { clientId } = req.params;
-      const userId = req.user.id;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       // Get coach profile
       const coach = await coachStorage.getCoachByUserId(userId);

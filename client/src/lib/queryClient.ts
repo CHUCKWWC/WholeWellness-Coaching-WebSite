@@ -29,30 +29,95 @@ async function getCsrfToken(): Promise<string> {
   }
 }
 
+type ApiRequestData = BodyInit | Record<string, unknown> | undefined;
+
+interface ApiRequestOptions extends RequestInit {
+  skipCsrf?: boolean;
+}
+
+function isBodyInit(data: unknown): data is BodyInit {
+  if (data == null) {
+    return false;
+  }
+
+  if (typeof data === 'string') {
+    return true;
+  }
+
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    return true;
+  }
+
+  if (typeof FormData !== 'undefined' && data instanceof FormData) {
+    return true;
+  }
+
+  if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+    return true;
+  }
+
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+    return true;
+  }
+
+  if (typeof ReadableStream !== 'undefined' && data instanceof ReadableStream) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
+  data?: ApiRequestData,
+  options: ApiRequestOptions = {},
 ): Promise<Response> {
-  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  
-  // Add CSRF token for state-changing requests
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+  const {
+    skipCsrf,
+    headers: initHeaders,
+    body: initBody,
+    credentials,
+    method: _ignoredMethod,
+    ...restOptions
+  } = options;
+
+  const headers = new Headers(initHeaders as HeadersInit | undefined);
+
+  let body: BodyInit | undefined;
+
+  if (isBodyInit(data)) {
+    body = data;
+  } else if (data !== undefined) {
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+    body = JSON.stringify(data);
+  } else if (initBody != null) {
+    body = initBody as BodyInit;
+  }
+
+  const upperMethod = method.toUpperCase();
+  const shouldAttachCsrf =
+    !skipCsrf && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(upperMethod);
+
+  if (shouldAttachCsrf) {
     const token = await getCsrfToken();
     if (token) {
-      headers['x-csrf-token'] = token;
+      headers.set('x-csrf-token', token);
     }
   }
 
-  const res = await fetch(url, {
-    method,
+  const response = await fetch(url, {
+    ...restOptions,
+    method: upperMethod,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    body,
+    credentials: credentials ?? 'include',
   });
 
-  await throwIfResNotOk(res);
-  return res;
+  await throwIfResNotOk(response);
+  return response;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
