@@ -13,7 +13,7 @@ import {
   progressTracking,
   aiInsights
 } from "@shared/schema";
-import type { AuthenticatedRequest } from "./auth";
+import { requireAuth, type AuthenticatedRequest } from "./auth";
 
 // Validation schemas
 const wellnessGoalSchema = z.object({
@@ -386,10 +386,9 @@ class WellnessRecommendationEngine {
 
 export function registerWellnessJourneyRoutes(app: Express) {
   // Get current user's wellness journey
-  app.get('/api/wellness-journey/current', async (req: AuthenticatedRequest, res) => {
+  app.get('/api/wellness-journey/current', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-
-      const journey = await storage.getCurrentWellnessJourney(req.user.id);
+      const journey = await storage.getCurrentWellnessJourney(req.user!.id);
       
       if (!journey) {
         return res.status(404).json({ message: 'No active journey found' });
@@ -403,17 +402,13 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Generate new wellness journey
-  app.post('/api/wellness-journey/generate', async (req: AuthenticatedRequest, res) => {
+  app.post('/api/wellness-journey/generate', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
-
       const validatedData = generateJourneySchema.parse(req.body);
       
       // Generate AI-powered journey
       const journeyData = await WellnessRecommendationEngine.generateJourney(
-        req.user.id,
+        req.user!.id,
         validatedData.goals,
         validatedData.lifestyle,
         validatedData.preferences
@@ -421,9 +416,9 @@ export function registerWellnessJourneyRoutes(app: Express) {
 
       // Create journey in database
       const journey = await storage.createWellnessJourney({
-        userId: req.user.id,
+        userId: req.user!.id,
         journeyType: journeyData.journeyType,
-        title: `${req.user.firstName}'s Wellness Journey`,
+        title: `${req.user!.firstName}'s Wellness Journey`,
         description: `Personalized wellness journey focusing on ${validatedData.goals.map(g => g.category).join(', ')} goals`,
         estimatedCompletion: journeyData.estimatedCompletion,
         currentPhase: journeyData.phases[0]?.name || 'Foundation Building',
@@ -541,11 +536,8 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Update progress on a recommendation
-  app.post('/api/wellness-journey/progress', async (req: AuthenticatedRequest, res) => {
+  app.post('/api/wellness-journey/progress', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
 
       const { recommendation_id, progress, notes, mood_rating, energy_rating } = req.body;
 
@@ -591,13 +583,10 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Get journey analytics and insights
-  app.get('/api/wellness-journey/analytics', async (req: AuthenticatedRequest, res) => {
+  app.get('/api/wellness-journey/analytics', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
 
-      const analytics = await storage.getJourneyAnalytics(req.user.id);
+      const analytics = await storage.getJourneyAnalytics(req.user!.id);
       res.json(analytics);
 
     } catch (error) {
@@ -607,11 +596,8 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Adapt journey based on user feedback or progress
-  app.post('/api/wellness-journey/adapt', async (req: AuthenticatedRequest, res) => {
+  app.post('/api/wellness-journey/adapt', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
 
       const { journey_id, adaptation_reason, feedback } = req.body;
 
@@ -640,11 +626,8 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Complete a milestone
-  app.post('/api/wellness-journey/milestone/:milestone_id/complete', async (req: AuthenticatedRequest, res) => {
+  app.post('/api/wellness-journey/milestone/:milestone_id/complete', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
 
       const { milestone_id } = req.params;
       const { reflection, difficulty_rating, satisfaction_rating } = req.body;

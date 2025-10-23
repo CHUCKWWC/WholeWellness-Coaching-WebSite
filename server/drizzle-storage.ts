@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { users, coaches, coachCredentials, coachAvailability, bookings } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
-import type { User, InsertUser, Booking } from "@shared/schema";
+import type { User, InsertUser, Booking, InsertBooking } from "@shared/schema";
 import type { IStorage } from "./supabase-client-storage";
 
 class DrizzleStorage implements Partial<IStorage> {
@@ -81,11 +81,9 @@ class DrizzleStorage implements Partial<IStorage> {
     }
   }
 
-  async createBooking(insertBooking: any): Promise<Booking> {
+  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
     try {
       console.log('[DrizzleStorage] createBooking called with:', insertBooking);
-      // The insertBooking object already has the correct field names
-      // Drizzle ORM handles the camelCase to snake_case mapping
       const [booking] = await db
         .insert(bookings)
         .values(insertBooking)
