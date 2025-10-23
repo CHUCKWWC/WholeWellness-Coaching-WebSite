@@ -35,8 +35,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      return response.json();
+      return await apiRequest("POST", "/api/auth/login", data);
     },
     onSuccess: (data) => {
       toast({
