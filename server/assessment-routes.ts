@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { storage } from "./supabase-client-storage";
+import { storage } from "./app-storage";
 import { requireAuth, type AuthenticatedRequest } from "./auth";
 import { z } from "zod";
 import { insertUserAssessmentSchema, insertAssessmentTypeSchema } from "@shared/schema";
