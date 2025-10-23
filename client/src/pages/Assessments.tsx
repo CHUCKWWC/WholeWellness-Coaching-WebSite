@@ -94,65 +94,42 @@ export default function Assessments() {
   const freeAssessmentsUsed = userPrograms.filter(program => !program.paid).length;
   const remainingFreeAssessments = Math.max(0, 3 - freeAssessmentsUsed);
 
-  // Create payment intent mutation
+  // Create payment intent mutation for paid assessments
   const createPaymentMutation = useMutation({
     mutationFn: async (assessmentId: string) => {
       const response = await apiRequest('POST', '/api/create-payment-intent', {
         assessmentId,
-        amount: 999  // Amount in cents for Stripe
+        amount: 999,  // Amount in cents for Stripe ($9.99)
+        description: 'Wellness Assessment'
       });
       return response;
     },
     onSuccess: async (data) => {
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to initialize');
-      }
-
-      // Redirect to Stripe Checkout
-      const result = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (result.error) {
-        toast({
-          title: "Payment Error",
-          description: result.error.message,
-          variant: "destructive",
+      // For assessment payments, we get back a checkout URL
+      if (data.url) {
+        window.location.href = data.url;
+      } else if (data.sessionId) {
+        // Fallback to Stripe checkout redirect
+        const stripe = await stripePromise;
+        if (!stripe) {
+          throw new Error('Stripe failed to initialize');
+        }
+        const result = await stripe.redirectToCheckout({
+          sessionId: data.sessionId,
         });
+        if (result.error) {
+          toast({
+            title: "Payment Error",
+            description: result.error.message,
+            variant: "destructive",
+          });
+        }
       }
     },
     onError: (error: any) => {
       toast({
         title: "Payment Failed",
         description: error.message || "Failed to process payment",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Start assessment mutation
-  const startAssessmentMutation = useMutation({
-    mutationFn: async (assessmentId: string) => {
-      const response = await apiRequest('POST', '/api/programs', {
-        assessmentType: assessmentId,
-        paid: remainingFreeAssessments > 0 ? false : true
-      });
-      return { ...response, assessmentId };
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Assessment Started",
-        description: "Your assessment has been created. Complete it to see your results.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/assessments/user'] });
-      // Navigate to assessment questions
-      setLocation(`/assessments/take/${data.assessmentId}`);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Assessment Failed",
-        description: error.message || "Failed to start assessment",
         variant: "destructive",
       });
     },
@@ -277,11 +254,11 @@ export default function Assessments() {
                       {/* Action button */}
                       <Button 
                         onClick={() => handleStartAssessment(assessment)}
-                        disabled={createPaymentMutation.isPending || startAssessmentMutation.isPending}
+                        disabled={createPaymentMutation.isPending}
                         variant={completed ? "outline" : "default"}
                         className={needsPayment ? "bg-teal-600 hover:bg-teal-700" : ""}
                       >
-                        {createPaymentMutation.isPending || startAssessmentMutation.isPending ? (
+                        {createPaymentMutation.isPending ? (
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
                         ) : null}
                         

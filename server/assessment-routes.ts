@@ -7,6 +7,28 @@ import { getAssessmentQuestions } from "./assessment-questions";
 
 const router = Router();
 
+// Handle payment success for assessments
+router.get("/payment-success", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { session_id, assessmentId } = req.query;
+    
+    if (!session_id || !assessmentId) {
+      return res.status(400).json({ error: "Missing required parameters" });
+    }
+    
+    // The Stripe webhook already created the program record with paid=true
+    // This endpoint is just for frontend confirmation
+    res.json({ 
+      success: true, 
+      message: "Payment processed successfully",
+      assessmentId: assessmentId as string
+    });
+  } catch (error) {
+    console.error("Error handling payment success:", error);
+    res.status(500).json({ error: "Failed to process payment success" });
+  }
+});
+
 // Get all assessment types available to users
 router.get("/assessment-types", async (req, res) => {
   try {
@@ -46,21 +68,43 @@ router.get("/assessment-types/:id", async (req, res) => {
 // Submit completed assessment (requires authentication)
 router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const assessmentData = insertUserAssessmentSchema.parse({
-      ...req.body,
-      userId: req.user!.id,
-    });
+    const { assessmentTypeId, responses } = req.body;
+    const userId = req.user!.id;
     
-    const assessment = await storage.createUserAssessment(assessmentData);
+    // Check if user already has a program record for this assessment
+    const existingPrograms = await storage.getUserPrograms(userId);
+    const existingProgram = existingPrograms.find(p => p.assessmentType === assessmentTypeId);
     
-    // Generate AI summary of responses (optional enhancement)
-    // This could call an AI service to create a summary
-    
-    res.json({ 
-      success: true, 
-      assessmentId: assessment.id,
-      message: "Assessment completed successfully" 
-    });
+    if (existingProgram) {
+      // Update existing program with responses
+      await storage.updateProgram(existingProgram.id, {
+        results: responses,
+      });
+      
+      res.json({ 
+        success: true, 
+        assessmentId: existingProgram.id,
+        message: "Assessment results updated successfully" 
+      });
+    } else {
+      // Count free assessments used
+      const freeAssessmentsUsed = existingPrograms.filter(p => !p.paid).length;
+      const isFreeTier = freeAssessmentsUsed < 3;
+      
+      // Create new program record with appropriate paid status
+      const program = await storage.createProgram({
+        userId,
+        assessmentType: assessmentTypeId,
+        results: responses,
+        paid: !isFreeTier, // If not in free tier, it should be paid (will be validated by payment)
+      });
+      
+      res.json({ 
+        success: true, 
+        assessmentId: program.id,
+        message: "Assessment completed successfully" 
+      });
+    }
   } catch (error) {
     console.error("Error submitting assessment:", error);
     // Only log sensitive data in development
@@ -87,11 +131,12 @@ router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get current user's completed assessments (no userId param needed)
+// Get current user's completed assessments (returns programs data for paid tracking)
 router.get("/user", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const assessments = await storage.getUserAssessments(req.user!.id);
-    res.json(assessments);
+    // Return programs instead of userAssessments for paid tracking
+    const programs = await storage.getUserPrograms(req.user!.id);
+    res.json(programs);
   } catch (error) {
     console.error("Error fetching user assessments:", error);
     res.status(500).json({ error: "Failed to fetch assessments" });

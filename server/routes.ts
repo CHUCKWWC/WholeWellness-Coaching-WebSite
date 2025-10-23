@@ -1564,7 +1564,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
         return res.status(500).json({ message: 'Payment processing not configured' });
       }
 
-      const { amount, currency = 'usd', description = 'Coaching Services' } = req.body;
+      const { amount, currency = 'usd', description = 'Coaching Services', assessmentId } = req.body;
       
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: 'Invalid amount' });
@@ -1583,7 +1583,39 @@ When to refer to licensed therapists and emergency resources for relationship cr
         await donationStorage.updateUser(user.id, { stripeCustomerId });
       }
 
-      // Create payment intent
+      // For assessment payments, create checkout session instead of payment intent
+      if (assessmentId) {
+        const session = await stripe.checkout.sessions.create({
+          customer: stripeCustomerId,
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: description || 'Wellness Assessment',
+                description: 'Unlock your personalized assessment results',
+              },
+              unit_amount: amount || 999, // Default to $9.99 in cents
+            },
+            quantity: 1,
+          }],
+          mode: 'payment',
+          success_url: `${req.headers.origin}/assessments/payment-success?session_id={CHECKOUT_SESSION_ID}&assessmentId=${assessmentId}`,
+          cancel_url: `${req.headers.origin}/assessments`,
+          metadata: {
+            userId: user.id,
+            type: 'assessment',
+            assessmentId: assessmentId || '',
+          }
+        });
+
+        return res.json({
+          sessionId: session.id,
+          url: session.url
+        });
+      }
+
+      // Regular payment intent for other services
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount, // Amount should already be in cents
         currency,
@@ -2056,14 +2088,32 @@ When to refer to licensed therapists and emergency resources for relationship cr
       
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        const { donationId, userId } = session.metadata;
+        const { donationId, userId, type, assessmentId } = session.metadata;
         
-        // Update donation status
-        await donationStorage.updateDonation(donationId, {
-          status: 'completed',
-          stripePaymentIntentId: session.payment_intent,
-          processedAt: new Date(),
-        });
+        // Handle assessment payments
+        if (type === 'assessment' && assessmentId) {
+          try {
+            // Create the assessment record with paid=true
+            await storage.createProgram({
+              userId,
+              assessmentType: assessmentId,
+              results: null,
+              paid: true, // Mark as paid assessment
+            });
+            console.log(`✅ Created paid assessment record for user ${userId}, assessment ${assessmentId}`);
+          } catch (error) {
+            console.error('Error creating paid assessment:', error);
+          }
+        }
+        
+        // Handle donation payments
+        if (donationId) {
+          // Update donation status
+          await donationStorage.updateDonation(donationId, {
+            status: 'completed',
+            stripePaymentIntentId: session.payment_intent,
+            processedAt: new Date(),
+          });
         
         // Calculate and award points
         const donation = await donationStorage.getDonationById(donationId);
@@ -2087,19 +2137,20 @@ When to refer to licensed therapists and emergency resources for relationship cr
             membershipLevel: newLevel,
           });
           
-          // Create reward transaction
-          await donationStorage.createRewardTransaction({
-            id: uuidv4(),
-            userId,
-            points,
-            type: 'earned',
-            reason: 'donation',
-            donationId,
-            description: `Points earned from ${donation.donationType} donation`,
-          });
-          
-          // Update impact metrics
-          await donationStorage.updateImpactMetrics(userId, donation);
+            // Create reward transaction
+            await donationStorage.createRewardTransaction({
+              id: uuidv4(),
+              userId,
+              points,
+              type: 'earned',
+              reason: 'donation',
+              donationId,
+              description: `Points earned from ${donation.donationType} donation`,
+            });
+            
+            // Update impact metrics
+            await donationStorage.updateImpactMetrics(userId, donation);
+          }
         }
       }
       

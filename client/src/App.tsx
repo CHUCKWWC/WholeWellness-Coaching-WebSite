@@ -78,6 +78,7 @@ const WixBooking = lazy(() => import("@/pages/WixBooking"));
 const Assessments = lazy(() => import("@/pages/Assessments"));
 const TakeAssessment = lazy(() => import("@/pages/TakeAssessment"));
 const AssessmentResults = lazy(() => import("@/pages/AssessmentResults"));
+const AssessmentPaymentSuccess = lazy(() => import("@/pages/AssessmentPaymentSuccess"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const EnhancedOnboarding = lazy(() => import("@/pages/EnhancedOnboarding"));
 const CoachCertifications = lazy(() => import("@/pages/CoachCertifications"));
@@ -176,6 +177,7 @@ function Router() {
           <Route path="/assessments" component={(props) => <LazyRoute component={Assessments} loadingText="Loading Assessments..." {...props} />} />
           <Route path="/assessments/take/:id" component={(props) => <LazyRoute component={TakeAssessment} loadingText="Loading Assessment..." {...props} />} />
           <Route path="/assessments/results/:id" component={(props) => <LazyRoute component={AssessmentResults} loadingText="Loading Results..." {...props} />} />
+          <Route path="/assessments/payment-success" component={(props) => <LazyRoute component={AssessmentPaymentSuccess} loadingText="Processing payment..." {...props} />} />
           <Route path="/user-profile" component={(props) => <LazyRoute component={UserProfile} loadingText="Loading Profile..." {...props} />} />
           <Route path="/settings" component={(props) => <LazyRoute component={Settings} loadingText="Loading Settings..." {...props} />} />
           <Route path="/admin-login" component={() => <Login />} />
