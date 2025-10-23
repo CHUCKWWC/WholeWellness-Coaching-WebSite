@@ -1,0 +1,60 @@
+diff --git a/client/src/components/DigestPreferencesSettings.tsx b/client/src/components/DigestPreferencesSettings.tsx
+index 04e0f1a533c7c14dc7647e52ed862b180694deee..43f01c12c1f8878c0004930d863b4f4a6a5fb41a 100644
+--- a/client/src/components/DigestPreferencesSettings.tsx
++++ b/client/src/components/DigestPreferencesSettings.tsx
+@@ -57,54 +57,51 @@ export default function DigestPreferencesSettings() {
+   const [preferredDay, setPreferredDay] = useState(preferences?.preferredDay || "monday");
+   const [preferredHour, setPreferredHour] = useState(preferences?.preferredHour || 9);
+   const [timezone, setTimezone] = useState(preferences?.timezone || "America/New_York");
+   const [emailEnabled, setEmailEnabled] = useState(preferences?.emailEnabled ?? true);
+   const [includeActionItems, setIncludeActionItems] = useState(preferences?.includeActionItems ?? true);
+   const [includeInsights, setIncludeInsights] = useState(preferences?.includeInsights ?? true);
+   const [includeProgress, setIncludeProgress] = useState(preferences?.includeProgress ?? true);
+ 
+   // Update form when preferences load
+   useEffect(() => {
+     if (preferences) {
+       setFrequency(preferences.frequency);
+       setPreferredDay(preferences.preferredDay || "monday");
+       setPreferredHour(preferences.preferredHour || 9);
+       setTimezone(preferences.timezone);
+       setEmailEnabled(preferences.emailEnabled ?? true);
+       setIncludeActionItems(preferences.includeActionItems ?? true);
+       setIncludeInsights(preferences.includeInsights ?? true);
+       setIncludeProgress(preferences.includeProgress ?? true);
+     }
+   }, [preferences]);
+ 
+   // Save preferences mutation
+   const saveMutation = useMutation({
+     mutationFn: async (data: any) => {
+-      return apiRequest('/api/digest/preferences', {
+-        method: 'POST',
+-        body: JSON.stringify(data),
+-      });
++      return apiRequest('POST', '/api/digest/preferences', data);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/digest/preferences'] });
+       toast({
+         title: "Preferences saved",
+         description: "Your digest preferences have been updated successfully.",
+       });
+     },
+     onError: (error: any) => {
+       toast({
+         title: "Error saving preferences",
+         description: error.message || "Failed to save preferences. Please try again.",
+         variant: "destructive",
+       });
+     },
+   });
+ 
+   const handleSave = () => {
+     saveMutation.mutate({
+       frequency,
+       preferredDay,
+       preferredHour,
+       timezone,
+       emailEnabled,
+       includeActionItems,

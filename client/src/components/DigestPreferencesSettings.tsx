@@ -79,10 +79,7 @@ export default function DigestPreferencesSettings() {
   // Save preferences mutation
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/digest/preferences', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/digest/preferences', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/digest/preferences'] });
