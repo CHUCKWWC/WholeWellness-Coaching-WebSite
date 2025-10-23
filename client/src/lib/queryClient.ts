@@ -29,10 +29,19 @@ async function getCsrfToken(): Promise<string> {
   }
 }
 
-type ApiRequestData = BodyInit | Record<string, unknown> | undefined;
+type ApiRequestData = BodyInit | object | undefined;
+
+type ApiResponseType =
+  | "json"
+  | "text"
+  | "blob"
+  | "arrayBuffer"
+  | "formData"
+  | "response";
 
 interface ApiRequestOptions extends RequestInit {
   skipCsrf?: boolean;
+  responseType?: ApiResponseType;
 }
 
 function isBodyInit(data: unknown): data is BodyInit {
@@ -67,18 +76,19 @@ function isBodyInit(data: unknown): data is BodyInit {
   return false;
 }
 
-export async function apiRequest(
+export async function apiRequest<T = any>(
   method: string,
   url: string,
   data?: ApiRequestData,
   options: ApiRequestOptions = {},
-): Promise<Response> {
+): Promise<T> {
   const {
     skipCsrf,
     headers: initHeaders,
     body: initBody,
     credentials,
     method: _ignoredMethod,
+    responseType = "json",
     ...restOptions
   } = options;
 
@@ -117,7 +127,27 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(response);
-  return response;
+
+  switch (responseType) {
+    case "text":
+      return (await response.text()) as T;
+    case "blob":
+      return (await response.blob()) as T;
+    case "arrayBuffer":
+      return (await response.arrayBuffer()) as T;
+    case "formData":
+      return (await response.formData()) as T;
+    case "response":
+      return response as unknown as T;
+    case "json":
+    default: {
+      const contentType = response.headers.get('content-type') ?? '';
+      if (contentType.includes('application/json')) {
+        return (await response.json()) as T;
+      }
+      return response as unknown as T;
+    }
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

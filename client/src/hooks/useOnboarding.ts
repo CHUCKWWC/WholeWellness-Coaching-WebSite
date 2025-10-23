@@ -44,20 +44,14 @@ export function useOnboarding() {
     setIsLoading(true);
     try {
       // Try to load from server first
-      const response = await apiRequest('GET', '/api/user/onboarding-progress');
-      if (response.ok) {
-        const serverProgress = await response.json();
-        setProgress(serverProgress);
-        
-        // Save to localStorage as backup
-        localStorage.setItem('onboarding-progress', JSON.stringify(serverProgress));
-      } else {
-        // Fallback to localStorage
-        const localProgress = localStorage.getItem('onboarding-progress');
-        if (localProgress) {
-          setProgress(JSON.parse(localProgress));
-        }
-      }
+      const serverProgress = await apiRequest<OnboardingProgress>(
+        'GET',
+        '/api/user/onboarding-progress'
+      );
+      setProgress(serverProgress);
+
+      // Save to localStorage as backup
+      localStorage.setItem('onboarding-progress', JSON.stringify(serverProgress));
     } catch (error) {
       console.error('Failed to load onboarding progress:', error);
       // Fallback to localStorage

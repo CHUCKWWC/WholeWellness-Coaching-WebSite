@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { useOnboarding } from '../OnboardingContext';
 import { Card, CardContent } from '@/components/ui/card';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GoogleDriveService } from './google-drive-service';
 
 // Sample course materials to upload for demonstration

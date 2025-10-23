@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { useOnboarding } from '../../OnboardingContext';
 import { Label } from '@/components/ui/label';

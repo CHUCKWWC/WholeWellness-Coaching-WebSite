@@ -13,7 +13,7 @@ import {
   progressTracking,
   aiInsights
 } from "@shared/schema";
-import { requireAuth, type AuthenticatedRequest } from "./auth";
+import type { AuthenticatedRequest } from "./auth";
 
 // Validation schemas
 const wellnessGoalSchema = z.object({
@@ -386,7 +386,7 @@ class WellnessRecommendationEngine {
 
 export function registerWellnessJourneyRoutes(app: Express) {
   // Get current user's wellness journey
-  app.get('/api/wellness-journey/current', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/wellness-journey/current', async (req: AuthenticatedRequest, res) => {
     try {
 
       const journey = await storage.getCurrentWellnessJourney(req.user.id);
@@ -403,7 +403,7 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Generate new wellness journey
-  app.post('/api/wellness-journey/generate', async (req: any, res) => {
+  app.post('/api/wellness-journey/generate', async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Authentication required' });
@@ -541,7 +541,7 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Update progress on a recommendation
-  app.post('/api/wellness-journey/progress', async (req: any, res) => {
+  app.post('/api/wellness-journey/progress', async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Authentication required' });
@@ -591,7 +591,7 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Get journey analytics and insights
-  app.get('/api/wellness-journey/analytics', async (req: any, res) => {
+  app.get('/api/wellness-journey/analytics', async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Authentication required' });
@@ -607,7 +607,7 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Adapt journey based on user feedback or progress
-  app.post('/api/wellness-journey/adapt', async (req: any, res) => {
+  app.post('/api/wellness-journey/adapt', async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Authentication required' });
@@ -640,7 +640,7 @@ export function registerWellnessJourneyRoutes(app: Express) {
   });
 
   // Complete a milestone
-  app.post('/api/wellness-journey/milestone/:milestone_id/complete', async (req: any, res) => {
+  app.post('/api/wellness-journey/milestone/:milestone_id/complete', async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Authentication required' });

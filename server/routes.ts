@@ -60,7 +60,6 @@ import { authLimiter } from "./security";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 import { coachSessionNotes, chatSummaries } from "@shared/schema";
-import { getUncachableSendGridClient } from "./sendgrid-service";
 // Admin auth now uses OAuth only - no password login exports
 
 // Sample resources seeding function

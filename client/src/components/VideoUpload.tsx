@@ -47,8 +47,7 @@ export default function VideoUpload({
       }, 300);
 
       try {
-        const response = await apiRequest('POST', '/api/upload/video', formData);
-        const result = await response.json();
+        const result = await apiRequest<{ videoUrl: string }>('POST', '/api/upload/video', formData);
         setUploadProgress(100);
         return result;
       } finally {

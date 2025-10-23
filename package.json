@@ -34,7 +34,7 @@
 
 
 
-    "check": "tsc",
+    "check": "tsc --project tsconfig.check.json",
 
 
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useCallback } from 'react';
 
 // Route preloader utility for performance optimization

@@ -119,7 +119,7 @@ export default function AccountPaymentStep({ onValidChange }: AccountPaymentStep
   const registerMutation = useMutation({
     mutationFn: async () => {
       // First, create the user account
-      const registerResponse = await apiRequest("POST", "/api/auth/register", {
+      const user = await apiRequest<{ id: string }>("POST", "/api/auth/register", {
         email,
         password,
         firstName,
@@ -128,8 +128,6 @@ export default function AccountPaymentStep({ onValidChange }: AccountPaymentStep
         onboardingData: data
       });
 
-      const user = await registerResponse.json();
-
       // Then create payment intent for the selected plan
       const planPrices = {
         weekly: 32000, // $320/month (80*4)
@@ -137,13 +135,15 @@ export default function AccountPaymentStep({ onValidChange }: AccountPaymentStep
         monthly: 9000, // $90/month
       };
 
-      const paymentResponse = await apiRequest("POST", "/api/create-subscription", {
-        userId: user.id,
-        priceAmount: planPrices[selectedPlan as keyof typeof planPrices],
-        planId: selectedPlan,
-      });
-
-      return paymentResponse.json();
+      return apiRequest<{ clientSecret: string; userId: string }>(
+        "POST",
+        "/api/create-subscription",
+        {
+          userId: user.id,
+          priceAmount: planPrices[selectedPlan as keyof typeof planPrices],
+          planId: selectedPlan,
+        }
+      );
     },
     onSuccess: (data) => {
       setClientSecret(data.clientSecret);
