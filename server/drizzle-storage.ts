@@ -14,10 +14,13 @@ import {
   progressTracking,
   aiInsights,
   journeyAdaptations,
-  wellnessRecommendations
+  wellnessRecommendations,
+  assessmentTypes,
+  userAssessments,
+  coachInteractions
 } from "@shared/schema";
-import { eq, desc, and } from "drizzle-orm";
-import type { User, InsertUser, Booking, InsertBooking } from "@shared/schema";
+import { eq, desc, and, sql } from "drizzle-orm";
+import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction } from "@shared/schema";
 import type { IStorage } from "./supabase-client-storage";
 
 class DrizzleStorage implements Partial<IStorage> {
@@ -549,6 +552,210 @@ class DrizzleStorage implements Partial<IStorage> {
   async createAiInsight(insight: any): Promise<any> {
     // This is an alias for createAIInsight (different casing in route calls)
     return this.createAIInsight(insight);
+  }
+
+  // Assessment Methods Implementation
+  async getActiveAssessmentTypes(): Promise<AssessmentType[]> {
+    try {
+      console.log('[DrizzleStorage] getActiveAssessmentTypes called');
+      const result = await db
+        .select()
+        .from(assessmentTypes)
+        .where(eq(assessmentTypes.isActive, true))
+        .orderBy(assessmentTypes.category, assessmentTypes.displayName);
+      
+      console.log('[DrizzleStorage] getActiveAssessmentTypes result:', result.length, 'types found');
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting active assessment types:', error);
+      return [];
+    }
+  }
+
+  async getAssessmentTypeById(id: string): Promise<AssessmentType | undefined> {
+    try {
+      console.log('[DrizzleStorage] getAssessmentTypeById called with:', id);
+      const result = await db
+        .select()
+        .from(assessmentTypes)
+        .where(eq(assessmentTypes.id, id))
+        .limit(1);
+      
+      console.log('[DrizzleStorage] getAssessmentTypeById result:', result[0] ? `Found type ${result[0].displayName}` : 'Type not found');
+      return result[0];
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting assessment type by id:', error);
+      return undefined;
+    }
+  }
+
+  async createAssessmentType(assessmentType: InsertAssessmentType): Promise<AssessmentType> {
+    try {
+      console.log('[DrizzleStorage] createAssessmentType called with:', assessmentType);
+      const [result] = await db
+        .insert(assessmentTypes)
+        .values(assessmentType)
+        .returning();
+      
+      console.log('[DrizzleStorage] createAssessmentType result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating assessment type:', error);
+      throw error;
+    }
+  }
+
+  async createUserAssessment(assessment: InsertUserAssessment): Promise<UserAssessment> {
+    try {
+      console.log('[DrizzleStorage] createUserAssessment called with:', assessment);
+      const [result] = await db
+        .insert(userAssessments)
+        .values(assessment)
+        .returning();
+      
+      console.log('[DrizzleStorage] createUserAssessment result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating user assessment:', error);
+      throw error;
+    }
+  }
+
+  async getUserAssessments(userId: string): Promise<UserAssessment[]> {
+    try {
+      console.log('[DrizzleStorage] getUserAssessments called for user:', userId);
+      const result = await db
+        .select()
+        .from(userAssessments)
+        .where(and(
+          eq(userAssessments.userId, userId),
+          eq(userAssessments.isActive, true)
+        ))
+        .orderBy(desc(userAssessments.completedAt));
+      
+      console.log('[DrizzleStorage] getUserAssessments result:', result.length, 'assessments found');
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting user assessments:', error);
+      return [];
+    }
+  }
+
+  async getAssessmentsForCoach(userId: string, coachType: string): Promise<UserAssessment[]> {
+    try {
+      console.log('[DrizzleStorage] getAssessmentsForCoach called with:', { userId, coachType });
+      
+      // First, get assessment types relevant for this coach type
+      const relevantTypes = await db
+        .select()
+        .from(assessmentTypes)
+        .where(and(
+          eq(assessmentTypes.isActive, true),
+          sql`${coachType} = ANY(${assessmentTypes.coachTypes})`
+        ));
+      
+      if (relevantTypes.length === 0) {
+        console.log('[DrizzleStorage] No relevant assessment types for coach type:', coachType);
+        return [];
+      }
+      
+      const relevantTypeIds = relevantTypes.map(type => type.id);
+      
+      // Get user assessments for these types
+      const result = await db
+        .select()
+        .from(userAssessments)
+        .where(and(
+          eq(userAssessments.userId, userId),
+          eq(userAssessments.isActive, true),
+          sql`${userAssessments.assessmentTypeId} = ANY(${relevantTypeIds})`
+        ))
+        .orderBy(desc(userAssessments.completedAt));
+      
+      console.log('[DrizzleStorage] getAssessmentsForCoach result:', result.length, 'relevant assessments found');
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting assessments for coach:', error);
+      return [];
+    }
+  }
+
+  async createCoachInteraction(interaction: InsertCoachInteraction): Promise<CoachInteraction> {
+    try {
+      console.log('[DrizzleStorage] createCoachInteraction called with:', interaction);
+      const [result] = await db
+        .insert(coachInteractions)
+        .values(interaction)
+        .returning();
+      
+      console.log('[DrizzleStorage] createCoachInteraction result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating coach interaction:', error);
+      throw error;
+    }
+  }
+
+  async getUserAssessmentSummary(userId: string): Promise<any> {
+    try {
+      console.log('[DrizzleStorage] getUserAssessmentSummary called for user:', userId);
+      
+      // Get all user assessments
+      const assessments = await this.getUserAssessments(userId);
+      
+      // Get assessment types for additional context
+      const types = await db
+        .select()
+        .from(assessmentTypes)
+        .where(eq(assessmentTypes.isActive, true));
+      
+      // Group assessments by category
+      const assessmentsByCategory: Record<string, UserAssessment[]> = {};
+      const categorizedTypes = types.reduce((acc: Record<string, AssessmentType[]>, type) => {
+        if (!acc[type.category]) {
+          acc[type.category] = [];
+        }
+        acc[type.category].push(type);
+        return acc;
+      }, {});
+      
+      assessments.forEach(assessment => {
+        const type = types.find(t => t.id === assessment.assessmentTypeId);
+        if (type) {
+          if (!assessmentsByCategory[type.category]) {
+            assessmentsByCategory[type.category] = [];
+          }
+          assessmentsByCategory[type.category].push(assessment);
+        }
+      });
+      
+      // Calculate summary statistics
+      const summary = {
+        totalAssessments: assessments.length,
+        assessmentsByCategory,
+        categoriesCompleted: Object.keys(assessmentsByCategory),
+        lastAssessmentDate: assessments.length > 0 ? assessments[0].completedAt : null,
+        availableCategories: Object.keys(categorizedTypes),
+        completionRate: types.length > 0 ? (assessments.length / types.length) * 100 : 0,
+        recentAssessments: assessments.slice(0, 5),
+        allTags: assessments.flatMap(a => a.tags || []).filter((tag, index, self) => self.indexOf(tag) === index)
+      };
+      
+      console.log('[DrizzleStorage] getUserAssessmentSummary result:', summary);
+      return summary;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting user assessment summary:', error);
+      return {
+        totalAssessments: 0,
+        assessmentsByCategory: {},
+        categoriesCompleted: [],
+        lastAssessmentDate: null,
+        availableCategories: [],
+        completionRate: 0,
+        recentAssessments: [],
+        allTags: []
+      };
+    }
   }
 }
 
