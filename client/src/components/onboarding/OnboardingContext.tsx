@@ -10,12 +10,20 @@ interface OnboardingData {
   dateOfBirth?: string;
   gender?: string;
   pronouns?: string;
+  age?: number;
+  occupation?: string;
+  relationshipStatus?: string;
+  livingArrangement?: string;
 
   // Goals & Needs
   primaryGoal?: string;
   specificChallenges?: string[];
   previousSupport?: string;
   urgencyLevel?: string;
+  motivation?: string;
+  focusAreas?: string[];
+  coachingGoals?: string[];
+  coachingType?: string;
 
   // Health & Wellness
   healthConcerns?: string[];
@@ -27,9 +35,13 @@ interface OnboardingData {
   // Support Preferences
   coachingStyle?: string[];
   sessionFrequency?: string;
+  sessionPreference?: string;
   preferredDays?: string[];
   preferredTimes?: string[];
+  preferredTimeSlots?: string[];
   communicationPreference?: string;
+  coachPreferences?: string[];
+  timezone?: string;
 
   // Safety & Emergency
   emergencyContact?: {
@@ -39,6 +51,7 @@ interface OnboardingData {
   };
   currentSafetyLevel?: number;
   needsImmediateSupport?: boolean;
+  inCrisis?: boolean;
 
   // Coach-specific (for coach onboarding)
   certifications?: string[];
@@ -46,8 +59,24 @@ interface OnboardingData {
   yearsOfExperience?: number;
   availability?: any;
   bankingInfo?: any;
+  paymentMethod?: string;
   backgroundCheckConsent?: boolean;
   applicationFeePaid?: boolean;
+  qualifications?: Array<{
+    type: string;
+    title: string;
+    organization: string;
+    year: string;
+  }>;
+
+  // Account & compliance
+  termsAccepted?: boolean;
+  privacyAccepted?: boolean;
+  dataConsentAccepted?: boolean;
+  selectedPlan?: string;
+  userId?: string;
+  clientSecret?: string;
+  isComplete?: boolean;
 }
 
 interface OnboardingContextType {

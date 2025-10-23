@@ -1,22 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface SocialLoginProps {
   title?: string;
   description?: string;
   showDivider?: boolean;
   buttonText?: string;
+  onGoogleSuccess?: (userData: any) => void;
+  onGoogleError?: (error: unknown) => void;
+  disabled?: boolean;
+  className?: string;
 }
 
-export default function SocialLogin({ 
+export default function SocialLogin({
   title = "Continue with Social Login",
   description = "Sign in quickly with your existing account",
   showDivider = true,
-  buttonText = "Continue with Google"
+  buttonText = "Continue with Google",
+  onGoogleSuccess,
+  onGoogleError,
+  disabled = false,
+  className,
 }: SocialLoginProps) {
-  
+
   const handleGoogleLogin = () => {
+    if (onGoogleSuccess || onGoogleError) {
+      console.warn("SocialLogin component requires a Google OAuth integration to supply user data.");
+      onGoogleError?.(new Error('Google OAuth integration not implemented in SocialLogin'));
+      return;
+    }
     window.location.href = '/auth/google';
   };
 
@@ -34,7 +48,11 @@ export default function SocialLogin({
       <Button
         onClick={handleGoogleLogin}
         variant="outline"
-        className="w-full flex items-center justify-center gap-3 py-6 text-base font-medium hover:bg-gray-50 border-gray-300"
+        disabled={disabled}
+        className={cn(
+          "w-full flex items-center justify-center gap-3 py-6 text-base font-medium hover:bg-gray-50 border-gray-300",
+          className
+        )}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path

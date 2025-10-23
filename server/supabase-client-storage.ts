@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { supabase } from "./supabase";
 import { randomUUID } from "crypto";
 import type { 

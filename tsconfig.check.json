@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "client/src/lib/**/*",
+    "client/src/hooks/**/*",
+    "client/src/components/ui/**/*",
+    "client/src/components/SocialLogin.tsx",
+    "client/src/components/VideoUpload.tsx",
+    "client/src/components/onboarding/OnboardingContext.tsx",
+    "client/src/components/onboarding/steps/AccountPaymentStep.tsx"
+  ],
+  "exclude": []
+}

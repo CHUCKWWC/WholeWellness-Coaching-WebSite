@@ -82,9 +82,10 @@ export default function AdminCrisisAlerts() {
   // Update alert status
   const updateStatus = useMutation({
     mutationFn: async ({ id, status, resolution }: { id: string; status: string; resolution?: string }) => {
-      return apiRequest('/api/digest/crisis-alerts/update', {
-        method: 'PUT',
-        body: JSON.stringify({ id, status, resolution }),
+      return apiRequest('PUT', '/api/digest/crisis-alerts/update', {
+        id,
+        status,
+        resolution,
       });
     },
     onSuccess: () => {

@@ -53,7 +53,7 @@ export async function createRoom(sessionId: string, options: {
 }
 
 // Generate auth token for a participant to join a room
-export async function generateAuthToken(roomId: string, userId: string, role: "host" | "guest" = "guest") {
+export async function generateAuthToken(roomId: string, userId: string, role: string = "guest") {
   if (!hmsClient) {
     throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
   }
@@ -65,7 +65,7 @@ export async function generateAuthToken(roomId: string, userId: string, role: "h
       role,
     });
 
-    return token;
+    return token.token;
   } catch (error) {
     console.error("Error generating auth token:", error);
     throw error;
@@ -80,12 +80,10 @@ export async function endSession(roomId: string) {
 
   try {
     // Stop recording if enabled
-    await hmsClient.recordings.stop({
-      room_id: roomId,
-    });
+    await hmsClient.recordings.stopAll(roomId);
 
     // Disable the room
-    await hmsClient.rooms.disable(roomId);
+    await hmsClient.rooms.enableOrDisable(roomId, false);
 
     return { success: true };
   } catch (error) {

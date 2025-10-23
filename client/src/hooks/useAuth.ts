@@ -12,6 +12,7 @@ export interface AuthUser {
   profileImageUrl: string | null;
   role: string;
   permissions: string[] | null;
+  roleActivatedAt?: string | null;
 }
 
 export function useAuth() {

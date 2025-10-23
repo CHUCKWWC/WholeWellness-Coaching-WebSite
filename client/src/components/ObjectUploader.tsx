@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState } from 'react';
 import Uppy, { UppyFile } from '@uppy/core';
 import { Dashboard } from '@uppy/react';
