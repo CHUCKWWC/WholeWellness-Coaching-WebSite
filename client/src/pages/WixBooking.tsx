@@ -148,7 +148,7 @@ export default function WixBooking() {
   // Cancel booking mutation
   const cancelBookingMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await apiRequest(`/api/wix/bookings/${bookingId}`, 'DELETE');
+      const response = await apiRequest('DELETE', `/api/wix/bookings/${bookingId}`);
       return response;
     },
     onSuccess: () => {

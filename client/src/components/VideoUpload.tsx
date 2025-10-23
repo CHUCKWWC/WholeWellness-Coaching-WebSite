@@ -36,14 +36,24 @@ export default function VideoUpload({
       formData.append('video', file);
       
       // Simulate upload progress
-      const response = await apiRequest('POST', '/api/upload/video', formData, {
-        onUploadProgress: (progressEvent: any) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(progress);
-        }
-      });
-      
-      return response.json();
+      setUploadProgress(5);
+      const progressTimer = window.setInterval(() => {
+        setUploadProgress((current) => {
+          if (current >= 90) {
+            return current;
+          }
+          return current + 10;
+        });
+      }, 300);
+
+      try {
+        const response = await apiRequest('POST', '/api/upload/video', formData);
+        const result = await response.json();
+        setUploadProgress(100);
+        return result;
+      } finally {
+        window.clearInterval(progressTimer);
+      }
     },
     onSuccess: (data) => {
       toast({

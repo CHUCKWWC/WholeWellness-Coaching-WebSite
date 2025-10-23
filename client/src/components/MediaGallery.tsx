@@ -59,9 +59,7 @@ export function MediaGallery({ editable = false, showAddButton = false, onAddMed
 
   const deleteMutation = useMutation({
     mutationFn: async (mediaId: string) => {
-      return apiRequest(`/api/user/media/${mediaId}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/user/media/${mediaId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/media'] });

@@ -1,0 +1,187 @@
+diff --git a/server/routes.ts b/server/routes.ts
+index 06e3d511a4dcc1ad3c07599b324176cc7ce05a0f..c95b4f4c5f6d7b121648918d581894a3f923a6d9 100644
+--- a/server/routes.ts
++++ b/server/routes.ts
+@@ -1,84 +1,87 @@
+ import type { Express } from "express";
+ import express from "express";
+ import { createServer, type Server } from "http";
+ import multer from "multer";
+ import path from "path";
+ import fs from "fs";
+ import { storage } from "./app-storage";
++import { db } from "./db";
+ import { 
+   insertBookingSchema, 
+   insertContactSchema, 
+   insertTestimonialSchema, 
+   insertWeightLossIntakeSchema,
+   insertContentPageSchema,
+   insertContentBlockSchema,
+   insertMediaSchema,
+   insertNavigationSchema,
+   insertSiteSettingSchema,
+   loginSchema,
+   registerSchema,
+   insertDonationSchema,
+   insertCampaignSchema,
+   insertCoachSchema,
+   insertCoachCredentialSchema,
+   insertCoachBankingSchema,
+   insertCoachAvailabilitySchema,
+   insertCoachClientSchema,
+   insertCoachSessionNotesSchema,
+   insertClientGoalSchema,
+   insertCoachMessageTemplateSchema,
+   insertCoachClientCommunicationSchema,
+   insertEventSchema,
+   insertEventRegistrationSchema
+ } from "@shared/schema";
+ import { z } from "zod";
++import { and, desc, eq } from "drizzle-orm";
+ import { WixIntegration, setupWixWebhooks, getWixConfig } from "./wix-integration";
+ import { coachStorage } from "./coach-storage";
+ import { 
+   requireAuth as auth1, 
+   requireCoachRole as coach1,
+   optionalAuth as opt1,
+   type AuthenticatedRequest as AuthReq1 
+ } from "./auth";
+ import { donationStorage } from "./donation-storage";
+ import aiChatRoutes from "./ai-chat-routes";
+ import chatDigestRoutes from "./chat-digest-routes";
+ import cookieParser from 'cookie-parser';
+ import Stripe from 'stripe';
+ import { v4 as uuidv4 } from 'uuid';
+ import { aiCoaching, type CoachingProfile } from "./ai-coaching";
+ import { adminRoutes } from "./admin-routes";
+ import { CoachEarningsSystem } from "./coach-earnings-system";
+ import { coachRoutes } from "./coach-routes";
+ import { donationRoutes } from "./donation-routes";
+ import registerOnboardingRoutes from "./onboarding-routes";
+ import { setupCouponRoutes } from "./coupon-routes";
+ import { onboardingNewRoutes } from "./onboarding-new-routes";
+ import { authLimiter } from "./security";
+ import { assessmentRoutes } from "./assessment-routes";
+ import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
++import { coachSessionNotes, chatSummaries } from "@shared/schema";
+ // Admin auth now uses OAuth only - no password login exports
+ 
+ // Sample resources seeding function
+ async function seedSampleResources(storage: any) {
+   const sampleResources = [
+     {
+       title: "Building Resilience After Trauma",
+       type: "article",
+       category: "Mental Health", 
+       content: "Learn evidence-based strategies for rebuilding emotional strength after trauma. Includes grounding techniques, self-care practices, and professional help guidance.",
+       url: null,
+       isFree: true
+     },
+     {
+       title: "5 Steps to Setting Healthy Boundaries",
+       type: "article",
+       category: "Relationships",
+       content: "Establish and maintain healthy boundaries in relationships. Includes conversation scripts and consistency strategies.",
+       url: null,
+       isFree: true
+     },
+     {
+       title: "Guided Meditation for Anxiety Relief",
+       type: "video",
+       category: "Mental Health",
+@@ -2950,82 +2953,90 @@ When to refer to licensed therapists and emergency resources for relationship cr
+       res.status(500).json({ message: "Internal server error" });
+     }
+   });
+ 
+   // Delete a goal
+   app.delete("/api/coach/goals/:id", requireCoachRole as any, async (req: any, res) => {
+     try {
+       const { id } = req.params;
+       const userId = req.user.id;
+       
+       // Get coach profile
+       const coach = await coachStorage.getCoachByUserId(userId);
+       if (!coach) {
+         return res.status(404).json({ message: "Coach profile not found" });
+       }
+       
+       // Note: When database is synced, this will delete the goal
+       res.json({ message: "Goal deleted successfully" });
+     } catch (error) {
+       console.error("Error deleting client goal:", error);
+       res.status(500).json({ message: "Internal server error" });
+     }
+   });
+ 
+   // Get session notes for a specific client
+-  app.get("/api/coach/session-notes/:clientId", requireCoachRole as any, async (req: any, res) => {
++  app.get("/api/coach/session-notes/:clientId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+     try {
+       const { clientId } = req.params;
+-      const userId = req.user.id;
++      const userId = req.user?.id;
++
++      if (!userId) {
++        return res.status(401).json({ message: "Unauthorized" });
++      }
+       
+       // Get coach profile
+       const coach = await coachStorage.getCoachByUserId(userId);
+       if (!coach) {
+         return res.status(404).json({ message: "Coach profile not found" });
+       }
+       
+       // Get session notes from coachSessionNotes table
+       const sessionNotes = await db.query.coachSessionNotes.findMany({
+         where: and(
+           eq(coachSessionNotes.coachId, coach.id),
+           eq(coachSessionNotes.clientId, clientId)
+         ),
+         orderBy: desc(coachSessionNotes.sessionDate),
+       });
+       
+       res.json(sessionNotes);
+     } catch (error) {
+       console.error("Error fetching session notes:", error);
+       res.status(500).json({ message: "Internal server error" });
+     }
+   });
+ 
+   // Get AI insights (chat summaries) for a specific client
+-  app.get("/api/coach/client-ai-insights/:clientId", requireCoachRole as any, async (req: any, res) => {
++  app.get("/api/coach/client-ai-insights/:clientId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+     try {
+       const { clientId } = req.params;
+-      const userId = req.user.id;
++      const userId = req.user?.id;
++
++      if (!userId) {
++        return res.status(401).json({ message: "Unauthorized" });
++      }
+       
+       // Get coach profile
+       const coach = await coachStorage.getCoachByUserId(userId);
+       if (!coach) {
+         return res.status(404).json({ message: "Coach profile not found" });
+       }
+       
+       // Get chat summaries for this client
+       const aiInsights = await db.query.chatSummaries.findMany({
+         where: eq(chatSummaries.userId, clientId),
+         orderBy: desc(chatSummaries.conversationDate),
+         limit: 20, // Get most recent 20 conversations
+       });
+       
+       res.json(aiInsights);
+     } catch (error) {
+       console.error("Error fetching AI insights:", error);
+       res.status(500).json({ message: "Internal server error" });
+     }
+   });
+ 
+   // Google Meet Integration Routes
+   
+   // Check Google Meet connection status
+   app.get("/api/coaches/google-meet-status/:coachId", async (req, res) => {

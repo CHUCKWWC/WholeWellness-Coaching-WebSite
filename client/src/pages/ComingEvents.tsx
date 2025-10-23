@@ -42,9 +42,7 @@ export default function ComingEvents() {
 
   const registerMutation = useMutation({
     mutationFn: async (eventId: string) => {
-      return await apiRequest(`/api/events/${eventId}/register`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/events/${eventId}/register`);
     },
     onSuccess: () => {
       toast({

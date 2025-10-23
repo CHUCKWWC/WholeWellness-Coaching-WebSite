@@ -16,10 +16,8 @@ export interface AuthenticatedUser {
   isActive: boolean;
 }
 
-// Authenticated request interface
-export interface AuthenticatedRequest extends Request {
-  user?: AuthenticatedUser;
-}
+// Authenticated request interface (Request is augmented in server/types/express.d.ts)
+export type AuthenticatedRequest = Request;
 
 // JWT configuration - enforce strong secret in production
 const JWT_SECRET = process.env.JWT_SECRET || (() => {

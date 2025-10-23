@@ -1,0 +1,78 @@
+diff --git a/server/video-routes.ts b/server/video-routes.ts
+index df206580459588f102fec878e8f2a3ea704e0b3e..ac71891c63f3412c0e97a0e4bf21e386f6abcd0b 100644
+--- a/server/video-routes.ts
++++ b/server/video-routes.ts
+@@ -484,60 +484,65 @@ router.post("/sessions/:sessionId/send-transcript", requireAuth, async (req: Aut
+ 
+     // TODO: Send email with transcript to coach and participants
+     // This would integrate with your email service
+ 
+     // Mark as sent
+     await db.update(sessionTranscripts)
+       .set({ 
+         sentToCoach: true,
+         sentToParticipants: true
+       })
+       .where(eq(sessionTranscripts.sessionId, sessionId));
+ 
+     res.json({ success: true, message: "Transcript sent to all participants" });
+   } catch (error) {
+     console.error("Error sending transcript:", error);
+     res.status(500).json({ error: "Failed to send transcript" });
+   }
+ });
+ 
+ // List coach's sessions (coach-only)
+ router.get("/sessions", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+   try {
+     const coachId = req.user!.id;
+     const { status } = req.query;
+ 
+-    let query = db
++    const statusFilter = typeof status === "string" && status.length > 0
++      ? status
++      : undefined;
++
++    const sessions = await db
+       .select()
+       .from(videoSessions)
+-      .where(eq(videoSessions.coachId, coachId));
+-
+-    if (status) {
+-      query = query.where(eq(videoSessions.status, status as string));
+-    }
+-
+-    const sessions = await query;
++      .where(
++        statusFilter
++          ? and(
++              eq(videoSessions.coachId, coachId),
++              eq(videoSessions.status, statusFilter),
++            )
++          : eq(videoSessions.coachId, coachId),
++      );
+ 
+     res.json(sessions);
+   } catch (error) {
+     console.error("Error fetching sessions:", error);
+     res.status(500).json({ error: "Failed to fetch sessions" });
+   }
+ });
+ 
+ // Create session from booking (coach-only)
+ router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+   try {
+     const { bookingId } = req.params;
+     const coachId = req.user!.id;
+ 
+     // Get booking details
+     const [booking] = await db
+       .select()
+       .from(bookings)
+       .where(eq(bookings.id, parseInt(bookingId)));
+ 
+     if (!booking) {
+       return res.status(404).json({ error: "Booking not found" });
+     }
+ 
+     // AUTHORIZATION: Only the assigned coach or admin can create session from booking

@@ -1,0 +1,41 @@
+diff --git a/server/storage.ts b/server/storage.ts
+index 765bad56ca79f8d60eac060fe7ac560df39caaef..1cb41582bed271520e660214a58b22f555f8235b 100644
+--- a/server/storage.ts
++++ b/server/storage.ts
+@@ -1,32 +1,35 @@
+-import { 
++import {
+   type User, type Booking, type Testimonial, type Resource, type Contact, type WeightLossIntake,
+   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
+   type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
+   type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting,
+   type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage
+ } from "@shared/schema";
++import { mediaLibrary, navigationMenus, siteSettings } from "@shared/cms-schema";
++import { db } from "./db";
++import { asc, desc, eq } from "drizzle-orm";
+ import { randomUUID } from "crypto";
+ 
+ export interface IStorage {
+   // Users
+   getUser(id: string): Promise<User | undefined>;
+   getUserByEmail(email: string): Promise<User | undefined>;
+   createUser(user: InsertUser): Promise<User>;
+   
+   // Bookings
+   getBooking(id: number): Promise<Booking | undefined>;
+   getAllBookings(): Promise<Booking[]>;
+   getCoachBookings(coachId: string): Promise<Booking[]>;
+   createBooking(booking: InsertBooking): Promise<Booking>;
+   updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
+   
+   // Testimonials
+   getTestimonial(id: number): Promise<Testimonial | undefined>;
+   getApprovedTestimonials(): Promise<Testimonial[]>;
+   getAllTestimonials(): Promise<Testimonial[]>;
+   createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+   
+   // Resources
+   getResource(id: number): Promise<Resource | undefined>;
+   getResourcesByType(type: string): Promise<Resource[]>;
+   getResourcesByCategory(category: string): Promise<Resource[]>;
