@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { users, coaches, coachCredentials, coachAvailability } from "@shared/schema";
-import { eq } from "drizzle-orm";
-import type { User, InsertUser } from "@shared/schema";
+import { users, coaches, coachCredentials, coachAvailability, bookings } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
+import type { User, InsertUser, Booking } from "@shared/schema";
 import type { IStorage } from "./supabase-client-storage";
 
 class DrizzleStorage implements Partial<IStorage> {
@@ -62,6 +62,39 @@ class DrizzleStorage implements Partial<IStorage> {
         .where(eq(users.id, userId));
     } catch (error) {
       console.error('[DrizzleStorage] Error updating last login:', error);
+    }
+  }
+
+  async getCoachBookings(coachId: string): Promise<Booking[]> {
+    try {
+      console.log('[DrizzleStorage] getCoachBookings called for:', coachId);
+      const result = await db
+        .select()
+        .from(bookings)
+        .where(eq(bookings.coachId, coachId))
+        .orderBy(desc(bookings.createdAt));
+      console.log('[DrizzleStorage] getCoachBookings result:', result.length, 'bookings found');
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting coach bookings:', error);
+      return [];
+    }
+  }
+
+  async createBooking(insertBooking: any): Promise<Booking> {
+    try {
+      console.log('[DrizzleStorage] createBooking called with:', insertBooking);
+      // The insertBooking object already has the correct field names
+      // Drizzle ORM handles the camelCase to snake_case mapping
+      const [booking] = await db
+        .insert(bookings)
+        .values(insertBooking)
+        .returning();
+      console.log('[DrizzleStorage] createBooking result:', booking);
+      return booking;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating booking:', error);
+      throw error;
     }
   }
 }

@@ -1,0 +1,114 @@
+diff --git a/shared/schema.ts b/shared/schema.ts
+index da27d423173c6890696a69fa72172e0e555551ba..12575e5b0cccff2c2ac5ebb3da3d2364afb2e3b3 100644
+--- a/shared/schema.ts
++++ b/shared/schema.ts
+@@ -1,35 +1,36 @@
+-import { 
+-  pgTable, 
+-  text, 
+-  serial, 
+-  integer, 
+-  boolean, 
+-  timestamp, 
+-  varchar, 
+-  decimal, 
++import {
++  pgTable,
++  text,
++  serial,
++  integer,
++  boolean,
++  timestamp,
++  varchar,
++  decimal,
+   jsonb,
++  foreignKey,
+ } from "drizzle-orm/pg-core";
+ import { sql } from "drizzle-orm";
+ import { createInsertSchema } from "drizzle-zod";
+ import { z } from "zod";
+ import { relations } from "drizzle-orm";
+ 
+ // Main users table (consolidated from donation schema)
+ export const users = pgTable("users", {
+   id: varchar("id").primaryKey(),
+   email: varchar("email").unique().notNull(),
+   passwordHash: varchar("password_hash").notNull(),
+   firstName: varchar("first_name"),
+   lastName: varchar("last_name"),
+   membershipLevel: varchar("membership_level").default("free"), // free, supporter, champion, guardian
+   donationTotal: decimal("donation_total").default("0"),
+   rewardPoints: integer("reward_points").default(0),
+   stripeCustomerId: varchar("stripe_customer_id"),
+   stripePurchaseId: varchar("stripe_purchase_id"),
+   profileImageUrl: varchar("profile_image_url"),
+   coverPhotoUrl: varchar("cover_photo_url"),
+   bio: text("bio"), // 200 char max enforced in validation
+   rating: integer("rating").default(0), // 0-5 stars, admin-editable
+   introVideoUrl: varchar("intro_video_url"),
+   keywords: text("keywords").array(), // max 5 keywords, 20 chars each
+   preferredCoach: varchar("preferred_coach"),
+@@ -914,56 +915,61 @@ export const knowledgeBase = pgTable("knowledge_base", {
+   notHelpfulCount: integer("not_helpful_count").default(0),
+   searchKeywords: text("search_keywords"), // Additional search terms
+   relatedArticles: jsonb("related_articles").$type<number[]>().default([]),
+   featuredImage: text("featured_image"),
+   metaDescription: text("meta_description"),
+   metaKeywords: text("meta_keywords"),
+   authorId: varchar("author_id").references(() => users.id),
+   authorName: varchar("author_name").default("Admin"),
+   lastReviewedBy: varchar("last_reviewed_by").references(() => users.id),
+   lastReviewedAt: timestamp("last_reviewed_at"),
+   isPublic: boolean("is_public").default(true),
+   requiresAuth: boolean("requires_auth").default(false),
+   targetAudience: varchar("target_audience").default("general"), // general, clients, coaches, admin
+   language: varchar("language").default("en"),
+   createdAt: timestamp("created_at").defaultNow(),
+   updatedAt: timestamp("updated_at").defaultNow(),
+ });
+ 
+ export const knowledgeBaseCategories = pgTable("knowledge_base_categories", {
+   id: serial("id").primaryKey(),
+   name: varchar("name").notNull(),
+   slug: varchar("slug").unique().notNull(),
+   description: text("description"),
+   icon: varchar("icon"), // Icon name or URL
+   color: varchar("color"), // Hex color code
+-  parentId: integer("parent_id").references(() => knowledgeBaseCategories.id),
++  parentId: integer("parent_id"),
+   sortOrder: integer("sort_order").default(0),
+   isActive: boolean("is_active").default(true),
+   createdAt: timestamp("created_at").defaultNow(),
+   updatedAt: timestamp("updated_at").defaultNow(),
+-});
++}, (table) => ({
++  parentReference: foreignKey({
++    columns: [table.parentId],
++    foreignColumns: [table.id],
++  }),
++}));
+ 
+ export const knowledgeBaseFeedback = pgTable("knowledge_base_feedback", {
+   id: serial("id").primaryKey(),
+   articleId: integer("article_id").references(() => knowledgeBase.id).notNull(),
+   userId: varchar("user_id").references(() => users.id),
+   sessionId: varchar("session_id"), // For anonymous feedback
+   wasHelpful: boolean("was_helpful").notNull(),
+   feedback: text("feedback"),
+   improvementSuggestions: text("improvement_suggestions"),
+   userAgent: text("user_agent"),
+   ipAddress: varchar("ip_address"),
+   createdAt: timestamp("created_at").defaultNow(),
+ });
+ 
+ export const knowledgeBaseViews = pgTable("knowledge_base_views", {
+   id: serial("id").primaryKey(),
+   articleId: integer("article_id").references(() => knowledgeBase.id).notNull(),
+   userId: varchar("user_id").references(() => users.id),
+   sessionId: varchar("session_id"), // For anonymous views
+   viewDuration: integer("view_duration"), // in seconds
+   completedReading: boolean("completed_reading").default(false),
+   exitPoint: varchar("exit_point"), // Where user left the article
+   referrer: text("referrer"),
+   userAgent: text("user_agent"),
+   ipAddress: varchar("ip_address"),

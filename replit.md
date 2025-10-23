@@ -38,8 +38,12 @@ Preferred communication style: Simple, everyday language.
 
 ### Technical Implementations
 - **Backend**: Node.js with Express.js, TypeScript, ES modules.
-- **Database**: PostgreSQL via Drizzle ORM, hosted on Supabase (with Neon fallback).
-- **Authentication**: Custom JWT-based authentication with bcrypt.
+- **Database**: PostgreSQL via Drizzle ORM, hosted on Neon (local development database).
+- **Authentication**: Custom JWT-based authentication with bcrypt, migrated to local PostgreSQL database.
+  - Centralized storage system (app-storage.ts) with proxy pattern
+  - DrizzleStorage implementation for local database operations
+  - Seamless fallback to Supabase for unimplemented features
+  - All core user operations (login, registration, session management) use local database
 - **API**: RESTful API with modular routes, CORS, JSON parsing, and centralized error handling.
 - **AI Coaching System**: 6 specialized AI coaches using OpenAI Assistants API for persistent, customizable conversations with a modern chat UI.
 - **Conversation Intelligence**: AI-powered summarization, emotion detection, key topic extraction, personalized insights, and automated email delivery.
@@ -63,7 +67,8 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
-- **Supabase**: Database hosting, authentication, and storage.
+- **Neon (PostgreSQL)**: Primary database for development and production (via DATABASE_URL environment variable)
+- **Supabase**: Legacy fallback for features not yet migrated to local storage.
 - **OpenAI**: AI coaching, conversation summarization, and insights generation.
 - **SendGrid**: Transactional email service.
 - **Stripe**: Payment processing and subscription management.

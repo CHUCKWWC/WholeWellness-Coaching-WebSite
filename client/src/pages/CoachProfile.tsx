@@ -72,6 +72,8 @@ export default function CoachProfile() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState("");
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadType, setUploadType] = useState<'profile' | 'cover' | 'video'>('profile');
 
   // Get coach profile data from server
   const { data: profileData, isLoading } = useQuery({
@@ -99,6 +101,99 @@ export default function CoachProfile() {
       });
     },
   });
+
+  // Profile image mutation
+  const updateProfileImageMutation = useMutation({
+    mutationFn: async (imageURL: string) => {
+      const response = await apiRequest('PUT', '/api/profile/image', { imageURL });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/coach/profile'] });
+      toast({
+        title: 'Profile image updated',
+        description: 'Your profile image has been updated successfully.',
+      });
+      setUploadDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to update profile image',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Cover photo mutation
+  const updateCoverPhotoMutation = useMutation({
+    mutationFn: async (imageURL: string) => {
+      const response = await apiRequest('PUT', '/api/profile/cover', { imageURL });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/coach/profile'] });
+      toast({
+        title: 'Cover photo updated',
+        description: 'Your cover photo has been updated successfully.',
+      });
+      setUploadDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to update cover photo',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Intro video mutation
+  const updateIntroVideoMutation = useMutation({
+    mutationFn: async (videoURL: string) => {
+      const response = await apiRequest('PUT', '/api/profile/video', { videoURL });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/coach/profile'] });
+      toast({
+        title: 'Intro video updated',
+        description: 'Your intro video has been updated successfully.',
+      });
+      setUploadDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to update intro video',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle file upload completion
+  const handleUploadComplete = (uploadURL: string, fileName: string, fileSize: number, mimeType: string) => {
+    switch (uploadType) {
+      case 'profile':
+        updateProfileImageMutation.mutate(uploadURL);
+        break;
+      case 'cover':
+        updateCoverPhotoMutation.mutate(uploadURL);
+        break;
+      case 'video':
+        updateIntroVideoMutation.mutate(uploadURL);
+        break;
+    }
+  };
+
+  // Open upload dialog
+  const openUpload = (type: 'profile' | 'cover' | 'video') => {
+    setUploadType(type);
+    setUploadDialogOpen(true);
+  };
 
   if (!isAuthenticated) {
     return (
@@ -142,17 +237,6 @@ export default function CoachProfile() {
     setTempValue("");
   };
 
-  // Handle profile picture upload
-  const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileData(prev => ({ ...prev, profilePic: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   // Handle specialties
   const addSpecialty = () => {
@@ -266,23 +350,21 @@ export default function CoachProfile() {
               <div className="flex flex-col items-center md:items-start">
                 <div className="relative group">
                   <img
-                    src={profileData.profilePic}
+                    src={user?.profileImageUrl || profileData.profilePic}
                     alt={profileData.name}
                     className="w-40 h-40 rounded-full object-cover border-4 border-primary/20"
                   />
                   {isEditMode && (
-                    <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => openUpload('profile')}
+                      data-testid="button-upload-profile"
+                    >
                       <span className="text-white text-sm font-semibold flex items-center gap-1">
-                        <Upload className="h-4 w-4" />
+                        <Camera className="h-4 w-4" />
                         Change Photo
                       </span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleProfilePicUpload}
-                      />
-                    </label>
+                    </button>
                   )}
                 </div>
                 {/* Rating */}
@@ -422,6 +504,41 @@ export default function CoachProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Upload Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent data-testid="dialog-upload">
+          <DialogHeader>
+            <DialogTitle>
+              Upload {uploadType === 'profile' ? 'Profile Image' : uploadType === 'cover' ? 'Cover Photo' : 'Intro Video'}
+            </DialogTitle>
+            <DialogDescription>
+              Select a file to upload. Maximum file size: 50MB.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <SimpleFileUploader
+              onUploadComplete={handleUploadComplete}
+              accept={uploadType === 'video' ? 'video/*' : 'image/*'}
+              buttonText="Choose File"
+              disabled={
+                updateProfileImageMutation.isPending ||
+                updateCoverPhotoMutation.isPending ||
+                updateIntroVideoMutation.isPending
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUploadDialogOpen(false)}
+              data-testid="button-cancel-upload"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -15,7 +15,7 @@ export const storage = new Proxy(drizzleStorage, {
       return drizzleMethod.bind(target);
     }
     // Fall back to Supabase storage
-    const supabaseMethod = supabaseStorage[prop];
+    const supabaseMethod = (supabaseStorage as any)[prop];
     if (typeof supabaseMethod === 'function') {
       return (supabaseMethod as any).bind(supabaseStorage);
     }

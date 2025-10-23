@@ -388,9 +388,6 @@ export function registerWellnessJourneyRoutes(app: Express) {
   // Get current user's wellness journey
   app.get('/api/wellness-journey/current', async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
 
       const journey = await storage.getCurrentWellnessJourney(req.user.id);
       

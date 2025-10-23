@@ -53,8 +53,42 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function Members() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Subscription checkout mutation
+  const subscriptionMutation = useMutation({
+    mutationFn: async (tier: 'basic' | 'premium' | 'supporter') => {
+      const response = await apiRequest('POST', '/api/subscriptions/create-checkout', { tier });
+      const data = await response.json();
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = data.checkoutUrl;
+      } else if (data.success) {
+        // Basic membership activated
+        toast({
+          title: "Success!",
+          description: "Basic membership activated successfully.",
+        });
+        window.location.reload();
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start checkout process.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubscribe = (tier: 'basic' | 'premium' | 'supporter') => {
+    subscriptionMutation.mutate(tier);
+  };
+  
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   const loginForm = useForm<LoginForm>({
@@ -408,8 +442,13 @@ export default function Members() {
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full bg-gray-100 text-gray-800 hover:bg-gray-200">
-                  Join Free
+                <Button 
+                  className="w-full bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  onClick={() => handleSubscribe('basic')}
+                  disabled={subscriptionMutation.isPending}
+                  data-testid="button-join-free"
+                >
+                  {subscriptionMutation.isPending ? "Processing..." : "Join Free"}
                 </Button>
               </CardContent>
             </Card>
@@ -421,7 +460,7 @@ export default function Members() {
               <CardContent className="p-8">
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-secondary mb-2">Premium Member</h3>
-                  <div className="text-3xl font-bold text-primary mb-4">$25/month</div>
+                  <div className="text-3xl font-bold text-primary mb-4">$19.99/month</div>
                   <p className="text-gray-600 mb-6">Enhanced support and exclusive content</p>
                 </div>
                 <ul className="space-y-3 mb-8">
@@ -439,8 +478,13 @@ export default function Members() {
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full bg-primary hover:bg-secondary">
-                  Upgrade to Premium
+                <Button 
+                  className="w-full bg-primary hover:bg-secondary"
+                  onClick={() => handleSubscribe('premium')}
+                  disabled={subscriptionMutation.isPending}
+                  data-testid="button-upgrade-premium"
+                >
+                  {subscriptionMutation.isPending ? "Processing..." : "Upgrade to Premium"}
                 </Button>
               </CardContent>
             </Card>
@@ -467,8 +511,13 @@ export default function Members() {
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full bg-primary hover:bg-secondary">
-                  Become a Supporter
+                <Button 
+                  className="w-full bg-primary hover:bg-secondary"
+                  onClick={() => handleSubscribe('supporter')}
+                  disabled={subscriptionMutation.isPending}
+                  data-testid="button-become-supporter"
+                >
+                  {subscriptionMutation.isPending ? "Processing..." : "Become a Supporter"}
                 </Button>
               </CardContent>
             </Card>

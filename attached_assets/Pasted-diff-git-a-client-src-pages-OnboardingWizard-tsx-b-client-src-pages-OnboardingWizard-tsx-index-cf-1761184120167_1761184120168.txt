@@ -1,0 +1,129 @@
+diff --git a/client/src/pages/OnboardingWizard.tsx b/client/src/pages/OnboardingWizard.tsx
+index cfdf99635d9dfa822c61a592f51a2a324d8b52e0..05ff50ac8f9a2e6e61acac66dbc98244638a2c19 100644
+--- a/client/src/pages/OnboardingWizard.tsx
++++ b/client/src/pages/OnboardingWizard.tsx
+@@ -42,117 +42,113 @@ export default function OnboardingWizard() {
+   const { toast } = useToast();
+   const queryClient = useQueryClient();
+ 
+   // Get onboarding progress
+   const { data: progressData, isLoading: progressLoading } = useQuery({
+     queryKey: ['/api/onboarding/progress'],
+     retry: false,
+   });
+ 
+   // Get coaching specialties
+   const { data: specialtiesData } = useQuery({
+     queryKey: ['/api/onboarding/coaching-specialties'],
+   });
+ 
+   // Get welcome coaching flow
+   const { data: welcomeFlow } = useQuery({
+     queryKey: ['/api/onboarding/welcome-message'],
+   });
+ 
+   const progress = progressData?.progress || [];
+   const specialties = specialtiesData?.specialties || [];
+ 
+   // Complete step mutation
+   const completeStepMutation = useMutation({
+     mutationFn: async (stepId: string) => {
+-      return apiRequest(`/api/onboarding/complete-step/${stepId}`, {
+-        method: 'POST',
+-      });
++      return apiRequest('POST', `/api/onboarding/complete-step/${stepId}`);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/onboarding/progress'] });
+       toast({
+         title: "Step Completed",
+         description: "Great progress! Moving to the next step.",
+       });
+     },
+     onError: (error) => {
+       toast({
+         title: "Error",
+         description: "Failed to complete step. Please try again.",
+         variant: "destructive",
+       });
+     },
+   });
+ 
+   // Coaching selection mutation
+   const coachingSelectionMutation = useMutation({
+     mutationFn: async (specialties: string[]) => {
+-      return apiRequest('/api/onboarding/coaching-selection', {
+-        method: 'POST',
+-        body: JSON.stringify({ specialties }),
+-      });
++      return apiRequest('POST', '/api/onboarding/coaching-selection', { specialties });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/onboarding/progress'] });
+       toast({
+         title: "Preferences Saved",
+         description: "Your coaching preferences have been updated!",
+       });
+       setCurrentStep(currentStep + 1);
+     },
+     onError: (error) => {
+       toast({
+         title: "Error",
+         description: "Failed to save preferences. Please try again.",
+         variant: "destructive",
+       });
+     },
+   });
+ 
+   // Calculate overall progress
+   const completedSteps = progress.filter((step: OnboardingStep) => step.completed).length;
+   const totalSteps = progress.length;
+   const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+ 
+   // Initialize coaching flow
+   useEffect(() => {
+     if (welcomeFlow && !coachingFlow) {
+       setCoachingFlow(welcomeFlow);
+     }
+   }, [welcomeFlow, coachingFlow]);
+ 
+   const handleCoachingFlowResponse = async (responseId: string) => {
+     const newResponses = [...flowResponses, responseId];
+     setFlowResponses(newResponses);
+ 
+     try {
+-      const response = await apiRequest('/api/onboarding/coaching-flow', {
+-        method: 'POST',
+-        body: JSON.stringify({ step: 'category_selected', response: responseId }),
++      const response = await apiRequest('POST', '/api/onboarding/coaching-flow', {
++        step: 'category_selected',
++        response: responseId,
+       });
+-      setCoachingFlow(response);
++      const data = await response.json();
++      setCoachingFlow(data);
+     } catch (error) {
+       toast({
+         title: "Error",
+         description: "Failed to process your response. Please try again.",
+         variant: "destructive",
+       });
+     }
+   };
+ 
+   const handleSpecialtyToggle = (specialtyId: string) => {
+     setSelectedSpecialties(prev => 
+       prev.includes(specialtyId) 
+         ? prev.filter(id => id !== specialtyId)
+         : [...prev, specialtyId]
+     );
+   };
+ 
+   const handleSaveCoachingSelection = () => {
+     if (selectedSpecialties.length === 0) {
+       toast({
+         title: "Selection Required",
+         description: "Please select at least one coaching specialty.",
+         variant: "destructive",
+       });
+       return;

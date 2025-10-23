@@ -1,0 +1,59 @@
+diff --git a/client/src/components/MediaGallery.tsx b/client/src/components/MediaGallery.tsx
+index 6cd6e915c879d40875c8aae2418a31c51e26d495..a4a8cf489d7cecc6767d5338673b925cfbb01118 100644
+--- a/client/src/components/MediaGallery.tsx
++++ b/client/src/components/MediaGallery.tsx
+@@ -37,53 +37,51 @@ interface UserMedia {
+   description?: string;
+   isPublic: boolean;
+   displayOrder: number;
+   createdAt: string;
+   updatedAt: string;
+ }
+ 
+ interface MediaGalleryProps {
+   editable?: boolean;
+   showAddButton?: boolean;
+   onAddMedia?: () => void;
+ }
+ 
+ export function MediaGallery({ editable = false, showAddButton = false, onAddMedia }: MediaGalleryProps) {
+   const { toast } = useToast();
+   const [selectedMedia, setSelectedMedia] = useState<UserMedia | null>(null);
+   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   const [mediaToDelete, setMediaToDelete] = useState<UserMedia | null>(null);
+ 
+   const { data: mediaFiles = [], isLoading } = useQuery<UserMedia[]>({
+     queryKey: ['/api/user/media'],
+   });
+ 
+   const deleteMutation = useMutation({
+     mutationFn: async (mediaId: string) => {
+-      return apiRequest(`/api/user/media/${mediaId}`, {
+-        method: 'DELETE',
+-      });
++      return apiRequest('DELETE', `/api/user/media/${mediaId}`);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/user/media'] });
+       toast({
+         title: 'Media deleted',
+         description: 'The file has been removed from your gallery.',
+       });
+       setDeleteDialogOpen(false);
+       setMediaToDelete(null);
+     },
+     onError: (error) => {
+       toast({
+         title: 'Delete failed',
+         description: error instanceof Error ? error.message : 'Failed to delete file',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   const handleDelete = (media: UserMedia) => {
+     setMediaToDelete(media);
+     setDeleteDialogOpen(true);
+   };
+ 
+   const confirmDelete = () => {

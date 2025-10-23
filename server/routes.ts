@@ -1372,6 +1372,25 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // Helper function for sending emails via SendGrid
+  async function sendEmail(options: { to: string; subject: string; html: string; text: string }) {
+    try {
+      const { client, fromEmail } = await getUncachableSendGridClient();
+      const msg = {
+        to: options.to,
+        from: fromEmail,
+        subject: options.subject,
+        html: options.html,
+        text: options.text
+      };
+      await client.send(msg);
+      return true;
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw error;
+    }
+  }
+
   // Password reset routes
   app.post('/api/auth/request-reset', authLimiter, async (req, res) => {
     try {
@@ -1770,6 +1789,81 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // Membership subscription checkout
+  app.post('/api/subscriptions/create-checkout', requireAuth as any, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!stripe) {
+        return res.status(500).json({ message: 'Payment processing not configured' });
+      }
+
+      const { tier } = req.body;
+      const user = req.user;
+
+      // Define membership tiers
+      const membershipTiers = {
+        basic: { name: 'Basic Member', amount: 0, interval: null },
+        premium: { name: 'Premium Member', amount: 1999, interval: 'month' as const }, // $19.99/month
+        supporter: { name: 'Supporter', amount: 5000, interval: 'month' as const } // $50/month
+      };
+
+      if (!tier || !['basic', 'premium', 'supporter'].includes(tier)) {
+        return res.status(400).json({ message: 'Invalid membership tier' });
+      }
+
+      const selectedTier = membershipTiers[tier as keyof typeof membershipTiers];
+
+      // Basic is free - just update user membership level
+      if (tier === 'basic') {
+        await storage.updateUser(user.id, { membershipLevel: 'basic' });
+        return res.json({ message: 'Basic membership activated', success: true });
+      }
+
+      // Create or get Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          metadata: { userId: user.id }
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+
+      // Create Stripe checkout session for subscription
+      const session = await stripe.checkout.sessions.create({
+        customer: stripeCustomerId,
+        payment_method_types: ['card'],
+        line_items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: selectedTier.name,
+              description: `${selectedTier.name} subscription - Access to all features`
+            },
+            unit_amount: selectedTier.amount,
+            recurring: {
+              interval: selectedTier.interval as 'month'
+            }
+          },
+          quantity: 1
+        }],
+        mode: 'subscription',
+        success_url: `${req.headers.origin || process.env.FRONTEND_URL || 'http://localhost:5000'}/members?subscription=success&tier=${tier}`,
+        cancel_url: `${req.headers.origin || process.env.FRONTEND_URL || 'http://localhost:5000'}/members?subscription=canceled`,
+        metadata: {
+          userId: user.id,
+          membershipTier: tier
+        }
+      });
+
+      res.json({ checkoutUrl: session.url });
+    } catch (error: any) {
+      console.error('Subscription checkout error:', error);
+      res.status(500).json({ message: error.message || 'Failed to create checkout session' });
+    }
+  });
+
   // Member Dashboard Routes
   app.get('/api/member/dashboard', requireAuth as any, async (req: AuthenticatedRequest, res) => {
     try {
@@ -2058,6 +2152,52 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Booking availability endpoint
+  app.get("/api/booking/availability", optionalAuth as any, async (req, res) => {
+    try {
+      const { date, coachId } = req.query;
+      
+      if (!date) {
+        return res.status(400).json({ message: "Date parameter is required" });
+      }
+
+      // TODO: Implement real availability checking with coach schedules and existing bookings
+      // For now, return a set of default available time slots
+      const selectedDate = new Date(date as string);
+      const dayOfWeek = selectedDate.getDay();
+      
+      // Don't show slots for past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) {
+        return res.json({ availableSlots: [] });
+      }
+
+      // Example: Generate standard business hour slots for weekdays
+      const availableSlots = [];
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday to Friday
+        const slots = [
+          "09:00 AM", "10:00 AM", "11:00 AM", 
+          "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
+        ];
+        availableSlots.push(...slots);
+      } else if (dayOfWeek === 6) { // Saturday
+        const slots = ["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM"];
+        availableSlots.push(...slots);
+      }
+      // Sunday: no slots
+
+      res.json({ 
+        availableSlots,
+        date: date as string,
+        timezone: "America/New_York"
+      });
+    } catch (error) {
+      console.error("Error fetching booking availability:", error);
+      res.status(500).json({ message: "Internal server error", availableSlots: [] });
     }
   });
 
@@ -3346,7 +3486,23 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   
-  // Get public coach profile by coach ID
+  // Get coach schedule/availability (MUST be before :coachId route)
+  app.get("/api/coach/profile/schedule", optionalAuth as any, async (req: any, res) => {
+    try {
+      // TODO: Implement coach scheduling/availability system
+      // For now, return empty schedule to prevent 404 errors
+      res.json({
+        availableSlots: [],
+        timezone: "America/New_York",
+        bookingEnabled: false
+      });
+    } catch (error) {
+      console.error("Error fetching coach schedule:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get public coach profile by coach ID (MUST be after specific routes like /schedule)
   app.get("/api/coach/profile/:coachId", optionalAuth as any, async (req: any, res) => {
     try {
       const { coachId } = req.params;
@@ -3390,22 +3546,6 @@ When to refer to licensed therapists and emergency resources for relationship cr
       res.json(publicProfile);
     } catch (error) {
       console.error("Error fetching public coach profile:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Get coach schedule/availability (stub endpoint to prevent 404 errors)
-  app.get("/api/coach/profile/schedule", optionalAuth as any, async (req: any, res) => {
-    try {
-      // TODO: Implement coach scheduling/availability system
-      // For now, return empty schedule to prevent 404 errors
-      res.json({
-        availableSlots: [],
-        timezone: "America/New_York",
-        bookingEnabled: false
-      });
-    } catch (error) {
-      console.error("Error fetching coach schedule:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

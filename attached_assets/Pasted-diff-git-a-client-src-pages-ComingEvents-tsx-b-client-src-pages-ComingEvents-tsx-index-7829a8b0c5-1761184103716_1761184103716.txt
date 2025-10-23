@@ -1,0 +1,59 @@
+diff --git a/client/src/pages/ComingEvents.tsx b/client/src/pages/ComingEvents.tsx
+index 7829a8b0c52a96eb6c8716d8f31716d36dee2f57..253525759a01036e815e7235f56621a95e7d730d 100644
+--- a/client/src/pages/ComingEvents.tsx
++++ b/client/src/pages/ComingEvents.tsx
+@@ -20,53 +20,51 @@ interface Event {
+   endTime: string;
+   timezone: string;
+   maxParticipants: number | null;
+   currentParticipants: number;
+   price: string;
+   isPaid: boolean;
+   isPublic: boolean;
+   streamUrl?: string;
+   streamProvider?: string;
+   meetingLink?: string;
+   tags: string[];
+   category: string;
+   isFeatured: boolean;
+   status: string;
+ }
+ 
+ export default function ComingEvents() {
+   const { toast } = useToast();
+ 
+   const { data: events, isLoading } = useQuery<Event[]>({
+     queryKey: ["/api/events"],
+   });
+ 
+   const registerMutation = useMutation({
+     mutationFn: async (eventId: string) => {
+-      return await apiRequest(`/api/events/${eventId}/register`, {
+-        method: "POST",
+-      });
++      return await apiRequest("POST", `/api/events/${eventId}/register`);
+     },
+     onSuccess: () => {
+       toast({
+         title: "Registration Successful",
+         description: "You've been registered for this event!",
+       });
+       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+     },
+     onError: (error: any) => {
+       toast({
+         title: "Registration Failed",
+         description: error.message || "Something went wrong",
+         variant: "destructive",
+       });
+     },
+   });
+ 
+   const getEventTypeColor = (type: string) => {
+     switch (type) {
+       case "webinar": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+       case "workshop": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+       case "group_coaching": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+       case "live_stream": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+       case "certification": return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+       default: return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";

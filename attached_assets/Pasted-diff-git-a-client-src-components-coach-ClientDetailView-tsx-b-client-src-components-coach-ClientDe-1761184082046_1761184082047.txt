@@ -1,0 +1,107 @@
+diff --git a/client/src/components/coach/ClientDetailView.tsx b/client/src/components/coach/ClientDetailView.tsx
+index 99f354739ba7e19d49e66c9fa20ba0c1a4f49fdf..1a8bf25e027c0f0e3d32ab73efad68e1f828d087 100644
+--- a/client/src/components/coach/ClientDetailView.tsx
++++ b/client/src/components/coach/ClientDetailView.tsx
+@@ -73,98 +73,98 @@ export default function ClientDetailView({ clientId, clientName, clientEmail, on
+     targetDate: "",
+     priority: "medium"
+   });
+ 
+   // Fetch client goals
+   const { data: goals = [], isLoading: goalsLoading } = useQuery<ClientGoal[]>({
+     queryKey: ["/api/coach/clients", clientId, "goals"],
+     enabled: !!clientId,
+   });
+ 
+   // Fetch session notes
+   const { data: sessionNotes = [], isLoading: notesLoading } = useQuery<SessionNote[]>({
+     queryKey: ["/api/coach/session-notes", clientId],
+     enabled: !!clientId,
+   });
+ 
+   // Fetch AI insights (chat summaries)
+   const { data: aiInsights = [], isLoading: insightsLoading } = useQuery<ChatSummary[]>({
+     queryKey: ["/api/coach/client-ai-insights", clientId],
+     enabled: !!clientId,
+   });
+ 
+   // Create goal mutation
+   const createGoalMutation = useMutation({
+     mutationFn: async (goalData: typeof newGoal) => {
+-      return apiRequest(`/api/coach/clients/${clientId}/goals`, "POST", goalData);
++      return apiRequest("POST", `/api/coach/clients/${clientId}/goals`, goalData);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ["/api/coach/clients", clientId, "goals"] });
+       toast({ title: "Goal created successfully" });
+       setNewGoal({
+         title: "",
+         description: "",
+         category: "wellness",
+         targetDate: "",
+         priority: "medium"
+       });
+     },
+     onError: () => {
+       toast({ title: "Failed to create goal", variant: "destructive" });
+     }
+   });
+ 
+   // Update goal mutation
+   const updateGoalMutation = useMutation({
+     mutationFn: async ({ goalId, data }: { goalId: string; data: Partial<ClientGoal> }) => {
+-      return apiRequest(`/api/coach/goals/${goalId}`, "PUT", data);
++      return apiRequest("PUT", `/api/coach/goals/${goalId}`, data);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ["/api/coach/clients", clientId, "goals"] });
+       toast({ title: "Goal updated successfully" });
+       setEditingGoal(null);
+     },
+     onError: () => {
+       toast({ title: "Failed to update goal", variant: "destructive" });
+     }
+   });
+ 
+   // Update goal progress mutation
+   const updateProgressMutation = useMutation({
+     mutationFn: async ({ goalId, progress }: { goalId: string; progress: number }) => {
+-      return apiRequest(`/api/coach/goals/${goalId}/progress`, "PATCH", { progress });
++      return apiRequest("PATCH", `/api/coach/goals/${goalId}/progress`, { progress });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ["/api/coach/clients", clientId, "goals"] });
+       toast({ title: "Progress updated" });
+     }
+   });
+ 
+   // Delete goal mutation
+   const deleteGoalMutation = useMutation({
+     mutationFn: async (goalId: string) => {
+-      return apiRequest(`/api/coach/goals/${goalId}`, "DELETE");
++      return apiRequest("DELETE", `/api/coach/goals/${goalId}`);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ["/api/coach/clients", clientId, "goals"] });
+       toast({ title: "Goal deleted" });
+     }
+   });
+ 
+   const handleCreateGoal = () => {
+     if (!newGoal.title || !newGoal.targetDate) {
+       toast({ title: "Please fill in required fields", variant: "destructive" });
+       return;
+     }
+     createGoalMutation.mutate(newGoal);
+   };
+ 
+   const getPriorityColor = (priority: string) => {
+     switch (priority) {
+       case "high": return "bg-red-100 text-red-800";
+       case "medium": return "bg-yellow-100 text-yellow-800";
+       case "low": return "bg-green-100 text-green-800";
+       default: return "bg-gray-100 text-gray-800";
+     }
+   };
+ 
+   const getStatusColor = (status: string) => {

@@ -1,0 +1,57 @@
+diff --git a/client/src/pages/WixBooking.tsx b/client/src/pages/WixBooking.tsx
+index a793b345a6d7ca566a6e781ec9338725e216c8ef..1c20293feef7761058cd156459b26dbd03411708 100644
+--- a/client/src/pages/WixBooking.tsx
++++ b/client/src/pages/WixBooking.tsx
+@@ -126,51 +126,51 @@ export default function WixBooking() {
+       return response;
+     },
+     onSuccess: () => {
+       toast({
+         title: 'Booking Created Successfully!',
+         description: 'Your appointment has been scheduled. You will receive a confirmation email shortly.',
+       });
+       queryClient.invalidateQueries({ queryKey: ['/api/wix/bookings'] });
+       form.reset();
+       setStep(1);
+       setSelectedService(null);
+       setSelectedDate('');
+     },
+     onError: (error: any) => {
+       toast({
+         title: 'Booking Failed',
+         description: error.message || 'There was an error creating your booking. Please try again.',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   // Cancel booking mutation
+   const cancelBookingMutation = useMutation({
+     mutationFn: async (bookingId: string) => {
+-      const response = await apiRequest(`/api/wix/bookings/${bookingId}`, 'DELETE');
++      const response = await apiRequest('DELETE', `/api/wix/bookings/${bookingId}`);
+       return response;
+     },
+     onSuccess: () => {
+       toast({
+         title: 'Booking Cancelled',
+         description: 'Your appointment has been cancelled successfully.',
+       });
+       queryClient.invalidateQueries({ queryKey: ['/api/wix/bookings'] });
+     },
+     onError: () => {
+       toast({
+         title: 'Cancellation Failed',
+         description: 'There was an error cancelling your booking. Please try again.',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   const handleServiceSelect = (service: WixService) => {
+     setSelectedService(service);
+     form.setValue('serviceId', service._id);
+     setStep(2);
+   };
+ 
+   const handleDateSelect = (date: string) => {
