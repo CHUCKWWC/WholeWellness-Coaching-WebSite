@@ -13,7 +13,7 @@ import {
   progressTracking,
   aiInsights
 } from "@shared/schema";
-import type { AuthenticatedRequest } from "./auth";
+import { requireAuth, type AuthenticatedRequest } from "./auth";
 
 // Validation schemas
 const wellnessGoalSchema = z.object({
@@ -386,11 +386,8 @@ class WellnessRecommendationEngine {
 
 export function registerWellnessJourneyRoutes(app: Express) {
   // Get current user's wellness journey
-  app.get('/api/wellness-journey/current', async (req: any, res) => {
+  app.get('/api/wellness-journey/current', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
 
       const journey = await storage.getCurrentWellnessJourney(req.user.id);
       
