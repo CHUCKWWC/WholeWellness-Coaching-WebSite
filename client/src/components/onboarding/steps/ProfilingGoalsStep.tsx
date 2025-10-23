@@ -126,7 +126,7 @@ export default function ProfilingGoalsStep({ onValidChange }: ProfilingGoalsStep
         <div>
           <Label htmlFor="age">Age *</Label>
           <Select value={age} onValueChange={setAge}>
-            <SelectTrigger id="age">
+            <SelectTrigger id="age" data-testid="select-age">
               <SelectValue placeholder="Select your age range" />
             </SelectTrigger>
             <SelectContent>
@@ -143,7 +143,7 @@ export default function ProfilingGoalsStep({ onValidChange }: ProfilingGoalsStep
         <div>
           <Label htmlFor="gender">Gender *</Label>
           <Select value={gender} onValueChange={setGender}>
-            <SelectTrigger id="gender">
+            <SelectTrigger id="gender" data-testid="select-gender">
               <SelectValue placeholder="Select your gender" />
             </SelectTrigger>
             <SelectContent>
@@ -159,6 +159,7 @@ export default function ProfilingGoalsStep({ onValidChange }: ProfilingGoalsStep
           <Label htmlFor="occupation">Occupation *</Label>
           <Input
             id="occupation"
+            data-testid="input-occupation"
             placeholder="e.g., Teacher, Engineer, Stay-at-home parent"
             value={occupation}
             onChange={(e) => setOccupation(e.target.value)}
@@ -168,7 +169,7 @@ export default function ProfilingGoalsStep({ onValidChange }: ProfilingGoalsStep
         <div>
           <Label htmlFor="relationship">Relationship Status *</Label>
           <Select value={relationshipStatus} onValueChange={setRelationshipStatus}>
-            <SelectTrigger id="relationship">
+            <SelectTrigger id="relationship" data-testid="select-relationship">
               <SelectValue placeholder="Select your status" />
             </SelectTrigger>
             <SelectContent>
@@ -186,7 +187,7 @@ export default function ProfilingGoalsStep({ onValidChange }: ProfilingGoalsStep
       <div>
         <Label htmlFor="living">Living Arrangement</Label>
         <Select value={livingArrangement} onValueChange={setLivingArrangement}>
-          <SelectTrigger id="living">
+          <SelectTrigger id="living" data-testid="select-living">
             <SelectValue placeholder="Select your living situation" />
           </SelectTrigger>
           <SelectContent>
@@ -213,6 +214,7 @@ export default function ProfilingGoalsStep({ onValidChange }: ProfilingGoalsStep
             >
               <CardContent className="flex items-center space-x-3 p-3">
                 <Checkbox 
+                  data-testid={`checkbox-focus-${area.id}`}
                   checked={selectedFocusAreas.includes(area.id)}
                   onCheckedChange={() => toggleFocusArea(area.id)}
                 />
