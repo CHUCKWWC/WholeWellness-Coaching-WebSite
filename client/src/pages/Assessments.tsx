@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, Lock, Star } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { useLocation } from "wouter";
 
 interface Assessment {
   id: string;
@@ -81,6 +82,7 @@ export default function Assessments() {
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch user's completed programs
   const { data: userPrograms = [], isLoading: programsLoading } = useQuery<UserProgram[]>({
@@ -136,7 +138,7 @@ export default function Assessments() {
         assessmentType: assessmentId,
         paid: remainingFreeAssessments > 0 ? false : true
       });
-      return response;
+      return { ...response, assessmentId };
     },
     onSuccess: (data) => {
       toast({
@@ -144,7 +146,8 @@ export default function Assessments() {
         description: "Your assessment has been created. Complete it to see your results.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/programs'] });
-      // Navigate to assessment questions (would be implemented)
+      // Navigate to assessment questions
+      setLocation(`/assessments/take/${data.assessmentId}`);
     },
     onError: (error: any) => {
       toast({
@@ -156,13 +159,23 @@ export default function Assessments() {
   });
 
   const handleStartAssessment = async (assessment: Assessment) => {
+    // Check if assessment is already completed
+    if (isAssessmentCompleted(assessment.id)) {
+      // Navigate to results page
+      const program = getAssessmentResults(assessment.id);
+      if (program) {
+        setLocation(`/assessments/results/${program.id}`);
+      }
+      return;
+    }
+    
     // Check if user needs to pay
     if (remainingFreeAssessments === 0) {
       // Start payment flow
       createPaymentMutation.mutate(assessment.id);
     } else {
-      // Start free assessment
-      startAssessmentMutation.mutate(assessment.id);
+      // Navigate directly to assessment
+      setLocation(`/assessments/take/${assessment.id}`);
     }
   };
 
