@@ -1,0 +1,138 @@
+diff --git a/client/src/pages/UserProfile.tsx b/client/src/pages/UserProfile.tsx
+index cd062297e538030335b8081f69cb2351c8291e40..00ab0e6d2b5ee134fedee681eeaa2f0f195be2c7 100644
+--- a/client/src/pages/UserProfile.tsx
++++ b/client/src/pages/UserProfile.tsx
+@@ -73,129 +73,117 @@ export default function UserProfile() {
+     instagramUrl: user?.instagramUrl || '',
+     linkedinUrl: user?.linkedinUrl || '',
+   });
+ 
+   // Get user's assessment completion status
+   const { data: assessments = [], isLoading: assessmentsLoading } = useQuery({
+     queryKey: ["/api/assessments/user", user?.id],
+     enabled: isAuthenticated && !!user?.id,
+   });
+ 
+   // Get coaching session history
+   const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
+     queryKey: ["/api/coaching/sessions", user?.id],
+     enabled: isAuthenticated && !!user?.id,
+   });
+ 
+   // Get progress metrics
+   const { data: progressMetrics, isLoading: metricsLoading } = useQuery({
+     queryKey: ["/api/user/progress-metrics", user?.id],
+     enabled: isAuthenticated && !!user?.id,
+   });
+ 
+   // Profile update mutation
+   const updateProfileMutation = useMutation({
+     mutationFn: async (updates: any) => {
+-      return apiRequest('/api/profile', {
+-        method: 'PUT',
+-        body: JSON.stringify(updates),
+-      });
++      return apiRequest('PUT', '/api/profile', updates);
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+       toast({
+         title: 'Profile updated',
+         description: 'Your profile has been updated successfully.',
+       });
+       setIsEditMode(false);
+     },
+     onError: (error) => {
+       toast({
+         title: 'Update failed',
+         description: error instanceof Error ? error.message : 'Failed to update profile',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   // Profile image mutation
+   const updateProfileImageMutation = useMutation({
+     mutationFn: async (imageURL: string) => {
+-      return apiRequest('/api/profile/image', {
+-        method: 'PUT',
+-        body: JSON.stringify({ imageURL }),
+-      });
++      return apiRequest('PUT', '/api/profile/image', { imageURL });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+       toast({
+         title: 'Profile image updated',
+         description: 'Your profile image has been updated successfully.',
+       });
+       setUploadDialogOpen(false);
+     },
+     onError: (error) => {
+       toast({
+         title: 'Upload failed',
+         description: error instanceof Error ? error.message : 'Failed to update profile image',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   // Cover photo mutation
+   const updateCoverPhotoMutation = useMutation({
+     mutationFn: async (imageURL: string) => {
+-      return apiRequest('/api/profile/cover', {
+-        method: 'PUT',
+-        body: JSON.stringify({ imageURL }),
+-      });
++      return apiRequest('PUT', '/api/profile/cover', { imageURL });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+       toast({
+         title: 'Cover photo updated',
+         description: 'Your cover photo has been updated successfully.',
+       });
+       setUploadDialogOpen(false);
+     },
+     onError: (error) => {
+       toast({
+         title: 'Upload failed',
+         description: error instanceof Error ? error.message : 'Failed to update cover photo',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   // Intro video mutation
+   const updateIntroVideoMutation = useMutation({
+     mutationFn: async (videoURL: string) => {
+-      return apiRequest('/api/profile/video', {
+-        method: 'PUT',
+-        body: JSON.stringify({ videoURL }),
+-      });
++      return apiRequest('PUT', '/api/profile/video', { videoURL });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+       toast({
+         title: 'Intro video updated',
+         description: 'Your intro video has been updated successfully.',
+       });
+       setUploadDialogOpen(false);
+     },
+     onError: (error) => {
+       toast({
+         title: 'Upload failed',
+         description: error instanceof Error ? error.message : 'Failed to update intro video',
+         variant: 'destructive',
+       });
+     },
+   });
+ 
+   // Handle file upload completion
+   const handleUploadComplete = (uploadURL: string, fileName: string, fileSize: number, mimeType: string) => {
+     switch (uploadType) {
+       case 'profile':
+         updateProfileImageMutation.mutate(uploadURL);
+         break;
+       case 'cover':

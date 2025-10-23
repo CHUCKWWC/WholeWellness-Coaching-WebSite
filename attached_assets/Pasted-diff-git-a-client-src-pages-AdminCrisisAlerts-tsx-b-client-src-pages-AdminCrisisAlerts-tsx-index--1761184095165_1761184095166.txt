@@ -1,0 +1,62 @@
+diff --git a/client/src/pages/AdminCrisisAlerts.tsx b/client/src/pages/AdminCrisisAlerts.tsx
+index 314b6acd26753c23c3fa991c6ce1dcf59545bbc0..9f7b2e747b1f19b7e6cfa6fd5ca896522001733e 100644
+--- a/client/src/pages/AdminCrisisAlerts.tsx
++++ b/client/src/pages/AdminCrisisAlerts.tsx
+@@ -60,53 +60,54 @@ const SEVERITY_CONFIG = {
+   critical: { color: "bg-red-600 text-white border-red-700", label: "Critical", icon: Shield },
+ };
+ 
+ const STATUS_CONFIG = {
+   new: { color: "bg-blue-100 text-blue-800", label: "New" },
+   acknowledged: { color: "bg-purple-100 text-purple-800", label: "Acknowledged" },
+   escalated: { color: "bg-orange-100 text-orange-800", label: "Escalated" },
+   resolved: { color: "bg-green-100 text-green-800", label: "Resolved" },
+ };
+ 
+ export default function AdminCrisisAlerts() {
+   const { toast } = useToast();
+   const isMobile = useIsMobile();
+   const [selectedAlert, setSelectedAlert] = useState<CrisisAlert | null>(null);
+   const [resolution, setResolution] = useState("");
+   const [statusFilter, setStatusFilter] = useState<string>("all");
+ 
+   // Fetch crisis alerts
+   const { data: alerts = [], isLoading } = useQuery<CrisisAlert[]>({
+     queryKey: ['/api/digest/crisis-alerts', statusFilter],
+   });
+ 
+   // Update alert status
+   const updateStatus = useMutation({
+     mutationFn: async ({ id, status, resolution }: { id: string; status: string; resolution?: string }) => {
+-      return apiRequest('/api/digest/crisis-alerts/update', {
+-        method: 'PUT',
+-        body: JSON.stringify({ id, status, resolution }),
++      return apiRequest('PUT', '/api/digest/crisis-alerts/update', {
++        id,
++        status,
++        resolution,
+       });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['/api/digest/crisis-alerts'] });
+       toast({
+         title: "Alert updated",
+         description: "Crisis alert status has been updated successfully.",
+       });
+       setSelectedAlert(null);
+       setResolution("");
+     },
+     onError: (error: any) => {
+       toast({
+         title: "Error updating alert",
+         description: error.message || "Failed to update alert. Please try again.",
+         variant: "destructive",
+       });
+     },
+   });
+ 
+   const handleResolve = () => {
+     if (!selectedAlert || !resolution.trim()) {
+       toast({
+         title: "Resolution required",
+         description: "Please provide resolution details before resolving the alert.",

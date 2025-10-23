@@ -1,0 +1,83 @@
+diff --git a/client/src/pages/EmailVerification.tsx b/client/src/pages/EmailVerification.tsx
+index 2b8b2e556cb05eed2309c727042c73f9d69b143f..a96c74d80378e7554558d657112d08c2a95ee8b3 100644
+--- a/client/src/pages/EmailVerification.tsx
++++ b/client/src/pages/EmailVerification.tsx
+@@ -1,76 +1,71 @@
+ import { useEffect, useState } from 'react';
+ import { useLocation } from 'wouter';
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+ import { Button } from '@/components/ui/button';
+ import { Alert, AlertDescription } from '@/components/ui/alert';
+ import { CheckCircle, AlertCircle, Mail, Loader } from 'lucide-react';
+ import { apiRequest } from '@/lib/queryClient';
+ import { useMutation } from '@tanstack/react-query';
+ import { useToast } from '@/hooks/use-toast';
+ 
+ export default function EmailVerification() {
+   const [location] = useLocation();
+   const searchParams = new URLSearchParams(location.split('?')[1] || '');
+   const token = searchParams.get('token');
+   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error' | 'expired'>('loading');
+   const [errorMessage, setErrorMessage] = useState('');
+   const { toast } = useToast();
+ 
+   // Verify email mutation
+   const verifyEmailMutation = useMutation({
+     mutationFn: async (token: string) => {
+-      return apiRequest('/api/onboarding/verify-email', {
+-        method: 'POST',
+-        body: JSON.stringify({ token }),
+-      });
++      return apiRequest('POST', '/api/onboarding/verify-email', { token });
+     },
+     onSuccess: () => {
+       setVerificationStatus('success');
+       toast({
+         title: "Email Verified Successfully",
+         description: "Your email has been verified. You can now access all features.",
+       });
+       setTimeout(() => {
+         window.location.href = '/onboarding';
+       }, 3000);
+     },
+     onError: (error: any) => {
+       setVerificationStatus('error');
+       setErrorMessage(error.message || 'Verification failed');
+       if (error.message?.includes('Invalid') || error.message?.includes('expired')) {
+         setVerificationStatus('expired');
+       }
+     },
+   });
+ 
+   // Resend verification mutation
+   const resendVerificationMutation = useMutation({
+     mutationFn: async () => {
+-      return apiRequest('/api/onboarding/resend-verification', {
+-        method: 'POST',
+-      });
++      return apiRequest('POST', '/api/onboarding/resend-verification');
+     },
+     onSuccess: () => {
+       toast({
+         title: "Verification Email Sent",
+         description: "A new verification email has been sent to your address.",
+       });
+     },
+     onError: (error: any) => {
+       toast({
+         title: "Error",
+         description: error.message || "Failed to resend verification email.",
+         variant: "destructive",
+       });
+     },
+   });
+ 
+   useEffect(() => {
+     if (token) {
+       verifyEmailMutation.mutate(token);
+     } else {
+       setVerificationStatus('error');
+       setErrorMessage('No verification token provided');
+     }
+   }, [token]);
+ 
