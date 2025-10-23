@@ -112,6 +112,19 @@ export interface IStorage {
   getEventRegistrationByUserAndEvent(userId: string, eventId: string): Promise<any>;
   createEventRegistration(registration: any): Promise<any>;
   getUserEventRegistrations(userId: string): Promise<any[]>;
+  
+  // Wellness Journey Methods
+  createWellnessJourney(journey: any): Promise<any>;
+  getCurrentWellnessJourney(userId: string): Promise<any | undefined>;
+  getWellnessJourney(id: string): Promise<any | undefined>;
+  updateJourneyProgress(journeyId: string): Promise<any | undefined>;
+  createWellnessGoal(goal: any): Promise<any>;
+  createJourneyMilestone(milestone: any): Promise<any>;
+  recordProgress(progress: any): Promise<any>;
+  createAIInsight(insight: any): Promise<any>;
+  getJourneyAnalytics(userId: string): Promise<any>;
+  completeJourneyMilestone(milestoneId: string, userId: string): Promise<any | undefined>;
+  adaptWellnessJourney(journeyId: string, adaptationData: any): Promise<any | undefined>;
 }
 
 export class MemoryStorage implements IStorage {
@@ -549,7 +562,27 @@ export class MemoryStorage implements IStorage {
   }
 }
 
-// Import SupabaseClientStorage
+// Import storage implementations
 import { SupabaseClientStorage } from "./supabase-client-storage";
+import { drizzleStorage } from "./drizzle-storage";
 
-export const storage = new SupabaseClientStorage();
+// Create a single instance of Supabase storage for fallback
+const supabaseStorage = new SupabaseClientStorage();
+
+// Create a proxy that uses Drizzle storage first, then falls back to Supabase
+export const storage = new Proxy(drizzleStorage, {
+  get(target: any, prop: string) {
+    // Check if Drizzle storage has this method (checks prototype chain)
+    const drizzleMethod = target[prop];
+    if (typeof drizzleMethod === 'function') {
+      // Bind the method to preserve 'this' context
+      return drizzleMethod.bind(target);
+    }
+    // Fall back to Supabase storage
+    const supabaseMethod = (supabaseStorage as any)[prop];
+    if (typeof supabaseMethod === 'function') {
+      return (supabaseMethod as any).bind(supabaseStorage);
+    }
+    return drizzleMethod || supabaseMethod;
+  }
+}) as IStorage;
