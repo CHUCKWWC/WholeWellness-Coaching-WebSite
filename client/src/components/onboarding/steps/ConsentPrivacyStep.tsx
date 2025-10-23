@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useOnboarding } from '../OnboardingContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -24,11 +24,24 @@ export default function ConsentPrivacyStep({ onValidChange }: ConsentPrivacyStep
     onValidChange(isValid);
   }, [termsAccepted, privacyAccepted, dataConsentAccepted, onValidChange]);
 
-  useEffect(() => {
+  const handleConsentChange = useCallback((type: 'terms' | 'privacy' | 'dataConsent', value: boolean) => {
+    switch (type) {
+      case 'terms':
+        setTermsAccepted(value);
+        break;
+      case 'privacy':
+        setPrivacyAccepted(value);
+        break;
+      case 'dataConsent':
+        setDataConsentAccepted(value);
+        break;
+    }
+    
+    // Update context data with all values at once
     updateData({
-      termsAccepted,
-      privacyAccepted,
-      dataConsentAccepted
+      termsAccepted: type === 'terms' ? value : termsAccepted,
+      privacyAccepted: type === 'privacy' ? value : privacyAccepted,
+      dataConsentAccepted: type === 'dataConsent' ? value : dataConsentAccepted
     });
   }, [termsAccepted, privacyAccepted, dataConsentAccepted, updateData]);
 
@@ -75,8 +88,9 @@ export default function ConsentPrivacyStep({ onValidChange }: ConsentPrivacyStep
           <div className="flex items-start space-x-3">
             <Checkbox
               id="terms"
+              data-testid="checkbox-terms"
               checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+              onCheckedChange={(checked) => handleConsentChange('terms', checked as boolean)}
             />
             <div className="flex-1">
               <Label htmlFor="terms" className="cursor-pointer">
@@ -120,8 +134,9 @@ export default function ConsentPrivacyStep({ onValidChange }: ConsentPrivacyStep
           <div className="flex items-start space-x-3">
             <Checkbox
               id="privacy"
+              data-testid="checkbox-privacy"
               checked={privacyAccepted}
-              onCheckedChange={(checked) => setPrivacyAccepted(checked as boolean)}
+              onCheckedChange={(checked) => handleConsentChange('privacy', checked as boolean)}
             />
             <div className="flex-1">
               <Label htmlFor="privacy" className="cursor-pointer">
@@ -165,8 +180,9 @@ export default function ConsentPrivacyStep({ onValidChange }: ConsentPrivacyStep
           <div className="flex items-start space-x-3">
             <Checkbox
               id="consent"
+              data-testid="checkbox-data-consent"
               checked={dataConsentAccepted}
-              onCheckedChange={(checked) => setDataConsentAccepted(checked as boolean)}
+              onCheckedChange={(checked) => handleConsentChange('dataConsent', checked as boolean)}
             />
             <div className="flex-1">
               <Label htmlFor="consent" className="cursor-pointer">
