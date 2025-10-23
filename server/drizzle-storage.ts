@@ -80,6 +80,23 @@ class DrizzleStorage implements Partial<IStorage> {
       return [];
     }
   }
+
+  async createBooking(insertBooking: any): Promise<Booking> {
+    try {
+      console.log('[DrizzleStorage] createBooking called with:', insertBooking);
+      // The insertBooking object already has the correct field names
+      // Drizzle ORM handles the camelCase to snake_case mapping
+      const [booking] = await db
+        .insert(bookings)
+        .values(insertBooking)
+        .returning();
+      console.log('[DrizzleStorage] createBooking result:', booking);
+      return booking;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating booking:', error);
+      throw error;
+    }
+  }
 }
 
 export const drizzleStorage = new DrizzleStorage();
