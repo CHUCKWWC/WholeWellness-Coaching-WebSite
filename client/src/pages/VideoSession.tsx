@@ -24,11 +24,13 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 function VideoRoom() {
   const { sessionId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   const hmsActions = useHMSActions();
   const isConnected = useHMSStore(selectIsConnectedToRoom);
   const peers = useHMSStore(selectPeers);
@@ -36,6 +38,9 @@ function VideoRoom() {
   const isLocalVideoEnabled = useHMSStore(selectIsLocalVideoEnabled);
   const [transcript, setTranscript] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
+
+  // Get participant name from sessionStorage (set by JoinSession page for guests)
+  const participantName = sessionStorage.getItem('participantName') || user?.firstName || 'Guest';
 
   // Get session details and join token
   const { data: sessionData } = useQuery({
@@ -50,7 +55,9 @@ function VideoRoom() {
 
   const joinTokenMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/video/sessions/${sessionId}/join-token`, {});
+      // For guest users, pass participantName in the body
+      const body = !isAuthenticated ? { participantName } : {};
+      return apiRequest("POST", `/api/video/sessions/${sessionId}/join-token`, body);
     },
   });
 
@@ -77,24 +84,51 @@ function VideoRoom() {
   // Join the room on mount
   useEffect(() => {
     if (sessionId && !isConnected) {
-      joinTokenMutation.mutate(undefined, {
-        onSuccess: async (data: any) => {
-          try {
-            await hmsActions.join({
-              userName: "User",
-              authToken: data.authToken,
-            });
-            await startSessionMutation.mutateAsync();
-          } catch (error) {
-            console.error("Failed to join room:", error);
-            toast({
-              title: "Connection Error",
-              description: "Failed to join the session. Please try again.",
-              variant: "destructive",
-            });
-          }
-        },
-      });
+      // Check if guest user already has auth token from JoinSession flow
+      const videoSessionData = sessionStorage.getItem('videoSession');
+      if (videoSessionData) {
+        // Guest user with existing auth token
+        const sessionInfo = JSON.parse(videoSessionData);
+        
+        // Join directly with existing token
+        hmsActions.join({
+          userName: sessionInfo.userName || participantName,
+          authToken: sessionInfo.authToken,
+        }).then(() => {
+          console.log("Guest joined video session successfully");
+        }).catch((error) => {
+          console.error("Failed to join room:", error);
+          toast({
+            title: "Connection Error",
+            description: "Failed to join the session. Please try again.",
+            variant: "destructive",
+          });
+        });
+      } else {
+        // Authenticated user or guest without token - get new token
+        joinTokenMutation.mutate(undefined, {
+          onSuccess: async (data: any) => {
+            try {
+              await hmsActions.join({
+                userName: participantName,
+                authToken: data.authToken,
+              });
+              
+              // Only start the session if the user is the coach
+              if (sessionData?.session?.coachId === user?.id) {
+                await startSessionMutation.mutateAsync();
+              }
+            } catch (error) {
+              console.error("Failed to join room:", error);
+              toast({
+                title: "Connection Error",
+                description: "Failed to join the session. Please try again.",
+                variant: "destructive",
+              });
+            }
+          },
+        });
+      }
     }
   }, [sessionId]);
 

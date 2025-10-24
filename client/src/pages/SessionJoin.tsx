@@ -21,7 +21,15 @@ export default function SessionJoin() {
   });
 
   const handleJoinSession = () => {
-    window.location.href = `/session/${sessionId}`;
+    // Check if there's session info from JoinSession page for guest users
+    const videoSessionData = sessionStorage.getItem('videoSession');
+    if (videoSessionData) {
+      // For guest users who already have the auth token from JoinSession
+      window.location.href = `/session/${sessionId}`;
+    } else {
+      // For authenticated users, go directly to the video room
+      window.location.href = `/session/${sessionId}`;
+    }
   };
 
   if (isLoading) {

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instant Video Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    button {
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0284c7;
+    }
+    input {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .log {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Instant Video Feature Test</h1>
+  
+  <div class="section">
+    <h2>Step 1: Create Instant Session (Coach)</h2>
+    <p>First, log in as coach and create an instant session</p>
+    <button onclick="loginAsCoach()">Login as Coach</button>
+    <button onclick="createInstantSession()">Create Instant Session</button>
+    <div id="coachLog" class="log"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 2: Join as Guest</h2>
+    <p>Enter the room code from above and join as a guest</p>
+    <input type="text" id="roomCode" placeholder="Enter room code">
+    <input type="text" id="guestName" placeholder="Enter your name" value="Test Guest">
+    <button onclick="joinAsGuest()">Join Session</button>
+    <div id="guestLog" class="log"></div>
+  </div>
+
+  <script>
+    let authToken = null;
+    let sessionId = null;
+    let roomCode = null;
+
+    function log(elementId, message, isError = false) {
+      const element = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const className = isError ? 'error' : '';
+      element.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+    }
+
+    async function loginAsCoach() {
+      try {
+        log('coachLog', 'Logging in as coach...');
+        
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'coachchuck@wwctest.com',
+            password: 'chucknice1'
+          })
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.user) {
+          authToken = data.token;
+          log('coachLog', `✅ Logged in as ${data.user.email}`, false);
+        } else {
+          throw new Error(data.message || 'Login failed');
+        }
+      } catch (error) {
+        log('coachLog', `❌ Login failed: ${error.message}`, true);
+      }
+    }
+
+    async function createInstantSession() {
+      try {
+        log('coachLog', 'Creating instant session...');
+        
+        const response = await fetch('/api/video/sessions/instant', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Cookie': document.cookie // Include session cookies
+          },
+          credentials: 'include', // Important for cookie auth
+          body: JSON.stringify({
+            title: 'Test Instant Session',
+            description: 'Testing instant video functionality'
+          })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          sessionId = data.session.id;
+          roomCode = data.session.roomCode;
+          document.getElementById('roomCode').value = roomCode;
+          log('coachLog', `✅ Session created!\nRoom Code: ${roomCode}\nSession ID: ${sessionId}`, false);
+        } else {
+          throw new Error(data.error || 'Failed to create session');
+        }
+      } catch (error) {
+        log('coachLog', `❌ Failed to create session: ${error.message}`, true);
+      }
+    }
+
+    async function joinAsGuest() {
+      try {
+        const code = document.getElementById('roomCode').value;
+        const name = document.getElementById('guestName').value;
+        
+        if (!code || !name) {
+          throw new Error('Please enter room code and name');
+        }
+        
+        log('guestLog', `Joining with room code: ${code}`);
+        
+        // Step 1: Join public session
+        const joinResponse = await fetch('/api/video/sessions/join-public', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomCode: code.toUpperCase(),
+            name: name
+          })
+        });
+        
+        const joinData = await joinResponse.json();
+        if (!joinResponse.ok) {
+          throw new Error(joinData.message || joinData.error || 'Failed to join');
+        }
+        
+        log('guestLog', `✅ Found session: ${joinData.sessionId}`);
+        
+        // Step 2: Get join token
+        log('guestLog', 'Getting join token...');
+        const tokenResponse = await fetch(`/api/video/sessions/${joinData.sessionId}/join-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            participantName: name
+          })
+        });
+        
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok) {
+          throw new Error(tokenData.error || 'Failed to get join token');
+        }
+        
+        log('guestLog', `✅ Got auth token!\nToken: ${tokenData.authToken?.substring(0, 20)}...`);
+        log('guestLog', `✅ Room ID: ${tokenData.roomId}`);
+        
+        // Step 3: Store session info for video page
+        sessionStorage.setItem('videoSession', JSON.stringify({
+          authToken: tokenData.authToken,
+          roomId: tokenData.roomId,
+          sessionId: joinData.sessionId,
+          userName: name,
+          role: 'participant'
+        }));
+        
+        log('guestLog', `✅ Session info stored! Ready to join video.`);
+        log('guestLog', `\n🎥 Click here to join video: /session/${joinData.sessionId}`);
+        
+        // Create a link to join the video
+        const link = document.createElement('a');
+        link.href = `/session/${joinData.sessionId}`;
+        link.target = '_blank';
+        link.innerHTML = '🎥 <strong>Click here to join the video session</strong>';
+        link.style.display = 'inline-block';
+        link.style.marginTop = '10px';
+        link.style.padding = '10px 20px';
+        link.style.background = '#10b981';
+        link.style.color = 'white';
+        link.style.borderRadius = '5px';
+        link.style.textDecoration = 'none';
+        document.getElementById('guestLog').appendChild(link);
+        
+      } catch (error) {
+        log('guestLog', `❌ Failed to join: ${error.message}`, true);
+      }
+    }
+  </script>
+</body>
+</html>
