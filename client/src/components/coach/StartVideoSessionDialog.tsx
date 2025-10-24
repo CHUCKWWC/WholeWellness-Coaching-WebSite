@@ -99,6 +99,7 @@ export default function StartVideoSessionDialog({
   const form = useForm<SessionForm>({
     resolver: zodResolver(sessionSchema),
     defaultValues: {
+      sessionType: "scheduled",
       bookingId: "",
       clientId: "",
       title: "",
@@ -116,6 +117,7 @@ export default function StartVideoSessionDialog({
     if (bookingId === "new") {
       setSelectedBooking(null);
       form.reset({
+        sessionType: "scheduled",
         bookingId: "",
         clientId: "",
         title: "",
@@ -232,6 +234,7 @@ export default function StartVideoSessionDialog({
     setSessionCreated(null);
     setSelectedBooking(null);
     form.reset({
+      sessionType: "scheduled",
       bookingId: "",
       clientId: "",
       title: "",
@@ -276,7 +279,36 @@ export default function StartVideoSessionDialog({
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {bookings.length > 0 && (
+                {/* Session Type Selector */}
+                <FormField
+                  control={form.control}
+                  name="sessionType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Session Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || "scheduled"}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-session-type">
+                            <SelectValue placeholder="Select session type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="scheduled">Scheduled Session</SelectItem>
+                          <SelectItem value="instant">Instant Session</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {field.value === "instant" 
+                          ? "Start a video call right now with a shareable link" 
+                          : "Schedule a session with a specific client"}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Only show bookings for scheduled sessions */}
+                {form.watch("sessionType") !== "instant" && bookings.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Create Session From</label>
                     <Select onValueChange={handleBookingSelect}>
@@ -295,19 +327,21 @@ export default function StartVideoSessionDialog({
                   </div>
                 )}
 
-                <FormField
-                  control={form.control}
-                  name="clientId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-client">
-                            <SelectValue placeholder="Select a client" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
+                {/* Only show client selector for scheduled sessions */}
+                {form.watch("sessionType") !== "instant" && (
+                  <FormField
+                    control={form.control}
+                    name="clientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-client">
+                              <SelectValue placeholder="Select a client" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
                           {clients.length > 0 ? (
                             clients.map((client) => (
                               <SelectItem key={client.id} value={client.id}>
@@ -320,11 +354,12 @@ export default function StartVideoSessionDialog({
                             </SelectItem>
                           )}
                         </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
@@ -363,24 +398,27 @@ export default function StartVideoSessionDialog({
                 />
 
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="scheduledStartTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Time</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="datetime-local"
-                            min={getMinDateTime()}
-                            {...field}
-                            data-testid="input-start-time"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Only show scheduled time for scheduled sessions */}
+                  {form.watch("sessionType") !== "instant" && (
+                    <FormField
+                      control={form.control}
+                      name="scheduledStartTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              min={getMinDateTime()}
+                              {...field}
+                              data-testid="input-start-time"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}
