@@ -26,7 +26,8 @@ const passwordResetSchema = z.object({
 
 export default function PasswordReset() {
   const [location] = useLocation();
-  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  // Get the actual query string from window.location
+  const searchParams = new URLSearchParams(window.location.search);
   const token = searchParams.get('token');
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
