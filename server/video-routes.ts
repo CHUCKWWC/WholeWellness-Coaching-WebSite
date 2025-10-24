@@ -373,11 +373,28 @@ router.post("/sessions/join-public", async (req, res) => {
   }
 });
 
-// Generate join token for participant
-router.post("/sessions/:sessionId/join-token", requireAuth, async (req: AuthenticatedRequest, res) => {
+// Generate join token for participant (allows guests for instant sessions)
+router.post("/sessions/:sessionId/join-token", async (req: AuthenticatedRequest | any, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user!.id;
+    
+    // Check if authenticated
+    let userId: string | null = null;
+    let userName: string = "Guest";
+    let userRole: string = "participant";
+    
+    if (req.user && req.user.id) {
+      userId = req.user.id;
+      userName = req.user.firstName || "User";
+      userRole = req.user.role === 'coach' ? 'moderator' : 'participant';
+    } else {
+      // For unauthenticated users (guests), get their info from request body
+      const { participantName } = req.body;
+      if (participantName) {
+        userName = participantName;
+        userId = `guest_${participantName.replace(/\s+/g, '_')}_${Date.now()}`;
+      }
+    }
 
     const [session] = await db
       .select()
@@ -388,22 +405,47 @@ router.post("/sessions/:sessionId/join-token", requireAuth, async (req: Authenti
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // AUTHORIZATION: Only coach, invited participants, or admins can get join token
-    const isCoach = session.coachId === userId;
-    const isAdmin = req.user!.role === 'admin';
-    
-    // Check if user is an invited participant
-    const [existingParticipant] = await db
-      .select()
-      .from(sessionParticipants)
-      .where(and(
-        eq(sessionParticipants.sessionId, sessionId),
-        eq(sessionParticipants.userId, userId)
-      ));
+    // AUTHORIZATION: For instant sessions, allow guests. For other sessions, check authorization
+    if (session.sessionType === "instant") {
+      // Instant sessions are open to all - guests can join
+      // No authorization check needed for instant sessions
+    } else {
+      // For non-instant sessions, check authorization
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required for this session type" });
+      }
+      
+      const isCoach = session.coachId === userId;
+      const isAdmin = req.user && req.user.role === 'admin';
+      
+      // Check if user is an invited participant
+      const [existingParticipant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(and(
+          eq(sessionParticipants.sessionId, sessionId),
+          eq(sessionParticipants.userId, userId)
+        ));
 
-    if (!isCoach && !existingParticipant && !isAdmin) {
-      return res.status(403).json({ error: "Unauthorized: You are not invited to this session" });
+      if (!isCoach && !existingParticipant && !isAdmin) {
+        return res.status(403).json({ error: "Unauthorized: You are not invited to this session" });
+      }
     }
+    
+    // Check if user is an invited participant (for instant sessions too, to avoid duplicates)
+    let existingParticipant: any = null;
+    if (userId) {
+      [existingParticipant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(and(
+          eq(sessionParticipants.sessionId, sessionId),
+          eq(sessionParticipants.userId, userId)
+        ));
+    }
+    
+    const isCoach = session.coachId === userId;
+    const isAdmin = req.user && req.user.role === 'admin';
 
     // SECURITY FIX: Determine role server-side, NEVER trust client input
     // Only coach or admin gets host role, everyone else is participant
@@ -421,11 +463,35 @@ router.post("/sessions/:sessionId/join-token", requireAuth, async (req: Authenti
       console.warn("100ms token generation failed, using fallback:", error);
     }
 
+    // For instant sessions with guest users, create a guest user record first
+    if (session.sessionType === "instant" && userId && userId.startsWith("guest_") && !req.user) {
+      try {
+        // Create a temporary guest user in the users table
+        const dummyPasswordHash = await bcrypt.hash(`guest_${Date.now()}`, 10);
+        
+        await db.insert(users).values({
+          id: userId,
+          email: `${userId}@guest.wholewellness.com`,
+          passwordHash: dummyPasswordHash,
+          firstName: userName,
+          lastName: 'Guest',
+          role: "user",
+          provider: "guest",
+          hasCompletedOnboarding: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      } catch (userError) {
+        // If user creation fails (e.g., ID already exists), continue anyway
+        console.warn("Guest user creation warning in join-token:", userError);
+      }
+    }
+
     // Add participant to session if not already added
     if (!existingParticipant) {
       const [participant] = await db.insert(sessionParticipants).values({
         sessionId,
-        userId,
+        userId: userId || `guest_anonymous_${Date.now()}`,
         role: assignedRole,
         authToken,
       }).returning();

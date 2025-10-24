@@ -149,7 +149,7 @@ export default function SessionJoin() {
           )}
 
           {/* Join Button */}
-          {!isAuthenticated ? (
+          {!isAuthenticated && session.sessionType !== "instant" ? (
             <div className="text-center">
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Please log in to join this session
