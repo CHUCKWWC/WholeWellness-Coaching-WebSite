@@ -94,6 +94,8 @@ export const securityHeaders = helmet({
       ],
       // Frames for Stripe iframes, etc.
       "frame-src": ["'self'", "https://js.stripe.com", "*.google.com"],
+      // Allow Replit to embed the application
+      "frame-ancestors": ["'self'", "https://*.replit.dev", "https://*.replit.app", "https://replit.com"],
       "worker-src": ["'self'", "blob:"],
       "object-src": ["'none'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
