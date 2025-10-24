@@ -1537,6 +1537,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
         rewardPoints: user.rewardPoints,
         donationTotal: user.donationTotal,
         profileImageUrl: user.profileImageUrl,
+        coverPhotoUrl: user.coverPhotoUrl,
+        introVideoUrl: user.introVideoUrl,
         role: user.role || 'user',
         permissions: user.permissions || []
       });
@@ -1551,6 +1553,8 @@ When to refer to licensed therapists and emergency resources for relationship cr
         rewardPoints: req.user.rewardPoints,
         donationTotal: req.user.donationTotal,
         profileImageUrl: req.user.profileImageUrl,
+        coverPhotoUrl: req.user.coverPhotoUrl,
+        introVideoUrl: req.user.introVideoUrl,
         role: req.user.role || 'user',
         permissions: req.user.permissions || []
       });
