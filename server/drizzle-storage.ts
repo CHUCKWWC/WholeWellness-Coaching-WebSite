@@ -72,6 +72,11 @@ class DrizzleStorage implements Partial<IStorage> {
     }
   }
 
+  async updateUserProfile(userId: string, updates: Partial<User>): Promise<User | undefined> {
+    console.log('[DrizzleStorage] updateUserProfile called with:', userId, updates);
+    return this.updateUser(userId, updates);
+  }
+
   async updateUserLastLogin(userId: string): Promise<void> {
     try {
       console.log('[DrizzleStorage] updateUserLastLogin called for:', userId);
