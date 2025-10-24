@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { db } from "./db";
+import bcrypt from "bcrypt";
 import { 
   videoSessions, 
   sessionParticipants, 
   sessionTranscripts,
   workshopDetails,
   bookings,
+  users,
   insertVideoSessionSchema,
   insertSessionParticipantSchema,
   insertSessionTranscriptSchema,
@@ -40,7 +42,8 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
     const roomCode = generateRoomCode();
     
     // Create 100ms room
-    let roomId = `room_${Date.now()}`;
+    let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    let hmsRoomCreated = false;
     try {
       const room = await createRoom(roomCode, {
         name: title,
@@ -48,9 +51,13 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
         recording: recordingEnabled,
         maxParticipants,
       });
-      roomId = room.roomId;
+      // Use our unique ID to avoid conflicts with existing rooms
+      // Append timestamp to ensure uniqueness even if 100ms returns same roomId
+      roomId = `${room.roomId}_${Date.now()}`;
+      hmsRoomCreated = true;
     } catch (error) {
-      console.warn("100ms room creation failed, using fallback:", error);
+      console.warn("100ms room creation failed, using fallback roomId:", error);
+      // Fallback roomId already has timestamp and random suffix
     }
 
     // Create session in database
@@ -71,8 +78,10 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       actualStartTime: new Date()
     }).returning();
 
-    // Generate join link
-    const baseUrl = process.env.FRONTEND_URL || `https://${req.get('host')}`;
+    // Generate join link - use the protocol and host from the request
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = process.env.FRONTEND_URL || `${protocol}://${host}`;
     const joinLink = `${baseUrl}/join/${session.roomCode}`;
 
     res.json({ 
@@ -123,7 +132,7 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
     const roomCode = generateRoomCode();
     
     // Create 100ms room (will fail gracefully if credentials not set)
-    let roomId = `room_${Date.now()}`;
+    let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
       const room = await createRoom(roomCode, {
         name: title,
@@ -131,7 +140,9 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
         recording: recordingEnabled,
         maxParticipants,
       });
-      roomId = room.roomId;
+      // Use our unique ID to avoid conflicts with existing rooms
+      // Append timestamp to ensure uniqueness even if 100ms returns same roomId
+      roomId = `${room.roomId}_${Date.now()}`;
     } catch (error) {
       console.warn("100ms room creation failed, using fallback:", error);
     }
@@ -216,11 +227,16 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
   }
 });
 
-// Get session details
-router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest, res) => {
+// Get session details (with optional auth for guest participants)
+router.get("/sessions/:sessionId", async (req: AuthenticatedRequest | any, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user!.id;
+    
+    // Check if this is an authenticated request
+    let userId: string | null = null;
+    if (req.user && req.user.id) {
+      userId = req.user.id;
+    }
     
     const [session] = await db
       .select()
@@ -231,23 +247,33 @@ router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // AUTHORIZATION: Only coach, participants, or admins can view session
-    const isCoach = session.coachId === userId;
-    const isAdmin = req.user!.role === 'admin';
-    
-    // Check if user is a participant
-    const [participant] = await db
-      .select()
-      .from(sessionParticipants)
-      .where(and(
-        eq(sessionParticipants.sessionId, sessionId),
-        eq(sessionParticipants.userId, userId)
-      ));
-    
-    const isParticipant = !!participant;
+    // For instant sessions, allow public viewing
+    if (session.sessionType === "instant") {
+      // For instant sessions, anyone can view basic session info
+      // This allows guests to join and view the session
+    } else {
+      // For non-instant sessions, check authorization
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const isCoach = session.coachId === userId;
+      const isAdmin = req.user && req.user.role === 'admin';
+      
+      // Check if user is a participant
+      const [participant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(and(
+          eq(sessionParticipants.sessionId, sessionId),
+          eq(sessionParticipants.userId, userId)
+        ));
+      
+      const isParticipant = !!participant;
 
-    if (!isCoach && !isParticipant && !isAdmin) {
-      return res.status(403).json({ error: "Unauthorized: You don't have access to this session" });
+      if (!isCoach && !isParticipant && !isAdmin) {
+        return res.status(403).json({ error: "Unauthorized: You don't have access to this session" });
+      }
     }
 
     // Get participants
@@ -289,6 +315,28 @@ router.post("/sessions/join-public", async (req, res) => {
 
     // Generate a guest ID for non-authenticated users
     const guestId = `guest_${name.replace(/\s+/g, '_')}_${Date.now()}`;
+    
+    // Create a temporary guest user in the users table to satisfy foreign key constraint
+    try {
+      // For guests, create a dummy password hash since they won't be logging in
+      const dummyPasswordHash = await bcrypt.hash(`guest_${Date.now()}`, 10);
+      
+      await db.insert(users).values({
+        id: guestId,
+        email: `${guestId}@guest.wholewellness.com`, // Unique email for guest
+        passwordHash: dummyPasswordHash, // Required field, but won't be used for guests
+        firstName: name.split(' ')[0] || name,
+        lastName: name.split(' ').slice(1).join(' ') || 'Guest',
+        role: "user", // Give basic user role
+        provider: "guest", // Mark as guest provider
+        hasCompletedOnboarding: true, // Skip onboarding for guests
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    } catch (userError) {
+      // If user creation fails (e.g., ID already exists), continue anyway
+      console.warn("Guest user creation warning:", userError);
+    }
 
     // Generate auth token for 100ms
     let authToken = `fallback_token_${guestId}_${Date.now()}`;
