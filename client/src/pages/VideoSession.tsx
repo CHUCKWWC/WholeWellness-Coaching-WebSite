@@ -20,7 +20,10 @@ import {
   PhoneOff,
   MessageSquare,
   Users,
-  FileText
+  FileText,
+  Camera,
+  Shield,
+  AlertCircle
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +41,8 @@ function VideoRoom() {
   const isLocalVideoEnabled = useHMSStore(selectIsLocalVideoEnabled);
   const [transcript, setTranscript] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [showPermissionsPrompt, setShowPermissionsPrompt] = useState(true);
 
   // Get participant name from sessionStorage (set by JoinSession page for guests)
   const participantName = sessionStorage.getItem('participantName') || user?.firstName || 'Guest';
@@ -81,9 +86,57 @@ function VideoRoom() {
     },
   });
 
-  // Join the room on mount
+  // Request camera and microphone permissions
+  const requestPermissions = async () => {
+    try {
+      // Request camera and microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
+      // Stop the stream immediately (we just needed to get permission)
+      stream.getTracks().forEach(track => track.stop());
+      
+      setPermissionsGranted(true);
+      setShowPermissionsPrompt(false);
+      
+      toast({
+        title: "Permissions Granted",
+        description: "Camera and microphone access granted. Joining session...",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Permission denied:", error);
+      
+      if (error.name === 'NotAllowedError') {
+        toast({
+          title: "Permissions Required",
+          description: "Please allow camera and microphone access to join the video call.",
+          variant: "destructive",
+        });
+      } else if (error.name === 'NotFoundError') {
+        toast({
+          title: "Device Not Found",
+          description: "No camera or microphone found. Please check your device.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Permission Error",
+          description: "Failed to access camera/microphone. Please check your browser settings.",
+          variant: "destructive",
+        });
+      }
+      
+      return false;
+    }
+  };
+
+  // Join the room after permissions are granted
   useEffect(() => {
-    if (sessionId && !isConnected) {
+    if (sessionId && !isConnected && permissionsGranted) {
       // Check if guest user already has auth token from JoinSession flow
       const videoSessionData = sessionStorage.getItem('videoSession');
       if (videoSessionData) {
@@ -130,7 +183,7 @@ function VideoRoom() {
         });
       }
     }
-  }, [sessionId]);
+  }, [sessionId, permissionsGranted]);
 
   // Handle audio toggle
   const toggleAudio = async () => {
@@ -147,10 +200,107 @@ function VideoRoom() {
     endSessionMutation.mutate();
   };
 
+  // Show loading state while fetching session data
   if (!sessionData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-white">Loading session...</div>
+      </div>
+    );
+  }
+
+  // Show permissions prompt before joining the call
+  if (!permissionsGranted && showPermissionsPrompt) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full bg-gray-800 border-gray-700">
+          <div className="p-8">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-teal-600/20 rounded-full">
+                <Shield className="w-12 h-12 text-teal-500" />
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-white text-center mb-3">
+              Camera & Microphone Access Required
+            </h2>
+            
+            <p className="text-gray-300 text-center mb-6">
+              To join this video session, we need access to your camera and microphone.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-start gap-3">
+                <Camera className="w-5 h-5 text-teal-500 mt-0.5" />
+                <div>
+                  <p className="text-white font-medium">Camera Access</p>
+                  <p className="text-gray-400 text-sm">
+                    Allows others to see you during the video call
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Mic className="w-5 h-5 text-teal-500 mt-0.5" />
+                <div>
+                  <p className="text-white font-medium">Microphone Access</p>
+                  <p className="text-gray-400 text-sm">
+                    Allows others to hear you during the conversation
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900/50 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="text-yellow-500 font-medium mb-1">
+                    Browser Permission Required
+                  </p>
+                  <p className="text-gray-400">
+                    After clicking "Grant Access", your browser will ask for permission. 
+                    Make sure to click "Allow" in the browser prompt.
+                  </p>
+                  <p className="text-gray-400 mt-2">
+                    If you accidentally deny access, you can change this in your browser 
+                    settings (usually found in the address bar).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={async () => {
+                  const granted = await requestPermissions();
+                  if (!granted) {
+                    // Keep showing the prompt if permissions were denied
+                    setShowPermissionsPrompt(true);
+                  }
+                }}
+                className="flex-1 bg-teal-600 hover:bg-teal-700"
+                data-testid="button-grant-permissions"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Grant Access
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => setLocation('/')}
+                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+            </div>
+
+            <p className="text-center text-xs text-gray-500 mt-4">
+              Your privacy is important to us. Camera and microphone are only 
+              used during the video session.
+            </p>
+          </div>
+        </Card>
       </div>
     );
   }

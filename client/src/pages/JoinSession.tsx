@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Video, Users, Loader2 } from 'lucide-react';
+import { Video, Users, Loader2, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -123,7 +123,22 @@ export default function JoinSession() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-blue-900 dark:text-blue-200 mb-1">
+                  Camera & Microphone Required
+                </p>
+                <p className="text-blue-800 dark:text-blue-300">
+                  You'll need to allow camera and microphone access when joining the video session. 
+                  Your browser will ask for permission after you click "Join Session".
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-center text-sm text-muted-foreground">
             <p>Don't have a room code?</p>
             <p className="mt-1">Ask your coach or host for the session code</p>
           </div>

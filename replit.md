@@ -51,7 +51,7 @@ Preferred communication style: Simple, everyday language.
 - **Multi-assessment System**: Comprehensive assessment types with database architecture and API.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
-- **Video Conferencing System**: 100ms-powered video sessions with coach-initiated session creation, client pre-registration with auth tokens, recording, transcription, and AI summaries.
+- **Video Conferencing System**: 100ms-powered video sessions with coach-initiated session creation, client pre-registration with auth tokens, recording, transcription, and AI summaries. Features instant video sessions with shareable room codes, guest access without authentication, and comprehensive camera/microphone permission prompts to ensure smooth user experience.
 - **Media Upload System**: Comprehensive media upload capabilities using Replit Object Storage with presigned URLs, supporting pictures, videos, documents, and audio. Features include:
   - Uppy.js-powered multi-file upload with progress tracking
   - Direct-to-storage uploads via presigned URLs for security and performance
