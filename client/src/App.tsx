@@ -38,6 +38,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import EmailConfirm from "@/pages/EmailConfirm";
 import NotFound from "@/pages/not-found";
+import JoinSession from "@/pages/JoinSession";
 
 // Lazy-loaded pages for better performance
 const Programs = lazy(() => import("@/pages/Programs"));
@@ -249,6 +250,8 @@ function Router() {
           <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
           <Route path="/session/:sessionId/join" component={(props) => <LazyRoute component={SessionJoin} loadingText="Preparing session..." {...props} />} />
           <Route path="/session/:sessionId" component={(props) => <LazyRoute component={VideoSession} loadingText="Connecting..." {...props} />} />
+          <Route path="/join/:code" component={JoinSession} />
+          <Route path="/join" component={JoinSession} />
           
           {/* Coach Routes - Protected */}
           <Route path="/coach/dashboard" component={() => (

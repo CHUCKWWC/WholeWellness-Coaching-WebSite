@@ -35,15 +35,26 @@ import { apiRequest } from "@/lib/queryClient";
 import { Video, Copy, Check } from "lucide-react";
 
 const sessionSchema = z.object({
+  sessionType: z.enum(["scheduled", "instant"]).default("scheduled"),
   bookingId: z.string().optional(),
-  clientId: z.string().min(1, "Please select a client"),
+  clientId: z.string().optional(),
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().optional(),
-  scheduledStartTime: z.string().min(1, "Please select a start time"),
+  scheduledStartTime: z.string().optional(),
   duration: z.string().min(1, "Please select duration"),
   recordingEnabled: z.boolean().default(true),
   transcriptEnabled: z.boolean().default(true),
   aiSummaryEnabled: z.boolean().default(true),
+}).refine((data) => {
+  // For scheduled sessions, require client and start time
+  if (data.sessionType === "scheduled") {
+    return data.clientId && data.scheduledStartTime;
+  }
+  // For instant sessions, no client required
+  return true;
+}, {
+  message: "Client and start time are required for scheduled sessions",
+  path: ["clientId"],
 });
 
 type SessionForm = z.infer<typeof sessionSchema>;
@@ -147,27 +158,38 @@ export default function StartVideoSessionDialog({
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: SessionForm) => {
-      const scheduledStartTime = new Date(data.scheduledStartTime);
-      const durationMinutes = parseInt(data.duration);
-      const scheduledEndTime = new Date(
-        scheduledStartTime.getTime() + durationMinutes * 60000
-      );
+      // For instant sessions, use the instant endpoint
+      if (data.sessionType === "instant") {
+        const response = await apiRequest("POST", "/api/video/sessions/instant", {
+          title: data.title,
+          description: data.description,
+          maxParticipants: 10,
+          recordingEnabled: data.recordingEnabled,
+        });
+        return response;
+      } else {
+        // For scheduled sessions, use the regular create endpoint
+        const scheduledStartTime = new Date(data.scheduledStartTime || new Date());
+        const durationMinutes = parseInt(data.duration);
+        const scheduledEndTime = new Date(
+          scheduledStartTime.getTime() + durationMinutes * 60000
+        );
 
-      const response = await apiRequest("POST", "/api/video/sessions/create", {
-        bookingId: data.bookingId ? parseInt(data.bookingId) : undefined,
-        clientId: data.clientId,
-        sessionType: "one-on-one",
-        title: data.title,
-        description: data.description,
-        scheduledStartTime: scheduledStartTime.toISOString(),
-        scheduledEndTime: scheduledEndTime.toISOString(),
-        maxParticipants: 1,
-        recordingEnabled: data.recordingEnabled,
-        transcriptEnabled: data.transcriptEnabled,
-        aiSummaryEnabled: data.aiSummaryEnabled,
-      });
-
-      return response.json();
+        const response = await apiRequest("POST", "/api/video/sessions/create", {
+          bookingId: data.bookingId ? parseInt(data.bookingId) : undefined,
+          clientId: data.clientId,
+          sessionType: "one-on-one",
+          title: data.title,
+          description: data.description,
+          scheduledStartTime: scheduledStartTime.toISOString(),
+          scheduledEndTime: scheduledEndTime.toISOString(),
+          maxParticipants: 1,
+          recordingEnabled: data.recordingEnabled,
+          transcriptEnabled: data.transcriptEnabled,
+          aiSummaryEnabled: data.aiSummaryEnabled,
+        });
+        return response;
+      }
     },
     onSuccess: (data) => {
       toast({

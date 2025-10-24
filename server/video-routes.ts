@@ -25,6 +25,69 @@ import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Create instant video session (coach-only, no client required)
+router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+  try {
+    const coachId = req.user!.id;
+    const { 
+      title = "Instant Video Session",
+      description = "Quick video call",
+      maxParticipants = 10,
+      recordingEnabled = true
+    } = req.body;
+    
+    // Generate room code for easy joining
+    const roomCode = generateRoomCode();
+    
+    // Create 100ms room
+    let roomId = `room_${Date.now()}`;
+    try {
+      const room = await createRoom(roomCode, {
+        name: title,
+        description,
+        recording: recordingEnabled,
+        maxParticipants,
+      });
+      roomId = room.roomId;
+    } catch (error) {
+      console.warn("100ms room creation failed, using fallback:", error);
+    }
+
+    // Create session in database
+    const [session] = await db.insert(videoSessions).values({
+      coachId,
+      sessionType: "instant",
+      title,
+      description,
+      roomId,
+      roomCode,
+      scheduledStartTime: new Date(),
+      scheduledEndTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours default
+      maxParticipants,
+      recordingEnabled,
+      transcriptEnabled: true,
+      aiSummaryEnabled: true,
+      status: "in_progress",
+      actualStartTime: new Date()
+    }).returning();
+
+    // Generate join link
+    const baseUrl = process.env.FRONTEND_URL || `https://${req.get('host')}`;
+    const joinLink = `${baseUrl}/join/${session.roomCode}`;
+
+    res.json({ 
+      success: true, 
+      session,
+      joinLink,
+      roomCode: session.roomCode,
+      hostUrl: `/session/${session.id}/join`
+    });
+  } catch (error) {
+    console.error("Error creating instant video session:", error);
+    res.status(500).json({ error: "Failed to create instant session" });
+  }
+});
+
 // Create a new video session (coach-only)
 router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
@@ -197,6 +260,68 @@ router.get("/sessions/:sessionId", requireAuth, async (req: AuthenticatedRequest
   } catch (error) {
     console.error("Error fetching session:", error);
     res.status(500).json({ error: "Failed to fetch session" });
+  }
+});
+
+// Public join endpoint - join with room code (no auth required)
+router.post("/sessions/join-public", async (req, res) => {
+  try {
+    const { roomCode, name } = req.body;
+
+    if (!roomCode || !name) {
+      return res.status(400).json({ error: "Room code and name are required" });
+    }
+
+    // Find session by room code
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.roomCode, roomCode.toUpperCase()));
+
+    if (!session) {
+      return res.status(404).json({ error: "Invalid room code" });
+    }
+
+    // Check if session is still active
+    if (session.status === "completed" || session.status === "cancelled") {
+      return res.status(400).json({ error: "This session has ended" });
+    }
+
+    // Generate a guest ID for non-authenticated users
+    const guestId = `guest_${name.replace(/\s+/g, '_')}_${Date.now()}`;
+
+    // Generate auth token for 100ms
+    let authToken = `fallback_token_${guestId}_${Date.now()}`;
+    try {
+      authToken = await generateAuthToken(
+        session.roomId, 
+        guestId, 
+        "participant"
+      );
+    } catch (error) {
+      console.warn("100ms token generation failed for guest, using fallback:", error);
+    }
+
+    // Add guest participant to session
+    const [participant] = await db.insert(sessionParticipants).values({
+      sessionId: session.id,
+      userId: guestId,
+      role: "participant",
+      authToken,
+      isActive: true,
+    }).returning();
+
+    res.json({ 
+      success: true, 
+      authToken,
+      roomId: session.roomId,
+      sessionId: session.id,
+      participant,
+      sessionTitle: session.title
+    });
+  } catch (error) {
+    console.error("Error joining session publicly:", error);
+    res.status(500).json({ error: "Failed to join session" });
   }
 });
 
