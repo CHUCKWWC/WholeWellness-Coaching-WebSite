@@ -130,7 +130,7 @@ class CustomUploader {
       try {
         // Step 1: Get presigned upload URL from our backend
         const response = await apiRequest('POST', '/api/objects/upload');
-        const { uploadURL } = await response.json();
+        const { uploadURL } = response;
 
         this.uppy.emit('upload-progress', file, {
           uploader: this,
@@ -246,7 +246,7 @@ export function SimpleFileUploader({
 
       // Get presigned upload URL
       const response = await apiRequest('POST', '/api/objects/upload');
-      const { uploadURL } = await response.json();
+      const { uploadURL } = response;
 
       // Upload file directly to object storage
       const uploadResponse = await fetch(uploadURL, {
