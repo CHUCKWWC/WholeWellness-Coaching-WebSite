@@ -14,6 +14,7 @@ import {
   insertWorkshopDetailsSchema
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
+import { log as logger } from "./logger";
 import { 
   createRoom, 
   generateAuthToken, 
@@ -21,11 +22,42 @@ import {
   getRecording, 
   createRoomWithCode 
 } from "./video-service";
+
+logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully");
 import OpenAI from "openai";
 import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth";
 
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Health check endpoint to test 100ms SDK initialization
+router.get("/health", async (req, res) => {
+  try {
+    logger.info("[VIDEO-HEALTH] Health check called");
+    
+    // Test if we can create a simple room
+    const testRoom = await createRoomWithCode({
+      name: "Health Check Test Room",
+      description: "Test room to verify SDK initialization",
+      recording: false,
+      role: "guest"
+    });
+    
+    logger.info("[VIDEO-HEALTH] ✓ SDK working, room created:", testRoom.roomCode);
+    res.json({ 
+      status: "ok", 
+      sdk: "initialized",
+      testRoomCode: testRoom.roomCode
+    });
+  } catch (error: any) {
+    logger.error("[VIDEO-HEALTH] ✗ SDK test failed:", error);
+    res.json({ 
+      status: "error", 
+      sdk: "not_initialized",
+      error: error.message
+    });
+  }
+});
 
 // Create instant video session (coach-only, no client required)
 router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequest, res) => {
@@ -42,6 +74,7 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
     let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let roomCode = `FALLBACK-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     
+    logger.info(`[INSTANT-SESSION] Creating 100ms room with createRoomWithCode...`);
     try {
       const room = await createRoomWithCode({
         name: title,
@@ -51,8 +84,10 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       });
       roomId = room.roomId;
       roomCode = room.roomCode;
+      logger.info(`[INSTANT-SESSION] ✓ 100ms room created successfully: ${roomCode}`);
     } catch (error) {
-      console.warn("100ms room creation failed, using fallback:", error);
+      logger.error(`[INSTANT-SESSION] ✗ 100ms room creation failed:`, error);
+      logger.warn(`[INSTANT-SESSION] Using fallback room code: ${roomCode}`);
       // Fallback values already set above
     }
 

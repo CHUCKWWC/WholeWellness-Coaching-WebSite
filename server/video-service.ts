@@ -1,4 +1,5 @@
 import { SDK } from "@100mslive/server-sdk";
+import { log as logger } from "./logger";
 
 const HMS_ACCESS_KEY = process.env.HMS_ACCESS_KEY || "";
 const HMS_SECRET = process.env.HMS_SECRET || "";
@@ -7,17 +8,21 @@ let hmsClient: SDK | null = null;
 
 // Initialize 100ms SDK
 export function initialize100ms() {
+  logger.info("[100ms] Starting SDK initialization...");
+  
   if (!HMS_ACCESS_KEY || !HMS_SECRET) {
-    console.warn("100ms credentials not configured. Video sessions will not work until HMS_ACCESS_KEY and HMS_SECRET are set.");
+    logger.warn("[100ms] Credentials not configured. Video sessions will not work until HMS_ACCESS_KEY and HMS_SECRET are set.");
     return null;
   }
 
+  logger.info("[100ms] Credentials found, creating SDK instance...");
+  
   try {
     hmsClient = new SDK(HMS_ACCESS_KEY, HMS_SECRET);
-    console.log("100ms SDK initialized successfully");
+    logger.info("[100ms] ✓ SDK initialized successfully");
     return hmsClient;
   } catch (error) {
-    console.error("Failed to initialize 100ms SDK:", error);
+    logger.error("[100ms] ✗ Failed to initialize SDK:", error);
     return null;
   }
 }
@@ -141,6 +146,7 @@ export async function createRoomWithCode(options: {
   }
 
   try {
+    logger.info("[createRoomWithCode] Step 1: Creating room...");
     // Create the room first
     const room = await hmsClient.rooms.create({
       name: options.name,
@@ -149,23 +155,72 @@ export async function createRoomWithCode(options: {
         enabled: options.recording ?? true,
       },
     });
+    
+    // Log the full room object to understand its structure
+    logger.info("[createRoomWithCode] Room object:", JSON.stringify(room, null, 2));
+    logger.info(`[createRoomWithCode] Step 1 ✓ Room created`);
 
-    // Generate room code for the specified role
-    const roomCode = await hmsClient.roomCodes.create({
-      room_id: room.id,
-      role: options.role || "guest",
+    // The 100ms SDK returns the room ID in a property, not directly as 'id'
+    // It could be room.id, room.data.id, or just room itself as a string
+    const roomId = typeof room === 'string' ? room : (room.id || room.data?.id || room);
+    logger.info(`[createRoomWithCode] Extracted room ID: ${roomId}`);
+
+    logger.info(`[createRoomWithCode] Step 2: Creating room codes for room ${roomId}...`);
+    
+    // WORKAROUND: The SDK's roomCodes.create() has a bug, so we'll use the REST API directly
+    // Generate management token
+    const tokenResponse = await hmsClient.auth.getManagementToken({ roomId });
+    // The SDK returns an object with a 'token' property, not the token string directly
+    const managementToken = tokenResponse.token || tokenResponse;
+    logger.info(`[createRoomWithCode] Generated management token: ${typeof managementToken}`);
+    
+    // Call the REST API directly to create room codes
+    const response = await fetch(`https://api.100ms.live/v2/room-codes/room/${roomId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${managementToken}`,
+        'Content-Type': 'application/json'
+      }
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create room codes: ${response.status} ${errorText}`);
+    }
+    
+    const roomCodesResponse = await response.json();
+    logger.info(`[createRoomWithCode] Step 2 ✓ Room codes created:`, roomCodesResponse);
+    
+    // The API returns { data: [...] }, so extract the array
+    const roomCodes = roomCodesResponse.data || roomCodesResponse;
+    
+    // Find the room code for the requested role (default to "guest")
+    const requestedRole = options.role || "guest";
+    const roleCode = roomCodes.find((code: any) => code.role === requestedRole);
+    
+    if (!roleCode) {
+      throw new Error(`No room code found for role "${requestedRole}"`);
+    }
+    
+    logger.info(`[createRoomWithCode] Selected room code for role "${requestedRole}": ${roleCode.code}`);
 
     return {
-      roomId: room.id,
-      roomCode: roomCode.code,
-      name: room.name,
+      roomId: roomId,
+      roomCode: roleCode.code,
+      name: options.name,
     };
-  } catch (error) {
-    console.error("Error creating room with code:", error);
+  } catch (error: any) {
+    logger.error("[createRoomWithCode] Error details:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      stack: error.stack
+    });
     throw error;
   }
 }
 
 // Initialize on module load
-initialize100ms();
+logger.info("[100ms] Module loaded, initializing SDK...");
+const initResult = initialize100ms();
+logger.info(`[100ms] Initialization result: ${initResult ? "Success" : "Failed or skipped"}`);
