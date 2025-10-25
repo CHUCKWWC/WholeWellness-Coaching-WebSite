@@ -15,6 +15,7 @@ import {
   BarChart3,
   CalendarDays
 } from "lucide-react";
+import QuickStartVideoButton from "@/components/coach/QuickStartVideoButton";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 import ClientDetailView from "@/components/coach/ClientDetailView";
 import CoachCalendar from "@/components/coach/CoachCalendar";
@@ -293,16 +294,19 @@ export default function CoachDashboard() {
             Here's what's happening with your coaching practice today.
           </p>
         </div>
-        <StartVideoSessionDialog 
-          clients={clientsForSession}
-          bookings={bookings}
-          trigger={
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700" data-testid="button-start-video-session-main">
-              <Video className="h-5 w-5 mr-2" />
-              Start Video Session
-            </Button>
-          }
-        />
+        <div className="flex gap-3">
+          <QuickStartVideoButton size="lg" className="bg-blue-600 hover:bg-blue-700" />
+          <StartVideoSessionDialog 
+            clients={clientsForSession}
+            bookings={bookings}
+            trigger={
+              <Button size="lg" variant="outline" data-testid="button-schedule-video-session">
+                <Calendar className="h-5 w-5 mr-2" />
+                Schedule Session
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       {/* Main Tabs */}
