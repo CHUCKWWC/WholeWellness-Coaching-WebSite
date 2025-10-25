@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
-import "@100mslive/roomkit-react/dist/index.css";
+import "@100mslive/roomkit-react/index.css";
 
 export default function VideoSession() {
   const { sessionId } = useParams();
