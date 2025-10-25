@@ -58,6 +58,10 @@
 
 
 
+    "@100mslive/roomkit-react": "^0.3.39",
+
+
+
     "@100mslive/server-sdk": "^0.3.0",
 
 
