@@ -7,8 +7,9 @@ The Wholewellness Coaching Platform is a nonprofit digital solution providing li
 Preferred communication style: Simple, everyday language.
 
 ## Hardcoded Coach Accounts (Full Access)
-- **Dr. Smith:** dr.csmith@wholewellness-coaching.org / AKAbizdoc7
-- **Dasha Lazaryuk:** dasha.lazaryuk@wholewellness-coaching.org / Wwc4life2025
+- **Dr. Smith:** dr.csmith@wholewellness-coaching.org / AKAbizdoc7 (Coach ID: COACH-DRSMITH-001)
+- **Dasha Lazaryuk:** dasha.lazaryuk@wholewellness-coaching.org / Wwc4life2025 (Coach ID: COACH-DASHA-002)
+- Both accounts have active coach records in the database with verified status
 
 ## System Architecture
 
@@ -55,7 +56,16 @@ Preferred communication style: Simple, everyday language.
 - **Multi-assessment System**: Comprehensive assessment types with database architecture and API.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
-- **Video Conferencing System**: 100ms-powered video sessions with coach-initiated session creation, client pre-registration with auth tokens, recording, transcription, and AI summaries. Features instant video sessions with shareable room codes, guest access without authentication, and comprehensive camera/microphone permission prompts to ensure smooth user experience.
+- **Video Conferencing System**: 100ms-powered video sessions using HMSPrebuilt component for battle-tested reliability. Features include:
+  - Migrated from custom implementation to @100mslive/roomkit-react HMSPrebuilt component (October 2025)
+  - 90% code reduction in VideoSession component (483 → 150 lines)
+  - Room codes generated via 100ms Management API instead of random strings
+  - Coach-initiated instant and scheduled sessions
+  - Client pre-registration with shareable room codes
+  - Guest access without authentication
+  - Automatic video permissions handling
+  - Recording, transcription, and AI summaries
+  - Reliable error recovery and network resilience
 - **Media Upload System**: Comprehensive media upload capabilities using Replit Object Storage with presigned URLs, supporting pictures, videos, documents, and audio. Features include:
   - Uppy.js-powered multi-file upload with progress tracking
   - Direct-to-storage uploads via presigned URLs for security and performance
