@@ -1,0 +1,184 @@
+“Multiple versions of @tldraw/state detected”
+
+That warning isn’t cute; it will cause weird behavior (ghost selections, broken undo, random crashes).
+
+Diagnose
+
+Run one of these in the project root:
+
+npm: npm ls @tldraw/state
+
+yarn: yarn why @tldraw/state
+
+pnpm: pnpm why @tldraw/state
+
+You’ll see who is pulling conflicting versions (commonly @tldraw/tldraw, @tldraw/editor, or a plugin).
+
+Fix: pin/force a single version
+
+In package.json, force the same version everywhere.
+
+npm (use overrides):
+
+{
+  "overrides": {
+    "@tldraw/state": "3.6.0",
+    "@tldraw/tldraw": "3.6.0",
+    "@tldraw/editor": "3.6.0"
+  }
+}
+
+
+yarn/pnpm (use resolutions):
+
+{
+  "resolutions": {
+    "@tldraw/state": "3.6.0",
+    "@tldraw/tldraw/@tldraw/state": "3.6.0",
+    "@tldraw/editor/@tldraw/state": "3.6.0"
+  }
+}
+
+
+Replace 3.6.0 with the highest version that all dependents can accept (semver-compatible). Your why/ls output will tell you the exact range.
+
+Then nuke and rebuild:
+
+# pick your PM
+rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml
+npm cache verify
+npm install              # or yarn install / pnpm i
+npm run build
+
+
+Extra safety: if you import TLDraw from multiple entry points, consolidate:
+
+// Good: single surface
+import { Tldraw } from '@tldraw/tldraw';
+
+
+Avoid mixing @tldraw/editor and @tldraw/tldraw versions unless you know why.
+
+2) 100ms error + “resetting PIP state”
+
+This line:
+
+If you think this is a mistake on our side, please reach out ... https://dashboard.100ms.live/dashboard
+
+
+means the HMS SDK threw and your code logged the raw error object.
+
+Common root causes
+
+Expired/invalid auth token for the room.
+
+Room/Template mismatch (role or permissions don’t allow the action).
+
+Origin mismatch (token minted for staging, used on production domain).
+
+Browser PIP policy (Picture-in-Picture) disabled or not initiated via user gesture.
+
+Quick fixes
+
+Wrap join/init in a try/catch and log the message clearly:
+
+try {
+  await hmsActions.join({ userName, authToken });
+} catch (err) {
+  const e = err as { code?: string; message?: string; description?: string };
+  console.error('[100ms join error]', e.code, e.message ?? e, e);
+  toast.error(e.message || 'Unable to join the room. Check token & role.');
+}
+
+
+Validate token at runtime (before join):
+
+Ensure you’re minting tokens for the exact room + role used on this page.
+
+Check token expiry and audience/origin if your backend signs it.
+
+PIP guardrails (Chrome requires a user gesture; Safari has quirks):
+
+async function enterPipSafe(video: HTMLVideoElement) {
+  if (!document.pictureInPictureEnabled) return;
+  if (document.pictureInPictureElement) return;
+  try {
+    await video.requestPictureInPicture(); // call only from a click handler
+  } catch (e) {
+    console.warn('PIP not available:', e);
+  }
+}
+
+
+Call enterPipSafe() from a button click, not inside an effect.
+
+Version sanity: ensure one HMS React/Web SDK version in lockfile (npm ls @100mslive/hms-video-react). If multiple, force via overrides/resolutions like above.
+
+3) PWA service worker chatter
+
+Your SW logs show it caching fresh assets. That’s fine… unless it serves a stale JS chunk alongside a new CSS chunk, which can create “split-brain” builds (and amplify the tldraw duplication).
+
+Fix the SW strategy (Vite + vite-plugin-pwa assumed)
+
+Prefer networkFirst for HTML / and staleWhileRevalidate for static assets.
+
+Version your cache and clear old caches on activate.
+
+Skip waiting and claim clients so updates apply cleanly.
+
+vite.config.ts (snippet):
+
+VitePWA({
+  registerType: 'autoUpdate',
+  workbox: {
+    navigateFallback: '/index.html',
+    runtimeCaching: [
+      {
+        urlPattern: ({ request }) => request.mode === 'navigate',
+        handler: 'NetworkFirst',
+        options: { cacheName: 'html-v1' }
+      },
+      {
+        urlPattern: ({ url }) => url.pathname.startsWith('/assets/'),
+        handler: 'StaleWhileRevalidate',
+        options: { cacheName: 'assets-v1' }
+      }
+    ],
+    clientsClaim: true,
+    skipWaiting: true
+  }
+})
+
+
+If you maintain a custom sw.js, add:
+
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => {
+  e.waitUntil((async () => {
+    const keep = new Set(['html-v1','assets-v1']);
+    const names = await caches.keys();
+    await Promise.all(names.filter(n => !keep.has(n)).map(n => caches.delete(n)));
+    await self.clients.claim();
+  })());
+});
+
+
+Deployment hygiene
+
+Bump a build version env (e.g., VITE_BUILD_ID) each deploy and inject it into index.html as a query param on main chunks to force SW to fetch the new graph.
+
+Tell users to hard refresh once after this change: Ctrl+F5 (Windows) / Cmd+Shift+R (Mac).
+
+Minimal “get-green” checklist
+
+Unify @tldraw versions via overrides/resolutions; reinstall; rebuild.
+
+Confirm single HMS SDK version; wrap join in try/catch; verify token/role.
+
+Gate PIP behind user gesture and swallow unsupported errors.
+
+Tame the SW: NetworkFirst for HTML, versioned caches, skipWaiting/clientsClaim.
+
+Purge old artifacts: clear lockfile + node_modules, redeploy, then hard-refresh.
+
+If you paste your package.json (dependencies + any vite/vite-plugin-pwa config), I’ll give you the exact overrides/resolutions block and the precise Vite PWA snippet wired to your stack.

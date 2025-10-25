@@ -5,7 +5,8 @@ import { HMSPrebuilt } from "@100mslive/roomkit-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, UserPlus } from "lucide-react";
+import ShareSessionDialog from "@/components/video/ShareSessionDialog";
 import "@100mslive/roomkit-react/index.css";
 
 export default function VideoSession() {
@@ -13,6 +14,7 @@ export default function VideoSession() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
   const [hasLeft, setHasLeft] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Get participant name from sessionStorage (set by JoinSession page for guests)
   const participantName = sessionStorage.getItem('participantName') || user?.firstName || 'Guest';
@@ -138,7 +140,7 @@ export default function VideoSession() {
   }
 
   return (
-    <div className="h-screen w-full" data-testid="video-session-container">
+    <div className="h-screen w-full relative" data-testid="video-session-container">
       <HMSPrebuilt
         roomCode={session.roomCode}
         options={{
@@ -149,6 +151,30 @@ export default function VideoSession() {
         onLeave={handleLeave}
         logo="/logo.png"
         style={{ height: "100vh", width: "100%" }}
+      />
+      
+      {/* Floating Invite Button - Only show for coaches */}
+      {user?.role === 'coach' && (
+        <div className="absolute top-4 right-4 z-50">
+          <Button
+            onClick={() => setShowShareDialog(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
+            size="sm"
+            data-testid="button-invite-participants"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite
+          </Button>
+        </div>
+      )}
+
+      {/* Share Session Dialog */}
+      <ShareSessionDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        roomCode={session.roomCode}
+        sessionId={session.id}
+        sessionTitle={session.title}
       />
     </div>
   );
