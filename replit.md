@@ -77,6 +77,7 @@ Preferred communication style: Simple, everyday language.
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
+  - CSP configured to allow 100ms video conferencing (*.100ms.live in connect-src and frame-src)
 - **Performance**: Initial JS bundle <200KB gzipped, code splitting, WebP/AVIF images with responsive srcset, Gzip/brotli compression, CDN caching, indexed database fields.
 
 ## External Dependencies

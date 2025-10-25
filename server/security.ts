@@ -72,7 +72,9 @@ export const securityHeaders = helmet({
         "*.google.com",
         "*.googleapis.com",
         "https://fonts.gstatic.com",
-        "https://fonts.googleapis.com"
+        "https://fonts.googleapis.com",
+        "*.100ms.live", // 100ms video conferencing services
+        "wss://*.100ms.live" // 100ms WebSocket connections
       ],
       // Images (including through SW)
       "img-src": ["'self'", "data:", "blob:", "https://*"],
@@ -92,8 +94,8 @@ export const securityHeaders = helmet({
         "*.google.com",
         "*.googletagmanager.com"
       ],
-      // Frames for Stripe iframes, etc.
-      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com"],
+      // Frames for Stripe iframes, 100ms, etc.
+      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com", "*.100ms.live"],
       // Allow Replit to embed the application
       "frame-ancestors": ["'self'", "https://*.replit.dev", "https://*.replit.app", "https://replit.com"],
       "worker-src": ["'self'", "blob:"],
