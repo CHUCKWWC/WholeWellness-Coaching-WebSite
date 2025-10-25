@@ -159,7 +159,14 @@ export function setupCsrfProtection(app: any) {
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
     // Skip CSRF for initial auth endpoints to avoid chicken-and-egg problem
     // Note: req.path here is relative to /api mount point, so /api/login becomes /login
-    const authSkipPaths = ['/auth/login', '/auth/register', '/login', '/register', '/csrf-token'];
+    const authSkipPaths = [
+      '/auth/login', 
+      '/auth/register', 
+      '/login', 
+      '/register', 
+      '/csrf-token',
+      '/video/sessions/join-public' // Public endpoint for unauthenticated users to join video sessions
+    ];
 
     if (authSkipPaths.includes(req.path)) {
       return next();
