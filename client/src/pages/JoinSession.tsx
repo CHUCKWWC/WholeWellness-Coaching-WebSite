@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +7,26 @@ import { Label } from '@/components/ui/label';
 import { Video, Users, Loader2, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function JoinSession() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [roomCode, setRoomCode] = useState(params.code || '');
+  const { user, isAuthenticated } = useAuth();
+  
+  const [roomCode, setRoomCode] = useState(params.code?.toUpperCase() || '');
   const [name, setName] = useState('');
   const [isJoining, setIsJoining] = useState(false);
+  
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const displayName = user.firstName 
+        ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
+        : user.email?.split('@')[0] || '';
+      setName(displayName);
+    }
+  }, [user, isAuthenticated]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +82,7 @@ export default function JoinSession() {
           </div>
           <CardTitle className="text-2xl">Join Video Session</CardTitle>
           <CardDescription>
-            Enter your name and room code to join the video call
+            {roomCode ? 'Enter your name to join' : 'Enter your name and room code to join the video call'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -88,20 +100,30 @@ export default function JoinSession() {
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="roomCode">Room Code</Label>
-              <Input
-                id="roomCode"
-                type="text"
-                placeholder="Enter 6-digit code (e.g., ABC123)"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                maxLength={6}
-                required
-                className="text-center text-lg font-mono tracking-wider"
-                data-testid="input-room-code"
-              />
-            </div>
+            {params.code ? (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-1">
+                  Room Code
+                </div>
+                <div className="text-center text-2xl font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider">
+                  {roomCode}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="roomCode">Room Code</Label>
+                <Input
+                  id="roomCode"
+                  type="text"
+                  placeholder="Enter room code (e.g., abc-xyz-def)"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value.toLowerCase())}
+                  required
+                  className="text-center text-lg font-mono tracking-wider"
+                  data-testid="input-room-code"
+                />
+              </div>
+            )}
 
             <Button 
               type="submit" 
