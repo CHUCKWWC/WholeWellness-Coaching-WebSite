@@ -77,7 +77,13 @@ Preferred communication style: Simple, everyday language.
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
-  - CSP configured to allow 100ms video conferencing (*.100ms.live in connect-src and frame-src)
+  - **CSP Configuration for 100ms Video**: Both server (server/security.ts) and client (client/index.html meta tag) CSP policies configured to allow 100ms video conferencing domains:
+    - `https://*.100ms.live` (wildcard for all 100ms subdomains)
+    - `https://auth.100ms.live` (authentication endpoint - explicit)
+    - `https://prod-init.100ms.live` (initialization endpoint - explicit)
+    - `https://api.100ms.live` (API endpoint - explicit)
+    - `wss://*.100ms.live` (WebSocket connections)
+  - Critical fix (October 2025): Updated client-side CSP meta tag to match server policy, preventing "Endpoint is not reachable" errors when connecting to 100ms services
 - **Performance**: Initial JS bundle <200KB gzipped, code splitting, WebP/AVIF images with responsive srcset, Gzip/brotli compression, CDN caching, indexed database fields.
 
 ## External Dependencies
