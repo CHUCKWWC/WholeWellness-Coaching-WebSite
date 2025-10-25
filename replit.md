@@ -6,6 +6,10 @@ The Wholewellness Coaching Platform is a nonprofit digital solution providing li
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Hardcoded Coach Accounts (Full Access)
+- **Dr. Smith:** dr.csmith@wholewellness-coaching.org / AKAbizdoc7
+- **Dasha Lazaryuk:** dasha.lazaryuk@wholewellness-coaching.org / Wwc4life2025
+
 ## System Architecture
 
 ### UI/UX Decisions
