@@ -198,9 +198,15 @@ export default function StartVideoSessionDialog({
         title: "Session Created!",
         description: "Your video session has been created successfully.",
       });
-      setSessionCreated(data);
+      // Normalize the response - instant sessions return joinLink, scheduled sessions return joinUrl
+      const normalizedData = {
+        ...data,
+        joinUrl: data.joinUrl || data.joinLink || `/session/${data.session?.id}/join`,
+        roomCode: data.roomCode || data.session?.roomCode
+      };
+      setSessionCreated(normalizedData);
       if (onSessionCreated) {
-        onSessionCreated(data);
+        onSessionCreated(normalizedData);
       }
     },
     onError: (error: any) => {
