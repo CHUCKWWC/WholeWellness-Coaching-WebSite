@@ -44,11 +44,16 @@ function VideoRoom() {
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [showPermissionsPrompt, setShowPermissionsPrompt] = useState(true);
 
+  // Debug logging
+  console.log("[VideoSession] Rendering with sessionId:", sessionId);
+  console.log("[VideoSession] User:", user);
+  console.log("[VideoSession] Permissions granted:", permissionsGranted);
+  
   // Get participant name from sessionStorage (set by JoinSession page for guests)
   const participantName = sessionStorage.getItem('participantName') || user?.firstName || 'Guest';
 
   // Get session details and join token
-  const { data: sessionData } = useQuery({
+  const { data: sessionData, isLoading: isLoadingSession, error: sessionError } = useQuery({
     queryKey: ['/api/video/sessions', sessionId],
     queryFn: async () => {
       const response = await fetch(`/api/video/sessions/${sessionId}`);
@@ -57,6 +62,10 @@ function VideoRoom() {
     },
     enabled: !!sessionId,
   });
+  
+  console.log("[VideoSession] Session data:", sessionData);
+  console.log("[VideoSession] Session loading:", isLoadingSession);
+  console.log("[VideoSession] Session error:", sessionError);
 
   const joinTokenMutation = useMutation({
     mutationFn: async () => {
@@ -201,10 +210,20 @@ function VideoRoom() {
   };
 
   // Show loading state while fetching session data
-  if (!sessionData) {
+  if (isLoadingSession || !sessionData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white">Loading session...</div>
+        <div className="text-center">
+          <div className="text-white text-xl mb-2">Loading session...</div>
+          {sessionError && (
+            <div className="text-red-400 text-sm">
+              Error loading session: {sessionError.message || "Unknown error"}
+            </div>
+          )}
+          <div className="text-gray-400 text-xs mt-4">
+            Session ID: {sessionId}
+          </div>
+        </div>
       </div>
     );
   }
@@ -212,8 +231,8 @@ function VideoRoom() {
   // Show permissions prompt before joining the call
   if (!permissionsGranted && showPermissionsPrompt) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full bg-gray-800 border-gray-700">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gray-800 border border-gray-700 rounded-lg shadow-xl">
           <div className="p-8">
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-teal-600/20 rounded-full">
@@ -279,7 +298,7 @@ function VideoRoom() {
                     setShowPermissionsPrompt(true);
                   }
                 }}
-                className="flex-1 bg-teal-600 hover:bg-teal-700"
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
                 data-testid="button-grant-permissions"
               >
                 <Shield className="w-4 h-4 mr-2" />
@@ -289,7 +308,7 @@ function VideoRoom() {
               <Button
                 variant="outline"
                 onClick={() => setLocation('/')}
-                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
               >
                 Cancel
               </Button>
@@ -300,7 +319,7 @@ function VideoRoom() {
               used during the video session.
             </p>
           </div>
-        </Card>
+        </div>
       </div>
     );
   }
