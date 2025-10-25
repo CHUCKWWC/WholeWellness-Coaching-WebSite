@@ -110,14 +110,61 @@ export async function getRecording(roomId: string) {
   }
 }
 
-// Generate room code (short code for easy joining)
-export function generateRoomCode(): string {
-  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding similar looking chars
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += characters.charAt(Math.floor(Math.random() * characters.length));
+// Generate room code using 100ms API (for Prebuilt component)
+export async function createRoomCode(roomId: string, role: string = "guest"): Promise<string> {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
   }
-  return code;
+
+  try {
+    const roomCode = await hmsClient.roomCodes.create({
+      room_id: roomId,
+      role: role,
+    });
+
+    return roomCode.code;
+  } catch (error) {
+    console.error("Error creating room code:", error);
+    throw error;
+  }
+}
+
+// Create room with room code in one step (optimized for Prebuilt)
+export async function createRoomWithCode(options: {
+  name: string;
+  description?: string;
+  recording?: boolean;
+  role?: string;
+}) {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
+  }
+
+  try {
+    // Create the room first
+    const room = await hmsClient.rooms.create({
+      name: options.name,
+      description: options.description,
+      recording_info: {
+        enabled: options.recording ?? true,
+      },
+    });
+
+    // Generate room code for the specified role
+    const roomCode = await hmsClient.roomCodes.create({
+      room_id: room.id,
+      role: options.role || "guest",
+    });
+
+    return {
+      roomId: room.id,
+      roomCode: roomCode.code,
+      name: room.name,
+    };
+  } catch (error) {
+    console.error("Error creating room with code:", error);
+    throw error;
+  }
 }
 
 // Initialize on module load

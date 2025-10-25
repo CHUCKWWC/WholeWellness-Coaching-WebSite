@@ -19,7 +19,7 @@ import {
   generateAuthToken, 
   endSession, 
   getRecording, 
-  generateRoomCode 
+  createRoomWithCode 
 } from "./video-service";
 import OpenAI from "openai";
 import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth";
@@ -38,26 +38,22 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       recordingEnabled = true
     } = req.body;
     
-    // Generate room code for easy joining
-    const roomCode = generateRoomCode();
-    
-    // Create 100ms room
+    // Create 100ms room with room code (for Prebuilt component)
     let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    let hmsRoomCreated = false;
+    let roomCode = `FALLBACK-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    
     try {
-      const room = await createRoom(roomCode, {
+      const room = await createRoomWithCode({
         name: title,
         description,
         recording: recordingEnabled,
-        maxParticipants,
+        role: "guest", // Participants will join as guests
       });
-      // Use our unique ID to avoid conflicts with existing rooms
-      // Append timestamp to ensure uniqueness even if 100ms returns same roomId
-      roomId = `${room.roomId}_${Date.now()}`;
-      hmsRoomCreated = true;
+      roomId = room.roomId;
+      roomCode = room.roomCode;
     } catch (error) {
-      console.warn("100ms room creation failed, using fallback roomId:", error);
-      // Fallback roomId already has timestamp and random suffix
+      console.warn("100ms room creation failed, using fallback:", error);
+      // Fallback values already set above
     }
 
     // Create session in database
