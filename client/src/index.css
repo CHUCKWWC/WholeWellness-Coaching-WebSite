@@ -104,6 +104,33 @@
       padding-bottom: max(3rem, env(safe-area-inset-bottom));
     }
   }
+
+  /* PWA: Touch-friendly interactions */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* PWA: Smooth tap feedback */
+  @media (hover: none) and (pointer: coarse) {
+    button, a, [role="button"] {
+      -webkit-tap-highlight-color: rgba(20, 184, 166, 0.2);
+      touch-action: manipulation;
+    }
+  }
+
+  /* PWA: Prevent text selection on interactive elements for app-like feel */
+  @media (max-width: 768px) {
+    button, [role="button"], .no-select {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  }
+
+  /* PWA: Pull-to-refresh prevention for app-like experience */
+  body {
+    overscroll-behavior-y: contain;
+  }
 }
 
 /* Coming Soon button styling */

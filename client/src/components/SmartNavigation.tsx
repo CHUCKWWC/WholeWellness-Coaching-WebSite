@@ -256,12 +256,12 @@ export default function SmartNavigation() {
               ) : (
                 <div className="flex items-center space-x-2">
                   <Link href="/login">
-                    <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
+                    <Button variant="ghost" className="text-gray-700 hover:text-blue-600 h-11 min-h-[48px] touch-target" data-testid="button-sign-in">
                       Sign In
                     </Button>
                   </Link>
                   <Link href="/register">
-                    <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Button className="bg-blue-600 hover:bg-blue-700 h-11 min-h-[48px] touch-target" data-testid="button-create-account">
                       Create Account
                     </Button>
                   </Link>

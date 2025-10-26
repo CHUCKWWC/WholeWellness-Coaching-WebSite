@@ -27,6 +27,9 @@ import { SafetyExit, FloatingSafetyExit } from "@/components/SafetyExit";
 import { SkipToContent } from "@/components/SkipToContent";
 import DashboardRouter from "@/components/DashboardRouter";
 import SmartOnboarding from "@/components/SmartOnboarding";
+import InstallPrompt from "@/components/InstallPrompt";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import OfflineIndicator from "@/components/OfflineIndicator";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -323,6 +326,9 @@ function Router() {
       <KeyboardShortcuts />
       <KeyboardShortcutsHint />
       <FloatingSafetyExit />
+      <InstallPrompt />
+      <MobileBottomNav />
+      <OfflineIndicator />
     </div>
   );
 }

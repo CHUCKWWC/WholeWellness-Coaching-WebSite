@@ -81,8 +81,9 @@ export function CrisisSupportBanner() {
                         <a
                           key={index}
                           href={resource.href}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-md text-sm font-medium transition-colors"
+                          className="inline-flex items-center gap-2 px-4 py-3 min-h-[48px] bg-teal-600 hover:bg-teal-700 text-white rounded-md text-sm font-medium transition-colors touch-target"
                           title={resource.description}
+                          data-testid={`link-crisis-${resource.phone || resource.text}`}
                         >
                           <resource.icon className="h-4 w-4" />
                           <span className="hidden sm:inline">{resource.name}:</span>
@@ -94,7 +95,8 @@ export function CrisisSupportBanner() {
                       {!isExpanded && CRISIS_RESOURCES.length > 1 && (
                         <button
                           onClick={() => setIsExpanded(true)}
-                          className="text-teal-600 dark:text-teal-400 text-sm font-medium hover:underline"
+                          className="inline-flex items-center px-3 py-3 min-h-[48px] text-teal-600 dark:text-teal-400 text-sm font-medium hover:underline touch-target"
+                          data-testid="button-expand-resources"
                         >
                           + {CRISIS_RESOURCES.length - 1} more resources
                         </button>
@@ -115,12 +117,13 @@ export function CrisisSupportBanner() {
 
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={handleDismiss}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 -mt-1 -mr-2"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 min-h-[48px] min-w-[48px] touch-target"
               aria-label="Dismiss crisis support banner"
+              data-testid="button-dismiss-crisis-banner"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
         </Alert>

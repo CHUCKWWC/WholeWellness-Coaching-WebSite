@@ -98,10 +98,10 @@ export default function Footer() {
                 Services
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
-                <ul className="space-y-2 text-sm text-gray-200">
+                <ul className="space-y-1 text-sm text-gray-200">
                   {serviceLinks.map((link) => (
                     <li key={link.label}>
-                      <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-service-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <Link href={link.href} className="inline-block py-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid={`link-service-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
                         {link.label}
                       </Link>
                     </li>
@@ -115,10 +115,10 @@ export default function Footer() {
                 Resources
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
-                <ul className="space-y-2 text-sm text-gray-200">
+                <ul className="space-y-1 text-sm text-gray-200">
                   {resourceLinks.map((link) => (
                     <li key={link.label}>
-                      <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-resource-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <Link href={link.href} className="inline-block py-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid={`link-resource-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
                         {link.label}
                       </Link>
                     </li>
@@ -165,10 +165,10 @@ export default function Footer() {
           
           <div>
             <h4 className="text-lg font-semibold mb-6">Services</h4>
-            <ul className="space-y-3 text-gray-300">
+            <ul className="space-y-1 text-gray-300">
               {serviceLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-service-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <Link href={link.href} className="inline-block py-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid={`link-service-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
                     {link.label}
                   </Link>
                 </li>
@@ -178,10 +178,10 @@ export default function Footer() {
           
           <div>
             <h4 className="text-lg font-semibold mb-6">Resources</h4>
-            <ul className="space-y-3 text-gray-300">
+            <ul className="space-y-1 text-gray-300">
               {resourceLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="hover:text-white transition-colors" data-testid={`link-resource-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <Link href={link.href} className="inline-block py-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid={`link-resource-${link.label.toLowerCase().replace(/\s+/g, '-')}`}>
                     {link.label}
                   </Link>
                 </li>
@@ -212,12 +212,12 @@ export default function Footer() {
             <p className="text-gray-300 mb-4 md:mb-0">
               © 2024 Wholewellness Coaching. All rights reserved.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-gray-300 text-sm">
-              <Link href="/privacy" className="hover:text-white transition-colors" data-testid="link-privacy">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-white transition-colors" data-testid="link-terms">Terms of Service</Link>
-              <Link href="/coach-signup" className="hover:text-white transition-colors" data-testid="link-become-coach">Become a Coach</Link>
-              <Link href="/coach-profile" className="hover:text-white transition-colors" data-testid="link-coach-portal">Coaches Portal</Link>
-              <a href="#" className="hover:text-white transition-colors" data-testid="link-accessibility">Accessibility</a>
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4 text-gray-300 text-sm">
+              <Link href="/privacy" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-privacy">Privacy Policy</Link>
+              <Link href="/terms" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-terms">Terms of Service</Link>
+              <Link href="/coach-signup" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-become-coach">Become a Coach</Link>
+              <Link href="/coach-profile" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-coach-portal">Coaches Portal</Link>
+              <a href="#" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-accessibility">Accessibility</a>
             </div>
           </div>
         </div>
