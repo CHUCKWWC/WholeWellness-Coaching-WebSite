@@ -38,6 +38,7 @@ const contactDetails = [
       </svg>
     ),
     lines: ["info@wholewellnesscoaching.org"],
+    type: "email" as const,
   },
   {
     icon: (
@@ -46,6 +47,7 @@ const contactDetails = [
       </svg>
     ),
     lines: ["(555) 123-4567"],
+    type: "phone" as const,
   },
   {
     icon: (
@@ -55,6 +57,7 @@ const contactDetails = [
       </svg>
     ),
     lines: ["12370 Potranco Rd", "Suite 207 PMB 1209", "San Antonio, TX 78253-4260"],
+    type: "address" as const,
   },
   {
     icon: (
@@ -63,6 +66,7 @@ const contactDetails = [
       </svg>
     ),
     lines: ["Monday - Friday: 9AM - 6PM", "Saturday: 10AM - 2PM", "Sunday: Closed"],
+    type: "hours" as const,
   },
 ];
 
@@ -82,7 +86,7 @@ export default function Footer() {
                 <a
                   key={label}
                   href={href}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20"
+                  className="flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20 touch-target"
                   aria-label={label}
                   data-testid={`link-social-${label.toLowerCase()}`}
                 >
@@ -94,7 +98,7 @@ export default function Footer() {
           
           <Accordion type="multiple" className="w-full space-y-3">
             <AccordionItem value="services" className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-              <AccordionTrigger className="px-4 text-base font-semibold text-white" data-testid="accordion-services">
+              <AccordionTrigger className="px-4 py-3 min-h-[48px] text-base font-semibold text-white touch-target" data-testid="accordion-services">
                 Services
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
@@ -111,7 +115,7 @@ export default function Footer() {
             </AccordionItem>
             
             <AccordionItem value="resources" className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-              <AccordionTrigger className="px-4 text-base font-semibold text-white" data-testid="accordion-resources">
+              <AccordionTrigger className="px-4 py-3 min-h-[48px] text-base font-semibold text-white touch-target" data-testid="accordion-resources">
                 Resources
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
@@ -128,17 +132,35 @@ export default function Footer() {
             </AccordionItem>
             
             <AccordionItem value="contact" className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-              <AccordionTrigger className="px-4 text-base font-semibold text-white" data-testid="accordion-contact">
+              <AccordionTrigger className="px-4 py-3 min-h-[48px] text-base font-semibold text-white touch-target" data-testid="accordion-contact">
                 Contact & Hours
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4 space-y-3 text-sm text-gray-200">
-                {contactDetails.map(({ icon, lines }, index) => (
+                {contactDetails.map(({ icon, lines, type }, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <span className="mt-0.5 text-white/80">{icon}</span>
                     <div className="space-y-1">
-                      {lines.map((line) => (
-                        <p key={line}>{line}</p>
-                      ))}
+                      {type === "email" ? (
+                        <a 
+                          href={`mailto:${lines[0]}`}
+                          className="inline-block py-2 min-h-[48px] hover:text-white transition-colors touch-target"
+                          data-testid="link-contact-email"
+                        >
+                          {lines[0]}
+                        </a>
+                      ) : type === "phone" ? (
+                        <a 
+                          href={`tel:${lines[0]}`}
+                          className="inline-block py-2 min-h-[48px] hover:text-white transition-colors touch-target"
+                          data-testid="link-contact-phone"
+                        >
+                          {lines[0]}
+                        </a>
+                      ) : (
+                        lines.map((line) => (
+                          <p key={line} className="py-1">{line}</p>
+                        ))
+                      )}
                     </div>
                   </div>
                 ))}
@@ -156,7 +178,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4">
               {socialLinks.map(({ href, Icon, label }) => (
-                <a key={label} href={href} className="text-white hover:text-primary transition-colors" aria-label={label} data-testid={`link-social-${label.toLowerCase()}`}>
+                <a key={label} href={href} className="flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center text-white hover:text-primary transition-colors touch-target" aria-label={label} data-testid={`link-social-${label.toLowerCase()}`}>
                   <Icon className="w-6 h-6" />
                 </a>
               ))}
