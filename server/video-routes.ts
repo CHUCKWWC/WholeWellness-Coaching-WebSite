@@ -13,7 +13,7 @@ import {
   insertSessionTranscriptSchema,
   insertWorkshopDetailsSchema
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { log as logger } from "./logger";
 import { 
   createRoom, 
@@ -29,6 +29,17 @@ import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth
 
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Generate a random room code (lowercase with hyphens for consistency)
+function generateRoomCode(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const randomString = () => Array.from(
+    { length: 3 }, 
+    () => chars[Math.floor(Math.random() * chars.length)]
+  ).join('');
+  
+  return `${randomString()}-${randomString()}-${randomString()}`;
+}
 
 // Health check endpoint to test 100ms SDK initialization
 router.get("/health", async (req, res) => {
@@ -72,7 +83,7 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
     
     // Create 100ms room with room code (for Prebuilt component)
     let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    let roomCode = `FALLBACK-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    let roomCode = `fallback-${Math.random().toString(36).substr(2, 6)}`;
     
     logger.info(`[INSTANT-SESSION] Creating 100ms room with createRoomWithCode...`);
     try {
@@ -83,12 +94,12 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
         role: "guest", // Participants will join as guests
       });
       roomId = room.roomId;
-      roomCode = room.roomCode;
+      roomCode = room.roomCode.toLowerCase(); // Ensure lowercase for consistency
       logger.info(`[INSTANT-SESSION] ✓ 100ms room created successfully: ${roomCode}`);
     } catch (error) {
       logger.error(`[INSTANT-SESSION] ✗ 100ms room creation failed:`, error);
       logger.warn(`[INSTANT-SESSION] Using fallback room code: ${roomCode}`);
-      // Fallback values already set above
+      // Fallback values already set above (already lowercase)
     }
 
     // Create session in database
@@ -329,11 +340,11 @@ router.post("/sessions/join-public", async (req, res) => {
       return res.status(400).json({ error: "Room code and name are required" });
     }
 
-    // Find session by room code
+    // Find session by room code (case-insensitive comparison using SQL LOWER function)
     const [session] = await db
       .select()
       .from(videoSessions)
-      .where(eq(videoSessions.roomCode, roomCode.toUpperCase()));
+      .where(sql`LOWER(${videoSessions.roomCode}) = LOWER(${roomCode})`);
 
     if (!session) {
       return res.status(404).json({ error: "Invalid room code" });

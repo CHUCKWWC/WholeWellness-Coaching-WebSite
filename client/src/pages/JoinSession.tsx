@@ -15,7 +15,7 @@ export default function JoinSession() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   
-  const [roomCode, setRoomCode] = useState(params.code?.toUpperCase() || '');
+  const [roomCode, setRoomCode] = useState(params.code || '');
   const [name, setName] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   
@@ -43,7 +43,7 @@ export default function JoinSession() {
     setIsJoining(true);
     try {
       const response = await apiRequest('POST', '/api/video/sessions/join-public', {
-        roomCode: roomCode.toUpperCase(),
+        roomCode: roomCode.toLowerCase().trim(),
         name: name.trim()
       });
 
