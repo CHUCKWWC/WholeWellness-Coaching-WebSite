@@ -2174,8 +2174,8 @@ export type InsertCrisisAlert = z.infer<typeof insertCrisisAlertSchema>;
 // CUSTOM BOOKING SYSTEM (replaces Wix SDK)
 // ============================================================================
 
-// Service categories for organizing coaching services
-export const serviceCategories = pgTable("service_categories", {
+// Service categories for organizing booking services
+export const bookingCategories = pgTable("booking_categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull().unique(), // e.g., "Life Coaching", "Career Development"
   description: text("description"),
@@ -2186,11 +2186,11 @@ export const serviceCategories = pgTable("service_categories", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Coaching services offered by coaches
-export const coachingServices = pgTable("coaching_services", {
+// Bookable services offered by coaches
+export const bookingServices = pgTable("booking_services", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   coachId: varchar("coach_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  categoryId: varchar("category_id").references(() => serviceCategories.id),
+  categoryId: varchar("category_id").references(() => bookingCategories.id),
   name: varchar("name").notNull(), // e.g., "Career Transition Coaching"
   description: text("description").notNull(),
   duration: integer("duration").notNull(), // in minutes (30, 45, 60, 90)
@@ -2203,8 +2203,8 @@ export const coachingServices = pgTable("coaching_services", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Coach weekly availability patterns
-export const coachAvailability = pgTable("coach_availability", {
+// Coach schedule - weekly availability patterns for bookings
+export const coachSchedule = pgTable("coach_schedule", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   coachId: varchar("coach_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   dayOfWeek: integer("day_of_week").notNull(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
@@ -2215,12 +2215,12 @@ export const coachAvailability = pgTable("coach_availability", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Coach time off / unavailable dates
-export const coachTimeOff = pgTable("coach_time_off", {
+// Coach blocked times - specific unavailable dates/times
+export const coachBlockedTimes = pgTable("coach_blocked_times", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   coachId: varchar("coach_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date").notNull(),
+  startDateTime: timestamp("start_date_time").notNull(),
+  endDateTime: timestamp("end_date_time").notNull(),
   reason: varchar("reason"), // e.g., "Vacation", "Conference", "Personal"
   isAllDay: boolean("is_all_day").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -2230,7 +2230,7 @@ export const coachTimeOff = pgTable("coach_time_off", {
 // Appointments / Bookings
 export const appointments = pgTable("appointments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  serviceId: varchar("service_id").notNull().references(() => coachingServices.id),
+  serviceId: varchar("service_id").notNull().references(() => bookingServices.id),
   coachId: varchar("coach_id").notNull().references(() => users.id),
   clientId: varchar("client_id").references(() => users.id), // null if guest booking
   
@@ -2267,40 +2267,40 @@ export const appointments = pgTable("appointments", {
 });
 
 // Relations
-export const serviceCategoriesRelations = relations(serviceCategories, ({ many }) => ({
-  services: many(coachingServices),
+export const bookingCategoriesRelations = relations(bookingCategories, ({ many }) => ({
+  services: many(bookingServices),
 }));
 
-export const coachingServicesRelations = relations(coachingServices, ({ one, many }) => ({
+export const bookingServicesRelations = relations(bookingServices, ({ one, many }) => ({
   coach: one(users, {
-    fields: [coachingServices.coachId],
+    fields: [bookingServices.coachId],
     references: [users.id],
   }),
-  category: one(serviceCategories, {
-    fields: [coachingServices.categoryId],
-    references: [serviceCategories.id],
+  category: one(bookingCategories, {
+    fields: [bookingServices.categoryId],
+    references: [bookingCategories.id],
   }),
   appointments: many(appointments),
 }));
 
-export const coachAvailabilityRelations = relations(coachAvailability, ({ one }) => ({
+export const coachScheduleRelations = relations(coachSchedule, ({ one }) => ({
   coach: one(users, {
-    fields: [coachAvailability.coachId],
+    fields: [coachSchedule.coachId],
     references: [users.id],
   }),
 }));
 
-export const coachTimeOffRelations = relations(coachTimeOff, ({ one }) => ({
+export const coachBlockedTimesRelations = relations(coachBlockedTimes, ({ one }) => ({
   coach: one(users, {
-    fields: [coachTimeOff.coachId],
+    fields: [coachBlockedTimes.coachId],
     references: [users.id],
   }),
 }));
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({
-  service: one(coachingServices, {
+  service: one(bookingServices, {
     fields: [appointments.serviceId],
-    references: [coachingServices.id],
+    references: [bookingServices.id],
   }),
   coach: one(users, {
     fields: [appointments.coachId],
@@ -2313,25 +2313,25 @@ export const appointmentsRelations = relations(appointments, ({ one }) => ({
 }));
 
 // Insert schemas
-export const insertServiceCategorySchema = createInsertSchema(serviceCategories).omit({
+export const insertBookingCategorySchema = createInsertSchema(bookingCategories).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertCoachingServiceSchema = createInsertSchema(coachingServices).omit({
+export const insertBookingServiceSchema = createInsertSchema(bookingServices).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertCoachAvailabilitySchema = createInsertSchema(coachAvailability).omit({
+export const insertCoachScheduleSchema = createInsertSchema(coachSchedule).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertCoachTimeOffSchema = createInsertSchema(coachTimeOff).omit({
+export const insertCoachBlockedTimesSchema = createInsertSchema(coachBlockedTimes).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -2344,17 +2344,17 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
 });
 
 // Types
-export type ServiceCategory = typeof serviceCategories.$inferSelect;
-export type InsertServiceCategory = z.infer<typeof insertServiceCategorySchema>;
+export type BookingCategory = typeof bookingCategories.$inferSelect;
+export type InsertBookingCategory = z.infer<typeof insertBookingCategorySchema>;
 
-export type CoachingService = typeof coachingServices.$inferSelect;
-export type InsertCoachingService = z.infer<typeof insertCoachingServiceSchema>;
+export type BookingService = typeof bookingServices.$inferSelect;
+export type InsertBookingService = z.infer<typeof insertBookingServiceSchema>;
 
-export type CoachAvailability = typeof coachAvailability.$inferSelect;
-export type InsertCoachAvailability = z.infer<typeof insertCoachAvailabilitySchema>;
+export type CoachSchedule = typeof coachSchedule.$inferSelect;
+export type InsertCoachSchedule = z.infer<typeof insertCoachScheduleSchema>;
 
-export type CoachTimeOff = typeof coachTimeOff.$inferSelect;
-export type InsertCoachTimeOff = z.infer<typeof insertCoachTimeOffSchema>;
+export type CoachBlockedTimes = typeof coachBlockedTimes.$inferSelect;
+export type InsertCoachBlockedTimes = z.infer<typeof insertCoachBlockedTimesSchema>;
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
