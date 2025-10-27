@@ -79,6 +79,8 @@ const Subscribe = lazy(() => import("@/pages/Subscribe"));
 const SubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
 const VolunteerApplication = lazy(() => import("@/pages/VolunteerApplication"));
 const WixBooking = lazy(() => import("@/pages/WixBooking"));
+const BookingPage = lazy(() => import("@/pages/BookingPage"));
+const CoachAvailabilityManager = lazy(() => import("@/pages/CoachAvailabilityManager"));
 const Assessments = lazy(() => import("@/pages/Assessments"));
 const TakeAssessment = lazy(() => import("@/pages/TakeAssessment"));
 const AssessmentResults = lazy(() => import("@/pages/AssessmentResults"));
@@ -219,6 +221,12 @@ function Router() {
           <Route path="/subscription-success" component={(props) => <LazyRoute component={SubscriptionSuccess} loadingText="Activating subscription..." {...props} />} />
           <Route path="/volunteer-application" component={(props) => <LazyRoute component={VolunteerApplication} loadingText="Loading application..." {...props} />} />
           <Route path="/wix-booking" component={(props) => <LazyRoute component={WixBooking} loadingText="Loading booking system..." {...props} />} />
+          <Route path="/book" component={(props) => <LazyRoute component={BookingPage} loadingText="Loading booking..." {...props} />} />
+          <Route path="/coach-availability" component={(props) => (
+            <ProtectedRoute requiredRole="coach">
+              <LazyRoute component={CoachAvailabilityManager} loadingText="Loading availability manager..." {...props} />
+            </ProtectedRoute>
+          )} />
           <Route path="/enhanced-onboarding" component={(props) => <LazyRoute component={EnhancedOnboarding} loadingText="Personalizing experience..." {...props} />} />
           <Route path="/coach-certifications" component={(props) => <LazyRoute component={CoachCertifications} loadingText="Loading certifications..." {...props} />} />
           <Route path="/module-learning" component={() => {

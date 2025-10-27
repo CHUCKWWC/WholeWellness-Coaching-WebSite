@@ -30,7 +30,12 @@ import {
   insertCoachMessageTemplateSchema,
   insertCoachClientCommunicationSchema,
   insertEventSchema,
-  insertEventRegistrationSchema
+  insertEventRegistrationSchema,
+  insertBookingCategorySchema,
+  insertBookingServiceSchema,
+  insertCoachScheduleSchema,
+  insertCoachBlockedTimesSchema,
+  insertAppointmentSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
@@ -4206,6 +4211,345 @@ When to refer to licensed therapists and emergency resources for relationship cr
 
   // Register wellness journey routes
   registerWellnessJourneyRoutes(app);
+
+  // ============================================================================
+  // BOOKING SYSTEM API ROUTES
+  // ============================================================================
+
+  // Booking Categories
+  app.get("/api/booking/categories", async (req, res) => {
+    try {
+      const categories = await storage.getBookingCategories();
+      const activeCategories = categories.filter(c => c.isActive);
+      res.json(activeCategories);
+    } catch (error) {
+      console.error("Error fetching booking categories:", error);
+      res.status(500).json({ message: "Failed to fetch booking categories" });
+    }
+  });
+
+  // Booking Services - Get all active services (optionally filter by coachId)
+  app.get("/api/booking/services", async (req, res) => {
+    try {
+      const { coachId } = req.query;
+      
+      let services;
+      if (coachId) {
+        services = await storage.getBookingServicesByCoach(coachId as string);
+      } else {
+        services = await storage.getActiveBookingServices();
+      }
+      
+      res.json(services);
+    } catch (error) {
+      console.error("Error fetching booking services:", error);
+      res.status(500).json({ message: "Failed to fetch booking services" });
+    }
+  });
+
+  // Get single booking service
+  app.get("/api/booking/services/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const service = await storage.getBookingService(id);
+      
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      
+      res.json(service);
+    } catch (error) {
+      console.error("Error fetching booking service:", error);
+      res.status(500).json({ message: "Failed to fetch booking service" });
+    }
+  });
+
+  // Create booking service (coach only)
+  app.post("/api/booking/services", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const coachId = req.user!.id;
+      const serviceData = insertBookingServiceSchema.parse({
+        ...req.body,
+        coachId
+      });
+      
+      const service = await storage.createBookingService(serviceData);
+      res.status(201).json(service);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid service data", errors: error.errors });
+      }
+      console.error("Error creating booking service:", error);
+      res.status(500).json({ message: "Failed to create booking service" });
+    }
+  });
+
+  // Update booking service (coach only)
+  app.patch("/api/booking/services/:id", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const coachId = req.user!.id;
+      
+      // Verify ownership
+      const existingService = await storage.getBookingService(id);
+      if (!existingService) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      if (existingService.coachId !== coachId) {
+        return res.status(403).json({ message: "Unauthorized to update this service" });
+      }
+      
+      const updates = insertBookingServiceSchema.partial().parse(req.body);
+      const updatedService = await storage.updateBookingService(id, updates);
+      
+      if (!updatedService) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      
+      res.json(updatedService);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid service data", errors: error.errors });
+      }
+      console.error("Error updating booking service:", error);
+      res.status(500).json({ message: "Failed to update booking service" });
+    }
+  });
+
+  // Coach Schedule - Get weekly schedule for a coach
+  app.get("/api/booking/schedule/:coachId", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const schedule = await storage.getCoachSchedule(coachId);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error fetching coach schedule:", error);
+      res.status(500).json({ message: "Failed to fetch coach schedule" });
+    }
+  });
+
+  // Create/update coach schedule entries (coach only)
+  app.post("/api/booking/schedule", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const coachId = req.user!.id;
+      const scheduleData = insertCoachScheduleSchema.parse({
+        ...req.body,
+        coachId
+      });
+      
+      const schedule = await storage.createCoachSchedule(scheduleData);
+      res.status(201).json(schedule);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid schedule data", errors: error.errors });
+      }
+      console.error("Error creating coach schedule:", error);
+      res.status(500).json({ message: "Failed to create coach schedule" });
+    }
+  });
+
+  // Delete coach schedule entry (coach only)
+  app.delete("/api/booking/schedule/:id", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteCoachSchedule(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Schedule entry not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting coach schedule:", error);
+      res.status(500).json({ message: "Failed to delete coach schedule" });
+    }
+  });
+
+  // Coach Blocked Times - Get blocked times for a coach
+  app.get("/api/booking/blocked-times/:coachId", async (req, res) => {
+    try {
+      const { coachId } = req.params;
+      const blockedTimes = await storage.getCoachBlockedTimes(coachId);
+      res.json(blockedTimes);
+    } catch (error) {
+      console.error("Error fetching coach blocked times:", error);
+      res.status(500).json({ message: "Failed to fetch coach blocked times" });
+    }
+  });
+
+  // Create blocked time (coach only)
+  app.post("/api/booking/blocked-times", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const coachId = req.user!.id;
+      const blockedTimeData = insertCoachBlockedTimesSchema.parse({
+        ...req.body,
+        coachId
+      });
+      
+      const blockedTime = await storage.createCoachBlockedTime(blockedTimeData);
+      res.status(201).json(blockedTime);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid blocked time data", errors: error.errors });
+      }
+      console.error("Error creating coach blocked time:", error);
+      res.status(500).json({ message: "Failed to create coach blocked time" });
+    }
+  });
+
+  // Delete blocked time (coach only)
+  app.delete("/api/booking/blocked-times/:id", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteCoachBlockedTime(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Blocked time not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting coach blocked time:", error);
+      res.status(500).json({ message: "Failed to delete coach blocked time" });
+    }
+  });
+
+  // Appointments - Get appointments (filtered by role)
+  app.get("/api/booking/appointments", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const role = req.user!.role;
+      
+      let appointments;
+      if (role === 'coach') {
+        appointments = await storage.getAppointmentsByCoach(userId);
+      } else {
+        // For clients, get their appointments
+        appointments = await storage.getAppointmentsByClient(userId);
+      }
+      
+      res.json(appointments);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      res.status(500).json({ message: "Failed to fetch appointments" });
+    }
+  });
+
+  // Get single appointment
+  app.get("/api/booking/appointments/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const role = req.user!.role;
+      
+      const appointment = await storage.getAppointment(id);
+      
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      
+      // Verify access: coach or client
+      if (role !== 'coach' && appointment.clientId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view this appointment" });
+      }
+      if (role === 'coach' && appointment.coachId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to view this appointment" });
+      }
+      
+      res.json(appointment);
+    } catch (error) {
+      console.error("Error fetching appointment:", error);
+      res.status(500).json({ message: "Failed to fetch appointment" });
+    }
+  });
+
+  // Create appointment (client or guest)
+  app.post("/api/booking/appointments", optionalAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const clientId = req.user?.id || null;
+      const appointmentData = insertAppointmentSchema.parse({
+        ...req.body,
+        clientId
+      });
+      
+      const appointment = await storage.createAppointment(appointmentData);
+      res.status(201).json(appointment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
+      }
+      console.error("Error creating appointment:", error);
+      res.status(500).json({ message: "Failed to create appointment" });
+    }
+  });
+
+  // Update appointment (coach can update status/notes)
+  app.patch("/api/booking/appointments/:id", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const coachId = req.user!.id;
+      
+      // Verify ownership
+      const existingAppointment = await storage.getAppointment(id);
+      if (!existingAppointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      if (existingAppointment.coachId !== coachId) {
+        return res.status(403).json({ message: "Unauthorized to update this appointment" });
+      }
+      
+      const updates = insertAppointmentSchema.partial().parse(req.body);
+      const updatedAppointment = await storage.updateAppointment(id, updates);
+      
+      if (!updatedAppointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      
+      res.json(updatedAppointment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
+      }
+      console.error("Error updating appointment:", error);
+      res.status(500).json({ message: "Failed to update appointment" });
+    }
+  });
+
+  // Cancel appointment
+  app.post("/api/booking/appointments/:id/cancel", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const role = req.user!.role;
+      const { reason } = req.body;
+      
+      // Verify access
+      const existingAppointment = await storage.getAppointment(id);
+      if (!existingAppointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      
+      // Allow coach or client to cancel
+      const isAuthorized = 
+        (role === 'coach' && existingAppointment.coachId === userId) ||
+        (existingAppointment.clientId === userId);
+      
+      if (!isAuthorized) {
+        return res.status(403).json({ message: "Unauthorized to cancel this appointment" });
+      }
+      
+      const cancelledAppointment = await storage.cancelAppointment(id, userId, reason);
+      
+      if (!cancelledAppointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      
+      res.json(cancelledAppointment);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      res.status(500).json({ message: "Failed to cancel appointment" });
+    }
+  });
 
   const httpServer = createServer(app);
   // Mental Wellness Resource Hub Routes

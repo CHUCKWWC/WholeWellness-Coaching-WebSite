@@ -4,7 +4,10 @@ import {
   type InsertUser, type InsertBooking, type InsertTestimonial, type InsertResource, type InsertContact, type InsertWeightLossIntake,
   type ContentPage, type ContentBlock, type MediaItem, type NavigationMenu, type SiteSetting,
   type InsertContentPage, type InsertContentBlock, type InsertMediaItem, type InsertNavigationMenu, type InsertSiteSetting,
-  type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage
+  type Program, type InsertProgram, type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage,
+  type BookingCategory, type InsertBookingCategory, type BookingService, type InsertBookingService,
+  type CoachSchedule, type InsertCoachSchedule, type CoachBlockedTimes, type InsertCoachBlockedTimes,
+  type Appointment, type InsertAppointment
 } from "@shared/schema";
 import { mediaLibrary, navigationMenus, siteSettings } from "@shared/cms-schema";
 import { db } from "./db";
@@ -134,6 +137,41 @@ export interface IStorage {
   getJourneyAnalytics(userId: string): Promise<any>;
   completeJourneyMilestone(milestoneId: string, userId: string): Promise<any | undefined>;
   adaptWellnessJourney(journeyId: string, adaptationData: any): Promise<any | undefined>;
+
+  // Booking System Methods
+  // Booking Categories
+  getBookingCategories(): Promise<BookingCategory[]>;
+  getBookingCategory(id: string): Promise<BookingCategory | undefined>;
+  createBookingCategory(category: InsertBookingCategory): Promise<BookingCategory>;
+  updateBookingCategory(id: string, category: Partial<InsertBookingCategory>): Promise<BookingCategory | undefined>;
+
+  // Booking Services
+  getBookingServices(): Promise<BookingService[]>;
+  getBookingServicesByCoach(coachId: string): Promise<BookingService[]>;
+  getActiveBookingServices(): Promise<BookingService[]>;
+  getBookingService(id: string): Promise<BookingService | undefined>;
+  createBookingService(service: InsertBookingService): Promise<BookingService>;
+  updateBookingService(id: string, service: Partial<InsertBookingService>): Promise<BookingService | undefined>;
+
+  // Coach Schedule
+  getCoachSchedule(coachId: string): Promise<CoachSchedule[]>;
+  createCoachSchedule(schedule: InsertCoachSchedule): Promise<CoachSchedule>;
+  updateCoachSchedule(id: string, schedule: Partial<InsertCoachSchedule>): Promise<CoachSchedule | undefined>;
+  deleteCoachSchedule(id: string): Promise<boolean>;
+
+  // Coach Blocked Times
+  getCoachBlockedTimes(coachId: string): Promise<CoachBlockedTimes[]>;
+  createCoachBlockedTime(blockedTime: InsertCoachBlockedTimes): Promise<CoachBlockedTimes>;
+  deleteCoachBlockedTime(id: string): Promise<boolean>;
+
+  // Appointments
+  getAppointments(): Promise<Appointment[]>;
+  getAppointmentsByCoach(coachId: string): Promise<Appointment[]>;
+  getAppointmentsByClient(clientId: string): Promise<Appointment[]>;
+  getAppointment(id: string): Promise<Appointment | undefined>;
+  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
+  updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
+  cancelAppointment(id: string, cancelledBy: string, reason?: string): Promise<Appointment | undefined>;
 }
 
 export class MemoryStorage implements IStorage {
