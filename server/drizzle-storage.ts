@@ -17,7 +17,12 @@ import {
   wellnessRecommendations,
   assessmentTypes,
   userAssessments,
-  coachInteractions
+  coachInteractions,
+  bookingCategories,
+  bookingServices,
+  coachSchedule,
+  coachBlockedTimes,
+  appointments
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction } from "@shared/schema";
@@ -761,6 +766,100 @@ class DrizzleStorage implements Partial<IStorage> {
         allTags: []
       };
     }
+  }
+
+  async getBookingCategories(): Promise<any[]> {
+    return await db.select().from(bookingCategories);
+  }
+
+  async createBookingCategory(category: any): Promise<any> {
+    const [result] = await db.insert(bookingCategories).values(category).returning();
+    return result;
+  }
+
+  async getBookingServices(coachId?: string): Promise<any[]> {
+    if (coachId) {
+      return await db.select().from(bookingServices).where(eq(bookingServices.coachId, coachId));
+    }
+    return await db.select().from(bookingServices);
+  }
+
+  async getBookingService(id: string): Promise<any | null> {
+    const [service] = await db.select().from(bookingServices).where(eq(bookingServices.id, id));
+    return service || null;
+  }
+
+  async createBookingService(service: any): Promise<any> {
+    const [result] = await db.insert(bookingServices).values(service).returning();
+    return result;
+  }
+
+  async updateBookingService(id: string, updates: any): Promise<any | null> {
+    const [result] = await db.update(bookingServices).set({ ...updates, updatedAt: new Date() }).where(eq(bookingServices.id, id)).returning();
+    return result || null;
+  }
+
+  async deleteBookingService(id: string): Promise<boolean> {
+    const result = await db.delete(bookingServices).where(eq(bookingServices.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async getCoachSchedule(coachId: string): Promise<any[]> {
+    return await db.select().from(coachSchedule).where(eq(coachSchedule.coachId, coachId));
+  }
+
+  async createCoachSchedule(schedule: any): Promise<any> {
+    const [result] = await db.insert(coachSchedule).values(schedule).returning();
+    return result;
+  }
+
+  async deleteCoachSchedule(id: string): Promise<boolean> {
+    const result = await db.delete(coachSchedule).where(eq(coachSchedule.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async getCoachBlockedTimes(coachId: string): Promise<any[]> {
+    return await db.select().from(coachBlockedTimes).where(eq(coachBlockedTimes.coachId, coachId));
+  }
+
+  async createCoachBlockedTime(blockedTime: any): Promise<any> {
+    const [result] = await db.insert(coachBlockedTimes).values(blockedTime).returning();
+    return result;
+  }
+
+  async deleteCoachBlockedTime(id: string): Promise<boolean> {
+    const result = await db.delete(coachBlockedTimes).where(eq(coachBlockedTimes.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async getAppointments(filter?: { coachId?: string; clientId?: string }): Promise<any[]> {
+    if (filter?.coachId) {
+      return await db.select().from(appointments).where(eq(appointments.coachId, filter.coachId));
+    }
+    if (filter?.clientId) {
+      return await db.select().from(appointments).where(eq(appointments.clientId, filter.clientId));
+    }
+    return await db.select().from(appointments);
+  }
+
+  async getAppointment(id: string): Promise<any | null> {
+    const [appointment] = await db.select().from(appointments).where(eq(appointments.id, id));
+    return appointment || null;
+  }
+
+  async createAppointment(appointment: any): Promise<any> {
+    const [result] = await db.insert(appointments).values(appointment).returning();
+    return result;
+  }
+
+  async updateAppointment(id: string, updates: any): Promise<any | null> {
+    const [result] = await db.update(appointments).set({ ...updates, updatedAt: new Date() }).where(eq(appointments.id, id)).returning();
+    return result || null;
+  }
+
+  async deleteAppointment(id: string): Promise<boolean> {
+    const result = await db.delete(appointments).where(eq(appointments.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }
 

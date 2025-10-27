@@ -2323,6 +2323,8 @@ export const insertBookingServiceSchema = createInsertSchema(bookingServices).om
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  price: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const insertCoachScheduleSchema = createInsertSchema(coachSchedule).omit({
