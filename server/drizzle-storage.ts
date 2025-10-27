@@ -784,6 +784,14 @@ class DrizzleStorage implements Partial<IStorage> {
     return await db.select().from(bookingServices);
   }
 
+  async getBookingServicesByCoach(coachId: string): Promise<any[]> {
+    return await db.select().from(bookingServices).where(eq(bookingServices.coachId, coachId));
+  }
+
+  async getActiveBookingServices(): Promise<any[]> {
+    return await db.select().from(bookingServices).where(eq(bookingServices.isActive, true));
+  }
+
   async getBookingService(id: string): Promise<any | null> {
     const [service] = await db.select().from(bookingServices).where(eq(bookingServices.id, id));
     return service || null;

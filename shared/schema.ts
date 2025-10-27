@@ -2325,6 +2325,7 @@ export const insertBookingServiceSchema = createInsertSchema(bookingServices).om
   updatedAt: true,
 }).extend({
   price: z.union([z.string(), z.number()]).transform(val => String(val)),
+  categoryId: z.string().optional().transform(val => val === '' ? undefined : val),
 });
 
 export const insertCoachScheduleSchema = createInsertSchema(coachSchedule).omit({
