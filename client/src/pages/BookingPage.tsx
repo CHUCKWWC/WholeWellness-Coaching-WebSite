@@ -94,11 +94,27 @@ export default function BookingPage() {
 
   const { data: schedule = [] } = useQuery<CoachSchedule[]>({
     queryKey: ['/api/booking/schedule', selectedService?.coachId],
+    queryFn: async () => {
+      if (!selectedService?.coachId) return [];
+      const response = await fetch(`/api/booking/schedule/${selectedService.coachId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch schedule');
+      return response.json();
+    },
     enabled: !!selectedService?.coachId,
   });
 
   const { data: blockedTimes = [] } = useQuery<CoachBlockedTime[]>({
     queryKey: ['/api/booking/blocked-times', selectedService?.coachId],
+    queryFn: async () => {
+      if (!selectedService?.coachId) return [];
+      const response = await fetch(`/api/booking/blocked-times/${selectedService.coachId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch blocked times');
+      return response.json();
+    },
     enabled: !!selectedService?.coachId,
   });
 

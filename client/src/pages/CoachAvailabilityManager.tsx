@@ -67,11 +67,27 @@ export default function CoachAvailabilityManager() {
 
   const { data: schedule = [] } = useQuery({
     queryKey: ['/api/booking/schedule', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/booking/schedule/${user.id}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch schedule');
+      return response.json();
+    },
     enabled: !!user?.id,
   });
 
   const { data: blockedTimes = [] } = useQuery({
     queryKey: ['/api/booking/blocked-times', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/booking/blocked-times/${user.id}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch blocked times');
+      return response.json();
+    },
     enabled: !!user?.id,
   });
 

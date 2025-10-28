@@ -869,6 +869,14 @@ class DrizzleStorage implements Partial<IStorage> {
     const result = await db.delete(appointments).where(eq(appointments.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
+
+  async getAppointmentsByCoach(coachId: string): Promise<any[]> {
+    return await db.select().from(appointments).where(eq(appointments.coachId, coachId)).orderBy(desc(appointments.startDateTime));
+  }
+
+  async getAppointmentsByClient(clientId: string): Promise<any[]> {
+    return await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.startDateTime));
+  }
 }
 
 export const drizzleStorage = new DrizzleStorage();

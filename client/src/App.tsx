@@ -159,7 +159,7 @@ function Router() {
           <Route path="/events" component={(props) => <LazyRoute component={Events} loadingText="Loading Events..." {...props} />} />
           <Route path="/events/:eventId" component={(props) => <LazyRoute component={EventDetail} loadingText="Loading Event..." {...props} />} />
           <Route path="/contact" component={Contact} />
-          <Route path="/booking" component={(props) => <LazyRoute component={Booking} loadingText="Loading Booking System..." {...props} />} />
+          <Route path="/booking" component={(props) => <LazyRoute component={BookingPage} loadingText="Loading Booking System..." {...props} />} />
           <Route path="/members" component={(props) => <LazyRoute component={Members} loadingText="Loading Member Portal..." {...props} />} />
           <Route path="/weight-loss-intake" component={(props) => <LazyRoute component={WeightLossIntake} loadingText="Loading Assessment..." {...props} />} />
 

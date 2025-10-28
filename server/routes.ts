@@ -4466,19 +4466,27 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Create appointment (client or guest)
   app.post("/api/booking/appointments", optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      console.log("[BOOKING] Received appointment request");
+      console.log("[BOOKING] User authenticated:", !!req.user);
+      console.log("[BOOKING] User ID:", req.user?.id || 'GUEST');
+      console.log("[BOOKING] Request body:", JSON.stringify(req.body, null, 2));
+      
       const clientId = req.user?.id || null;
       const appointmentData = insertAppointmentSchema.parse({
         ...req.body,
         clientId
       });
       
+      console.log("[BOOKING] Creating appointment for:", clientId || 'GUEST');
       const appointment = await storage.createAppointment(appointmentData);
+      console.log("[BOOKING] Appointment created successfully:", appointment.id);
       res.status(201).json(appointment);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("[BOOKING] Validation error:", error.errors);
         return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
       }
-      console.error("Error creating appointment:", error);
+      console.error("[BOOKING] Error creating appointment:", error);
       res.status(500).json({ message: "Failed to create appointment" });
     }
   });

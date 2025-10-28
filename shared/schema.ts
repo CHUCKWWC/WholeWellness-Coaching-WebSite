@@ -2344,6 +2344,9 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  startDateTime: z.coerce.date(),
+  endDateTime: z.coerce.date(),
 });
 
 // Types
