@@ -81,6 +81,8 @@ export const securityHeaders = helmet({
       ],
       // Images (including through SW)
       "img-src": ["'self'", "data:", "blob:", "https://*"],
+      // Media sources for video/audio (CRITICAL for iOS video calls)
+      "media-src": ["'self'", "blob:", "https://*.100ms.live"],
       // Web fonts
       "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
       // Google Fonts CSS and inline styles

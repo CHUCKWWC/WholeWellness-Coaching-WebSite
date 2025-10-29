@@ -83,7 +83,10 @@ Preferred communication style: Simple, everyday language.
     - `https://prod-init.100ms.live` (initialization endpoint - explicit)
     - `https://api.100ms.live` (API endpoint - explicit)
     - `wss://*.100ms.live` (WebSocket connections)
-  - Critical fix (October 2025): Updated client-side CSP meta tag to match server policy, preventing "Endpoint is not reachable" errors when connecting to 100ms services
+    - `media-src 'self' blob: https://*.100ms.live` (CRITICAL for iOS video/audio streams)
+  - Critical fix (October 2025): Updated client-side CSP meta tag to match server policy, preventing "Endpoint is not reachable" errors
+  - iOS compatibility fix (October 2025): Added `media-src` directive to CSP for camera/microphone access on iOS devices
+  - **Video Error Logging**: Comprehensive connection error tracking with iOS-specific diagnostics (/api/video/log-error endpoint)
 - **Performance**: Initial JS bundle <200KB gzipped, code splitting, WebP/AVIF images with responsive srcset, Gzip/brotli compression, CDN caching, indexed database fields.
 
 ## External Dependencies
