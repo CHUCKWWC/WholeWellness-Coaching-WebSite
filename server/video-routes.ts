@@ -70,6 +70,40 @@ router.get("/health", async (req, res) => {
   }
 });
 
+// Log connection errors (for iOS debugging)
+router.post("/log-error", async (req, res) => {
+  try {
+    const { 
+      type, 
+      error, 
+      message, 
+      code, 
+      sessionId, 
+      userAgent, 
+      platform, 
+      isIOS, 
+      timestamp 
+    } = req.body;
+    
+    logger.error("[VIDEO-CONNECTION-ERROR]", {
+      type,
+      errorMessage: message,
+      errorCode: code,
+      sessionId,
+      userAgent,
+      platform,
+      isIOS: isIOS ? 'YES' : 'NO',
+      timestamp,
+      fullError: error
+    });
+    
+    res.json({ success: true });
+  } catch (error: any) {
+    logger.error("[VIDEO-LOG-ERROR] Failed to log connection error:", error);
+    res.status(500).json({ error: "Failed to log error" });
+  }
+});
+
 // Create instant video session (coach-only, no client required)
 router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {

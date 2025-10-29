@@ -38,6 +38,7 @@ export default function VideoSession() {
   }, []);
 
   const handleLeave = () => {
+    console.log('[100ms] User left the session', { sessionId, user: user?.email });
     setHasLeft(true);
     
     // Redirect based on user type
@@ -48,6 +49,40 @@ export default function VideoSession() {
     } else {
       setLocation('/');
     }
+  };
+
+  const handleError = (error: any, errorType: string) => {
+    const errorData = {
+      type: errorType,
+      error: error,
+      message: error?.message || 'Unknown error',
+      code: error?.code,
+      sessionId,
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      isIOS: /iPhone|iPad|iPod/.test(navigator.userAgent),
+      timestamp: new Date().toISOString()
+    };
+    
+    console.error('[100ms ERROR]', errorData);
+    
+    // Send to backend for persistent logging
+    fetch('/api/video/log-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(errorData)
+    }).catch(err => console.error('Failed to log error to backend:', err));
+  };
+
+  const handleJoin = () => {
+    console.log('[100ms] Successfully joined session', {
+      sessionId,
+      roomCode: session?.roomCode,
+      user: user?.email || 'guest',
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      timestamp: new Date().toISOString()
+    });
   };
 
   if (isLoading) {
@@ -149,6 +184,8 @@ export default function VideoSession() {
           rememberDeviceSelection: true,
         }}
         onLeave={handleLeave}
+        onJoin={handleJoin}
+        onError={(error: any, errorType: string) => handleError(error, errorType)}
         logo="/logo.png"
         style={{ height: "100vh", width: "100%" }}
       />
