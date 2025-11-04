@@ -71,7 +71,7 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
     {
       title: "Wellness Tools",
       items: [
-        { href: "/personalized-recommendations", label: "Personal Recommendations", icon: "⭐" },
+        { href: "/wellness-journey", label: "My Wellness Journey", icon: "🎯" },
         { href: "/mental-wellness", label: "Mental Wellness", icon: "🧠" },
         { href: "/resources", label: "Resources", icon: "📚" }
       ]
@@ -79,10 +79,10 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
     {
       title: "Connect & Support",
       items: [
-        { href: "/events", label: "Coming Events", icon: "📆" },
-        { href: "/wix-booking", label: "Book Appointment", icon: "📅", roles: ['user', 'guest'] },
-        { href: "/contact", label: "Contact", icon: "💬" },
-        { href: "/about", label: "About", icon: "ℹ️" }
+        { href: "/events", label: "Upcoming Events", icon: "📆" },
+        { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user', 'guest'] },
+        { href: "/contact", label: "Contact Us", icon: "💬" },
+        { href: "/about", label: "About Us", icon: "ℹ️" }
       ]
     },
     {
@@ -90,8 +90,8 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
       roles: ['coach', 'admin', 'super_admin'],
       items: [
         { href: "/coach/clients", label: "My Clients", icon: "👥", roles: ['coach', 'admin', 'super_admin'] },
-        { href: "/coach/schedule", label: "Schedule", icon: "📅", roles: ['coach', 'admin', 'super_admin'] },
-        { href: "/coach/assessments", label: "Client Assessments", icon: "📊", roles: ['coach', 'admin', 'super_admin'] },
+        { href: "/coach/schedule", label: "My Schedule", icon: "📅", roles: ['coach', 'admin', 'super_admin'] },
+        { href: "/coach/assessments", label: "Client Progress", icon: "📊", roles: ['coach', 'admin', 'super_admin'] },
         { href: "/coach/earnings", label: "Earnings", icon: "💰", roles: ['coach'] }
       ]
     },

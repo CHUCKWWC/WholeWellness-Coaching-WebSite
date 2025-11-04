@@ -198,7 +198,7 @@ export default function WellnessJourneyRecommender() {
   });
 
   const handleStartJourney = () => {
-    window.location.href = '/onboarding';
+    createJourneyMutation.mutate();
   };
 
   const handleUpdateProgress = (recommendationId: string, progress: number) => {
