@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AssessmentForm } from "@/components/assessment-form";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 interface AssessmentType {
@@ -67,6 +68,7 @@ export default function TakeAssessment() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const assessmentId = params?.id;
 
   // Fetch assessment type structure
@@ -86,18 +88,21 @@ export default function TakeAssessment() {
 
   // Submit assessment mutation
   const submitMutation = useMutation({
-    mutationFn: async (responses: any) => {
+    mutationFn: async (data: { responses: any; email?: string }) => {
       return await apiRequest('POST', '/api/assessments/submit', {
         assessmentTypeId: assessmentId,
-        responses,
+        responses: data.responses,
+        email: data.email,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast({
         title: "Assessment Complete!",
-        description: "Your responses have been saved. Generating your results...",
+        description: data.message || "Your responses have been saved. Generating your results...",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/assessments/user'] });
+      if (isAuthenticated) {
+        queryClient.invalidateQueries({ queryKey: ['/api/assessments/user'] });
+      }
       // Navigate back to assessments page
       setLocation('/assessments');
     },
@@ -151,9 +156,10 @@ export default function TakeAssessment() {
   return (
     <AssessmentForm
       assessmentType={flattenedAssessment}
-      onSubmit={(responses) => submitMutation.mutate(responses)}
+      onSubmit={(responses, email) => submitMutation.mutate({ responses, email })}
       onCancel={() => setLocation('/assessments')}
       isSubmitting={submitMutation.isPending}
+      isAuthenticated={isAuthenticated}
     />
   );
 }

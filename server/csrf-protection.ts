@@ -172,6 +172,20 @@ export function setupCsrfProtection(app: any) {
       return next();
     }
 
+    // Special case: Skip CSRF for anonymous assessment submissions only
+    // Authenticated users must still provide CSRF token for security
+    if (req.path === '/assessments/submit' && req.method === 'POST') {
+      // Check if request has authentication (session or Bearer token)
+      const hasSession = !!(req as any).session?.userId || !!(req as any).user;
+      const hasBearerToken = req.headers.authorization?.startsWith('Bearer ');
+      
+      // Only skip CSRF if user is NOT authenticated
+      if (!hasSession && !hasBearerToken) {
+        return next();
+      }
+      // Otherwise, fall through to CSRF validation for authenticated users
+    }
+
     return validateCsrfToken(req, res, next);
   });
 }

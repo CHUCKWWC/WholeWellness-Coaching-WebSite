@@ -272,7 +272,8 @@ export const bookings = pgTable("bookings", {
 // Assessment system for paid results
 export const programs = pgTable("programs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("userId").notNull().references(() => users.id),
+  userId: varchar("userId").references(() => users.id),
+  email: varchar("email"),
   assessmentType: varchar("assessmentType").notNull(),
   results: jsonb("results"),
   paid: boolean("paid").default(false),

@@ -6,6 +6,7 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./app-storage";
 import { db } from "./db";
+import { emailService } from "./email-service";
 import { 
   insertBookingSchema, 
   insertContactSchema, 
@@ -4480,6 +4481,28 @@ When to refer to licensed therapists and emergency resources for relationship cr
       console.log("[BOOKING] Creating appointment for:", clientId || 'GUEST');
       const appointment = await storage.createAppointment(appointmentData);
       console.log("[BOOKING] Appointment created successfully:", appointment.id);
+      
+      // Send booking confirmation email (non-blocking)
+      try {
+        const service = await storage.getBookingService(appointment.serviceId);
+        if (service) {
+          await emailService.sendBookingConfirmationEmail({
+            clientEmail: appointment.clientEmail,
+            clientFirstName: appointment.clientFirstName,
+            clientLastName: appointment.clientLastName,
+            serviceName: service.name,
+            startDateTime: appointment.startDateTime,
+            endDateTime: appointment.endDateTime,
+            confirmationId: appointment.id,
+            price: appointment.price
+          });
+          console.log("[BOOKING] Confirmation email sent to:", appointment.clientEmail);
+        }
+      } catch (emailError) {
+        // Log but don't fail the booking if email fails
+        console.error("[BOOKING] Failed to send confirmation email:", emailError);
+      }
+      
       res.status(201).json(appointment);
     } catch (error) {
       if (error instanceof z.ZodError) {

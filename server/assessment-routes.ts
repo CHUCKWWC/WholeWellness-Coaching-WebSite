@@ -65,44 +65,78 @@ router.get("/assessment-types/:id", async (req, res) => {
   }
 });
 
-// Submit completed assessment (requires authentication)
-router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
+// Submit completed assessment (allows anonymous users with email)
+router.post("/submit", async (req, res) => {
   try {
-    const { assessmentTypeId, responses } = req.body;
-    const userId = req.user!.id;
+    const { assessmentTypeId, responses, email } = req.body;
+    const isAuthenticated = !!(req as AuthenticatedRequest).user;
+    const userId = isAuthenticated ? (req as AuthenticatedRequest).user!.id : null;
     
-    // Check if user already has a program record for this assessment
-    const existingPrograms = await storage.getUserPrograms(userId);
-    const existingProgram = existingPrograms.find(p => p.assessmentType === assessmentTypeId);
-    
-    if (existingProgram) {
-      // Update existing program with responses
-      await storage.updateProgram(existingProgram.id, {
-        results: responses,
+    // For anonymous users, email is required
+    if (!isAuthenticated && !email) {
+      return res.status(400).json({ 
+        error: "Email is required for anonymous assessment submission" 
       });
+    }
+    
+    // Validate email format for anonymous users
+    if (!isAuthenticated && email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ 
+          error: "Invalid email format" 
+        });
+      }
+    }
+    
+    if (isAuthenticated && userId) {
+      // Authenticated user flow
+      const existingPrograms = await storage.getUserPrograms(userId);
+      const existingProgram = existingPrograms.find(p => p.assessmentType === assessmentTypeId);
       
-      res.json({ 
-        success: true, 
-        assessmentId: existingProgram.id,
-        message: "Assessment results updated successfully" 
-      });
+      if (existingProgram) {
+        // Update existing program with responses
+        await storage.updateProgram(existingProgram.id, {
+          results: responses,
+        });
+        
+        res.json({ 
+          success: true, 
+          assessmentId: existingProgram.id,
+          message: "Assessment results updated successfully" 
+        });
+      } else {
+        // Count free assessments used
+        const freeAssessmentsUsed = existingPrograms.filter(p => !p.paid).length;
+        const isFreeTier = freeAssessmentsUsed < 3;
+        
+        // Create new program record with appropriate paid status
+        const program = await storage.createProgram({
+          userId,
+          assessmentType: assessmentTypeId,
+          results: responses,
+          paid: !isFreeTier,
+        });
+        
+        res.json({ 
+          success: true, 
+          assessmentId: program.id,
+          message: "Assessment completed successfully" 
+        });
+      }
     } else {
-      // Count free assessments used
-      const freeAssessmentsUsed = existingPrograms.filter(p => !p.paid).length;
-      const isFreeTier = freeAssessmentsUsed < 3;
-      
-      // Create new program record with appropriate paid status
+      // Anonymous user flow - always create new program with email
       const program = await storage.createProgram({
-        userId,
+        email,
         assessmentType: assessmentTypeId,
         results: responses,
-        paid: !isFreeTier, // If not in free tier, it should be paid (will be validated by payment)
+        paid: false,
       });
       
       res.json({ 
         success: true, 
         assessmentId: program.id,
-        message: "Assessment completed successfully" 
+        message: "Assessment completed successfully! Check your email for results." 
       });
     }
   } catch (error) {
@@ -112,7 +146,6 @@ router.post("/submit", requireAuth, async (req: AuthenticatedRequest, res) => {
       console.error("Request body:", req.body);
     } else {
       console.error("Assessment type ID:", req.body?.assessmentTypeId);
-      console.error("User ID:", req.user?.id);
     }
     
     if (error instanceof z.ZodError) {

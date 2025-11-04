@@ -31,15 +31,17 @@ interface AssessmentType {
 
 interface AssessmentFormProps {
   assessmentType: AssessmentType;
-  onSubmit: (responses: any) => void;
+  onSubmit: (responses: any, email?: string) => void;
   onCancel: () => void;
   isSubmitting: boolean;
+  isAuthenticated: boolean;
 }
 
-export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmitting }: AssessmentFormProps) {
+export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmitting, isAuthenticated }: AssessmentFormProps) {
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [email, setEmail] = useState<string>('');
 
   const fields = assessmentType.fields.fields || [];
   const fieldsPerStep = 3;
@@ -70,6 +72,15 @@ export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmittin
       }
     });
     
+    // On last step, validate email for anonymous users
+    if (currentStep === totalSteps - 1 && !isAuthenticated) {
+      if (!email) {
+        newErrors['email'] = 'Email is required to receive your results';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors['email'] = 'Invalid email format';
+      }
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,7 +97,7 @@ export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmittin
 
   const handleSubmit = () => {
     if (validateCurrentStep()) {
-      onSubmit(responses);
+      onSubmit(responses, !isAuthenticated ? email : undefined);
     }
   };
 
@@ -267,6 +278,34 @@ export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmittin
           <CardContent>
             <div className="space-y-6">
               {currentFields.map(renderField)}
+              
+              {currentStep === totalSteps - 1 && !isAuthenticated && (
+                <div className="space-y-2 pt-6 border-t mt-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-800">
+                      📧 Please provide your email to receive your assessment results.
+                    </p>
+                  </div>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    data-testid="input-assessment-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errors['email']) {
+                        setErrors(prev => ({ ...prev, email: '' }));
+                      }
+                    }}
+                    className={errors['email'] ? "border-red-500" : ""}
+                    placeholder="your.email@example.com"
+                  />
+                  {errors['email'] && <p className="text-red-500 text-xs">{errors['email']}</p>}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-between mt-8 pt-6 border-t">

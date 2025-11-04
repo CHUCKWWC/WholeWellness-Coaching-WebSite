@@ -221,6 +221,33 @@ export class EmailService {
     }
   }
 
+  // Send booking confirmation email
+  async sendBookingConfirmationEmail(data: {
+    clientEmail: string;
+    clientFirstName: string;
+    clientLastName: string;
+    serviceName: string;
+    startDateTime: Date;
+    endDateTime: Date;
+    confirmationId: string;
+    price: string;
+  }): Promise<void> {
+    const template = this.getBookingConfirmationEmailTemplate(data);
+    
+    try {
+      await this.sendEmailWithFallback(
+        data.clientEmail,
+        template.subject,
+        template.html,
+        template.text,
+        'bookings@wholewellness-coaching.org'
+      );
+    } catch (error) {
+      console.error('Error sending booking confirmation email:', error);
+      throw error;
+    }
+  }
+
   // Generate secure reset token
   generateResetToken(): string {
     return randomBytes(32).toString('hex');
@@ -418,6 +445,134 @@ export class EmailService {
       
       Whole Wellness Coaching
       Supporting women on their journey to wellness
+    `;
+    
+    return { subject, html, text };
+  }
+
+  // Booking confirmation email template
+  private getBookingConfirmationEmailTemplate(data: {
+    clientFirstName: string;
+    clientLastName: string;
+    serviceName: string;
+    startDateTime: Date;
+    endDateTime: Date;
+    confirmationId: string;
+    price: string;
+  }): EmailTemplate {
+    const subject = `Booking Confirmed - ${data.serviceName}`;
+    
+    const formattedDate = new Date(data.startDateTime).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const formattedTime = new Date(data.startDateTime).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    const endTime = new Date(data.endDateTime).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Booking Confirmed!</h1>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            Dear ${data.clientFirstName} ${data.clientLastName},
+          </p>
+          
+          <p style="font-size: 16px; margin-bottom: 30px;">
+            Thank you for booking with WholeWellness Coaching! Your appointment has been confirmed.
+          </p>
+          
+          <div style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 30px;">
+            <h2 style="margin-top: 0; color: #667eea; font-size: 20px;">Appointment Details</h2>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #555;">Confirmation ID:</td>
+                <td style="padding: 10px 0; font-family: monospace; color: #667eea;">${data.confirmationId}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #555; border-top: 1px solid #e5e7eb;">Service:</td>
+                <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">${data.serviceName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #555; border-top: 1px solid #e5e7eb;">Date:</td>
+                <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">${formattedDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #555; border-top: 1px solid #e5e7eb;">Time:</td>
+                <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">${formattedTime} - ${endTime}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; font-weight: bold; color: #555; border-top: 1px solid #e5e7eb;">Price:</td>
+                <td style="padding: 10px 0; border-top: 1px solid #e5e7eb;">$${data.price}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; border-radius: 8px; margin-bottom: 30px;">
+            <p style="margin: 0; font-size: 14px; color: #78350f;">
+              <strong>📌 Important:</strong> Please save this confirmation email for your records. 
+              You can reference your Confirmation ID if you need to contact us about this appointment.
+            </p>
+          </div>
+          
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            We look forward to supporting you on your wellness journey!
+          </p>
+          
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            Best regards,<br>
+            <strong>The WholeWellness Coaching Team</strong>
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="font-size: 12px; color: #888; text-align: center;">
+            If you need to modify or cancel your appointment, please contact us at 
+            <a href="mailto:info@wholewellness-coaching.org" style="color: #667eea; text-decoration: none;">info@wholewellness-coaching.org</a>
+          </p>
+        </div>
+      </div>
+    `;
+    
+    const text = `
+Booking Confirmation - ${data.serviceName}
+
+Dear ${data.clientFirstName} ${data.clientLastName},
+
+Thank you for booking with WholeWellness Coaching! Your appointment has been confirmed.
+
+Appointment Details:
+-------------------
+Confirmation ID: ${data.confirmationId}
+Service: ${data.serviceName}
+Date: ${formattedDate}
+Time: ${formattedTime} - ${endTime}
+Price: $${data.price}
+
+Please save this confirmation email for your records. You can reference your Confirmation ID if you need to contact us about this appointment.
+
+We look forward to supporting you on your wellness journey!
+
+Best regards,
+The WholeWellness Coaching Team
+
+---
+If you need to modify or cancel your appointment, please contact us at info@wholewellness-coaching.org
     `;
     
     return { subject, html, text };

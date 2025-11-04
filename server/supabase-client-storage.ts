@@ -3113,19 +3113,30 @@ export class SupabaseClientStorage implements IStorage {
 
   async createProgram(program: InsertProgram): Promise<Program> {
     try {
-      const dbProgram = {
+      // Prepare responses object - include email if provided
+      const responses = program.responses || {};
+      if (program.email) {
+        responses._submitterEmail = program.email;
+      }
+
+      const dbProgram: any = {
         id: randomUUID(),
-        user_id: program.userId,
         assessment_type: program.assessmentType,
         status: program.status || 'in_progress',
         completion_percentage: program.completionPercentage || 0,
         paid: program.paid || false,
         payment_intent_id: program.paymentIntentId,
-        responses: program.responses || {},
+        responses: responses,
         result: program.result || {},
         created_at: new Date(),
         updated_at: new Date()
       };
+
+      // Handle both authenticated and anonymous users
+      // For anonymous users, user_id can be null
+      if (program.userId) {
+        dbProgram.user_id = program.userId;
+      }
 
       const { data, error } = await supabase
         .from('programs')
@@ -3135,7 +3146,8 @@ export class SupabaseClientStorage implements IStorage {
 
       if (error) {
         console.error('Error creating program:', error);
-        throw new Error('Failed to create program');
+        console.error('Program data:', program);
+        throw new Error('Failed to create program: ' + error.message);
       }
 
       return this.transformProgramData(data);

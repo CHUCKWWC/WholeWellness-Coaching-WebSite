@@ -53,7 +53,7 @@ Preferred communication style: Simple, everyday language.
 - **AI Coaching System**: 6 specialized AI coaches using OpenAI Assistants API for persistent, customizable conversations with a modern chat UI.
 - **Conversation Intelligence**: AI-powered summarization, emotion detection, key topic extraction, personalized insights, and automated email delivery.
 - **Mental Health Safety**: Crisis detection system with admin alerts, human handoff, and emergency resources.
-- **Multi-assessment System**: Comprehensive assessment types with database architecture and API.
+- **Multi-assessment System**: Comprehensive assessment types with database architecture and API. Supports anonymous assessment submissions where guests can complete assessments without creating an account by providing their email address. Email is stored in the responses JSON field for follow-up communications.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
 - **Video Conferencing System**: 100ms-powered video sessions using HMSPrebuilt component for battle-tested reliability. Features include:
