@@ -22,8 +22,7 @@ export default function RoleBasedNavigation() {
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
       try {
-        const response = await apiRequest("GET", "/api/auth/user");
-        return response.json();
+        return await apiRequest("GET", "/api/auth/user");
       } catch (error) {
         return null;
       }
