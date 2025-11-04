@@ -63,10 +63,23 @@ interface CoachBlockedTime {
   reason: string;
 }
 
+interface BookingConfirmation {
+  id: string;
+  serviceId: string;
+  coachId: string;
+  clientFirstName: string;
+  clientLastName: string;
+  clientEmail: string;
+  startDateTime: string;
+  endDateTime: string;
+  price: string;
+}
+
 export default function BookingPage() {
   const [selectedService, setSelectedService] = useState<BookingService | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [step, setStep] = useState(1);
+  const [bookingConfirmation, setBookingConfirmation] = useState<BookingConfirmation | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -138,15 +151,13 @@ export default function BookingPage() {
         notes: bookingData.notes,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setBookingConfirmation(data);
+      setStep(5);
       toast({
         title: 'Booking Created Successfully!',
-        description: 'Your appointment has been scheduled. You will receive a confirmation email shortly.',
+        description: 'Your appointment has been confirmed.',
       });
-      form.reset();
-      setStep(1);
-      setSelectedService(null);
-      setSelectedDate('');
     },
     onError: (error: any) => {
       toast({
@@ -240,32 +251,34 @@ export default function BookingPage() {
         <p className="text-muted-foreground">Schedule a session with our professional coaches.</p>
       </div>
 
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          {[
-            { step: 1, label: 'Select Service' },
-            { step: 2, label: 'Choose Date' },
-            { step: 3, label: 'Pick Time' },
-            { step: 4, label: 'Your Details' },
-          ].map((item, index) => (
-            <div key={item.step} className="flex items-center flex-1">
-              <div className="flex items-center flex-1">
-                <div className={`min-w-[2rem] h-8 rounded-full flex items-center justify-center ${
-                  step >= item.step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}>
-                  {step > item.step ? <CheckCircle className="w-4 h-4" /> : item.step}
+      {step < 5 && (
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {[
+              { step: 1, label: 'Select Service' },
+              { step: 2, label: 'Choose Date' },
+              { step: 3, label: 'Pick Time' },
+              { step: 4, label: 'Your Details' },
+            ].map((item, index) => (
+              <div key={item.step} className="flex items-center flex-1">
+                <div className="flex items-center flex-1">
+                  <div className={`min-w-[2rem] h-8 rounded-full flex items-center justify-center ${
+                    step >= item.step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {step > item.step ? <CheckCircle className="w-4 h-4" /> : item.step}
+                  </div>
+                  <span className={`ml-2 text-sm ${
+                    step >= item.step ? 'font-medium' : 'text-muted-foreground'
+                  }`}>
+                    {item.label}
+                  </span>
                 </div>
-                <span className={`ml-2 text-sm ${
-                  step >= item.step ? 'font-medium' : 'text-muted-foreground'
-                }`}>
-                  {item.label}
-                </span>
+                {index < 3 && <div className="hidden sm:block flex-1 mx-4 h-0.5 bg-muted"></div>}
               </div>
-              {index < 3 && <div className="hidden sm:block flex-1 mx-4 h-0.5 bg-muted"></div>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {step === 1 && (
         <div>
@@ -521,6 +534,125 @@ export default function BookingPage() {
               </div>
             </form>
           </Form>
+        </div>
+      )}
+
+      {step === 5 && bookingConfirmation && (
+        <div data-testid="booking-confirmation">
+          <Card className="border-green-200 dark:border-green-800">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+              </div>
+              <CardTitle className="text-2xl text-green-700 dark:text-green-400">Booking Confirmed!</CardTitle>
+              <CardDescription className="text-base mt-2">
+                Your appointment has been successfully scheduled.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-muted/50 rounded-lg p-6 space-y-4">
+                <h3 className="font-semibold text-lg mb-3">Appointment Details</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <span className="text-muted-foreground">Confirmation ID:</span>
+                    <span className="font-mono text-sm font-medium text-right break-all max-w-[60%]" data-testid="confirmation-id">
+                      {bookingConfirmation.id}
+                    </span>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service:</span>
+                    <span className="font-medium">{selectedService?.name}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Date:</span>
+                    <span className="font-medium">
+                      {format(new Date(bookingConfirmation.startDateTime), 'MMMM d, yyyy')}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Time:</span>
+                    <span className="font-medium">
+                      {format(new Date(bookingConfirmation.startDateTime), 'h:mm a')} - {format(new Date(bookingConfirmation.endDateTime), 'h:mm a')}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Duration:</span>
+                    <span className="font-medium">{selectedService?.duration} minutes</span>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Client Name:</span>
+                    <span className="font-medium">
+                      {bookingConfirmation.clientFirstName} {bookingConfirmation.clientLastName}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email:</span>
+                    <span className="font-medium">{bookingConfirmation.clientEmail}</span>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Price:</span>
+                    <span className="text-xl font-semibold">${bookingConfirmation.price}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What's Next?</h4>
+                <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>A confirmation email has been sent to <strong>{bookingConfirmation.clientEmail}</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Save your confirmation ID for reference</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>You'll receive a reminder email 24 hours before your appointment</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button 
+                  onClick={() => {
+                    form.reset();
+                    setStep(1);
+                    setSelectedService(null);
+                    setSelectedDate('');
+                    setBookingConfirmation(null);
+                  }}
+                  variant="outline"
+                  className="flex-1 min-h-[48px]"
+                  data-testid="button-book-another"
+                >
+                  Book Another Appointment
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/'}
+                  className="flex-1 min-h-[48px]"
+                  data-testid="button-return-home"
+                >
+                  Return to Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
