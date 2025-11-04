@@ -24,6 +24,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RoleIndicator from "@/components/RoleIndicator";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface CoachLayoutProps {
   children: React.ReactNode;
@@ -33,6 +36,8 @@ export default function CoachLayout({ children }: CoachLayoutProps) {
   const [location] = useLocation();
   const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const navigation = [
     { name: 'Dashboard', href: '/coach/dashboard', icon: LayoutDashboard },
@@ -45,9 +50,31 @@ export default function CoachLayout({ children }: CoachLayoutProps) {
 
   const isActive = (href: string) => location === href || location.startsWith(href + '/');
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/login';
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/auth/logout", {});
+    },
+    onSuccess: () => {
+      sessionStorage.removeItem('hasAuthSession');
+      queryClient.setQueryData(["/api/auth/user"], null);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      window.location.href = '/login';
+    },
+    onError: () => {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging you out. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
 
   const userInitials = user?.firstName && user?.lastName

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { 
@@ -11,9 +11,12 @@ import {
 import { RoleBadge } from "@/components/RoleBasedAccess";
 import { User, Settings, Crown, Shield, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RoleBasedNavigation() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ["/api/auth/user"],
@@ -27,16 +30,32 @@ export default function RoleBasedNavigation() {
     },
   });
 
-  const handleLogout = async () => {
-    try {
-      await apiRequest("POST", "/api/auth/logout");
-      // Clear auth session flag
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/auth/logout", {});
+    },
+    onSuccess: () => {
       sessionStorage.removeItem('hasAuthSession');
+      queryClient.setQueryData(["/api/auth/user"], null);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
       setLocation("/");
       window.location.reload();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    },
+    onError: () => {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging you out. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
 
   if (!user) {

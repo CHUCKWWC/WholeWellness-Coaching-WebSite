@@ -76,8 +76,7 @@ export default function SmartNavigation() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/auth/logout", {});
-      return response.json();
+      return await apiRequest("POST", "/api/auth/logout", {});
     },
     onSuccess: () => {
       // Clear auth session flag
