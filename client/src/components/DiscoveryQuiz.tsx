@@ -208,7 +208,7 @@ export default function DiscoveryQuiz() {
   };
 
   const handleStepComplete = () => {
-    if (currentStep === 5) {
+    if (currentStep === 4) {
       // Generate and save results
       const quizResults = generateRecommendations(selectedNeeds, situationDetails, supportPreference, readinessLevel);
       setResults(quizResults);

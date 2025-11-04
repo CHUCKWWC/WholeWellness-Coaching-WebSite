@@ -160,8 +160,8 @@ export default function AICoaching() {
   // AI Chat mutation with memory and fallback support
   const sendMessage = useMutation({
     mutationFn: async (data: { message: string; coachType: string; persona?: string; sessionId?: string | null }) => {
-      const response = await apiRequest("POST", "/api/ai-coaching/chat", data);
-      return response.json();
+      // apiRequest already returns parsed JSON, don't call .json() again
+      return await apiRequest("POST", "/api/ai-coaching/chat", data);
     },
     onSuccess: (data) => {
       if (data.response) {

@@ -69,8 +69,40 @@ router.get("/assessment-types/:id", async (req, res) => {
 router.post("/submit", async (req, res) => {
   try {
     const { assessmentTypeId, responses, email } = req.body;
-    const isAuthenticated = !!(req as AuthenticatedRequest).user;
-    const userId = isAuthenticated ? (req as AuthenticatedRequest).user!.id : null;
+    
+    // Check authentication more robustly
+    // Handle all Passport session storage formats: string, number, or object
+    const authenticatedReq = req as AuthenticatedRequest;
+    const sessionUser = authenticatedReq.user || (req.session as any)?.passport?.user;
+    
+    // Extract userId - handle string, number, and object formats
+    let userId: string | null = null;
+    if (sessionUser) {
+      if (typeof sessionUser === 'string') {
+        // Session stores just the ID as a string
+        userId = sessionUser;
+      } else if (typeof sessionUser === 'number') {
+        // Session stores just the ID as a number
+        userId = String(sessionUser);
+      } else if (typeof sessionUser === 'object') {
+        // Session stores user object - check common ID property names
+        userId = sessionUser.id || sessionUser.userId || sessionUser._id || null;
+        // Convert to string if numeric
+        if (typeof userId === 'number') {
+          userId = String(userId);
+        }
+      }
+    }
+    
+    const isAuthenticated = !!userId;
+    
+    console.log('[Assessment Submit] Auth check:', {
+      hasSessionUser: !!sessionUser,
+      sessionUserType: typeof sessionUser,
+      userIdResolved: !!userId,
+      hasSession: !!req.session,
+      isAuthenticated
+    });
     
     // For anonymous users, email is required
     if (!isAuthenticated && !email) {
@@ -91,6 +123,7 @@ router.post("/submit", async (req, res) => {
     
     if (isAuthenticated && userId) {
       // Authenticated user flow
+      console.log('[Assessment Submit] Processing authenticated user submission, userId:', userId);
       const existingPrograms = await storage.getUserPrograms(userId);
       const existingProgram = existingPrograms.find(p => p.assessmentType === assessmentTypeId);
       

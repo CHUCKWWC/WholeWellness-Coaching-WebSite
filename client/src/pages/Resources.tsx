@@ -18,6 +18,19 @@ export default function Resources() {
     queryKey: ["/api/resources"],
   });
 
+  const handleResourceAccess = (resource: Resource) => {
+    // Open resource in new tab if it has a URL
+    if (resource.url) {
+      window.open(resource.url, '_blank', 'noopener,noreferrer');
+    } else if (resource.filePath) {
+      // Download file if it has a file path
+      window.open(resource.filePath, '_blank');
+    } else {
+      // Navigate to resource detail page as fallback
+      window.location.href = `/resources/${resource.id}`;
+    }
+  };
+
   const filteredResources = resources?.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.content.toLowerCase().includes(searchTerm.toLowerCase());
@@ -160,7 +173,11 @@ export default function Resources() {
                   </Badge>
                   <h3 className="text-xl font-semibold mb-4">{resource.title}</h3>
                   <p className="opacity-90 mb-6">{resource.content}</p>
-                  <Button className="bg-white text-primary hover:bg-gray-100">
+                  <Button 
+                    className="bg-white text-primary hover:bg-gray-100"
+                    onClick={() => handleResourceAccess(resource)}
+                    data-testid={`button-featured-resource-${resource.id}`}
+                  >
                     Access Resource
                   </Button>
                 </CardContent>
@@ -199,6 +216,19 @@ interface ResourceGridProps {
 }
 
 function ResourceGrid({ resources, isLoading }: ResourceGridProps) {
+  const handleResourceAccess = (resource: Resource) => {
+    // Open resource in new tab if it has a URL
+    if (resource.url) {
+      window.open(resource.url, '_blank', 'noopener,noreferrer');
+    } else if (resource.filePath) {
+      // Download file if it has a file path
+      window.open(resource.filePath, '_blank');
+    } else {
+      // Navigate to resource detail page as fallback
+      window.location.href = `/resources/${resource.id}`;
+    }
+  };
+
   const getResourceIcon = (type: string) => {
     switch (type) {
       case "article": return <FileText className="w-6 h-6" />;
@@ -283,7 +313,12 @@ function ResourceGrid({ resources, isLoading }: ResourceGridProps) {
                   </Badge>
                 )}
               </div>
-              <Button size="sm" className="bg-primary hover:bg-secondary">
+              <Button 
+                size="sm" 
+                className="bg-primary hover:bg-secondary"
+                onClick={() => handleResourceAccess(resource)}
+                data-testid={`button-access-resource-${resource.id}`}
+              >
                 Access
               </Button>
             </div>

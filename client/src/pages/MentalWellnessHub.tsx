@@ -340,7 +340,11 @@ export default function MentalWellnessHub() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-green-200 bg-green-50 hover:bg-green-100 transition-colors cursor-pointer">
+          <Card 
+            className="border-green-200 bg-green-50 hover:bg-green-100 transition-colors cursor-pointer"
+            onClick={() => setShowAssessment(true)}
+            data-testid="card-quick-assessment"
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-200 rounded-lg">
@@ -354,7 +358,14 @@ export default function MentalWellnessHub() {
             </CardContent>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
+          <Card 
+            className="border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
+            onClick={() => {
+              const resourcesSection = document.getElementById('resources-section');
+              resourcesSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            data-testid="card-browse-resources"
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-200 rounded-lg">
@@ -368,7 +379,11 @@ export default function MentalWellnessHub() {
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors cursor-pointer">
+          <Card 
+            className="border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors cursor-pointer"
+            onClick={() => setShowEmergencyDialog(true)}
+            data-testid="card-crisis-support"
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-200 rounded-lg">
@@ -598,7 +613,7 @@ export default function MentalWellnessHub() {
         </div>
 
         {/* Resources Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="resources-section" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredResources.map((resource: MentalWellnessResource) => (
             <Card key={resource.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>

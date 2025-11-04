@@ -401,6 +401,119 @@ export function registerWellnessJourneyRoutes(app: Express) {
     }
   });
 
+  // Quick start - Create a basic wellness journey (simplified)
+  app.post('/api/wellness-journey/create', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { journeyType = 'comprehensive_wellness', title, description, estimatedCompletion } = req.body;
+      
+      // Check if user already has an active journey
+      const existingJourney = await storage.getCurrentWellnessJourney(req.user!.id);
+      if (existingJourney) {
+        return res.json({
+          message: 'Journey already exists',
+          journey: existingJourney
+        });
+      }
+
+      // Create a basic journey with default values
+      const completionDate = new Date();
+      completionDate.setDate(completionDate.getDate() + 84); // 12 weeks default
+
+      const journey = await storage.createWellnessJourney({
+        userId: req.user!.id,
+        journeyType,
+        title: title || `${req.user!.firstName}'s Wellness Journey`,
+        description: description || 'Your personalized wellness journey',
+        estimatedCompletion: completionDate,
+        currentPhase: 'Foundation Building',
+      });
+
+      // Create default phases
+      const defaultPhases = [
+        {
+          phaseName: 'Foundation Building',
+          phaseDescription: 'Establish healthy habits and assessment baselines',
+          phaseOrder: 1,
+          estimatedDuration: '2-3 weeks',
+          goals: ['Establish routine', 'Complete assessments', 'Set up tracking systems'],
+          milestones: ['Daily check-ins established', 'Baseline measurements recorded'],
+          isCurrent: true,
+        },
+        {
+          phaseName: 'Growth & Development',
+          phaseDescription: 'Focus on wellness goals and skills',
+          phaseOrder: 2,
+          estimatedDuration: '6-8 weeks',
+          goals: ['Develop new healthy habits', 'Build resilience', 'Track progress'],
+          milestones: ['New skills developed', 'Consistent progress'],
+          isCurrent: false,
+        },
+        {
+          phaseName: 'Integration',
+          phaseDescription: 'Combine practices and optimize for sustainability',
+          phaseOrder: 3,
+          estimatedDuration: '2-3 weeks',
+          goals: ['Integrate all practices', 'Optimize routines', 'Plan maintenance'],
+          milestones: ['Sustainable practices identified', 'Long-term plan created'],
+          isCurrent: false,
+        },
+      ];
+
+      await Promise.all(
+        defaultPhases.map(phase =>
+          storage.createJourneyPhase({
+            journeyId: journey.id,
+            ...phase,
+          })
+        )
+      );
+
+      // Create default goal
+      await storage.createWellnessGoal({
+        journeyId: journey.id,
+        category: 'mental',
+        specificGoal: 'Improve overall wellbeing',
+        priority: 'high',
+        timeline: '3_months',
+        currentLevel: 5,
+        targetLevel: 8,
+        obstacles: [],
+        motivation: 'Live a healthier, more balanced life',
+      });
+
+      // Create a basic recommendation
+      await storage.createWellnessRecommendation({
+        journeyId: journey.id,
+        phaseId: null,
+        type: 'daily_practice',
+        title: 'Daily Wellness Check-in',
+        description: 'Take a few minutes each day to reflect on your wellness',
+        category: 'mindfulness',
+        priority: 1,
+        estimatedTime: 5,
+        difficultyLevel: 'beginner',
+        aiReasoning: 'Starting with daily check-ins helps build awareness and consistency',
+        actionSteps: ['Find a quiet moment', 'Reflect on your day', 'Record how you feel'],
+        successMetrics: ['Daily completion', 'Improved awareness'],
+        resources: [],
+        expectedOutcomes: ['Better self-awareness', 'Consistent tracking'],
+        progressTracking: {},
+      });
+
+      // Get the complete journey with all related data
+      const completeJourney = await storage.getCurrentWellnessJourney(req.user!.id);
+
+      res.json({ 
+        message: 'Wellness journey created successfully',
+        journey: completeJourney
+      });
+
+    } catch (error) {
+      console.error('Error creating wellness journey:', error);
+      res.status(500).json({ message: 'Failed to create wellness journey' });
+    }
+  });
+
   // Generate new wellness journey
   app.post('/api/wellness-journey/generate', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {

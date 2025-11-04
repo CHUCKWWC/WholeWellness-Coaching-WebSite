@@ -444,9 +444,15 @@ export default function Donate() {
                 disabled={getAmount() < 1 || createDonationMutation.isPending}
                 className="w-full h-12 text-lg"
                 size="lg"
+                data-testid="button-custom-donate"
               >
                 {createDonationMutation.isPending ? (
                   "Processing..."
+                ) : getAmount() < 1 ? (
+                  <>
+                    <Heart className="h-5 w-5 mr-2" />
+                    Select an Amount to Donate
+                  </>
                 ) : (
                   <>
                     <Heart className="h-5 w-5 mr-2" />
@@ -537,9 +543,10 @@ export default function Donate() {
                     onClick={handleDonate}
                     disabled={getAmount() < 1 || createDonationMutation.isPending}
                     className="w-full"
+                    data-testid="button-campaign-donate"
                   >
                     <Target className="h-4 w-4 mr-2" />
-                    Support Campaign - ${getAmount()}
+                    {getAmount() < 1 ? "Select an Amount" : `Support Campaign - $${getAmount()}`}
                   </Button>
                 </CardContent>
               </Card>
