@@ -272,12 +272,12 @@ export const bookings = pgTable("bookings", {
 // Assessment system for paid results
 export const programs = pgTable("programs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("userId").references(() => users.id),
+  userId: varchar("user_id").references(() => users.id),
   email: varchar("email"),
-  assessmentType: varchar("assessmentType").notNull(),
+  assessmentType: varchar("assessment_type").notNull(),
   results: jsonb("results"),
   paid: boolean("paid").default(false),
-  createdAt: timestamp("createdAt").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Chat sessions for AI coach memory

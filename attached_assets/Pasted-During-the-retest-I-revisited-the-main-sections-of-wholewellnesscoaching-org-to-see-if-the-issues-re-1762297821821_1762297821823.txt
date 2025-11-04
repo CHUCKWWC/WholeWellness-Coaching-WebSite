@@ -1,0 +1,35 @@
+During the retest I revisited the main sections of wholewellnesscoaching.org to see if the issues reported earlier had been addressed. Unfortunately, almost all of the same problems remain.
+
+Mental Wellness Hub & Resources
+
+The Quick Assessment, Browse Resources and Crisis Support buttons on the Mental Wellness Resource Hub still act like decoration—clicking them merely changes their colour without opening anything
+wholewellnesscoaching.org
+. When I scroll down to the resource cards (NAMI, Psychology Today, BetterHelp, Calm, etc.), their “Access Resource” buttons still don’t navigate anywhere; clicking them has no effect
+wholewellnesscoaching.org
+.
+
+Assessments
+
+The Wellness Personality Assessment still doesn’t submit. I filled out both steps: selected cardio exercise, balanced diet and meditation, rated my sleep quality, checked multiple wellness goals, and entered my email. Pressing Complete Assessment produces no loading spinner or results—there’s simply no response and the button resets
+wholewellnesscoaching.org
+. This indicates the backend endpoint is still broken.
+
+AI Coaching
+
+AI chat remains in “preview” mode. Selecting a coach and sending a query like “Guide me through a 5‑minute meditation” results in the same canned reply: “To get personalized AI coaching responses, please sign in to your account”
+wholewellnesscoaching.org
+. Although I was logged into the site, the AI system doesn’t recognize it and refuses to deliver a real response.
+
+Other observations
+
+The Mental Wellness resource buttons such as “Quick Assessment” still do nothing
+wholewellnesscoaching.org
+.
+
+The site still lacks a working logout option and there’s no clear user profile menu.
+
+I didn’t see any evidence that the Wellness Journey and resource library pages have been fixed; those issues appear unchanged.
+
+Conclusion
+
+From this second test it seems the major bugs—including non‑functional buttons, assessments failing to submit, and AI chat not delivering real coaching—have not been addressed. The site’s content remains attractive and mission‑driven, but the basic functionality still needs significant work.

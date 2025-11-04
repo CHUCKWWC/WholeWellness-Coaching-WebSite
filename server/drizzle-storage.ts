@@ -22,10 +22,11 @@ import {
   bookingServices,
   coachSchedule,
   coachBlockedTimes,
-  appointments
+  appointments,
+  programs
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
-import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction } from "@shared/schema";
+import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction, Program, InsertProgram } from "@shared/schema";
 import type { IStorage } from "./supabase-client-storage";
 
 class DrizzleStorage implements Partial<IStorage> {
@@ -122,6 +123,54 @@ class DrizzleStorage implements Partial<IStorage> {
     } catch (error) {
       console.error('[DrizzleStorage] Error creating booking:', error);
       throw error;
+    }
+  }
+
+  // Assessment Programs Methods
+  async createProgram(insertProgram: InsertProgram): Promise<Program> {
+    try {
+      console.log('[DrizzleStorage] createProgram called with:', insertProgram);
+      const [program] = await db
+        .insert(programs)
+        .values(insertProgram)
+        .returning();
+      console.log('[DrizzleStorage] createProgram result:', program);
+      return program;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating program:', error);
+      throw error;
+    }
+  }
+
+  async getUserPrograms(userId: string): Promise<Program[]> {
+    try {
+      console.log('[DrizzleStorage] getUserPrograms called for user:', userId);
+      const result = await db
+        .select()
+        .from(programs)
+        .where(eq(programs.userId, userId))
+        .orderBy(desc(programs.createdAt));
+      console.log('[DrizzleStorage] getUserPrograms result:', result.length, 'programs found');
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting user programs:', error);
+      return [];
+    }
+  }
+
+  async updateProgram(id: string, updates: Partial<InsertProgram>): Promise<Program | undefined> {
+    try {
+      console.log('[DrizzleStorage] updateProgram called with:', { id, updates });
+      const [result] = await db
+        .update(programs)
+        .set(updates)
+        .where(eq(programs.id, id))
+        .returning();
+      console.log('[DrizzleStorage] updateProgram result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error updating program:', error);
+      return undefined;
     }
   }
 
