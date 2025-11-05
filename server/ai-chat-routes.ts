@@ -1,6 +1,8 @@
 import { Router, Response, NextFunction } from "express";
 import OpenAI from "openai";
 import { requireAuth, AuthenticatedRequest } from "./auth";
+import { storage } from "./app-storage";
+import { randomUUID } from "crypto";
 
 const router = Router();
 
@@ -82,13 +84,49 @@ Keep responses concise (2-3 paragraphs) and actionable.`;
 
     const response = completion.choices[0]?.message?.content || "I apologize, I couldn't generate a response. Please try again.";
 
-    // TODO: Save conversation to database for history/summaries
-    // This would require chat_messages table
+    // Save conversation to database
+    let currentSessionId = sessionId;
+    
+    if (!currentSessionId) {
+      // Create new chat session with threadId
+      const threadId = `thread_${randomUUID()}`;
+      const newSession = await storage.createChatSession({
+        userId,
+        threadId,
+        module: coachType
+      });
+      currentSessionId = newSession.id;
+      console.log('[AI Chat] Created new session:', currentSessionId);
+    } else {
+      // Verify session belongs to user (security check)
+      const existingSession = await storage.getChatSession(currentSessionId);
+      if (!existingSession || existingSession.userId !== userId) {
+        return res.status(403).json({ 
+          error: "Unauthorized: Session does not belong to this user" 
+        });
+      }
+    }
+
+    // Save user message
+    await storage.createChatMessage({
+      sessionId: currentSessionId,
+      role: 'user',
+      content: message
+    });
+
+    // Save assistant response
+    await storage.createChatMessage({
+      sessionId: currentSessionId,
+      role: 'assistant',
+      content: response
+    });
+
+    console.log('[AI Chat] Saved conversation to database');
 
     res.json({ 
       response,
       coachType,
-      sessionId: sessionId || `session_${Date.now()}`,
+      sessionId: currentSessionId,
       timestamp: new Date().toISOString()
     });
 

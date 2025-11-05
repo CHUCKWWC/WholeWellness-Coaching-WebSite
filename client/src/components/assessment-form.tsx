@@ -96,8 +96,21 @@ export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmittin
   };
 
   const handleSubmit = () => {
-    if (validateCurrentStep()) {
+    console.log('[AssessmentForm] handleSubmit called');
+    console.log('[AssessmentForm] Current step:', currentStep, 'Total steps:', totalSteps);
+    console.log('[AssessmentForm] isAuthenticated:', isAuthenticated);
+    console.log('[AssessmentForm] email:', email);
+    console.log('[AssessmentForm] responses:', responses);
+    
+    const isValid = validateCurrentStep();
+    console.log('[AssessmentForm] Validation result:', isValid);
+    console.log('[AssessmentForm] Errors:', errors);
+    
+    if (isValid) {
+      console.log('[AssessmentForm] Calling onSubmit with:', { responses, email: !isAuthenticated ? email : undefined });
       onSubmit(responses, !isAuthenticated ? email : undefined);
+    } else {
+      console.log('[AssessmentForm] Validation failed, not submitting');
     }
   };
 
@@ -321,6 +334,7 @@ export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmittin
 
               {currentStep === totalSteps - 1 ? (
                 <Button
+                  data-testid="button-complete-assessment"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                   className="flex items-center gap-2"
@@ -330,6 +344,7 @@ export function AssessmentForm({ assessmentType, onSubmit, onCancel, isSubmittin
                 </Button>
               ) : (
                 <Button
+                  data-testid="button-next-step"
                   onClick={handleNext}
                   className="flex items-center gap-2"
                 >

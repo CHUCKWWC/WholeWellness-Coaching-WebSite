@@ -23,10 +23,12 @@ import {
   coachSchedule,
   coachBlockedTimes,
   appointments,
-  programs
+  programs,
+  chatSessions,
+  chatMessages
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
-import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction, Program, InsertProgram } from "@shared/schema";
+import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction, Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage } from "@shared/schema";
 import type { IStorage } from "./supabase-client-storage";
 
 class DrizzleStorage implements Partial<IStorage> {
@@ -171,6 +173,96 @@ class DrizzleStorage implements Partial<IStorage> {
     } catch (error) {
       console.error('[DrizzleStorage] Error updating program:', error);
       return undefined;
+    }
+  }
+
+  // Chat Session Methods
+  async createChatSession(session: InsertChatSession): Promise<ChatSession> {
+    try {
+      console.log('[DrizzleStorage] createChatSession called with:', session);
+      const [result] = await db
+        .insert(chatSessions)
+        .values(session)
+        .returning();
+      console.log('[DrizzleStorage] createChatSession result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating chat session:', error);
+      throw error;
+    }
+  }
+
+  async getChatSession(id: string): Promise<ChatSession | undefined> {
+    try {
+      const result = await db.select().from(chatSessions).where(eq(chatSessions.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting chat session:', error);
+      return undefined;
+    }
+  }
+
+  async getUserChatSessions(userId: string): Promise<ChatSession[]> {
+    try {
+      const result = await db
+        .select()
+        .from(chatSessions)
+        .where(eq(chatSessions.userId, userId))
+        .orderBy(desc(chatSessions.createdAt));
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting user chat sessions:', error);
+      return [];
+    }
+  }
+
+  async getChatSessionByThreadId(threadId: string): Promise<ChatSession | undefined> {
+    try {
+      const result = await db.select().from(chatSessions).where(eq(chatSessions.threadId, threadId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting chat session by thread ID:', error);
+      return undefined;
+    }
+  }
+
+  // Chat Message Methods
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    try {
+      console.log('[DrizzleStorage] createChatMessage called with:', message);
+      const [result] = await db
+        .insert(chatMessages)
+        .values(message)
+        .returning();
+      console.log('[DrizzleStorage] createChatMessage result:', result);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating chat message:', error);
+      throw error;
+    }
+  }
+
+  async getChatMessage(id: string): Promise<ChatMessage | undefined> {
+    try {
+      const result = await db.select().from(chatMessages).where(eq(chatMessages.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting chat message:', error);
+      return undefined;
+    }
+  }
+
+  async getChatMessagesBySessionId(sessionId: string): Promise<ChatMessage[]> {
+    try {
+      const result = await db
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.sessionId, sessionId))
+        .orderBy(chatMessages.createdAt);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting chat messages by session ID:', error);
+      return [];
     }
   }
 
