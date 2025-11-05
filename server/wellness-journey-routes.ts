@@ -394,7 +394,16 @@ export function registerWellnessJourneyRoutes(app: Express) {
         return res.status(404).json({ message: 'No active journey found' });
       }
 
-      res.json(journey);
+      // Return in format expected by frontend: { journey: {...}, analytics: {...} }
+      res.json({ 
+        journey,
+        analytics: {
+          completionPercentage: 0,
+          currentStreak: 0,
+          totalMilestonesCompleted: 0,
+          averageProgressScore: 0
+        }
+      });
     } catch (error) {
       console.error('Error fetching wellness journey:', error);
       res.status(500).json({ message: 'Failed to fetch wellness journey' });

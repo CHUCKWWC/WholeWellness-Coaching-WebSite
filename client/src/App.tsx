@@ -184,6 +184,7 @@ function Router() {
           <Route path="/assessments/take/:id" component={(props) => <LazyRoute component={TakeAssessment} loadingText="Loading Assessment..." {...props} />} />
           <Route path="/assessments/results/:id" component={(props) => <LazyRoute component={AssessmentResults} loadingText="Loading Results..." {...props} />} />
           <Route path="/assessments/payment-success" component={(props) => <LazyRoute component={AssessmentPaymentSuccess} loadingText="Processing payment..." {...props} />} />
+          <Route path="/mental-wellness-hub" component={(props) => <LazyRoute component={MentalWellnessHub} loadingText="Loading Mental Wellness Hub..." {...props} />} />
           <Route path="/user-profile" component={(props) => <LazyRoute component={UserProfile} loadingText="Loading Profile..." {...props} />} />
           <Route path="/settings" component={(props) => <LazyRoute component={Settings} loadingText="Loading Settings..." {...props} />} />
           <Route path="/admin-login" component={() => <Login />} />
