@@ -1535,22 +1535,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
         return res.status(404).json({ message: 'User not found' });
       }
       
-      res.json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        membershipLevel: user.membershipLevel,
-        rewardPoints: user.rewardPoints,
-        donationTotal: user.donationTotal,
-        profileImageUrl: user.profileImageUrl,
-        coverPhotoUrl: user.coverPhotoUrl,
-        introVideoUrl: user.introVideoUrl,
-        role: user.role || 'user',
-        permissions: user.permissions || []
-      });
+      // Return complete user profile with all fields (excluding sensitive data)
+      const { passwordHash, ...userProfile } = user;
+      res.json(userProfile);
     } catch (error) {
       console.error('Error fetching complete user data:', error);
+      // Fallback to token data if database fetch fails
       res.json({
         id: req.user.id,
         email: req.user.email,
