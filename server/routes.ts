@@ -36,7 +36,8 @@ import {
   insertBookingServiceSchema,
   insertCoachScheduleSchema,
   insertCoachBlockedTimesSchema,
-  insertAppointmentSchema
+  insertAppointmentSchema,
+  profileUpdateSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
@@ -3510,29 +3511,49 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
   
-  // Update user profile
-  app.patch("/api/user/profile", requireAuth as any, async (req: any, res) => {
+  // Consolidated profile update endpoint with schema validation
+  app.put("/api/profile", requireAuth as any, async (req: any, res) => {
     try {
-      const allowedUpdates = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        profileImageUrl: req.body.profileImageUrl,
-        coverPhotoUrl: req.body.coverPhotoUrl,
-        bio: req.body.bio,
-        location: req.body.location,
-        website: req.body.website,
-        socialLinks: req.body.socialLinks,
-        educationHistory: req.body.educationHistory,
-        achievements: req.body.achievements,
-        interests: req.body.interests
-      };
+      // Validate request body using profile update schema
+      const validatedData = profileUpdateSchema.parse(req.body);
+      console.log('[Profile Update] Validated data:', validatedData);
       
-      // Remove undefined values
-      const updates = Object.fromEntries(
-        Object.entries(allowedUpdates).filter(([_, v]) => v !== undefined)
-      );
+      // Map frontend field names to database column names
+      const dbUpdates: any = {};
       
-      const updatedUser = await storage.updateUser(req.user.id, updates);
+      // Basic fields (direct mapping)
+      if (validatedData.firstName) dbUpdates.firstName = validatedData.firstName;
+      if (validatedData.lastName) dbUpdates.lastName = validatedData.lastName;
+      if (validatedData.bio !== undefined) dbUpdates.bio = validatedData.bio || null;
+      if (validatedData.phone !== undefined) dbUpdates.phone = validatedData.phone || null;
+      if (validatedData.location !== undefined) dbUpdates.location = validatedData.location || null;
+      
+      // Website field (websiteUrl -> website)
+      if (validatedData.websiteUrl !== undefined) {
+        dbUpdates.website = validatedData.websiteUrl || null;
+      }
+      
+      // Social links (flatten into socialLinks JSON object)
+      const socialUpdates: any = {};
+      if (validatedData.facebookUrl !== undefined) socialUpdates.facebook = validatedData.facebookUrl || undefined;
+      if (validatedData.twitterUrl !== undefined) socialUpdates.twitter = validatedData.twitterUrl || undefined;
+      if (validatedData.instagramUrl !== undefined) socialUpdates.instagram = validatedData.instagramUrl || undefined;
+      if (validatedData.linkedinUrl !== undefined) socialUpdates.linkedin = validatedData.linkedinUrl || undefined;
+      
+      // Only update socialLinks if any social URL was provided
+      if (Object.keys(socialUpdates).length > 0) {
+        // Get current social links and merge with updates
+        const currentUser = await storage.getUser(req.user.id);
+        const currentSocialLinks = (currentUser?.socialLinks as any) || {};
+        dbUpdates.socialLinks = { ...currentSocialLinks, ...socialUpdates };
+      }
+      
+      console.log('[Profile Update] DB updates to apply:', dbUpdates);
+      
+      // Persist updates to database
+      const updatedUser = await storage.updateUser(req.user.id, dbUpdates);
+      
+      console.log('[Profile Update] Updated user bio:', updatedUser?.bio);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
@@ -3542,6 +3563,12 @@ When to refer to licensed therapists and emergency resources for relationship cr
       const { passwordHash, ...userProfile } = updatedUser;
       res.json(userProfile);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
       console.error("Error updating user profile:", error);
       res.status(500).json({ message: "Internal server error" });
     }

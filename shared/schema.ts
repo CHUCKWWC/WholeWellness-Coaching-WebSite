@@ -1333,6 +1333,22 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+// Profile update schema - fields that users can update themselves
+export const profileUpdateSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(50).optional(),
+  lastName: z.string().min(1, "Last name is required").max(50).optional(),
+  bio: z.string().max(200, "Bio must be 200 characters or less").optional(),
+  phone: z.string().regex(/^\d{10}$/, "Phone must be 10 digits").optional().or(z.literal('')),
+  location: z.string().max(100).optional(),
+  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  facebookUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  twitterUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  instagramUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+});
+
+export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
+
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   status: true,

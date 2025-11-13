@@ -1,115 +1,136 @@
-// @ts-nocheck
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   User, 
-  Activity, 
-  Target, 
-  Calendar, 
-  TrendingUp, 
-  Heart, 
-  Brain, 
-  Dumbbell,
-  Users,
-  CheckCircle,
-  AlertCircle,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Edit,
   Camera,
   Video as VideoIcon,
   Save,
   X,
   Upload,
-  Image as ImageIcon,
-  Facebook,
-  Twitter,
-  Instagram,
-  Linkedin,
-  Globe
+  CheckCircle,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { SimpleFileUploader } from "@/components/ObjectUploader";
-import { MediaGallery } from "@/components/MediaGallery";
+import { Link } from "wouter";
+
+// Profile form schema matching backend validation
+const profileFormSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(50),
+  lastName: z.string().min(1, "Last name is required").max(50),
+  bio: z.string().max(200, "Bio must be 200 characters or less").optional(),
+  phone: z.string().regex(/^\d{10}$/, "Phone must be 10 digits").optional().or(z.literal('')),
+  location: z.string().max(100).optional(),
+  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  facebookUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  twitterUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  instagramUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal('')),
+});
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Edit mode state
-  const [isEditMode, setIsEditMode] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'profile' | 'cover' | 'video'>('profile');
-  
-  // Form state for profile editing
-  const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    bio: user?.bio || '',
-    phone: user?.phone || '',
-    location: user?.location || '',
-    websiteUrl: user?.websiteUrl || '',
-    facebookUrl: user?.facebookUrl || '',
-    twitterUrl: user?.twitterUrl || '',
-    instagramUrl: user?.instagramUrl || '',
-    linkedinUrl: user?.linkedinUrl || '',
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('basic');
+
+  // Initialize form with user data
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      bio: user?.bio || '',
+      phone: user?.phone || '',
+      location: user?.location || '',
+      websiteUrl: (user as any)?.website || '',
+      facebookUrl: (user as any)?.socialLinks?.facebook || '',
+      twitterUrl: (user as any)?.socialLinks?.twitter || '',
+      instagramUrl: (user as any)?.socialLinks?.instagram || '',
+      linkedinUrl: (user as any)?.socialLinks?.linkedin || '',
+    },
   });
 
-  // Get user's assessment completion status
-  const { data: assessments = [], isLoading: assessmentsLoading } = useQuery({
-    queryKey: ["/api/assessments/user", user?.id],
-    enabled: isAuthenticated && !!user?.id,
-  });
-
-  // Get coaching session history
-  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
-    queryKey: ["/api/coaching/sessions", user?.id],
-    enabled: isAuthenticated && !!user?.id,
-  });
-
-  // Get progress metrics
-  const { data: progressMetrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ["/api/user/progress-metrics", user?.id],
-    enabled: isAuthenticated && !!user?.id,
-  });
+  // Sync form when user data changes
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        bio: user.bio || '',
+        phone: user.phone || '',
+        location: user.location || '',
+        websiteUrl: (user as any).website || '',
+        facebookUrl: (user as any).socialLinks?.facebook || '',
+        twitterUrl: (user as any).socialLinks?.twitter || '',
+        instagramUrl: (user as any).socialLinks?.instagram || '',
+        linkedinUrl: (user as any).socialLinks?.linkedin || '',
+      });
+    }
+  }, [user, form]);
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (updates: any) => {
-      return apiRequest('PUT', '/api/profile', updates);
+    mutationFn: async (data: Partial<ProfileFormValues>) => {
+      return apiRequest('PUT', '/api/profile', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      form.reset(form.getValues()); // Reset dirty state
       toast({
-        title: 'Profile updated',
-        description: 'Your profile has been updated successfully.',
+        title: 'Success!',
+        description: 'Your profile has been updated.',
       });
-      setIsEditMode(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: 'Update failed',
-        description: error instanceof Error ? error.message : 'Failed to update profile',
+        description: error.message || 'Failed to update profile. Please try again.',
         variant: 'destructive',
       });
     },
@@ -182,7 +203,7 @@ export default function UserProfile() {
   });
 
   // Handle file upload completion
-  const handleUploadComplete = (uploadURL: string, fileName: string, fileSize: number, mimeType: string) => {
+  const handleUploadComplete = (uploadURL: string) => {
     switch (uploadType) {
       case 'profile':
         updateProfileImageMutation.mutate(uploadURL);
@@ -196,9 +217,30 @@ export default function UserProfile() {
     }
   };
 
-  // Handle profile save
-  const handleSaveProfile = () => {
-    updateProfileMutation.mutate(formData);
+  // Handle tab change with unsaved check
+  const handleTabChange = (value: string) => {
+    if (form.formState.isDirty) {
+      setPendingTab(value);
+      setShowUnsavedDialog(true);
+    } else {
+      setActiveTab(value);
+    }
+  };
+
+  // Confirm tab change (discard changes)
+  const confirmTabChange = () => {
+    form.reset();
+    setShowUnsavedDialog(false);
+    if (pendingTab) {
+      setActiveTab(pendingTab);
+      setPendingTab(null);
+    }
+  };
+
+  // Submit handler for the form
+  const onSubmit = (data: ProfileFormValues) => {
+    console.log('[Profile Update] Form data being submitted:', data);
+    updateProfileMutation.mutate(data);
   };
 
   // Open upload dialog
@@ -209,22 +251,21 @@ export default function UserProfile() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
             <CardTitle>Authentication Required</CardTitle>
             <CardDescription>
-              Please log in to access your profile and progress tracking.
+              Please log in to access your profile.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              className="w-full" 
-              onClick={() => window.location.href = '/api/login'}
-            >
-              Log In to Continue
-            </Button>
+            <Link href="/login">
+              <Button className="w-full" data-testid="button-login">
+                Log In to Continue
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -232,822 +273,538 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        {/* Profile Header */}
-        <div className="mb-8">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                {user?.profileImageUrl ? (
-                  <img 
-                    src={user.profileImageUrl} 
-                    alt={`${user.firstName || ''} ${user.lastName || ''}`}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-white" />
+        {/* Profile Header Card */}
+        <Card className="mb-8">
+          <div className="relative">
+            {/* Cover Photo */}
+            <div className="relative h-48 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg overflow-hidden">
+              {user?.coverPhotoUrl && (
+                <img
+                  src={user.coverPhotoUrl}
+                  alt="Cover"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <Button
+                  variant="secondary"
+                  onClick={() => openUpload('cover')}
+                  data-testid="button-upload-cover"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Change Cover Photo
+                </Button>
+              </div>
+            </div>
+
+            {/* Profile Picture */}
+            <CardContent className="pt-16 -mt-20">
+              <div className="flex flex-col md:flex-row gap-6 items-center md:items-end">
+                <div className="relative">
+                  <div className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 bg-white dark:bg-gray-800 overflow-hidden shadow-lg">
+                    {user?.profileImageUrl ? (
+                      <img
+                        src={user.profileImageUrl}
+                        alt={`${user.firstName || ''} ${user.lastName || ''}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-primary flex items-center justify-center">
+                        <User className="w-16 h-16 text-white" />
+                      </div>
+                    )}
                   </div>
-                )}
-                <div>
-                  <CardTitle className="text-2xl">
-                    Welcome back, {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0] || 'Member'}!
-                  </CardTitle>
-                  <CardDescription>
-                    Track your wellness journey and view your progress across all coaching areas.
-                  </CardDescription>
-                  {user?.email && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {user.email}
-                    </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute bottom-0 right-0 rounded-full"
+                    onClick={() => openUpload('profile')}
+                    data-testid="button-upload-profile"
+                  >
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                </div>
+
+                <div className="flex-1 text-center md:text-left">
+                  <h2 className="text-3xl font-bold">
+                    {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0] || 'Member'}
+                  </h2>
+                  <p className="text-muted-foreground">{user?.email}</p>
+                  {user?.bio && (
+                    <p className="mt-2 text-gray-700 dark:text-gray-300">{user.bio}</p>
                   )}
                 </div>
               </div>
-            </CardHeader>
-          </Card>
-        </div>
+            </CardContent>
+          </div>
+        </Card>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="dashboard" data-testid="tab-dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
-            <TabsTrigger value="assessments" data-testid="tab-assessments">Assessments</TabsTrigger>
-            <TabsTrigger value="coaching" data-testid="tab-coaching">Coaching History</TabsTrigger>
-            <TabsTrigger value="progress" data-testid="tab-progress">Progress Tracking</TabsTrigger>
-          </TabsList>
+        {/* Profile Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="basic" data-testid="tab-basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="contact" data-testid="tab-contact">Contact</TabsTrigger>
+                <TabsTrigger value="social" data-testid="tab-social">Social Media</TabsTrigger>
+                <TabsTrigger value="media" data-testid="tab-media">Media</TabsTrigger>
+              </TabsList>
 
-          {/* Dashboard Tab */}
-          <TabsContent value="dashboard" className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Assessments Completed</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{assessments.length}</div>
-                  <p className="text-xs text-muted-foreground">Profile insights available</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Coaching Sessions</CardTitle>
-                  <Activity className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{sessions.length}</div>
-                  <p className="text-xs text-muted-foreground">AI & Human coaching</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
-                  <Target className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">3</div>
-                  <p className="text-xs text-muted-foreground">In progress</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Streak Days</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">12</div>
-                  <p className="text-xs text-muted-foreground">Days active</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Wellness Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-red-500" />
-                    Wellness Score
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span>Overall Wellness</span>
-                      <span className="font-medium">78%</span>
+              {/* Basic Info Section */}
+              <TabsContent value="basic" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Basic Information</CardTitle>
+                    <CardDescription>Update your personal details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John" {...field} data-testid="input-first-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Doe" {...field} data-testid="input-last-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                    <Progress value={78} className="h-2" />
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">↗</div>
-                        <div className="text-xs text-gray-600">Improving</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">7.8</div>
-                        <div className="text-xs text-gray-600">Score /10</div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-purple-500" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="text-sm">
-                        <span className="font-medium">Weight Loss Assessment</span>
-                        <span className="text-gray-500 ml-2">2 days ago</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="text-sm">
-                        <span className="font-medium">AI Coaching Session</span>
-                        <span className="text-gray-500 ml-2">3 days ago</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <div className="text-sm">
-                        <span className="font-medium">Relationship Assessment</span>
-                        <span className="text-gray-500 ml-2">1 week ago</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
-            {/* Edit Mode Toggle */}
-            <div className="flex justify-end gap-2">
-              {isEditMode ? (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditMode(false)}
-                    data-testid="button-cancel-edit"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSaveProfile}
-                    disabled={updateProfileMutation.isPending}
-                    data-testid="button-save-profile"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={() => setIsEditMode(true)} data-testid="button-edit-profile">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </Button>
-              )}
-            </div>
-
-            {/* Cover Photo */}
-            <Card>
-              <div className="relative h-48 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg overflow-hidden">
-                {user?.coverPhotoUrl && (
-                  <img
-                    src={user.coverPhotoUrl}
-                    alt="Cover"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                {isEditMode && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="secondary"
-                      onClick={() => openUpload('cover')}
-                      data-testid="button-upload-cover"
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Change Cover Photo
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <CardContent className="pt-16">
-                <div className="flex flex-col md:flex-row gap-6 -mt-24">
-                  {/* Profile Picture */}
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden">
-                      {user?.profileImageUrl ? (
-                        <img
-                          src={user.profileImageUrl}
-                          alt={`${user.firstName || ''} ${user.lastName || ''}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-primary flex items-center justify-center">
-                          <User className="w-16 h-16 text-white" />
-                        </div>
+                    <FormField
+                      control={form.control}
+                      name="bio"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bio</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Tell us about yourself..."
+                              className="resize-none"
+                              rows={4}
+                              {...field}
+                              data-testid="input-bio"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {field.value?.length || 0}/200 characters
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                    </div>
-                    {isEditMode && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="absolute bottom-0 right-0"
-                        onClick={() => openUpload('profile')}
-                        data-testid="button-upload-profile"
-                      >
-                        <Camera className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
+                    />
 
-                  {/* Profile Info */}
-                  <div className="flex-1">
-                    {isEditMode ? (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="firstName">First Name</Label>
+                    <div className="flex justify-end gap-2">
+                      {form.formState.isDirty && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => form.reset()}
+                          data-testid="button-cancel"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      )}
+                      <Button
+                        type="submit"
+                        disabled={!form.formState.isDirty || updateProfileMutation.isPending}
+                        data-testid="button-save-basic"
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Contact Section */}
+              <TabsContent value="contact" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contact Information</CardTitle>
+                    <CardDescription>Manage your contact details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
                             <Input
-                              id="firstName"
-                              value={formData.firstName}
-                              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                              data-testid="input-first-name"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="lastName">Last Name</Label>
-                            <Input
-                              id="lastName"
-                              value={formData.lastName}
-                              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                              data-testid="input-last-name"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="bio">Bio</Label>
-                          <Textarea
-                            id="bio"
-                            value={formData.bio}
-                            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                            placeholder="Tell us about yourself..."
-                            rows={4}
-                            data-testid="input-bio"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="phone">Phone</Label>
-                            <Input
-                              id="phone"
                               type="tel"
-                              value={formData.phone}
-                              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                              placeholder="1234567890"
+                              {...field}
                               data-testid="input-phone"
                             />
-                          </div>
-                          <div>
-                            <Label htmlFor="location">Location</Label>
+                          </FormControl>
+                          <FormDescription>10-digit phone number</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Location</FormLabel>
+                          <FormControl>
                             <Input
-                              id="location"
-                              value={formData.location}
-                              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                               placeholder="City, State"
+                              {...field}
                               data-testid="input-location"
                             />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <h2 className="text-2xl font-bold">
-                          {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0] || 'Member'}
-                        </h2>
-                        <p className="text-muted-foreground">{user?.email}</p>
-                        {user?.bio && (
-                          <p className="mt-4 text-gray-700">{user.bio}</p>
-                        )}
-                        <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          {user?.phone && (
-                            <span>📞 {user.phone}</span>
-                          )}
-                          {user?.location && (
-                            <span>📍 {user.location}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-            {/* Intro Video */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <VideoIcon className="h-5 w-5" />
-                    Intro Video
-                  </span>
-                  {isEditMode && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openUpload('video')}
-                      data-testid="button-upload-video"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Video
-                    </Button>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  Share a short video introducing yourself
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {user?.introVideoUrl ? (
-                  <video
-                    src={user.introVideoUrl}
-                    controls
-                    className="w-full rounded-lg"
-                    data-testid="video-intro"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                    <div className="text-center text-muted-foreground">
-                      <VideoIcon className="h-12 w-12 mx-auto mb-2" />
-                      <p>No intro video uploaded yet</p>
-                      {isEditMode && (
+                    <FormField
+                      control={form.control}
+                      name="websiteUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Website</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://example.com"
+                              {...field}
+                              data-testid="input-website"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex justify-end gap-2">
+                      {form.formState.isDirty && (
                         <Button
-                          className="mt-4"
-                          onClick={() => openUpload('video')}
-                          data-testid="button-add-video"
+                          type="button"
+                          variant="outline"
+                          onClick={() => form.reset()}
+                          data-testid="button-cancel"
                         >
-                          Add Intro Video
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
                         </Button>
                       )}
+                      <Button
+                        type="submit"
+                        disabled={!form.formState.isDirty || updateProfileMutation.isPending}
+                        data-testid="button-save-contact"
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Social Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Social Links</CardTitle>
-                <CardDescription>
-                  Connect your social media profiles
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isEditMode ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-gray-500" />
-                      <Input
-                        placeholder="Website URL"
-                        value={formData.websiteUrl}
-                        onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                        data-testid="input-website"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Facebook className="h-5 w-5 text-blue-600" />
-                      <Input
-                        placeholder="Facebook URL"
-                        value={formData.facebookUrl}
-                        onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })}
-                        data-testid="input-facebook"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Twitter className="h-5 w-5 text-sky-500" />
-                      <Input
-                        placeholder="Twitter URL"
-                        value={formData.twitterUrl}
-                        onChange={(e) => setFormData({ ...formData, twitterUrl: e.target.value })}
-                        data-testid="input-twitter"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Instagram className="h-5 w-5 text-pink-600" />
-                      <Input
-                        placeholder="Instagram URL"
-                        value={formData.instagramUrl}
-                        onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
-                        data-testid="input-instagram"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Linkedin className="h-5 w-5 text-blue-700" />
-                      <Input
-                        placeholder="LinkedIn URL"
-                        value={formData.linkedinUrl}
-                        onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                        data-testid="input-linkedin"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-4">
-                    {user?.websiteUrl && (
-                      <a
-                        href={user.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-600 hover:underline"
-                        data-testid="link-website"
-                      >
-                        <Globe className="h-4 w-4" />
-                        Website
-                      </a>
-                    )}
-                    {user?.facebookUrl && (
-                      <a
-                        href={user.facebookUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-600 hover:underline"
-                        data-testid="link-facebook"
-                      >
-                        <Facebook className="h-4 w-4" />
-                        Facebook
-                      </a>
-                    )}
-                    {user?.twitterUrl && (
-                      <a
-                        href={user.twitterUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sky-500 hover:underline"
-                        data-testid="link-twitter"
-                      >
-                        <Twitter className="h-4 w-4" />
-                        Twitter
-                      </a>
-                    )}
-                    {user?.instagramUrl && (
-                      <a
-                        href={user.instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-pink-600 hover:underline"
-                        data-testid="link-instagram"
-                      >
-                        <Instagram className="h-4 w-4" />
-                        Instagram
-                      </a>
-                    )}
-                    {user?.linkedinUrl && (
-                      <a
-                        href={user.linkedinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-700 hover:underline"
-                        data-testid="link-linkedin"
-                      >
-                        <Linkedin className="h-4 w-4" />
-                        LinkedIn
-                      </a>
-                    )}
-                    {!user?.websiteUrl && !user?.facebookUrl && !user?.twitterUrl && !user?.instagramUrl && !user?.linkedinUrl && (
-                      <p className="text-muted-foreground">No social links added yet</p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              {/* Social Media Section */}
+              <TabsContent value="social" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Social Media Links</CardTitle>
+                    <CardDescription>Connect your social profiles</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="facebookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Facebook</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://facebook.com/yourprofile"
+                              {...field}
+                              data-testid="input-facebook"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-            {/* Media Gallery */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5" />
-                  My Media
-                </CardTitle>
-                <CardDescription>
-                  Your uploaded photos, videos, and documents
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MediaGallery editable={isEditMode} showAddButton={isEditMode} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    <FormField
+                      control={form.control}
+                      name="twitterUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Twitter / X</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://twitter.com/yourhandle"
+                              {...field}
+                              data-testid="input-twitter"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-          {/* Assessments Tab */}
-          <TabsContent value="assessments" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Assessment History</CardTitle>
-                <CardDescription>
-                  View your completed assessments and insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {assessmentsLoading ? (
-                  <div className="text-center py-8">Loading assessments...</div>
-                ) : assessments.length > 0 ? (
-                  <div className="space-y-4">
-                    {assessments.map((assessment: any) => (
-                      <div key={assessment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <CheckCircle className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{assessment.assessmentType?.displayName}</h4>
-                            <p className="text-sm text-gray-600">
-                              Completed {new Date(assessment.completedAt).toLocaleDateString()}
-                            </p>
-                          </div>
+                    <FormField
+                      control={form.control}
+                      name="instagramUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Instagram</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://instagram.com/yourhandle"
+                              {...field}
+                              data-testid="input-instagram"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="linkedinUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>LinkedIn</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://linkedin.com/in/yourprofile"
+                              {...field}
+                              data-testid="input-linkedin"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex justify-end gap-2">
+                      {form.formState.isDirty && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => form.reset()}
+                          data-testid="button-cancel"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      )}
+                      <Button
+                        type="submit"
+                        disabled={!form.formState.isDirty || updateProfileMutation.isPending}
+                        data-testid="button-save-social"
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Media Section */}
+              <TabsContent value="media" className="space-y-6 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Media & Assets</CardTitle>
+                    <CardDescription>Upload profile images and intro video</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label>Profile Image</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                          {user?.profileImageUrl ? (
+                            <img
+                              src={user.profileImageUrl}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                              <User className="w-10 h-10 text-gray-400" />
+                            </div>
+                          )}
                         </div>
-                        <Button variant="outline" size="sm">
-                          View Details
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => openUpload('profile')}
+                          data-testid="button-change-profile-image"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload New Image
                         </Button>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No assessments completed yet. <a href="/assessments" className="text-primary hover:underline">Take your first assessment</a>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    </div>
 
-          {/* Coaching History Tab */}
-          <TabsContent value="coaching" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-blue-500" />
-                    AI Coaching Sessions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Total Sessions</span>
-                      <Badge variant="secondary">8 sessions</Badge>
+                    <div className="space-y-2">
+                      <Label>Cover Photo</Label>
+                      <div className="space-y-4">
+                        <div className="h-40 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                          {user?.coverPhotoUrl ? (
+                            <img
+                              src={user.coverPhotoUrl}
+                              alt="Cover"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-r from-blue-500 to-indigo-600" />
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => openUpload('cover')}
+                          data-testid="button-change-cover-photo"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload New Cover
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Favorite Coach</span>
-                      <span className="text-sm font-medium">Weight Loss Coach</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Last Session</span>
-                      <span className="text-sm text-gray-600">2 days ago</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-green-500" />
-                    Human Coaching Sessions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Total Sessions</span>
-                      <Badge variant="secondary">3 sessions</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Assigned Coach</span>
-                      <span className="text-sm font-medium">Sarah Johnson</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Next Session</span>
-                      <span className="text-sm text-green-600">Tomorrow 2PM</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Progress Tracking Tab */}
-          <TabsContent value="progress" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-purple-500" />
-                    Health Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Weight Goal</span>
-                        <span>70%</span>
-                      </div>
-                      <Progress value={70} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Fitness Level</span>
-                        <span>45%</span>
-                      </div>
-                      <Progress value={45} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Nutrition</span>
-                        <span>85%</span>
-                      </div>
-                      <Progress value={85} className="h-2" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5 text-pink-500" />
-                    Relationship Health
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Communication</span>
-                        <span>80%</span>
-                      </div>
-                      <Progress value={80} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Trust Building</span>
-                        <span>65%</span>
-                      </div>
-                      <Progress value={65} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Conflict Resolution</span>
-                        <span>55%</span>
-                      </div>
-                      <Progress value={55} className="h-2" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChart className="h-5 w-5 text-green-500" />
-                    Mental Wellness
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Stress Management</span>
-                        <span>72%</span>
-                      </div>
-                      <Progress value={72} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Mindfulness</span>
-                        <span>60%</span>
-                      </div>
-                      <Progress value={60} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Life Balance</span>
-                        <span>78%</span>
-                      </div>
-                      <Progress value={78} className="h-2" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Goals Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Goals</CardTitle>
-                <CardDescription>Track your progress on current wellness goals</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Dumbbell className="w-5 h-5 text-green-600" />
-                      <div>
-                        <h4 className="font-medium">Lose 15 pounds</h4>
-                        <p className="text-sm text-gray-600">Target: March 2025</p>
+                    <div className="space-y-2">
+                      <Label>Intro Video</Label>
+                      <div className="space-y-4">
+                        {user?.introVideoUrl ? (
+                          <video
+                            src={user.introVideoUrl}
+                            controls
+                            className="w-full h-48 rounded-lg bg-black"
+                            data-testid="video-intro"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                            <div className="text-center text-gray-500">
+                              <VideoIcon className="w-12 h-12 mx-auto mb-2" />
+                              <p>No intro video uploaded</p>
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => openUpload('video')}
+                          data-testid="button-upload-intro-video"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Intro Video
+                        </Button>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">70% Complete</div>
-                      <Progress value={70} className="w-20 h-2 mt-1" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-pink-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Heart className="w-5 h-5 text-pink-600" />
-                      <div>
-                        <h4 className="font-medium">Improve relationship communication</h4>
-                        <p className="text-sm text-gray-600">Target: Ongoing</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">45% Complete</div>
-                      <Progress value={45} className="w-20 h-2 mt-1" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Brain className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <h4 className="font-medium">Daily mindfulness practice</h4>
-                        <p className="text-sm text-gray-600">Target: Daily habit</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">60% Complete</div>
-                      <Progress value={60} className="w-20 h-2 mt-1" />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </form>
+        </Form>
 
         {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent data-testid="dialog-upload">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 Upload {uploadType === 'profile' ? 'Profile Image' : uploadType === 'cover' ? 'Cover Photo' : 'Intro Video'}
               </DialogTitle>
               <DialogDescription>
-                Select a file to upload. Maximum file size: 50MB.
+                {uploadType === 'video' 
+                  ? 'Upload a video file (MP4, WebM, or MOV, max 50MB)'
+                  : 'Upload an image file (JPG, PNG, or WebP, max 5MB)'
+                }
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <SimpleFileUploader
-                onUploadComplete={handleUploadComplete}
-                accept={uploadType === 'video' ? 'video/*' : 'image/*'}
-                buttonText="Choose File"
-                disabled={
-                  updateProfileImageMutation.isPending ||
-                  updateCoverPhotoMutation.isPending ||
-                  updateIntroVideoMutation.isPending
-                }
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setUploadDialogOpen(false)}
-                data-testid="button-cancel-upload"
-              >
-                Cancel
-              </Button>
-            </DialogFooter>
+            <SimpleFileUploader
+              accept={uploadType === 'video' ? 'video/*' : 'image/*'}
+              maxSize={uploadType === 'video' ? 50 * 1024 * 1024 : 5 * 1024 * 1024}
+              onUploadComplete={handleUploadComplete}
+            />
           </DialogContent>
         </Dialog>
+
+        {/* Unsaved Changes Dialog */}
+        <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setShowUnsavedDialog(false);
+                setPendingTab(null);
+              }}>
+                Stay and Save
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={confirmTabChange}>
+                Discard Changes
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
