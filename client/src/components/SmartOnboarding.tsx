@@ -60,11 +60,14 @@ export default function SmartOnboarding({ userType, onComplete }: SmartOnboardin
   };
 
   const handleOnboardingComplete = () => {
+    // Mark onboarding as complete for Home page welcome
+    sessionStorage.setItem('onboardingComplete', 'true');
+    
     if (onComplete) {
       onComplete();
     } else {
-      // Default: redirect to dashboard
-      setLocation('/dashboard');
+      // Redirect to Home (landing page) after onboarding
+      setLocation('/');
     }
   };
 

@@ -65,6 +65,8 @@ export default function Register() {
       });
       // Set auth session flag to enable future auth checks
       sessionStorage.setItem('hasAuthSession', 'true');
+      // Mark as first login for Home page to show welcome message
+      sessionStorage.setItem('firstLogin', 'true');
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       // Redirect to discovery process after registration

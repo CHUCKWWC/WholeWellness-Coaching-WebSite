@@ -60,16 +60,14 @@ export default function Login() {
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
-      // Role-based redirect
+      // Redirect to Home for all users
+      // Home page will show role-specific content and quick dashboard access
       if (!data.hasCompletedOnboarding) {
+        // New users need onboarding first
         setLocation("/digital-onboarding");
-      } else if (data.role === "coach") {
-        setLocation("/coach-dashboard");
-      } else if (data.role === "admin" || data.role === "super_admin") {
-        setLocation("/admin-dashboard");
       } else {
-        // Regular members/users
-        setLocation("/member-dashboard");
+        // All authenticated users land on Home
+        setLocation("/");
       }
     },
     onError: (error: any) => {

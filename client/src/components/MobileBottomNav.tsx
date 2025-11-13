@@ -26,7 +26,7 @@ export default function MobileBottomNav() {
     {
       icon: Home,
       label: 'Home',
-      path: isAuthenticated ? '/dashboard' : '/',
+      path: '/', // Always point to Home page for all users
     },
     {
       icon: MessageCircle,
@@ -46,7 +46,7 @@ export default function MobileBottomNav() {
     {
       icon: User,
       label: 'Profile',
-      path: isAuthenticated ? '/profile' : '/login',
+      path: isAuthenticated ? '/user-profile' : '/login',
     },
   ];
 
