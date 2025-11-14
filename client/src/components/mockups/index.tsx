@@ -2,3 +2,6 @@ export { HomepageMockup } from './HomepageMockup';
 export { LoginMockup } from './LoginMockup';
 export { AICoachingMockup } from './AICoachingMockup';
 export { CoachesMockup } from './CoachesMockup';
+export { CoachProfileMockup } from './CoachProfileMockup';
+export { VideoSessionMockup } from './VideoSessionMockup';
+export { AppointmentsMockup } from './AppointmentsMockup';

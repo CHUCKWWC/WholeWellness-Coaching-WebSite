@@ -3,7 +3,10 @@ import {
   HomepageMockup,
   LoginMockup,
   AICoachingMockup,
-  CoachesMockup
+  CoachesMockup,
+  CoachProfileMockup,
+  VideoSessionMockup,
+  AppointmentsMockup
 } from '@/components/mockups';
 
 // User Tutorial Slides (HTML mockup-based)
@@ -219,6 +222,177 @@ export const coachTutorialSlides: HtmlSlide[] = [
       'Click on any session in the schedule to view details or reschedule',
       'Use Quick Actions for common tasks without navigating menus',
       'Set up your availability first to start receiving client bookings'
+    ]
+  },
+  {
+    type: 'html',
+    title: "Create Your Coach Profile",
+    description: "Build a professional profile that attracts clients",
+    mockup: <CoachProfileMockup />,
+    clickTargets: [
+      {
+        number: 1,
+        label: 'Profile Photo Upload',
+        description: 'Click the camera icon to upload a professional headshot - helps clients recognize you',
+        top: '11%',
+        left: '2%',
+        width: '160px',
+        height: '160px'
+      },
+      {
+        number: 2,
+        label: 'Add Specializations',
+        description: 'Click "+ Add" to add your coaching specialties (Mindfulness, Career, Wellness, etc.)',
+        top: '41%',
+        left: '2%',
+        width: '94%',
+        height: '50px'
+      },
+      {
+        number: 3,
+        label: 'Write Your Bio',
+        description: 'Share your background, approach, and what makes you unique - this appears on your public profile',
+        top: '56%',
+        left: '2%',
+        width: '94%',
+        height: '110px'
+      },
+      {
+        number: 4,
+        label: 'Set Availability Schedule',
+        description: 'Click "Edit Schedule" to set when you\'re available for client sessions',
+        top: '75%',
+        left: '2%',
+        width: '94%',
+        height: '110px'
+      },
+      {
+        number: 5,
+        label: 'Save Changes',
+        description: 'Click "Save Changes" at the top to publish your profile updates',
+        top: '2%',
+        left: '78%',
+        width: '160px',
+        height: '45px'
+      }
+    ],
+    tips: [
+      'A complete profile with photo and bio gets 3x more client bookings',
+      'List 3-5 specializations to help clients find the right coach',
+      'Update your availability regularly to maximize booking opportunities',
+      'Your bio should be 2-3 sentences highlighting your unique approach'
+    ]
+  },
+  {
+    type: 'html',
+    title: "Start a Video Call with a Client",
+    description: "Conduct professional HD video coaching sessions",
+    mockup: <VideoSessionMockup />,
+    clickTargets: [
+      {
+        number: 1,
+        label: 'Start Instant Session Button',
+        description: 'Click here to create an instant video session - generates a room code you can share immediately',
+        top: '2%',
+        left: '62%',
+        width: '300px',
+        height: '45px'
+      },
+      {
+        number: 2,
+        label: 'Join Active Session',
+        description: 'For ongoing sessions, click "Join Session" to enter the video room',
+        top: '28%',
+        left: '2%',
+        width: '130px',
+        height: '40px'
+      },
+      {
+        number: 3,
+        label: 'Share Session Link',
+        description: 'Click "Share Link" to send invitation emails or copy the room code for participants',
+        top: '28%',
+        left: '20%',
+        width: '140px',
+        height: '40px'
+      },
+      {
+        number: 4,
+        label: 'Prepare for Upcoming Session',
+        description: 'Click "Prepare" to review client notes and goals before the session starts',
+        top: '49%',
+        left: '68%',
+        width: '90px',
+        height: '32px'
+      }
+    ],
+    tips: [
+      'Instant sessions are great for quick check-ins or urgent support',
+      'Always start your video 2-3 minutes early to test audio/video',
+      'Room codes work for guests - no client account needed to join',
+      'Sessions are automatically recorded (with permission) for note-taking',
+      'Use "Share Link" to email invitations directly from the platform'
+    ]
+  },
+  {
+    type: 'html',
+    title: "Check Your Appointments",
+    description: "View and manage your coaching schedule",
+    mockup: <AppointmentsMockup />,
+    clickTargets: [
+      {
+        number: 1,
+        label: 'Filter Appointments',
+        description: 'Click tabs to filter by All, Upcoming, Past, or Cancelled appointments',
+        top: '12%',
+        left: '2%',
+        width: '400px',
+        height: '40px'
+      },
+      {
+        number: 2,
+        label: 'Today\'s Appointments',
+        description: 'View all sessions scheduled for today with status badges (Confirmed/Pending)',
+        top: '21%',
+        left: '2%',
+        width: '94%',
+        height: '300px'
+      },
+      {
+        number: 3,
+        label: 'Start Session',
+        description: 'Click "Start Session" to launch the video call when it\'s time',
+        top: '28%',
+        left: '74%',
+        width: '110px',
+        height: '32px'
+      },
+      {
+        number: 4,
+        label: 'Confirm Pending Booking',
+        description: 'For pending requests, click "Confirm" to accept or "Reschedule" to propose new time',
+        top: '43%',
+        left: '74%',
+        width: '90px',
+        height: '32px'
+      },
+      {
+        number: 5,
+        label: 'Week Overview',
+        description: 'Scroll down to see upcoming appointments for the rest of the week',
+        top: '73%',
+        left: '2%',
+        width: '94%',
+        height: '170px'
+      }
+    ],
+    tips: [
+      'Green badges mean confirmed - client has accepted the booking',
+      'Yellow badges mean pending - waiting for confirmation or payment',
+      'Set calendar reminders 30 minutes before each session',
+      'Check appointment details to review client goals and notes',
+      'Use "Calendar View" for a visual month overview',
+      'New appointments appear instantly when clients book'
     ]
   }
 ];
