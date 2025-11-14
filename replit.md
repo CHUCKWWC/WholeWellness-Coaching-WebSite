@@ -74,15 +74,20 @@ Preferred communication style: Simple, everyday language.
   - Integration with user and coach profiles for profile pictures, cover photos, and intro videos
   - Backend tracks all uploaded media with metadata in PostgreSQL
   - SimpleFileUploader component for single-file scenarios
-- **Tutorial & Help System**: Comprehensive onboarding and training system with professional branded slides and interactive navigation. Features include:
-  - 10 AI-generated professional tutorial slides (5 user-focused, 5 coach-focused)
-  - Reusable TutorialSlideshow component with prev/next navigation, thumbnails, and slide counters
-  - UserTutorial page (/tutorial) - Publicly accessible guide covering platform features, AI coaching, booking, and wellness journeys
-  - CoachTutorial page (/coach-tutorial) - Coach-only protected training covering dashboard, availability, video sessions, certifications, and profiles
-  - Enterprise-grade security: ProtectedRoute with stable React hooks, hasRedirected state to prevent loops, no content flash for unauthorized users
-  - Navigation integration: "Help & Tutorials" section in role-aware navigation
-  - Dark mode support and responsive design
-  - Download capabilities for offline reference
+- **Tutorial & Help System**: Interactive HTML mockup-based tutorial system with numbered click targets showing users exactly what to interact with. Features include:
+  - **Architecture**: Discriminated union slide model (`ImageSlide | HtmlSlide`) supporting both legacy image slides and new HTML mockup slides
+  - **HTML Mockup Slides**: 5 user tutorial slides + 1 coach tutorial slide using real page mockups (HomepageMockup, LoginMockup, AICoachingMockup, CoachesMockup)
+  - **Interactive Click Targets**: Numbered overlay badges positioned on mockups showing exactly where to click, with labels and descriptions
+  - **TutorialSlideshow Component**: Type-safe slideshow with prev/next navigation, slide indicators, conditional download (image-only), and thumbnail navigation for mixed slide decks
+  - **HtmlTutorialSlide Component**: Renders mockups with absolutely positioned numbered overlays using percentage-based coordinates for responsive design
+  - **UserTutorial Page** (/tutorial): Publicly accessible guide covering Welcome, AI Coaching ($19.99/month), Login, Professional Coaches, and Wellness Journey
+  - **CoachTutorial Page** (/coach-tutorial): Protected coach training covering Dashboard Overview with stats and quick actions
+  - **Data-Driven Architecture**: Centralized slide data in `client/src/data/tutorialSlides.tsx` with typed objects instead of pre-rendered components
+  - **Backward Compatibility**: Supports adding legacy image slides to mixed decks; thumbnails render for image slides even when HTML slides present
+  - **Pro Tips System**: Each slide includes contextual usage tips displayed below mockup
+  - **Navigation Integration**: "Help & Tutorials" section in role-aware navigation
+  - **Enterprise Security**: ProtectedRoute with stable React hooks, hasRedirected state preventing loops, no content flash for unauthorized users
+  - **Dark Mode Support**: Full dark mode compatibility with proper contrast and styling
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.

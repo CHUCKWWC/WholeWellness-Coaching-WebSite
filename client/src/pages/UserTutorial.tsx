@@ -2,46 +2,7 @@ import { TutorialSlideshow } from "@/components/TutorialSlideshow";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { ArrowLeft, Video, FileText } from "lucide-react";
-
-// Import tutorial slides
-import welcomeSlide from "@assets/generated_images/User_welcome_onboarding_slide_7621eb92.png";
-import aiCoachingSlide from "@assets/generated_images/AI_coaching_features_slide_d96192ac.png";
-import bookingSlide from "@assets/generated_images/Booking_session_tutorial_slide_6fcc6be2.png";
-import assessmentsSlide from "@assets/generated_images/Assessments_overview_slide_c8bf4b77.png";
-import journeySlide from "@assets/generated_images/User_journey_timeline_slide_5045127f.png";
-
-const userSlides = [
-  {
-    image: welcomeSlide,
-    alt: "Welcome to WholeWellness",
-    title: "Welcome to WholeWellness",
-    description: "Get started with your wellness journey in three simple steps: Create your account, choose between AI coaching or professional coaches, and begin your transformation."
-  },
-  {
-    image: aiCoachingSlide,
-    alt: "AI Coaching Features",
-    title: "AI Coaching - $19.99/month",
-    description: "Access 6 specialized AI coaches covering nutrition, fitness, mental wellness, relationships, career, and financial health. Unlimited messaging with instant responses 24/7."
-  },
-  {
-    image: bookingSlide,
-    alt: "Book Professional Coach",
-    title: "Book Sessions with Professional Coaches",
-    description: "Browse our verified wellness coaches, select a convenient time, and join secure HD video sessions directly from your browser or mobile device."
-  },
-  {
-    image: assessmentsSlide,
-    alt: "Wellness Assessments",
-    title: "Track Your Progress with Assessments",
-    description: "Complete mental health screenings, wellness assessments, and goal-setting exercises. No account required - take assessments anonymously anytime."
-  },
-  {
-    image: journeySlide,
-    alt: "Your Wellness Journey",
-    title: "Your Personalized Wellness Path",
-    description: "Follow your guided journey: Sign up, complete your initial assessment, choose your coaching package, start sessions, and track your progress over time."
-  }
-];
+import { userTutorialSlides } from "@/data/tutorialSlides";
 
 export default function UserTutorial() {
   const [, setLocation] = useLocation();
@@ -85,7 +46,7 @@ export default function UserTutorial() {
 
         {/* Slideshow */}
         <TutorialSlideshow
-          slides={userSlides}
+          slides={userTutorialSlides}
           title="User Guide"
         />
 

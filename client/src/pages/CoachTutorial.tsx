@@ -2,46 +2,7 @@ import { TutorialSlideshow } from "@/components/TutorialSlideshow";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { ArrowLeft, Video, BookOpen, Award } from "lucide-react";
-
-// Import coach tutorial slides
-import dashboardSlide from "@assets/generated_images/Coach_dashboard_overview_slide_6415b71d.png";
-import availabilitySlide from "@assets/generated_images/Coach_availability_setup_slide_ba0fe00e.png";
-import videoSlide from "@assets/generated_images/Video_sessions_guide_slide_5c4ede22.png";
-import certificationSlide from "@assets/generated_images/Coach_certification_path_slide_683ee90b.png";
-import profileSlide from "@assets/generated_images/Coach_profile_setup_slide_a0709d3d.png";
-
-const coachSlides = [
-  {
-    image: dashboardSlide,
-    alt: "Coach Dashboard Overview",
-    title: "Your Coach Dashboard",
-    description: "Track active clients, upcoming sessions, monthly earnings, and certification progress. Access quick actions for availability, schedule, profile updates, and starting sessions."
-  },
-  {
-    image: availabilitySlide,
-    alt: "Set Your Availability",
-    title: "Manage Your Availability",
-    description: "Set your weekly schedule with time slots for client bookings. Configure buffer times, auto-accept settings, and control when you're available for new sessions."
-  },
-  {
-    image: videoSlide,
-    alt: "Conduct Video Sessions",
-    title: "Professional HD Video Sessions",
-    description: "Conduct secure, private video sessions with built-in recording, chat, screen sharing, and AI-powered session notes. Powered by 100ms for reliable connectivity."
-  },
-  {
-    image: certificationSlide,
-    alt: "Certification Progress",
-    title: "Advance Your Certification",
-    description: "Progress through Foundation, Professional, and Master Coach levels. Complete courses in trauma-informed care, active listening, goal setting, and ethics."
-  },
-  {
-    image: profileSlide,
-    alt: "Optimize Your Profile",
-    title: "Create a Compelling Profile",
-    description: "Upload a professional photo, add specializations, write an engaging bio, set your rates, and upload an intro video to attract more clients."
-  }
-];
+import { coachTutorialSlides } from "@/data/tutorialSlides";
 
 export default function CoachTutorial() {
   const [, setLocation] = useLocation();
@@ -89,7 +50,7 @@ export default function CoachTutorial() {
 
         {/* Slideshow */}
         <TutorialSlideshow
-          slides={coachSlides}
+          slides={coachTutorialSlides}
           title="Coach Training"
         />
 
