@@ -78,8 +78,8 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
     {
       title: "Wellness Tools",
       items: [
-        { href: "/wellness-journey", label: "My Wellness Journey", icon: "🎯" },
-        { href: "/mental-wellness", label: "Mental Wellness", icon: "🧠" },
+        { href: "/wellness-journey", label: "My Wellness Journey", icon: "🎯", roles: ['user', 'coach', 'admin', 'super_admin'] },
+        { href: "/mental-wellness-hub", label: "Mental Wellness", icon: "🧠" },
         { href: "/resources", label: "Resources", icon: "📚" }
       ]
     },
@@ -97,10 +97,9 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
       title: "Coach Tools",
       roles: ['coach', 'admin', 'super_admin'],
       items: [
-        { href: "/coach/clients", label: "My Clients", icon: "👥", roles: ['coach', 'admin', 'super_admin'] },
-        { href: "/coach/schedule", label: "My Schedule", icon: "📅", roles: ['coach', 'admin', 'super_admin'] },
-        { href: "/coach/assessments", label: "Client Progress", icon: "📊", roles: ['coach', 'admin', 'super_admin'] },
-        { href: "/coach/earnings", label: "Earnings", icon: "💰", roles: ['coach'] }
+        { href: "/coach-dashboard", label: "Coach Dashboard", icon: "📊", roles: ['coach', 'admin', 'super_admin'] },
+        { href: "/coach-availability", label: "My Availability", icon: "📅", roles: ['coach', 'admin', 'super_admin'] },
+        { href: "/coach-certifications", label: "Certifications", icon: "🎓", roles: ['coach', 'admin', 'super_admin'] }
       ]
     },
     {
@@ -176,9 +175,9 @@ export const getQuickAccessItems = (role: UserRole): NavItem[] => {
 
   const coachItems: NavItem[] = [
     { href: "/coach-dashboard", label: "Dashboard", icon: "📊" },
-    { href: "/coach/clients", label: "Clients", icon: "👥" },
-    { href: "/coach/schedule", label: "Schedule", icon: "📅" },
-    { href: "/coach-certifications", label: "Courses", icon: "🎓" }
+    { href: "/coach-availability", label: "Availability", icon: "📅" },
+    { href: "/coach-certifications", label: "Certifications", icon: "🎓" },
+    { href: "/coach-profile", label: "Profile", icon: "👨‍🏫" }
   ];
 
   const adminItems: NavItem[] = [
