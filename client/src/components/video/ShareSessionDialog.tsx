@@ -9,8 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Check, Mail, Link2, QrCode } from "lucide-react";
+import { Copy, Check, Mail, Link2, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ShareSessionDialogProps {
   open: boolean;
@@ -30,6 +31,10 @@ export default function ShareSessionDialog({
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Generate shareable link
   const baseUrl = window.location.origin;
@@ -71,17 +76,68 @@ export default function ShareSessionDialog({
     }
   };
 
-  const handleEmailInvite = () => {
-    const subject = encodeURIComponent(`Join: ${sessionTitle}`);
-    const body = encodeURIComponent(
-      `You're invited to join a video coaching session!\n\n` +
-      `Session: ${sessionTitle}\n\n` +
-      `Join instantly by clicking this link:\n${shareableLink}\n\n` +
-      `Or enter this room code: ${roomCode}\n` +
-      `at ${baseUrl}/join\n\n` +
-      `See you there!`
-    );
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  const handleSendEmailInvite = async () => {
+    if (!recipientEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter the recipient's email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipientEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingEmail(true);
+
+    try {
+      const response = await apiRequest({
+        url: `/api/video/sessions/${sessionId}/invite`,
+        method: "POST",
+        data: {
+          email: recipientEmail,
+          recipientName: recipientName || undefined,
+        },
+      });
+
+      toast({
+        title: "Invitation Sent!",
+        description: `Video session invite has been sent to ${recipientEmail}`,
+      });
+
+      // Reset form and hide
+      setRecipientEmail("");
+      setRecipientName("");
+      setShowEmailForm(false);
+    } catch (error: any) {
+      // Extract error message from response
+      let errorMessage = "Could not send invitation email. Please try again.";
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.details) {
+        errorMessage = error.response.data.details;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Failed to Send Invite",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   return (
@@ -160,18 +216,89 @@ export default function ShareSessionDialog({
             </p>
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={handleEmailInvite}
-              data-testid="button-email-invite"
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              Email Invite
-            </Button>
-          </div>
+          {/* Email Invite Section */}
+          {!showEmailForm ? (
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowEmailForm(true)}
+                data-testid="button-show-email-form"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Send Email Invite
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3 pt-2 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-200">
+                Send Invitation Email
+              </h4>
+              
+              <div className="space-y-2">
+                <Label htmlFor="recipient-email" className="text-sm">
+                  Recipient Email *
+                </Label>
+                <Input
+                  id="recipient-email"
+                  type="email"
+                  placeholder="participant@example.com"
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                  disabled={isSendingEmail}
+                  data-testid="input-recipient-email"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="recipient-name" className="text-sm">
+                  Recipient Name (Optional)
+                </Label>
+                <Input
+                  id="recipient-name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  disabled={isSendingEmail}
+                  data-testid="input-recipient-name"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSendEmailInvite}
+                  disabled={isSendingEmail || !recipientEmail}
+                  className="flex-1"
+                  data-testid="button-send-email-invite"
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Invite
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowEmailForm(false);
+                    setRecipientEmail("");
+                    setRecipientName("");
+                  }}
+                  disabled={isSendingEmail}
+                  data-testid="button-cancel-email-form"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Instructions */}
           <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">

@@ -26,6 +26,7 @@ import {
 logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully");
 import OpenAI from "openai";
 import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth";
+import { getUncachableSendGridClient } from "./sendgrid-service";
 
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -916,6 +917,186 @@ router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: A
   } catch (error) {
     console.error("Error creating session from booking:", error);
     res.status(500).json({ error: "Failed to create session" });
+  }
+});
+
+// Send video session invite email
+router.post("/sessions/:sessionId/invite", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { email, recipientName } = req.body;
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      return res.status(400).json({ error: "Recipient email is required" });
+    }
+    if (typeof email !== 'string' || !emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email address format" });
+    }
+
+    // Validate sessionId is a non-empty string (UUID)
+    if (!sessionId || typeof sessionId !== 'string') {
+      return res.status(400).json({ error: "Invalid session ID" });
+    }
+
+    // Get session details (sessionId is a UUID string, not an integer)
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Verify user has access (coach owner or admin)
+    if (session.coachId !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Unauthorized: You don't have permission to invite to this session" });
+    }
+
+    // Get coach details
+    const [coach] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.coachId));
+
+    const coachName = coach?.fullName || "Your Coach";
+    
+    // Generate join link
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = process.env.FRONTEND_URL || `${protocol}://${host}`;
+    const joinLink = `${baseUrl}/join/${session.roomCode}`;
+
+    // Create email content
+    const emailSubject = `${coachName} invites you to: ${session.title}`;
+    const recipientDisplayName = recipientName || "there";
+
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
+              Video Session Invitation
+            </h1>
+          </div>
+
+          <!-- Body -->
+          <div style="padding: 40px 30px;">
+            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              Hi ${recipientDisplayName},
+            </p>
+
+            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+              <strong>${coachName}</strong> has invited you to join a video coaching session:
+            </p>
+
+            <div style="background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px;">
+              <h2 style="color: #667eea; margin: 0 0 10px 0; font-size: 20px;">
+                ${session.title}
+              </h2>
+              ${session.description ? `
+                <p style="color: #666666; margin: 0; font-size: 14px; line-height: 1.5;">
+                  ${session.description}
+                </p>
+              ` : ''}
+            </div>
+
+            <!-- Join Button -->
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${joinLink}" 
+                 style="background-color: #667eea; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                Join Video Session
+              </a>
+            </div>
+
+            <!-- Alternative Join Method -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #666666; font-size: 14px; margin: 0 0 10px 0; text-align: center;">
+                <strong>Or join manually:</strong>
+              </p>
+              <p style="color: #666666; font-size: 14px; margin: 0 0 10px 0; text-align: center;">
+                Visit <a href="${baseUrl}/join" style="color: #667eea;">${baseUrl}/join</a> and enter room code:
+              </p>
+              <div style="background-color: #ffffff; padding: 12px; border: 2px dashed #667eea; border-radius: 6px; text-align: center;">
+                <code style="font-size: 20px; font-weight: bold; color: #667eea; letter-spacing: 2px;">
+                  ${session.roomCode}
+                </code>
+              </div>
+            </div>
+
+            <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0; text-align: center;">
+              No account needed - join as a guest instantly!
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e9ecef;">
+            <p style="color: #999999; font-size: 12px; margin: 0;">
+              WholeWellness Coaching Platform<br>
+              Empowering wellness journeys
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const emailText = `
+Hi ${recipientDisplayName},
+
+${coachName} has invited you to join a video coaching session:
+
+Session: ${session.title}
+${session.description ? `Description: ${session.description}\n` : ''}
+
+JOIN NOW:
+Click here to join instantly: ${joinLink}
+
+Or visit ${baseUrl}/join and enter room code: ${session.roomCode}
+
+No account needed - join as a guest!
+
+---
+WholeWellness Coaching Platform
+Empowering wellness journeys
+    `;
+
+    // Send email via SendGrid
+    try {
+      const { client, fromEmail } = await getUncachableSendGridClient();
+      await client.send({
+        to: email,
+        from: fromEmail,
+        subject: emailSubject,
+        html: emailHtml,
+        text: emailText
+      });
+
+      logger.info(`[VIDEO-INVITE] Email sent successfully to ${email} for session ${sessionId}`);
+      
+      res.json({ 
+        success: true, 
+        message: "Invitation email sent successfully"
+      });
+    } catch (emailError: any) {
+      logger.error(`[VIDEO-INVITE] Failed to send email:`, emailError);
+      res.status(500).json({ 
+        error: "Failed to send invitation email",
+        details: emailError.message 
+      });
+    }
+  } catch (error: any) {
+    logger.error(`[VIDEO-INVITE] Error processing invite:`, error);
+    res.status(500).json({ error: "Failed to send invitation" });
   }
 });
 
