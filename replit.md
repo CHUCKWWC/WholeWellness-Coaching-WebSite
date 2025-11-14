@@ -74,6 +74,15 @@ Preferred communication style: Simple, everyday language.
   - Integration with user and coach profiles for profile pictures, cover photos, and intro videos
   - Backend tracks all uploaded media with metadata in PostgreSQL
   - SimpleFileUploader component for single-file scenarios
+- **Tutorial & Help System**: Comprehensive onboarding and training system with professional branded slides and interactive navigation. Features include:
+  - 10 AI-generated professional tutorial slides (5 user-focused, 5 coach-focused)
+  - Reusable TutorialSlideshow component with prev/next navigation, thumbnails, and slide counters
+  - UserTutorial page (/tutorial) - Publicly accessible guide covering platform features, AI coaching, booking, and wellness journeys
+  - CoachTutorial page (/coach-tutorial) - Coach-only protected training covering dashboard, availability, video sessions, certifications, and profiles
+  - Enterprise-grade security: ProtectedRoute with stable React hooks, hasRedirected state to prevent loops, no content flash for unauthorized users
+  - Navigation integration: "Help & Tutorials" section in role-aware navigation
+  - Dark mode support and responsive design
+  - Download capabilities for offline reference
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
