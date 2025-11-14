@@ -87,6 +87,7 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
       title: "Connect & Support",
       items: [
         { href: "/coaches", label: "Find a Coach", icon: "👨‍🏫", roles: ['guest', 'user'] },
+        { href: "/tutorial", label: "How to Use Site", icon: "📖", roles: ['guest', 'user'] },
         { href: "/events", label: "Upcoming Events", icon: "📆" },
         { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user'] }, // Auth required
         { href: "/contact", label: "Contact Us", icon: "💬" },
@@ -99,7 +100,8 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
       items: [
         { href: "/coach-dashboard", label: "Coach Dashboard", icon: "📊", roles: ['coach', 'admin', 'super_admin'] },
         { href: "/coach-availability", label: "My Availability", icon: "📅", roles: ['coach', 'admin', 'super_admin'] },
-        { href: "/coach-certifications", label: "Certifications", icon: "🎓", roles: ['coach', 'admin', 'super_admin'] }
+        { href: "/coach-certifications", label: "Certifications", icon: "🎓", roles: ['coach', 'admin', 'super_admin'] },
+        { href: "/coach-tutorial", label: "Coach Training", icon: "🎓", roles: ['coach', 'admin', 'super_admin'] }
       ]
     },
     {

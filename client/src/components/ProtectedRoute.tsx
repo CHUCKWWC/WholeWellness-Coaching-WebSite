@@ -37,61 +37,56 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, role } = useRouteGuard();
   const [location, setLocation] = useLocation();
-  const [showDeniedMessage, setShowDeniedMessage] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
+  // Get user's effective role (default to 'guest' if not authenticated)
+  const userRole: UserRole = role as UserRole || 'guest';
+
+  // CRITICAL: All useEffect hooks MUST be at top level (React Rules of Hooks)
+  // Handle redirects in a single useEffect based on authorization status
+  // NOTE: location is NOT in dependency array to prevent redirect loops
   useEffect(() => {
-    // Don't check access while auth is loading
+    // Don't redirect while auth is loading
     if (isLoading) return;
-
-    // Get user's effective role (default to 'guest' if not authenticated)
-    const userRole: UserRole = role as UserRole || 'guest';
     
-    // Check access using centralized policy
-    const accessResult = canAccessRoute(location, isAuthenticated, userRole);
+    // Don't redirect if we already triggered a redirect
+    if (hasRedirected) return;
 
-    // If access is denied, handle redirect or show error
-    if (!accessResult.allowed) {
-      if (accessResult.redirectTo) {
-        // Redirect to login or appropriate page
-        setLocation(accessResult.redirectTo);
-      } else {
-        // Show permission denied message (no redirect specified)
-        setShowDeniedMessage(true);
-      }
+    // Priority 1: Check if authentication is required
+    if (requireAuth && !isAuthenticated) {
+      setHasRedirected(true);
+      setLocation('/login');
       return;
     }
 
-    // Legacy compatibility: Handle requiredRole prop
-    // This provides backward compatibility with existing code
+    // Priority 2: Check if specific role is required
     if (requiredRole && isAuthenticated) {
-      // Admin and super_admin can access everything
-      if (role === 'admin' || role === 'super_admin') {
-        return;
-      }
-
-      // Check specific role match
-      if (role !== requiredRole) {
-        // Redirect to appropriate dashboard based on current role
+      const isAdmin = role === 'admin' || role === 'super_admin';
+      
+      if (!isAdmin && role !== requiredRole) {
+        // Redirect to appropriate dashboard
+        setHasRedirected(true);
         if (role === 'coach') {
-          setLocation('/coach/dashboard');
+          setLocation('/coach-dashboard');
         } else {
-          setLocation('/member/dashboard');
+          setLocation('/member-dashboard');
         }
         return;
       }
     }
 
-    // Legacy compatibility: Handle requireAuth prop
-    if (requireAuth && !isAuthenticated) {
-      setLocation('/login');
+    // Priority 3: Check centralized route policy
+    // Compute policy inside effect to avoid recalculation on every render
+    const accessResult = canAccessRoute(location, isAuthenticated, userRole);
+    if (!accessResult.allowed && accessResult.redirectTo) {
+      setHasRedirected(true);
+      setLocation(accessResult.redirectTo);
       return;
     }
+  }, [isLoading, isAuthenticated, requireAuth, requiredRole, role, setLocation, hasRedirected, userRole]);
 
-    // Clear any previously shown denied message
-    setShowDeniedMessage(false);
-  }, [isAuthenticated, isLoading, role, requiredRole, requireAuth, location, setLocation]);
-
-  // Show loading skeleton while checking authentication
+  // CRITICAL: Show loading state while auth is being checked
+  // This prevents content flash before redirect
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -104,22 +99,7 @@ export default function ProtectedRoute({
     );
   }
 
-  // Show permission denied message if user lacks required role
-  if (showDeniedMessage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md">
-          <ShieldX className="h-5 w-5" />
-          <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>
-            You don't have permission to access this page. Please contact an administrator if you believe this is an error.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  // Show loading skeleton during redirect (instead of null)
+  // Block rendering if authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -128,14 +108,46 @@ export default function ProtectedRoute({
     );
   }
 
-  // Show loading skeleton if role doesn't match (will redirect)
-  if (requiredRole && role !== requiredRole && role !== 'admin' && role !== 'super_admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+  // Block rendering if specific role is required but user doesn't have it
+  if (requiredRole && isAuthenticated) {
+    const isAdmin = role === 'admin' || role === 'super_admin';
+    
+    if (!isAdmin && role !== requiredRole) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
   }
 
+  // Block rendering if route policy denies access
+  // Compute policy before rendering to prevent unauthorized content flash
+  const accessResult = canAccessRoute(location, isAuthenticated, userRole);
+  
+  if (!accessResult.allowed) {
+    if (accessResult.redirectTo) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    } else {
+      // Show permission denied message (no redirect specified)
+      return (
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <Alert variant="destructive" className="max-w-md">
+            <ShieldX className="h-5 w-5" />
+            <AlertTitle>Access Denied</AlertTitle>
+            <AlertDescription>
+              You don't have permission to access this page. Please contact an administrator if you believe this is an error.
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+  }
+
+  // All checks passed - render protected content
   return <>{children}</>;
 }
