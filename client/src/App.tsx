@@ -105,6 +105,7 @@ const VideoSession = lazy(() => import("@/pages/VideoSession"));
 const SessionJoin = lazy(() => import("@/pages/SessionJoin"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const AdminCrisisAlerts = lazy(() => import("@/pages/AdminCrisisAlerts"));
+const Coaches = lazy(() => import("@/pages/Coaches"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -214,6 +215,7 @@ function Router() {
               <LazyRoute component={CoachProfile} loadingText="Loading coach profile..." {...props} />
             </ProtectedRoute>
           )} />
+          <Route path="/coaches" component={(props) => <LazyRoute component={Coaches} loadingText="Loading coaches directory..." {...props} />} />
           <Route path="/coach/:coachId" component={(props) => <LazyRoute component={CoachProfileView} loadingText="Loading coach profile..." {...props} />} />
           <Route path="/user/:userId" component={(props) => <LazyRoute component={UserProfileView} loadingText="Loading user profile..." {...props} />} />
           <Route path="/checkout" component={(props) => <LazyRoute component={Checkout} loadingText="Securing payment..." {...props} />} />
