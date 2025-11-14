@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useRouteGuard } from "@/contexts/RouteGuardContext";
 import { canAccessRoute, UserRole } from "@/config/routeAccessPolicy";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,20 +15,27 @@ interface ProtectedRouteProps {
 /**
  * ProtectedRoute component that enforces route access policies
  * 
- * This component uses the centralized route access policy configuration
+ * This component uses the centralized RouteGuardContext to access shared
+ * authentication state instead of calling useAuth() directly. This eliminates
+ * duplicate auth checks across the application and improves performance.
+ * 
+ * The component uses the centralized route access policy configuration
  * to determine whether a user can access a specific route. It handles:
- * - Authentication checks
+ * - Authentication checks via shared RouteGuardContext
  * - Role-based authorization
  * - Automatic redirects for unauthorized access
  * - Loading states during authentication
  * - Permission denied UI for role mismatches
+ * 
+ * Note: This component must be used within a RouteGuardProvider to access
+ * the shared authentication state.
  */
 export default function ProtectedRoute({ 
   children, 
   requiredRole,
   requireAuth = true 
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, role } = useAuth();
+  const { isAuthenticated, isLoading, role } = useRouteGuard();
   const [location, setLocation] = useLocation();
   const [showDeniedMessage, setShowDeniedMessage] = useState(false);
 

@@ -30,6 +30,7 @@ import SmartOnboarding from "@/components/SmartOnboarding";
 import InstallPrompt from "@/components/InstallPrompt";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import { RouteGuardProvider } from "@/contexts/RouteGuardContext";
 // PerformanceMonitor removed to clean up obsolete components
 
 // Core pages - loaded immediately
@@ -350,17 +351,19 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <EmpatheticHelpProvider>
-          <ChatUIProvider>
-            <EnhancedErrorBoundary>
-              <Router />
-            </EnhancedErrorBoundary>
-            <Toaster />
-            {/* Temporarily disabled: <PerformanceMonitor /> */}
-          </ChatUIProvider>
-        </EmpatheticHelpProvider>
-      </TooltipProvider>
+      <RouteGuardProvider>
+        <TooltipProvider>
+          <EmpatheticHelpProvider>
+            <ChatUIProvider>
+              <EnhancedErrorBoundary>
+                <Router />
+              </EnhancedErrorBoundary>
+              <Toaster />
+              {/* Temporarily disabled: <PerformanceMonitor /> */}
+            </ChatUIProvider>
+          </EmpatheticHelpProvider>
+        </TooltipProvider>
+      </RouteGuardProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
