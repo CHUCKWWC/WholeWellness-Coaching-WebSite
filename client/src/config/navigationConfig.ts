@@ -38,12 +38,19 @@ export const getMainNavItems = (role: UserRole): NavItem[] => {
       label: "Wellness Journey", 
       tooltip: "Personalized plans, goal tracking, and AI insights",
       badge: "New",
-      badgeColor: "bg-green-100 text-green-700"
+      badgeColor: "bg-green-100 text-green-700",
+      roles: ['user', 'coach', 'admin', 'super_admin'] // Require authentication
     },
     { 
       href: "/assessments", 
       label: "Assessments", 
       tooltip: "Discover your wellness needs with comprehensive evaluations" 
+    },
+    { 
+      href: "/coaches", 
+      label: "Find a Coach", 
+      tooltip: "Browse our directory of verified professional coaches",
+      roles: ['guest', 'user'] // Public directory, hide from coaches/admins
     },
     { 
       href: "/donate", 
@@ -79,8 +86,9 @@ export const getDropdownCategories = (role: UserRole): NavCategory[] => {
     {
       title: "Connect & Support",
       items: [
+        { href: "/coaches", label: "Find a Coach", icon: "👨‍🏫", roles: ['guest', 'user'] },
         { href: "/events", label: "Upcoming Events", icon: "📆" },
-        { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user', 'guest'] },
+        { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user'] }, // Auth required
         { href: "/contact", label: "Contact Us", icon: "💬" },
         { href: "/about", label: "About Us", icon: "ℹ️" }
       ]
@@ -154,16 +162,16 @@ export const getQuickAccessItems = (role: UserRole): NavItem[] => {
   const guestItems: NavItem[] = [
     { href: "/ai-coaching", label: "AI Coaching", icon: "🤖" },
     { href: "/assessments", label: "Assessments", icon: "📋" },
-    { href: "/resources", label: "Resources", icon: "📚" },
+    { href: "/coaches", label: "Find Coaches", icon: "👨‍🏫" },
     { href: "/donate", label: "Support Us", icon: "❤️" }
   ];
 
   const userItems: NavItem[] = [
+    { href: "/member-dashboard", label: "Dashboard", icon: "📊" },
     { href: "/ai-coaching", label: "AI Coaching", icon: "🤖" },
     { href: "/wellness-journey", label: "My Journey", icon: "🎯" },
-    { href: "/assessments", label: "Assessments", icon: "📋" },
-    { href: "/wix-booking", label: "Book Session", icon: "📅" },
-    { href: "/resources", label: "Resources", icon: "📚" }
+    { href: "/booking", label: "Book Session", icon: "📅" },
+    { href: "/assessments", label: "Assessments", icon: "📋" }
   ];
 
   const coachItems: NavItem[] = [
