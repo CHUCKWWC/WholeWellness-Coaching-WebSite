@@ -6,7 +6,10 @@ import {
   CoachesMockup,
   CoachProfileMockup,
   VideoSessionMockup,
-  AppointmentsMockup
+  AppointmentsMockup,
+  AdminDashboardMockup,
+  UserManagementMockup,
+  CoachApprovalMockup
 } from '@/components/mockups';
 
 // User Tutorial Slides (HTML mockup-based)
@@ -393,6 +396,145 @@ export const coachTutorialSlides: HtmlSlide[] = [
       'Check appointment details to review client goals and notes',
       'Use "Calendar View" for a visual month overview',
       'New appointments appear instantly when clients book'
+    ]
+  }
+];
+
+// Admin Tutorial Slides (HTML mockup-based)
+export const adminTutorialSlides: HtmlSlide[] = [
+  {
+    type: 'html',
+    title: "Admin Dashboard Overview",
+    description: "Monitor platform operations and manage users",
+    mockup: <AdminDashboardMockup />,
+    clickTargets: [
+      {
+        number: 1,
+        label: 'Platform Statistics',
+        description: 'Monitor key metrics: total users, active coaches, daily sessions, and revenue',
+        top: '10%',
+        left: '2%',
+        width: '94%',
+        height: '120px'
+      },
+      {
+        number: 2,
+        label: 'Quick Actions Panel',
+        description: 'Access common admin tasks: manage users, approve coaches, view analytics, monitor crisis alerts',
+        top: '38%',
+        left: '2%',
+        width: '94%',
+        height: '180px'
+      }
+    ],
+    tips: [
+      'Check dashboard stats daily to monitor platform health',
+      'Crisis alerts require immediate attention - review flagged conversations',
+      'Revenue trends help forecast growth and sustainability',
+      'Active coach count indicates service availability for clients'
+    ]
+  },
+  {
+    type: 'html',
+    title: "Manage Platform Users",
+    description: "View, edit, and moderate user accounts",
+    mockup: <UserManagementMockup />,
+    clickTargets: [
+      {
+        number: 1,
+        label: 'Search and Filter Controls',
+        description: 'Search users by name/email and filter by role (User/Coach/Admin) or status (Active/Inactive)',
+        top: '15%',
+        left: '2%',
+        width: '94%',
+        height: '60px'
+      },
+      {
+        number: 2,
+        label: 'User Table',
+        description: 'View all users with details: name, email, role, status, and action buttons',
+        top: '25%',
+        left: '2%',
+        width: '94%',
+        height: '350px'
+      },
+      {
+        number: 3,
+        label: 'Edit User Button',
+        description: 'Click "Edit" to modify user details, change roles, or update status',
+        top: '33%',
+        left: '68%',
+        width: '60px',
+        height: '30px'
+      },
+      {
+        number: 4,
+        label: 'Delete User Button',
+        description: 'Click "Delete" to remove a user account (requires confirmation)',
+        top: '33%',
+        left: '78%',
+        width: '70px',
+        height: '30px'
+      }
+    ],
+    tips: [
+      'Always verify user identity before making changes',
+      'Delete operations are permanent - double-check before confirming',
+      'Use filters to quickly find specific user groups',
+      'Role changes take effect immediately after saving',
+      'Monitor inactive users for potential re-engagement campaigns'
+    ]
+  },
+  {
+    type: 'html',
+    title: "Approve New Coaches",
+    description: "Review and approve pending coach applications",
+    mockup: <CoachApprovalMockup />,
+    clickTargets: [
+      {
+        number: 1,
+        label: 'Coach Application Card',
+        description: 'Review applicant details: bio, specializations, certifications, and experience',
+        top: '12%',
+        left: '2%',
+        width: '94%',
+        height: '280px'
+      },
+      {
+        number: 2,
+        label: 'Approve Application Button',
+        description: 'Click to approve the coach and grant platform access',
+        top: '77%',
+        left: '6%',
+        width: '180px',
+        height: '40px'
+      },
+      {
+        number: 3,
+        label: 'Review Documents Button',
+        description: 'View uploaded certifications, licenses, and background check documents',
+        top: '77%',
+        left: '30%',
+        width: '160px',
+        height: '40px'
+      },
+      {
+        number: 4,
+        label: 'Reject Application Button',
+        description: 'Reject the application with optional feedback for the applicant',
+        top: '77%',
+        left: '50%',
+        width: '100px',
+        height: '40px'
+      }
+    ],
+    tips: [
+      'Verify all certifications are current and valid before approving',
+      'Check professional bio quality - it appears on their public profile',
+      'Review specializations to ensure they match platform needs',
+      'Average approval time: 2-3 days keeps applicants engaged',
+      'Provide constructive feedback when rejecting applications',
+      'Approved coaches receive automated welcome email with onboarding steps'
     ]
   }
 ];

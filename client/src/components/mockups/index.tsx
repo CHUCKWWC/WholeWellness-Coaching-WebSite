@@ -5,3 +5,6 @@ export { CoachesMockup } from './CoachesMockup';
 export { CoachProfileMockup } from './CoachProfileMockup';
 export { VideoSessionMockup } from './VideoSessionMockup';
 export { AppointmentsMockup } from './AppointmentsMockup';
+export { AdminDashboardMockup } from './AdminDashboardMockup';
+export { UserManagementMockup } from './UserManagementMockup';
+export { CoachApprovalMockup } from './CoachApprovalMockup';

@@ -11,16 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { SuccessAnimation } from '@/components/ui/success-animation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trash2, Download, Eye, FileText, Image as ImageIcon, Video, Music } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +45,7 @@ export function MediaGallery({ editable = false, showAddButton = false, onAddMed
   const [selectedMedia, setSelectedMedia] = useState<UserMedia | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mediaToDelete, setMediaToDelete] = useState<UserMedia | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: mediaFiles = [], isLoading } = useQuery<UserMedia[]>({
     queryKey: ['/api/user/media'],
@@ -63,12 +57,9 @@ export function MediaGallery({ editable = false, showAddButton = false, onAddMed
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/media'] });
-      toast({
-        title: 'Media deleted',
-        description: 'The file has been removed from your gallery.',
-      });
       setDeleteDialogOpen(false);
       setMediaToDelete(null);
+      setShowSuccess(true);
     },
     onError: (error) => {
       toast({
@@ -182,11 +173,7 @@ export function MediaGallery({ editable = false, showAddButton = false, onAddMed
   );
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingSkeleton variant="card" count={6} />;
   }
 
   return (
@@ -338,27 +325,26 @@ export function MediaGallery({ editable = false, showAddButton = false, onAddMed
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent data-testid="dialog-delete-confirm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete media file?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{mediaToDelete?.title || mediaToDelete?.fileName}"?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              data-testid="button-confirm-delete"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete media file?"
+        description={`Are you sure you want to delete "${mediaToDelete?.title || mediaToDelete?.fileName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        loading={deleteMutation.isPending}
+      />
+
+      {/* Success Animation */}
+      <SuccessAnimation
+        show={showSuccess}
+        message="Media file deleted successfully"
+        variant="simple"
+        duration={2000}
+        onComplete={() => setShowSuccess(false)}
+      />
     </div>
   );
 }

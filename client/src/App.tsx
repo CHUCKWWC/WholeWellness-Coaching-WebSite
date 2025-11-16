@@ -109,6 +109,7 @@ const AdminCrisisAlerts = lazy(() => import("@/pages/AdminCrisisAlerts"));
 const Coaches = lazy(() => import("@/pages/Coaches"));
 const UserTutorial = lazy(() => import("@/pages/UserTutorial"));
 const CoachTutorial = lazy(() => import("@/pages/CoachTutorial"));
+const AdminTutorial = lazy(() => import("@/pages/AdminTutorial"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -223,6 +224,11 @@ function Router() {
           <Route path="/coach-tutorial" component={(props) => (
             <ProtectedRoute requiredRole="coach">
               <LazyRoute component={CoachTutorial} loadingText="Loading coach training..." {...props} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/admin-tutorial" component={(props) => (
+            <ProtectedRoute requiredRole="admin">
+              <LazyRoute component={AdminTutorial} loadingText="Loading admin training..." {...props} />
             </ProtectedRoute>
           )} />
           <Route path="/coach/:coachId" component={(props) => <LazyRoute component={CoachProfileView} loadingText="Loading coach profile..." {...props} />} />
