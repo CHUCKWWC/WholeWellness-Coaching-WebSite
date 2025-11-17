@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Heart, Star, Gift, Zap, Users, Target, Sparkles, Award, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { SuccessAnimation } from "@/components/ui/success-animation";
 import { ContextualHelpTrigger } from '@/components/HelpSystem';
 import HelpBubble from '@/components/HelpBubble';
 
@@ -60,6 +61,7 @@ export default function Donate() {
   const [message, setMessage] = useState("");
   const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null);
   const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [showDonationSuccess, setShowDonationSuccess] = useState(false);
 
   // Fetch donation presets
   const { data: presetsData = [] } = useQuery<DonationPreset[]>({
@@ -106,14 +108,16 @@ export default function Donate() {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
+        queryClient.invalidateQueries({ queryKey: ["/api/user/impact"] });
         toast({
           title: "Thank you for your donation!",
           description: `Your ${donationType} donation of $${getAmount()} is being processed.`,
         });
-        queryClient.invalidateQueries({ queryKey: ["/api/user/impact"] });
+        setShowDonationSuccess(true);
       }
     },
     onError: (error: any) => {
+      setShowDonationSuccess(false); // Reset animation state on error
       toast({
         title: "Donation failed",
         description: error.message || "Please try again",
@@ -583,6 +587,15 @@ export default function Donate() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Donation Success Animation */}
+      <SuccessAnimation
+        show={showDonationSuccess}
+        message="Thank you for your generous donation!"
+        variant="celebration"
+        duration={3000}
+        onComplete={() => setShowDonationSuccess(false)}
+      />
     </div>
   );
 }
