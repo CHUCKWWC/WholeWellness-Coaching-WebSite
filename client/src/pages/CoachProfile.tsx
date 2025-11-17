@@ -76,11 +76,23 @@ export default function CoachProfile() {
   const [uploadType, setUploadType] = useState<'profile' | 'cover' | 'video'>('profile');
 
   // Get coach profile data from server
-  const { data: profileData, isLoading } = useQuery({
+  const { data: serverProfileData, isLoading } = useQuery({
     queryKey: ["/api/coach/profile", user?.id],
     enabled: isAuthenticated && !!user?.id,
     initialData: () => user ? getDefaultProfileData(user) : getDefaultProfileData({}),
   });
+
+  // Local state for editing
+  const [profileData, setProfileData] = useState<CoachProfileData>(
+    serverProfileData || getDefaultProfileData(user || {})
+  );
+
+  // Sync local state with server data
+  useEffect(() => {
+    if (serverProfileData) {
+      setProfileData(serverProfileData);
+    }
+  }, [serverProfileData]);
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
