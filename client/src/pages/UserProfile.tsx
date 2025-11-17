@@ -50,6 +50,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { SimpleFileUploader } from "@/components/ObjectUploader";
+import { SuccessAnimation } from "@/components/ui/success-animation";
 import { Link } from "wouter";
 
 // Profile form schema matching backend validation
@@ -78,6 +79,7 @@ export default function UserProfile() {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('basic');
+  const [showProfileSaveSuccess, setShowProfileSaveSuccess] = useState(false);
 
   // Initialize form with user data
   const form = useForm<ProfileFormValues>({
@@ -126,8 +128,10 @@ export default function UserProfile() {
         title: 'Success!',
         description: 'Your profile has been updated.',
       });
+      setShowProfileSaveSuccess(true);
     },
     onError: (error: any) => {
+      setShowProfileSaveSuccess(false); // Reset animation state on error
       toast({
         title: 'Update failed',
         description: error.message || 'Failed to update profile. Please try again.',
@@ -805,6 +809,15 @@ export default function UserProfile() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Profile Save Success Animation */}
+        <SuccessAnimation
+          show={showProfileSaveSuccess}
+          message="Profile updated successfully!"
+          variant="sparkle"
+          duration={2500}
+          onComplete={() => setShowProfileSaveSuccess(false)}
+        />
       </div>
     </div>
   );

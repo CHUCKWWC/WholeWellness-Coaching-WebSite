@@ -20,6 +20,7 @@ import {
 import { X, Plus, Edit, Eye, Star, Play, Upload, Camera, Video as VideoIcon, Save, Image as ImageIcon, Facebook, Twitter, Instagram, Linkedin, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SimpleFileUploader } from "@/components/ObjectUploader";
+import { SuccessAnimation } from "@/components/ui/success-animation";
 import { MediaGallery } from "@/components/MediaGallery";
 
 interface CoachProfileData {
@@ -74,6 +75,7 @@ export default function CoachProfile() {
   const [tempValue, setTempValue] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'profile' | 'cover' | 'video'>('profile');
+  const [showProfileSaveSuccess, setShowProfileSaveSuccess] = useState(false);
 
   // Get coach profile data from server
   const { data: serverProfileData, isLoading } = useQuery({
@@ -104,8 +106,10 @@ export default function CoachProfile() {
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
       });
+      setShowProfileSaveSuccess(true);
     },
     onError: () => {
+      setShowProfileSaveSuccess(false); // Reset animation state on error
       toast({
         title: "Update Failed",
         description: "There was an error updating your profile. Please try again.",
@@ -551,6 +555,15 @@ export default function CoachProfile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Profile Save Success Animation */}
+      <SuccessAnimation
+        show={showProfileSaveSuccess}
+        message="Profile updated successfully!"
+        variant="sparkle"
+        duration={2500}
+        onComplete={() => setShowProfileSaveSuccess(false)}
+      />
     </div>
   );
 }
