@@ -66,6 +66,7 @@ export default function WixBooking() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+  const [showCreateSuccess, setShowCreateSuccess] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -132,17 +133,19 @@ export default function WixBooking() {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wix/bookings'] });
       toast({
         title: 'Booking Created Successfully!',
         description: 'Your appointment has been scheduled. You will receive a confirmation email shortly.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/wix/bookings'] });
+      setShowCreateSuccess(true);
       form.reset();
       setStep(1);
       setSelectedService(null);
       setSelectedDate('');
     },
     onError: (error: any) => {
+      setShowCreateSuccess(false); // Reset animation state on error
       toast({
         title: 'Booking Failed',
         description: error.message || 'There was an error creating your booking. Please try again.',
@@ -563,13 +566,22 @@ export default function WixBooking() {
         loading={cancelBookingMutation.isPending}
       />
 
-      {/* Success Animation */}
+      {/* Cancellation Success Animation */}
       <SuccessAnimation
         show={showCancelSuccess}
         message="Appointment cancelled successfully"
         variant="simple"
         duration={2500}
         onComplete={() => setShowCancelSuccess(false)}
+      />
+
+      {/* Booking Creation Success Animation */}
+      <SuccessAnimation
+        show={showCreateSuccess}
+        message="Appointment booked successfully!"
+        variant="celebration"
+        duration={2500}
+        onComplete={() => setShowCreateSuccess(false)}
       />
     </div>
   );
