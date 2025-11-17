@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,14 +89,7 @@ export default function Donate() {
   // Create donation mutation
   const createDonationMutation = useMutation({
     mutationFn: async (donationData: any) => {
-      const response = await fetch("/api/donations/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(donationData),
-      });
-      if (!response.ok) throw new Error("Failed to create donation");
-      return response.json();
+      return await apiRequest("POST", "/api/donations/create", donationData);
     },
     onSuccess: (data) => {
       // Show reward animation for recurring donors
@@ -142,7 +136,7 @@ export default function Donate() {
     }
 
     createDonationMutation.mutate({
-      amount,
+      amount: amount.toString(),
       donationType,
       isAnonymous,
       message,
