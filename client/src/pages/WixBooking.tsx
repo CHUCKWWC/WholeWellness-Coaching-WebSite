@@ -14,6 +14,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { SuccessAnimation } from '@/components/ui/success-animation';
 import { Calendar, Clock, User, Phone, Mail, MessageCircle, CheckCircle, XCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 
@@ -61,6 +63,9 @@ export default function WixBooking() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [step, setStep] = useState(1);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -153,13 +158,17 @@ export default function WixBooking() {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wix/bookings'] });
       toast({
         title: 'Booking Cancelled',
         description: 'Your appointment has been cancelled successfully.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/wix/bookings'] });
+      setCancelDialogOpen(false);
+      setBookingToCancel(null);
+      setShowCancelSuccess(true);
     },
     onError: () => {
+      setShowCancelSuccess(false); // Reset animation state on error
       toast({
         title: 'Cancellation Failed',
         description: 'There was an error cancelling your booking. Please try again.',
@@ -167,6 +176,17 @@ export default function WixBooking() {
       });
     },
   });
+
+  const handleCancelClick = (bookingId: string) => {
+    setBookingToCancel(bookingId);
+    setCancelDialogOpen(true);
+  };
+
+  const confirmCancel = () => {
+    if (bookingToCancel) {
+      cancelBookingMutation.mutate(bookingToCancel);
+    }
+  };
 
   const handleServiceSelect = (service: WixService) => {
     setSelectedService(service);
@@ -516,8 +536,8 @@ export default function WixBooking() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => cancelBookingMutation.mutate(booking._id)}
-                        disabled={cancelBookingMutation.isPending}
+                        onClick={() => handleCancelClick(booking._id)}
+                        data-testid="button-cancel-booking"
                       >
                         Cancel
                       </Button>
@@ -529,6 +549,28 @@ export default function WixBooking() {
           </div>
         </div>
       )}
+
+      {/* Cancellation Confirmation Dialog */}
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        onConfirm={confirmCancel}
+        title="Cancel Appointment?"
+        description="Are you sure you want to cancel this appointment? This action cannot be undone."
+        confirmText="Cancel Appointment"
+        cancelText="Keep Appointment"
+        variant="destructive"
+        loading={cancelBookingMutation.isPending}
+      />
+
+      {/* Success Animation */}
+      <SuccessAnimation
+        show={showCancelSuccess}
+        message="Appointment cancelled successfully"
+        variant="simple"
+        duration={2500}
+        onComplete={() => setShowCancelSuccess(false)}
+      />
     </div>
   );
 }
