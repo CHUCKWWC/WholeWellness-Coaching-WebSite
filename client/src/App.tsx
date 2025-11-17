@@ -231,63 +231,17 @@ function Router() {
               <LazyRoute component={AdminTutorial} loadingText="Loading admin training..." {...props} />
             </ProtectedRoute>
           )} />
-          <Route path="/coach/:coachId" component={(props) => <LazyRoute component={CoachProfileView} loadingText="Loading coach profile..." {...props} />} />
-          <Route path="/user/:userId" component={(props) => <LazyRoute component={UserProfileView} loadingText="Loading user profile..." {...props} />} />
-          <Route path="/checkout" component={(props) => <LazyRoute component={Checkout} loadingText="Securing payment..." {...props} />} />
-          <Route path="/payment-success" component={(props) => <LazyRoute component={PaymentSuccess} loadingText="Confirming payment..." {...props} />} />
-          <Route path="/subscribe" component={(props) => <LazyRoute component={Subscribe} loadingText="Setting up subscription..." {...props} />} />
-          <Route path="/subscription-success" component={(props) => <LazyRoute component={SubscriptionSuccess} loadingText="Activating subscription..." {...props} />} />
-          <Route path="/volunteer-application" component={(props) => <LazyRoute component={VolunteerApplication} loadingText="Loading application..." {...props} />} />
-          <Route path="/wix-booking" component={(props) => <LazyRoute component={WixBooking} loadingText="Loading booking system..." {...props} />} />
-          <Route path="/book" component={(props) => <LazyRoute component={BookingPage} loadingText="Loading booking..." {...props} />} />
-          <Route path="/coach-availability" component={(props) => (
-            <ProtectedRoute requiredRole="coach">
-              <LazyRoute component={CoachAvailabilityManager} loadingText="Loading availability manager..." {...props} />
-            </ProtectedRoute>
-          )} />
-          <Route path="/enhanced-onboarding" component={(props) => <LazyRoute component={EnhancedOnboarding} loadingText="Personalizing experience..." {...props} />} />
-          <Route path="/coach-certifications" component={(props) => <LazyRoute component={CoachCertifications} loadingText="Loading certifications..." {...props} />} />
-          <Route path="/module-learning" component={() => {
-            const params = new URLSearchParams(window.location.search);
-            const courseId = params.get('courseId');
-            const enrollmentId = params.get('enrollmentId');
-            
-            // Validate required parameters
-            if (!courseId || !enrollmentId) {
-              return (
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Missing Parameters</h1>
-                    <p className="text-gray-600 mb-4">
-                      Course ID and Enrollment ID are required to access module learning.
-                    </p>
-                    <a href="/coach-certifications" className="text-blue-600 hover:underline">
-                      Return to Certifications
-                    </a>
-                  </div>
-                </div>
-              );
-            }
-            
-            return <ModuleLearning courseId={courseId} enrollmentId={enrollmentId} />;
-          }} />
-          <Route path="/certification-dashboard" component={(props) => <LazyRoute component={CertificationDashboard} loadingText="Loading certification dashboard..." {...props} />} />
-          <Route path="/certification-guide" component={(props) => <LazyRoute component={CertificationGuide} loadingText="Loading certification guide..." {...props} />} />
-          <Route path="/wellness-journey" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Creating your wellness journey..." {...props} />} />
-          <Route path="/wellness-journey/:journeyId" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Loading wellness journey..." {...props} />} />
-          <Route path="/admin/test-payment" component={(props) => <LazyRoute component={AdminTestPayment} loadingText="Loading payment test..." {...props} />} />
-          <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
-          <Route path="/session/:sessionId/join" component={(props) => <LazyRoute component={SessionJoin} loadingText="Preparing session..." {...props} />} />
-          <Route path="/session/:sessionId" component={(props) => <LazyRoute component={VideoSession} loadingText="Connecting..." {...props} />} />
-          <Route path="/join/:code" component={JoinSession} />
-          <Route path="/join" component={JoinSession} />
-          
-          {/* Coach Routes - Protected */}
+          {/* Coach Routes - Specific routes must come before dynamic :coachId route */}
           <Route path="/coach/dashboard" component={() => (
             <ProtectedRoute requiredRole="coach">
               <CoachLayout>
                 <LazyRoute component={CoachDashboard} loadingText="Loading coach dashboard..." />
               </CoachLayout>
+            </ProtectedRoute>
+          )} />
+          <Route path="/coach/profile" component={(props) => (
+            <ProtectedRoute requiredRole="coach">
+              <LazyRoute component={CoachProfile} loadingText="Loading coach profile..." {...props} />
             </ProtectedRoute>
           )} />
           <Route path="/coach/clients" component={() => (
@@ -340,6 +294,57 @@ function Router() {
               </CoachLayout>
             </ProtectedRoute>
           )} />
+          {/* Dynamic coach profile route - MUST be after all specific /coach/* routes */}
+          <Route path="/coach/:coachId" component={(props) => <LazyRoute component={CoachProfileView} loadingText="Loading coach profile..." {...props} />} />
+          <Route path="/user/:userId" component={(props) => <LazyRoute component={UserProfileView} loadingText="Loading user profile..." {...props} />} />
+          <Route path="/checkout" component={(props) => <LazyRoute component={Checkout} loadingText="Securing payment..." {...props} />} />
+          <Route path="/payment-success" component={(props) => <LazyRoute component={PaymentSuccess} loadingText="Confirming payment..." {...props} />} />
+          <Route path="/subscribe" component={(props) => <LazyRoute component={Subscribe} loadingText="Setting up subscription..." {...props} />} />
+          <Route path="/subscription-success" component={(props) => <LazyRoute component={SubscriptionSuccess} loadingText="Activating subscription..." {...props} />} />
+          <Route path="/volunteer-application" component={(props) => <LazyRoute component={VolunteerApplication} loadingText="Loading application..." {...props} />} />
+          <Route path="/wix-booking" component={(props) => <LazyRoute component={WixBooking} loadingText="Loading booking system..." {...props} />} />
+          <Route path="/book" component={(props) => <LazyRoute component={BookingPage} loadingText="Loading booking..." {...props} />} />
+          <Route path="/coach-availability" component={(props) => (
+            <ProtectedRoute requiredRole="coach">
+              <LazyRoute component={CoachAvailabilityManager} loadingText="Loading availability manager..." {...props} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/enhanced-onboarding" component={(props) => <LazyRoute component={EnhancedOnboarding} loadingText="Personalizing experience..." {...props} />} />
+          <Route path="/coach-certifications" component={(props) => <LazyRoute component={CoachCertifications} loadingText="Loading certifications..." {...props} />} />
+          <Route path="/module-learning" component={() => {
+            const params = new URLSearchParams(window.location.search);
+            const courseId = params.get('courseId');
+            const enrollmentId = params.get('enrollmentId');
+            
+            // Validate required parameters
+            if (!courseId || !enrollmentId) {
+              return (
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Missing Parameters</h1>
+                    <p className="text-gray-600 mb-4">
+                      Course ID and Enrollment ID are required to access module learning.
+                    </p>
+                    <a href="/coach-certifications" className="text-blue-600 hover:underline">
+                      Return to Certifications
+                    </a>
+                  </div>
+                </div>
+              );
+            }
+            
+            return <ModuleLearning courseId={courseId} enrollmentId={enrollmentId} />;
+          }} />
+          <Route path="/certification-dashboard" component={(props) => <LazyRoute component={CertificationDashboard} loadingText="Loading certification dashboard..." {...props} />} />
+          <Route path="/certification-guide" component={(props) => <LazyRoute component={CertificationGuide} loadingText="Loading certification guide..." {...props} />} />
+          <Route path="/wellness-journey" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Creating your wellness journey..." {...props} />} />
+          <Route path="/wellness-journey/:journeyId" component={(props) => <LazyRoute component={WellnessJourneyRecommender} loadingText="Loading wellness journey..." {...props} />} />
+          <Route path="/admin/test-payment" component={(props) => <LazyRoute component={AdminTestPayment} loadingText="Loading payment test..." {...props} />} />
+          <Route path="/custom-onboarding" component={(props) => <LazyRoute component={CustomOnboarding} loadingText="Loading onboarding experience..." {...props} />} />
+          <Route path="/session/:sessionId/join" component={(props) => <LazyRoute component={SessionJoin} loadingText="Preparing session..." {...props} />} />
+          <Route path="/session/:sessionId" component={(props) => <LazyRoute component={VideoSession} loadingText="Connecting..." {...props} />} />
+          <Route path="/join/:code" component={JoinSession} />
+          <Route path="/join" component={JoinSession} />
           
           <Route component={NotFound} />
         </Switch>

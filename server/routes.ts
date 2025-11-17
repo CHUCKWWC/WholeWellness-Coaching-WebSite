@@ -2810,12 +2810,16 @@ When to refer to licensed therapists and emergency resources for relationship cr
   // Get coach profile
   app.get("/api/coach/profile", requireCoachRole as any, async (req: any, res) => {
     try {
+      console.log("[ROUTE DEBUG] GET /api/coach/profile called with user:", req.user?.id);
       const coach = await coachStorage.getCoachByUserId(req.user.id);
       if (!coach) {
+        console.log("[ROUTE DEBUG] Coach not found for user:", req.user?.id);
         return res.status(404).json({ message: "Coach profile not found" });
       }
+      console.log("[ROUTE DEBUG] Coach found:", coach.id);
       res.json(coach);
     } catch (error) {
+      console.error("[ROUTE DEBUG] Error in GET /api/coach/profile:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -3598,6 +3602,7 @@ When to refer to licensed therapists and emergency resources for relationship cr
   app.get("/api/coach/profile/:coachId", optionalAuth as any, async (req: any, res) => {
     try {
       const { coachId } = req.params;
+      console.log("[ROUTE DEBUG] GET /api/coach/profile/:coachId called with coachId:", coachId);
       const coach = await coachStorage.getCoachById(parseInt(coachId));
       
       if (!coach) {

@@ -80,6 +80,15 @@ export default function CoachProfile() {
   // Get coach profile data from server
   const { data: serverProfileData, isLoading } = useQuery({
     queryKey: ["/api/coach/profile", user?.id],
+    queryFn: async () => {
+      const response = await fetch("/api/coach/profile", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch coach profile: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: isAuthenticated && !!user?.id,
     initialData: () => user ? getDefaultProfileData(user) : getDefaultProfileData({}),
   });
@@ -99,7 +108,7 @@ export default function CoachProfile() {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: (data: Partial<CoachProfileData>) => 
-      apiRequest("PUT", "/api/coach/profile", data),
+      apiRequest("POST", "/api/coach/profile", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/coach/profile"] });
       toast({
