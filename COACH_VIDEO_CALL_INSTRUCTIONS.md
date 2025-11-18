@@ -194,7 +194,7 @@ When ready to start:
 - Clients can join without creating an account
 - No email required for client to join (just the link)
 - Session data deleted after retention period (configurable)
-- Compliant with HIPAA and data protection regulations
+- Compliant with data protection regulations
 
 ## Support
 

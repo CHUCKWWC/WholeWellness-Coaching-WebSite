@@ -141,7 +141,7 @@ This is a **data privacy violation** and **security breach** that could:
 - Expose sensitive user information (trauma data, mental health assessments)
 - Allow unauthorized access to video sessions
 - Enable booking manipulation
-- Violate HIPAA/privacy regulations for domestic violence survivor data
+- Violate privacy regulations for domestic violence survivor data
 
 ### Immediate Action Required
 1. Audit ALL endpoints in:

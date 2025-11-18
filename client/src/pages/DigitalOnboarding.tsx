@@ -152,7 +152,7 @@ export default function DigitalOnboarding() {
         <div className="mt-12 text-center">
           <p className="text-sm text-gray-600 mb-4">Trusted by women on their healing journey</p>
           <div className="flex justify-center space-x-8 text-xs text-gray-500">
-            <span>✓ HIPAA Compliant</span>
+            <span>✓ Secure & Private</span>
             <span>✓ Trauma-Informed</span>
             <span>✓ Licensed Professionals</span>
             <span>✓ 24/7 Crisis Support</span>
