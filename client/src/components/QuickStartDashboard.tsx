@@ -1,8 +1,7 @@
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Brain, Target, Sparkles, Users, Award, ArrowRight, Star, Clock, CheckCircle } from 'lucide-react';
+import { Brain, Target, Sparkles, Users, Award, ArrowRight, Star, CheckCircle } from 'lucide-react';
 
 const quickActions = [
   {
@@ -90,15 +89,6 @@ export default function QuickStartDashboard() {
                         <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
                           {action.title}
                         </CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className={`text-xs ${action.badgeColor}`}>
-                            {action.badge}
-                          </Badge>
-                          <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {action.time}
-                          </span>
-                        </div>
                       </div>
                     </div>
                     <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
