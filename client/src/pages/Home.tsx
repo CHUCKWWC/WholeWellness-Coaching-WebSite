@@ -5,7 +5,6 @@ import TestimonialCard from "@/components/TestimonialCard";
 import BookingForm from "@/components/BookingForm";
 import AuthForm from "@/components/AuthForm";
 import OnboardingWelcome from "@/components/OnboardingWelcome";
-import QuickStartDashboard from "@/components/QuickStartDashboard";
 import GuidedTour from "@/components/GuidedTour";
 import DashboardQuickAccess from "@/components/DashboardQuickAccess";
 import AuthenticatedWelcome from "@/components/AuthenticatedWelcome";
@@ -124,9 +123,6 @@ export default function Home() {
           </div>
         </section>
       )}
-      
-      {/* Quick Start Dashboard - for guest users */}
-      {!isAuthenticated && <QuickStartDashboard />}
       
       {/* Mission & Values */}
       <section className="py-16 bg-white">
