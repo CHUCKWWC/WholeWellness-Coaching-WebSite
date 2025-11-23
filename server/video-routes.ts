@@ -82,23 +82,54 @@ router.post("/log-error", async (req, res) => {
       sessionId, 
       userAgent, 
       platform, 
+      deviceType,
       isIOS, 
-      timestamp 
+      timestamp,
+      errorDetails 
     } = req.body;
     
+    // Extract device info for better diagnostics
+    const isChrome = /Chrome/.test(userAgent);
+    const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+    const isFirefox = /Firefox/.test(userAgent);
+    
     logger.error("[VIDEO-CONNECTION-ERROR]", {
-      type,
+      // Error classification
+      errorType: type,
+      errorClass: errorDetails?.type || 'unknown',
       errorMessage: message,
       errorCode: code,
+      
+      // Session info
       sessionId,
-      userAgent,
+      timestamp,
+      
+      // Device info
+      deviceType: deviceType || 'unknown',
       platform,
       isIOS: isIOS ? 'YES' : 'NO',
-      timestamp,
-      fullError: error
+      isAndroid: /Android/.test(userAgent) ? 'YES' : 'NO',
+      
+      // Browser detection
+      browser: isChrome ? 'Chrome' : isSafari ? 'Safari' : isFirefox ? 'Firefox' : 'Unknown',
+      userAgent,
+      
+      // User-facing suggestion from client
+      suggestion: errorDetails?.suggestion || 'No suggestion available',
+      
+      // Full error for debugging
+      fullError: error,
+      
+      // Network/connection hints
+      networkHint: message?.toLowerCase().includes('network') ? 'Network-related' : 
+                   message?.toLowerCase().includes('permission') ? 'Permission-related' : 
+                   message?.toLowerCase().includes('timeout') ? 'Timeout' : 'Unknown'
     });
     
-    res.json({ success: true });
+    res.json({ 
+      success: true,
+      loggedAt: new Date().toISOString()
+    });
   } catch (error: any) {
     logger.error("[VIDEO-LOG-ERROR] Failed to log connection error:", error);
     res.status(500).json({ error: "Failed to log error" });

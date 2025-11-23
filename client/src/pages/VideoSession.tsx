@@ -5,9 +5,16 @@ import { HMSPrebuilt } from "@100mslive/roomkit-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, UserPlus } from "lucide-react";
+import { Loader2, AlertCircle, UserPlus, Wifi, WifiOff, Smartphone } from "lucide-react";
 import ShareSessionDialog from "@/components/video/ShareSessionDialog";
 import "@100mslive/roomkit-react/index.css";
+
+interface VideoError {
+  type: string;
+  message: string;
+  code?: string;
+  suggestion?: string;
+}
 
 export default function VideoSession() {
   const { sessionId } = useParams();
@@ -15,6 +22,7 @@ export default function VideoSession() {
   const { user, isAuthenticated } = useAuth();
   const [hasLeft, setHasLeft] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [connectionError, setConnectionError] = useState<VideoError | null>(null);
 
   // Get participant name from sessionStorage (set by JoinSession page for guests)
   const participantName = sessionStorage.getItem('participantName') || user?.firstName || 'Guest';
@@ -51,7 +59,72 @@ export default function VideoSession() {
     }
   };
 
+  const getErrorDetails = (error: any, errorType: string): VideoError => {
+    const errorMessage = error?.message || 'Unknown error';
+    const errorCode = error?.code;
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+    // Map error types and codes to user-friendly messages
+    if (errorType === 'connection_failed' || errorMessage.includes('Failed to connect')) {
+      return {
+        type: 'connection_failed',
+        message: 'Failed to connect to the video session',
+        code: errorCode,
+        suggestion: isIOS 
+          ? 'Check your internet connection and ensure you\'re on WiFi. Restart the app if problems persist.'
+          : 'Check your internet connection. Try refreshing the page if the connection is unstable.'
+      };
+    }
+
+    if (errorMessage.includes('Permission') || errorCode === 'PERMISSION_DENIED') {
+      return {
+        type: 'permission_error',
+        message: 'Camera or microphone access was denied',
+        code: errorCode,
+        suggestion: 'Go to your device settings and enable camera and microphone permissions for this app.'
+      };
+    }
+
+    if (errorMessage.includes('timeout') || errorCode === 'TIMEOUT') {
+      return {
+        type: 'timeout',
+        message: 'Connection timeout - taking too long to connect',
+        code: errorCode,
+        suggestion: 'Your internet connection may be slow. Try moving closer to your router or switching to WiFi.'
+      };
+    }
+
+    if (errorMessage.includes('room') || errorCode === 'ROOM_NOT_FOUND') {
+      return {
+        type: 'room_error',
+        message: 'This video room is no longer available',
+        code: errorCode,
+        suggestion: 'The session may have ended. Contact the coach to schedule a new session.'
+      };
+    }
+
+    if (errorMessage.includes('network') || errorCode === 'NETWORK_ERROR') {
+      return {
+        type: 'network_error',
+        message: 'Network connection error',
+        code: errorCode,
+        suggestion: 'Check your internet connection and ensure it\'s stable. Try reconnecting.'
+      };
+    }
+
+    // Default error
+    return {
+      type: 'general_error',
+      message: errorMessage,
+      code: errorCode,
+      suggestion: 'An unexpected error occurred. Try refreshing the page or restarting your browser.'
+    };
+  };
+
   const handleError = (error: any, errorType: string) => {
+    const errorDetails = getErrorDetails(error, errorType);
+    setConnectionError(errorDetails);
+
     const errorData = {
       type: errorType,
       error: error,
@@ -60,8 +133,10 @@ export default function VideoSession() {
       sessionId,
       userAgent: navigator.userAgent,
       platform: navigator.platform,
+      deviceType: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop',
       isIOS: /iPhone|iPad|iPod/.test(navigator.userAgent),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      errorDetails
     };
     
     console.error('[100ms ERROR]', errorData);
@@ -176,6 +251,71 @@ export default function VideoSession() {
 
   return (
     <div className="h-screen w-full relative" data-testid="video-session-container">
+      {/* Connection Error Display */}
+      {connectionError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
+          <Card className="w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl">
+            <div className="p-6 sm:p-8">
+              {/* Icon based on error type */}
+              <div className="flex justify-center mb-4">
+                {connectionError.type === 'permission_error' && (
+                  <AlertCircle className="w-12 h-12 text-orange-500" />
+                )}
+                {connectionError.type === 'network_error' && (
+                  <WifiOff className="w-12 h-12 text-red-500" />
+                )}
+                {connectionError.type === 'connection_failed' && (
+                  <Wifi className="w-12 h-12 text-red-500" />
+                )}
+                {connectionError.type === 'timeout' && (
+                  <Smartphone className="w-12 h-12 text-amber-500" />
+                )}
+                {!['permission_error', 'network_error', 'connection_failed', 'timeout'].includes(connectionError.type) && (
+                  <AlertCircle className="w-12 h-12 text-red-500" />
+                )}
+              </div>
+
+              {/* Error Message */}
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 text-center">
+                {connectionError.message}
+              </h3>
+
+              {/* Error Code */}
+              {connectionError.code && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">
+                  Error Code: {connectionError.code}
+                </p>
+              )}
+
+              {/* Suggestion */}
+              <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
+                {connectionError.suggestion}
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => {
+                    setConnectionError(null);
+                    window.location.reload();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  Try Again
+                </Button>
+                <Button
+                  onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}
+                  variant="outline"
+                  className="border-gray-300 dark:border-gray-600"
+                >
+                  Return to Dashboard
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       <HMSPrebuilt
         roomCode={session.roomCode}
         options={{
