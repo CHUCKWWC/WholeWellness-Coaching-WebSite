@@ -101,10 +101,13 @@ export const securityHeaders = helmet({
       ],
       // Frames for Stripe iframes, 100ms, YouTube, etc.
       "frame-src": ["'self'", "https://js.stripe.com", "*.google.com", "https://*.100ms.live", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+      // Child frames for embedded content
+      "child-src": ["'self'", "blob:", "https://*.100ms.live"],
       // Allow Replit to embed the application
       "frame-ancestors": ["'self'", "https://*.replit.dev", "https://*.replit.app", "https://replit.com"],
-      "worker-src": ["'self'", "blob:"],
+      "worker-src": ["'self'", "blob:", "https://*.100ms.live"], // Allow 100ms service workers (critical for iOS)
       "object-src": ["'none'"],
+      "base-uri": ["'self'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
     }
   },
