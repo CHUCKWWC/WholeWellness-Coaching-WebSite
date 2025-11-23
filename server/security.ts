@@ -99,8 +99,8 @@ export const securityHeaders = helmet({
         "*.google.com",
         "*.googletagmanager.com"
       ],
-      // Frames for Stripe iframes, 100ms, etc.
-      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com", "https://*.100ms.live"],
+      // Frames for Stripe iframes, 100ms, YouTube, etc.
+      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com", "https://*.100ms.live", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
       // Allow Replit to embed the application
       "frame-ancestors": ["'self'", "https://*.replit.dev", "https://*.replit.app", "https://replit.com"],
       "worker-src": ["'self'", "blob:"],
