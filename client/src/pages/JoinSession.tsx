@@ -49,11 +49,12 @@ export default function JoinSession() {
 
       if (response.success) {
         // Store session info for video component
+        sessionStorage.setItem('participantName', name.trim());
         sessionStorage.setItem('videoSession', JSON.stringify({
           authToken: response.authToken,
           roomId: response.roomId,
           sessionId: response.sessionId,
-          userName: name,
+          userName: name.trim(),
           role: 'participant'
         }));
 
