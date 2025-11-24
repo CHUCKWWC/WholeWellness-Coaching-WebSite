@@ -25,7 +25,12 @@ export default function VideoSession() {
   const [connectionError, setConnectionError] = useState<VideoError | null>(null);
 
   // Get participant name from sessionStorage (set by JoinSession page for guests)
-  const participantName = sessionStorage.getItem('participantName') || user?.firstName || 'Guest';
+  const storedSession = sessionStorage.getItem('videoSession');
+  const parsedSession = storedSession ? JSON.parse(storedSession) : null;
+  const participantName = parsedSession?.userName
+    || sessionStorage.getItem('participantName')
+    || user?.firstName
+    || 'Guest';
 
   // Get session details
   const { data: sessionData, isLoading, error } = useQuery({
