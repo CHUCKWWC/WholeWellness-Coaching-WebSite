@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { useOnboarding } from './OnboardingContext';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, HelpCircle, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import StepProgressIndicator from '@/components/StepProgressIndicator';
+import EnhancedProgressBar from './EnhancedProgressBar';
+import MilestoneBanner from './MilestoneBanner';
+import TestimonialsCarousel from './TestimonialsCarousel';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
-// Import coach-specific step components
 import CoachPersonalInfoStep from './steps/coach/CoachPersonalInfoStep';
 import CoachPaymentStep from './steps/coach/CoachPaymentStep';
 import CoachQualificationsStep from './steps/coach/CoachQualificationsStep';
@@ -17,20 +19,21 @@ import CoachBankingStep from './steps/coach/CoachBankingStep';
 import CoachReviewStep from './steps/coach/CoachReviewStep';
 
 const steps = [
-  { title: 'Personal Information', component: CoachPersonalInfoStep },
-  { title: 'Application Payment', component: CoachPaymentStep },
-  { title: 'Qualifications & Experience', component: CoachQualificationsStep },
-  { title: 'Coaching Specializations', component: CoachSpecializationsStep },
-  { title: 'Availability & Schedule', component: CoachAvailabilityStep },
-  { title: 'Banking & Compensation', component: CoachBankingStep },
-  { title: 'Review & Submit', component: CoachReviewStep }
+  { title: 'Personal Info', component: CoachPersonalInfoStep, estimatedMinutes: 3, helpText: 'Tell us about yourself and your coaching background.' },
+  { title: 'Application Fee', component: CoachPaymentStep, estimatedMinutes: 2, helpText: 'A one-time fee to cover background verification and processing.' },
+  { title: 'Qualifications', component: CoachQualificationsStep, estimatedMinutes: 3, helpText: 'Share your certifications and professional experience.' },
+  { title: 'Specializations', component: CoachSpecializationsStep, estimatedMinutes: 2, helpText: 'Select the areas where you excel at helping clients.' },
+  { title: 'Availability', component: CoachAvailabilityStep, estimatedMinutes: 2, helpText: 'Set your working hours and session preferences.' },
+  { title: 'Banking', component: CoachBankingStep, estimatedMinutes: 2, helpText: 'Set up how you want to receive your earnings.' },
+  { title: 'Review', component: CoachReviewStep, estimatedMinutes: 1, helpText: 'Review your application before submitting.' }
 ];
+
+const milestoneSteps = [2, 4, 6];
 
 export default function CoachOnboardingFlow() {
   const { 
     currentStep, 
     totalSteps, 
-    progress, 
     nextStep, 
     previousStep,
     saveProgress,
@@ -41,10 +44,13 @@ export default function CoachOnboardingFlow() {
 
   const [isValidStep, setIsValidStep] = useState(false);
   const [paymentVerified, setPaymentVerified] = useState(false);
+  const [showMilestone, setShowMilestone] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const CurrentStepComponent = steps[currentStep].component;
+  const userName = data.firstName;
 
-  // Listen for payment completion
   useEffect(() => {
     const handlePaymentComplete = (event: CustomEvent) => {
       if (event.detail.paid) {
@@ -59,15 +65,39 @@ export default function CoachOnboardingFlow() {
     };
   }, [updateData]);
 
-  // Check if payment is already completed
   useEffect(() => {
     if (data.applicationFeePaid) {
       setPaymentVerified(true);
     }
   }, [data.applicationFeePaid]);
 
+  useEffect(() => {
+    if (milestoneSteps.includes(currentStep) && currentStep > 0) {
+      const hasSeenMilestone = sessionStorage.getItem(`coach_milestone_${currentStep}`);
+      if (!hasSeenMilestone) {
+        setShowMilestone(true);
+      }
+    }
+  }, [currentStep]);
+
+  useEffect(() => {
+    const autoSaveInterval = setInterval(async () => {
+      if (Object.keys(data).length > 0) {
+        try {
+          setIsSaving(true);
+          await saveProgress();
+          setLastSaved(new Date());
+        } catch (error) {
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [data, saveProgress]);
+
   const handleNext = async () => {
-    // For payment step (step 1), require payment verification
     if (currentStep === 1 && !paymentVerified) {
       return;
     }
@@ -75,46 +105,99 @@ export default function CoachOnboardingFlow() {
     if (isValidStep) {
       try {
         await saveProgress();
+        setLastSaved(new Date());
         nextStep();
         setIsValidStep(false);
       } catch (error) {
-        // Error is handled in context
       }
     }
   };
 
   const handlePrevious = () => {
     previousStep();
-    setIsValidStep(true); // Previous steps are already valid
+    setIsValidStep(true);
   };
 
-  // Prepare step data for visual progress indicator
-  const progressSteps = steps.map((step, index) => ({
-    id: `step-${index}`,
-    title: step.title,
-    status: index < currentStep ? 'completed' as const : index === currentStep ? 'current' as const : 'upcoming' as const
-  }));
+  const handleCloseMilestone = () => {
+    sessionStorage.setItem(`coach_milestone_${currentStep}`, 'true');
+    setShowMilestone(false);
+  };
+
+  const getPersonalizedMessage = () => {
+    if (currentStep === 0) {
+      return userName 
+        ? `Welcome, ${userName}! Let's start your coach application.`
+        : "Let's get you started as a wellness coach.";
+    }
+    const messages = [
+      "Thank you for wanting to make a difference!",
+      "Your investment helps us maintain high standards.",
+      "Your expertise will help so many people.",
+      "These skills make you uniquely qualified.",
+      "Set a schedule that works for your life.",
+      "Almost done with your application!",
+      "Review everything before we submit."
+    ];
+    return userName 
+      ? `${userName}, ${messages[currentStep].toLowerCase()}`
+      : messages[currentStep];
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Visual Step Progress Indicator */}
-      <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-        <StepProgressIndicator 
-          steps={progressSteps}
-          currentStep={currentStep}
-          orientation="horizontal"
-          showDescriptions={false}
-        />
-      </div>
+    <TooltipProvider>
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <AnimatePresence>
+          {showMilestone && (
+            <MilestoneBanner
+              milestone={currentStep}
+              totalSteps={totalSteps}
+              userName={userName}
+              onContinue={handleCloseMilestone}
+              onboardingType="coach"
+            />
+          )}
+        </AnimatePresence>
 
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold">Coach Application</h2>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Step {currentStep + 1} of {totalSteps}
-            </span>
+        <EnhancedProgressBar 
+          currentStep={currentStep}
+          steps={steps}
+          userName={userName}
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+        >
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Award className="h-6 w-6 text-blue-600" />
+              {getPersonalizedMessage()}
+            </h2>
+            {lastSaved && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                <Save className="h-3 w-3" />
+                {isSaving ? 'Saving...' : `Last saved ${lastSaved.toLocaleTimeString()}`}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-500"
+                  data-testid="button-help"
+                >
+                  <HelpCircle className="h-4 w-4 mr-1" />
+                  Help
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p>{steps[currentStep].helpText}</p>
+              </TooltipContent>
+            </Tooltip>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -125,60 +208,94 @@ export default function CoachOnboardingFlow() {
               Exit Application
             </Button>
           </div>
+        </motion.div>
+
+        <Card className="shadow-lg border-0 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  {steps[currentStep].title}
+                  <Badge variant="secondary" className="text-xs">
+                    ~{steps[currentStep].estimatedMinutes} min
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  Join our team of professional wellness coaches making a difference.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CurrentStepComponent onValidChange={setIsValidStep} />
+              </motion.div>
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+            className="flex items-center justify-center gap-2 py-6 sm:py-4"
+            data-testid="button-previous"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+
+          <Button
+            onClick={handleNext}
+            disabled={!isValidStep || isLoading || (currentStep === 1 && !paymentVerified)}
+            className="flex items-center justify-center gap-2 py-6 sm:py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            data-testid="button-next"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              <>
+                {currentStep === totalSteps - 1 ? 'Submit Application' : 'Continue'}
+                <ChevronRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
         </div>
-        <Progress value={progress} className="h-3" />
-      </div>
 
-      {/* Step Content */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>{steps[currentStep].title}</CardTitle>
-          <CardDescription>
-            Join our team of professional wellness coaches making a difference.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CurrentStepComponent onValidChange={setIsValidStep} />
-            </motion.div>
-          </AnimatePresence>
-        </CardContent>
-      </Card>
+        {currentStep === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <TestimonialsCarousel type="coach" />
+          </motion.div>
+        )}
 
-      {/* Navigation */}
-      <div className="flex justify-between mt-8">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-          className="flex items-center gap-2"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400 space-y-1"
         >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </Button>
-
-        <Button
-          onClick={handleNext}
-          disabled={!isValidStep || isLoading}
-          className="flex items-center gap-2"
-        >
-          {currentStep === totalSteps - 1 ? 'Submit Application' : 'Next'}
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+          <p className="flex items-center justify-center gap-2">
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Your information is secure and encrypted
+          </p>
+          <p>Questions? Email us at coaches@wholewellnesscoaching.org</p>
+        </motion.div>
       </div>
-
-      {/* Help Text */}
-      <div className="mt-8 text-center text-sm text-gray-600">
-        <p>Questions? Email us at coaches@wholewellnesscoaching.org</p>
-        <p>All information is kept confidential and secure.</p>
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }
