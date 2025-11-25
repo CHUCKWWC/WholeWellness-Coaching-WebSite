@@ -212,18 +212,14 @@ export default function Subscribe() {
     }
 
     try {
-      const response = await apiRequest("POST", "/api/get-or-create-purchase", {
+      // apiRequest already parses JSON and returns the data directly
+      const data = await apiRequest("POST", "/api/get-or-create-purchase", {
         planId: selectedPlan.id,
         planName: selectedPlan.name,
-        planPrice: selectedPlan.price
+        planPrice: selectedPlan.price,
+        priceType: selectedPlan.priceType
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create purchase');
-      }
-      
-      const data = await response.json();
       setClientSecret(data.clientSecret);
     } catch (err: any) {
       console.error('Purchase creation error:', err);
