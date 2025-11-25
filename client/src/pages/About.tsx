@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import foundersPhoto from "@assets/IMG_0011cropped_1764092256434.jpg";
+import HexagonCollage from "@/components/HexagonCollage";
 
 export default function About() {
   const teamValues = [
@@ -176,6 +177,21 @@ export default function About() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Team Moments Collage */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-secondary mb-4">
+              Our Journey Together
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Moments that capture our mission in action - building connections, supporting communities, and celebrating growth.
+            </p>
+          </div>
+          <HexagonCollage />
         </div>
       </section>
 
