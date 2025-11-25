@@ -6,7 +6,11 @@ import { ArrowRight, Users, Brain, Sparkles } from "lucide-react";
 import DiscoveryQuiz from '@/components/DiscoveryQuiz';
 
 export default function DigitalOnboarding() {
-  const [showQuiz, setShowQuiz] = useState(false);
+  // Check if coming from registration (auto-start quiz)
+  const urlParams = new URLSearchParams(window.location.search);
+  const autoStart = urlParams.get('startQuiz') === 'true';
+  
+  const [showQuiz, setShowQuiz] = useState(autoStart);
 
   if (showQuiz) {
     return <DiscoveryQuiz />;

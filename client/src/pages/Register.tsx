@@ -69,8 +69,8 @@ export default function Register() {
       sessionStorage.setItem('firstLogin', 'true');
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // Redirect to discovery process after registration
-      setLocation("/digital-onboarding");
+      // Redirect to discovery quiz after registration
+      setLocation("/digital-onboarding?startQuiz=true");
     },
     onError: (error: any) => {
       toast({
