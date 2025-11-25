@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import foundersPhoto from "@assets/IMG_0011cropped_1764092256434.jpg";
 
 export default function About() {
   const teamValues = [
@@ -128,13 +129,35 @@ export default function About() {
           <h2 className="text-3xl font-bold text-center text-secondary mb-12">
             Our Founders
           </h2>
+          
+          {/* Founders Photo */}
+          <div className="mb-12">
+            <div className="relative rounded-2xl overflow-hidden shadow-xl max-w-2xl mx-auto">
+              <img 
+                src={foundersPhoto} 
+                alt="Dasha Lazaryuk and Dr. Charlene Smith - Co-Founders of Wholewellness Coaching"
+                className="w-full h-auto object-cover"
+                data-testid="img-founders-photo"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                <div className="flex justify-between text-white">
+                  <div className="text-left">
+                    <p className="font-semibold text-lg">Dasha Lazaryuk</p>
+                    <p className="text-sm opacity-90">Co-Founder & Program Director</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-lg">Dr. Charlene Smith</p>
+                    <p className="text-sm opacity-90">Co-Founder & CEO</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
-                <span className="text-white text-2xl font-bold">CS</span>
-              </div>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Dr. Charlene Inman Smith</h3>
-              <p className="text-primary font-medium mb-4">Executive Director & Co-Founder</p>
+              <h3 className="text-xl font-semibold text-secondary mb-2">Dr. Charlene Smith</h3>
+              <p className="text-primary font-medium mb-4">Co-Founder & CEO</p>
               <p className="text-gray-700 leading-relaxed">
                 Dr. Charlene Smith is a dating coach with thirty-six years of experience, living in San Antonio, Texas. 
                 At sixty-seven, she produced and hosted a streaming series, "Set It off Senior Style." She specializes in 
@@ -143,11 +166,8 @@ export default function About() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
-                <span className="text-white text-2xl font-bold">DL</span>
-              </div>
               <h3 className="text-xl font-semibold text-secondary mb-2">Dasha Lazaryuk</h3>
-              <p className="text-primary font-medium mb-4">Program Director & Co-Founder</p>
+              <p className="text-primary font-medium mb-4">Co-Founder & Program Director</p>
               <p className="text-gray-700 leading-relaxed">
                 Dasha is a Divorce & Resource (Time, Money, Energy) Coach specializing in helping women reclaim their 
                 power amidst a divorce and build their dream life post-divorce. Her goal is to create a support system 
