@@ -1,0 +1,31 @@
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish  connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 Websocket closed code=1006
+VideoSession-BdsEnD7P.js:53 [RetryScheduler] [SignalDisconnect] Un-caught exception WebsocketFailedToConnect in retry-task, initiating retry WebsocketFailedToConnect: [WS]: Error opening websocket connection
+    at Object.FailedToConnect (VideoSession-BdsEnD7P.js:70:399)
+    at WebSocket.i (VideoSession-BdsEnD7P.js:143:184732)
+VideoSession-BdsEnD7P.js:53 Websocket closed code=1006
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish ice connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Subscribe ice connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish  connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Subscribe  connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish ice connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish  connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 Websocket closed code=1006
+The FetchEvent for "https://event.100ms.live/v2/client/report" resulted in a network error response: the promise was rejected.
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Subscribe ice connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Subscribe  connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish ice connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish  connection state change: disconnected
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Subscribe  connection state change: failed
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Publish  connection state change: failed
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: Subscribe  connection state change: disconnected
+VideoSession-BdsEnD7P.js:143 HMS-Store: possible inconsistency detected -  room leave is called when no room is connected
+VideoSession-BdsEnD7P.js:53 [RetryScheduler] [SignalDisconnect] Un-caught exception WebSocketConnectionLost in retry-task, initiating retry WebSocketConnectionLost: Network connection lost
+    at Object.WebSocketConnectionLost (VideoSession-BdsEnD7P.js:70:549)
+    at lPe.validateConnection (VideoSession-BdsEnD7P.js:143:191229)
+    at lPe.<anonymous> (VideoSession-BdsEnD7P.js:143:193110)
+    at Generator.next (<anonymous>)
+    at o (VideoSession-BdsEnD7P.js:53:958)
+VideoSession-BdsEnD7P.js:143 HMS-Store: possible inconsistency detected -  room leave is called when no room is connected
+
+﻿

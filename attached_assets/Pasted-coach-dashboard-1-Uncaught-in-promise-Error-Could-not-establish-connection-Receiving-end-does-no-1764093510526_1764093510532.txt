@@ -1,0 +1,2277 @@
+coach-dashboard:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+VideoSession-BdsEnD7P.js:16776 Creating a worker from 'data:application/javascript;base64,ZnVuY3Rpb24gX3NsaWNlZFRvQXJyYXkociwgZSkgeyByZXR1cm4gX2FycmF5V2l0aEhvbGVzKHIpIHx8IF9pdGVyYWJsZVRvQXJyYXlMaW1pdChyLCBlKSB8fCBfdW5zdXBwb3J0ZWRJdGVyYWJsZVRvQXJyYXkociwgZSkgfHwgX25vbkl0ZXJhYmxlUmVzdCgpOyB9CmZ1bmN0aW9uIF9ub25JdGVyYWJsZVJlc3QoKSB7IHRocm93IG5ldyBUeXBlRXJyb3IoIkludmFsaWQgYXR0ZW1wdCB0byBkZXN0cnVjdHVyZSBub24taXRlcmFibGUgaW5zdGFuY2UuXG5JbiBvcmRlciB0byBiZSBpdGVyYWJsZSwgbm9uLWFycmF5IG9iamVjdHMgbXVzdCBoYXZlIGEgW1N5bWJvbC5pdGVyYXRvcl0oKSBtZXRob2QuIik7IH0KZnVuY3Rpb24gX2l0...VuZXIoIm1lc3NhZ2UiLCBmdW5jdGlvbiBlKG4pIHsKICAgICAgICBuLmRhdGEgJiYgbi5kYXRhLmlkICYmIG4uZGF0YS5pZCA9PT0gciAmJiAodC5yZW1vdmVFdmVudExpc3RlbmVyKCJtZXNzYWdlIiwgZSksIGEobi5kYXRhKSk7CiAgICAgIH0pLCB0LnN0YXJ0ICYmIHQuc3RhcnQoKSwgdC5wb3N0TWVzc2FnZShPYmplY3QuYXNzaWduKHsKICAgICAgICBpZDogcgogICAgICB9LCBlKSwgbik7CiAgICB9KTsKICB9CiAgdmFyIE4gPSBuZXcgRSgpOwogIEMoewogICAgZ2V0TFVUVGV4dHVyZTogZnVuY3Rpb24gZ2V0TFVUVGV4dHVyZSh0LCBlKSB7CiAgICAgIHJldHVybiBOLnByb2Nlc3ModCwgZSkuTkVXX0xVVDM2X1JHQmFfVElOVEVEOwogICAgfQogIH0pOwp9KSgpOw==' violates the following Content Security Policy directive: "worker-src 'self' blob: https://*.100ms.live". The action has been blocked.
+(anonymous) @ VideoSession-BdsEnD7P.js:16776
+VideoSession-BdsEnD7P.js:16776 Creating a worker from 'data:application/javascript;base64,ZnVuY3Rpb24gX3NsaWNlZFRvQXJyYXkociwgZSkgeyByZXR1cm4gX2FycmF5V2l0aEhvbGVzKHIpIHx8IF9pdGVyYWJsZVRvQXJyYXlMaW1pdChyLCBlKSB8fCBfdW5zdXBwb3J0ZWRJdGVyYWJsZVRvQXJyYXkociwgZSkgfHwgX25vbkl0ZXJhYmxlUmVzdCgpOyB9CmZ1bmN0aW9uIF9ub25JdGVyYWJsZVJlc3QoKSB7IHRocm93IG5ldyBUeXBlRXJyb3IoIkludmFsaWQgYXR0ZW1wdCB0byBkZXN0cnVjdHVyZSBub24taXRlcmFibGUgaW5zdGFuY2UuXG5JbiBvcmRlciB0byBiZSBpdGVyYWJsZSwgbm9uLWFycmF5IG9iamVjdHMgbXVzdCBoYXZlIGEgW1N5bWJvbC5pdGVyYXRvcl0oKSBtZXRob2QuIik7IH0KZnVuY3Rpb24gX2l0...VuZXIoIm1lc3NhZ2UiLCBmdW5jdGlvbiBlKG4pIHsKICAgICAgICBuLmRhdGEgJiYgbi5kYXRhLmlkICYmIG4uZGF0YS5pZCA9PT0gciAmJiAodC5yZW1vdmVFdmVudExpc3RlbmVyKCJtZXNzYWdlIiwgZSksIGEobi5kYXRhKSk7CiAgICAgIH0pLCB0LnN0YXJ0ICYmIHQuc3RhcnQoKSwgdC5wb3N0TWVzc2FnZShPYmplY3QuYXNzaWduKHsKICAgICAgICBpZDogcgogICAgICB9LCBlKSwgbik7CiAgICB9KTsKICB9CiAgdmFyIE4gPSBuZXcgRSgpOwogIEMoewogICAgZ2V0TFVUVGV4dHVyZTogZnVuY3Rpb24gZ2V0TFVUVGV4dHVyZSh0LCBlKSB7CiAgICAgIHJldHVybiBOLnByb2Nlc3ModCwgZSkuTkVXX0xVVDM2X1JHQmFfVElOVEVEOwogICAgfQogIH0pOwp9KSgpOw==' violates the following Content Security Policy directive: "worker-src 'self' blob: https://*.100ms.live". The action has been blocked.
+(anonymous) @ VideoSession-BdsEnD7P.js:16776
+VideoSession-BdsEnD7P.js:17972 Multiple versions of @tldraw/state detected. This will cause unexpected behavior. Please add "resolutions" (yarn/pnpm) or "overrides" (npm) in your package.json to ensure only one version of @tldraw/state is loaded.
+(anonymous) @ VideoSession-BdsEnD7P.js:17972
+session/8d4bec7c-a9f…8280-c9d27be01ddd:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+VideoSession-BdsEnD7P.js:143 HMS-Store: Reconnection: received error from sdk {code: 1003, action: 'RECONNECT_SIGNAL', name: 'WebSocketConnectionLost', message: 'Network connection lost', description: 'ping pong failure', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onReconnecting @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:143  POST https://event.100ms.live/v2/client/report net::ERR_FAILED
+sendEvent @ VideoSession-BdsEnD7P.js:143
+sendClientEventOnHTTP @ VideoSession-BdsEnD7P.js:143
+flush @ VideoSession-BdsEnD7P.js:143
+sendAnalyticsEvent @ VideoSession-BdsEnD7P.js:143
+ce.emit @ VideoSession-BdsEnD7P.js:51
+WA.publish @ VideoSession-BdsEnD7P.js:143
+sendErrorAnalyticsEvent @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+sw.js:59  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:59:23
+(anonymous) @ sw.js:59
+VideoSession-BdsEnD7P.js:143 WebSocket connection to 'wss://prod-in3.100ms.live/v2/ws?peer=f1a66bb0-6d42-40c7-a847-58de52c7f1ea&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoiYXBwIiwiYXBwX2RhdGEiOm51bGwsImFjY2Vzc19rZXkiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTIiLCJyb2xlIjoiZ3Vlc3QiLCJyb29tX2lkIjoiNjkyM2FlYTg2ZjIyOGE4Zjc0YzlhYzcyIiwidXNlcl9pZCI6ImJlMzg2YTA4LTFhOGEtNGRmNi05MTE4LWUyYmM2YWFiZDI2ZCIsImV4cCI6MTc2NDAzMjU2MCwianRpIjoiZGNjODcxYWItYjAzMi00ZGZiLTgyMWUtZGM1NTJhMzMwYjExIiwiaWF0IjoxNzYzOTQ2MTYwLCJpc3MiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTAiLCJuYmYiOjE3NjM5NDYxNjAsInN1YiI6ImFwaSJ9.YucVkI5_yxSqM1oaxnAFipLG-Pn_2QIRkhLSgl-Itno&user_agent_v2=os%3Aweb_Windows%2Cos_version%3A10%2Csdk%3Aweb%2Csdk_version%3A0.12.39%2Cdevice_model%3AChrome_142.0.0.0%2Cenv%3Aprod%2Cdomain%3ACUSTOM%2Cis_prebuilt%3Atrue%2Cframework%3Areact-web%2Cframework_version%3A18.3.1%2Cframework_sdk_version%3A0.10.39&protocol_version=2.5&protocol_spec=20250115' failed: 
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+open @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+openSignal @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Error from websocket
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: ❌ internal connect: failed WebsocketFailedToConnect: [WS]: Error opening websocket connection
+    at Object.FailedToConnect (VideoSession-BdsEnD7P.js:70:399)
+    at WebSocket.i (VideoSession-BdsEnD7P.js:143:184732)
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+internalConnect @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 WebSocket connection to 'wss://prod-in3.100ms.live/v2/ws?peer=f1a66bb0-6d42-40c7-a847-58de52c7f1ea&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoiYXBwIiwiYXBwX2RhdGEiOm51bGwsImFjY2Vzc19rZXkiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTIiLCJyb2xlIjoiZ3Vlc3QiLCJyb29tX2lkIjoiNjkyM2FlYTg2ZjIyOGE4Zjc0YzlhYzcyIiwidXNlcl9pZCI6ImJlMzg2YTA4LTFhOGEtNGRmNi05MTE4LWUyYmM2YWFiZDI2ZCIsImV4cCI6MTc2NDAzMjU2MCwianRpIjoiZGNjODcxYWItYjAzMi00ZGZiLTgyMWUtZGM1NTJhMzMwYjExIiwiaWF0IjoxNzYzOTQ2MTYwLCJpc3MiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTAiLCJuYmYiOjE3NjM5NDYxNjAsInN1YiI6ImFwaSJ9.YucVkI5_yxSqM1oaxnAFipLG-Pn_2QIRkhLSgl-Itno&user_agent_v2=os%3Aweb_Windows%2Cos_version%3A10%2Csdk%3Aweb%2Csdk_version%3A0.12.39%2Cdevice_model%3AChrome_142.0.0.0%2Cenv%3Aprod%2Cdomain%3ACUSTOM%2Cis_prebuilt%3Atrue%2Cframework%3Areact-web%2Cframework_version%3A18.3.1%2Cframework_sdk_version%3A0.10.39&protocol_version=2.5&protocol_spec=20250115' failed: 
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+open @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+openSignal @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Error from websocket
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: ❌ internal connect: failed WebsocketFailedToConnect: [WS]: Error opening websocket connection
+    at Object.FailedToConnect (VideoSession-BdsEnD7P.js:70:399)
+    at WebSocket.i (VideoSession-BdsEnD7P.js:143:184732)
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+internalConnect @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:143 WebSocket connection to 'wss://prod-in3.100ms.live/v2/ws?peer=f1a66bb0-6d42-40c7-a847-58de52c7f1ea&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoiYXBwIiwiYXBwX2RhdGEiOm51bGwsImFjY2Vzc19rZXkiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTIiLCJyb2xlIjoiZ3Vlc3QiLCJyb29tX2lkIjoiNjkyM2FlYTg2ZjIyOGE4Zjc0YzlhYzcyIiwidXNlcl9pZCI6ImJlMzg2YTA4LTFhOGEtNGRmNi05MTE4LWUyYmM2YWFiZDI2ZCIsImV4cCI6MTc2NDAzMjU2MCwianRpIjoiZGNjODcxYWItYjAzMi00ZGZiLTgyMWUtZGM1NTJhMzMwYjExIiwiaWF0IjoxNzYzOTQ2MTYwLCJpc3MiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTAiLCJuYmYiOjE3NjM5NDYxNjAsInN1YiI6ImFwaSJ9.YucVkI5_yxSqM1oaxnAFipLG-Pn_2QIRkhLSgl-Itno&user_agent_v2=os%3Aweb_Windows%2Cos_version%3A10%2Csdk%3Aweb%2Csdk_version%3A0.12.39%2Cdevice_model%3AChrome_142.0.0.0%2Cenv%3Aprod%2Cdomain%3ACUSTOM%2Cis_prebuilt%3Atrue%2Cframework%3Areact-web%2Cframework_version%3A18.3.1%2Cframework_sdk_version%3A0.10.39&protocol_version=2.5&protocol_spec=20250115' failed: 
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+open @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+openSignal @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Error from websocket
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: ❌ internal connect: failed WebsocketFailedToConnect: [WS]: Error opening websocket connection
+    at Object.FailedToConnect (VideoSession-BdsEnD7P.js:70:399)
+    at WebSocket.i (VideoSession-BdsEnD7P.js:143:184732)
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+internalConnect @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: Reconnection: received error from sdk {code: 1003, action: 'RECONNECT_SIGNAL', name: 'WebSocketConnectionLost', message: 'Network connection lost', description: 'ping pong failure', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onReconnecting @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: received error from sdk {code: 4003, action: 'SUBSCRIBE', name: 'SetLocalDescriptionFailed', message: '[SUBSCRIBE]: Failed to set offer. ', description: "Failed to execute 'setLocalDescription' on 'RTCPee…t local answer sdp: Called in wrong state: stable", …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onError @ VideoSession-BdsEnD7P.js:143
+onFailure @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffer @ VideoSession-BdsEnD7P.js:143
+handleResponseWithMethod @ VideoSession-BdsEnD7P.js:143
+onMessageHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: Reconnection: received error from sdk {code: 1003, action: 'RECONNECT_SIGNAL', name: 'WebSocketConnectionLost', message: 'Network connection lost', description: 'ping pong failure', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onReconnecting @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:143 HMS-Store: Reconnection: received error from sdk {code: 1003, action: 'RECONNECT_SIGNAL', name: 'WebSocketConnectionLost', message: 'Network connection lost', description: 'code: 1006, unexpected websocket close', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onReconnecting @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+onCloseHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 WebSocket connection to 'wss://prod-in3.100ms.live/v2/ws?peer=f1a66bb0-6d42-40c7-a847-58de52c7f1ea&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoiYXBwIiwiYXBwX2RhdGEiOm51bGwsImFjY2Vzc19rZXkiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTIiLCJyb2xlIjoiZ3Vlc3QiLCJyb29tX2lkIjoiNjkyM2FlYTg2ZjIyOGE4Zjc0YzlhYzcyIiwidXNlcl9pZCI6ImJlMzg2YTA4LTFhOGEtNGRmNi05MTE4LWUyYmM2YWFiZDI2ZCIsImV4cCI6MTc2NDAzMjU2MCwianRpIjoiZGNjODcxYWItYjAzMi00ZGZiLTgyMWUtZGM1NTJhMzMwYjExIiwiaWF0IjoxNzYzOTQ2MTYwLCJpc3MiOiI2OGVhNzIxYzE0NWNiNGU4NDQ5YjEzYTAiLCJuYmYiOjE3NjM5NDYxNjAsInN1YiI6ImFwaSJ9.YucVkI5_yxSqM1oaxnAFipLG-Pn_2QIRkhLSgl-Itno&user_agent_v2=os%3Aweb_Windows%2Cos_version%3A10%2Csdk%3Aweb%2Csdk_version%3A0.12.39%2Cdevice_model%3AChrome_142.0.0.0%2Cenv%3Aprod%2Cdomain%3ACUSTOM%2Cis_prebuilt%3Atrue%2Cframework%3Areact-web%2Cframework_version%3A18.3.1%2Cframework_sdk_version%3A0.10.39&protocol_version=2.5&protocol_spec=20250115' failed: 
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+open @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+openSignal @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Error from websocket
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [HMSTransport]: ❌ internal connect: failed WebsocketFailedToConnect: [WS]: Error opening websocket connection
+    at Object.FailedToConnect (VideoSession-BdsEnD7P.js:70:399)
+    at WebSocket.i (VideoSession-BdsEnD7P.js:143:184732)
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+internalConnect @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+onCloseHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: Reconnection: received error from sdk {code: 1003, action: 'RECONNECT_SIGNAL', name: 'WebSocketConnectionLost', message: 'Network connection lost', description: 'ping pong failure', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onReconnecting @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+sw.js:59  Uncaught (in promise) TypeError: Failed to fetch
+    at sw.js:59:23
+(anonymous) @ sw.js:59
+VideoSession-BdsEnD7P.js:143  POST https://event.100ms.live/v2/client/report net::ERR_FAILED
+sendEvent @ VideoSession-BdsEnD7P.js:143
+sendClientEventOnHTTP @ VideoSession-BdsEnD7P.js:143
+flush @ VideoSession-BdsEnD7P.js:143
+sendAnalyticsEvent @ VideoSession-BdsEnD7P.js:143
+ce.emit @ VideoSession-BdsEnD7P.js:51
+WA.publish @ VideoSession-BdsEnD7P.js:143
+sendErrorAnalyticsEvent @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  rejecting pending callback offer, id=b4094b61-3dd5-46e5-a79c-25ed8aac62c4
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+rejectPendingCalls @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Failed sending offer try: 1 {method: 'offer', params: {…}, error: WebSocketConnectionLost: Network connection lost
+    at Object.WebSocketConnectionLost (https://who…}
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+call @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+offer @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+performPublishRenegotiation @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retryPublishIceFailedTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Failed sending offer try: 2 {method: 'offer', params: {…}, error: WebSocketConnectionLost: Network connection lost
+    at Object.WebSocketConnectionLost (https://who…}
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+call @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+offer @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+performPublishRenegotiation @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retryPublishIceFailedTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: received error from sdk {code: 4003, action: 'SUBSCRIBE', name: 'SetLocalDescriptionFailed', message: '[SUBSCRIBE]: Failed to set offer. ', description: "Failed to execute 'setLocalDescription' on 'RTCPee…t local answer sdp: Called in wrong state: stable", …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onError @ VideoSession-BdsEnD7P.js:143
+onFailure @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffer @ VideoSession-BdsEnD7P.js:143
+handleResponseWithMethod @ VideoSession-BdsEnD7P.js:143
+onMessageHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: received error from sdk {code: 4003, action: 'SUBSCRIBE', name: 'SetLocalDescriptionFailed', message: '[SUBSCRIBE]: Failed to set offer. ', description: "Failed to execute 'setLocalDescription' on 'RTCPee…t local answer sdp: Called in wrong state: stable", …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onError @ VideoSession-BdsEnD7P.js:143
+onFailure @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffer @ VideoSession-BdsEnD7P.js:143
+handleResponseWithMethod @ VideoSession-BdsEnD7P.js:143
+onMessageHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: received error from sdk {code: 408, action: 'on-error', name: 'ServerErrors', message: 'ice connection state closed', description: 'ice connection state closed', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onError @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onServerError @ VideoSession-BdsEnD7P.js:143
+handleResponseWithMethod @ VideoSession-BdsEnD7P.js:143
+onMessageHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: error from SDK, left room.
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+Promise.then
+onError @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onServerError @ VideoSession-BdsEnD7P.js:143
+handleResponseWithMethod @ VideoSession-BdsEnD7P.js:143
+onMessageHandler @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 [SIGNAL]:  Failed sending offer try: 3 {method: 'offer', params: {…}, error: WebSocketConnectionLost: Network connection lost
+    at Object.WebSocketConnectionLost (https://who…}
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+call @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+offer @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+performPublishRenegotiation @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retryPublishIceFailedTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:53 Sending offer over WS failed after 3 retries {method: 'offer', params: {…}, error: WebSocketConnectionLost: Network connection lost
+    at Object.WebSocketConnectionLost (https://who…}
+log @ VideoSession-BdsEnD7P.js:53
+e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+call @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+offer @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+performPublishRenegotiation @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retryPublishIceFailedTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+retrySignalDisconnectTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+setTimeoutPromise @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: received error from sdk {code: 1003, action: 'RECONNECT_SIGNAL', name: 'WebSocketConnectionLost', message: 'Network connection lost', description: 'ping pong failure. [SignalDisconnect] Could not recover after 155299 milliseconds', …}
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+onError @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+g @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+VideoSession-BdsEnD7P.js:143 HMS-Store: error from SDK, left room.
+log @ VideoSession-BdsEnD7P.js:143
+e @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+Promise.then
+onError @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+i @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onStateChange @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+s @ VideoSession-BdsEnD7P.js:143
+g @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+a @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+scheduleTask @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+schedule @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+onOffline @ VideoSession-BdsEnD7P.js:143
+setIsConnected @ VideoSession-BdsEnD7P.js:143
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+t @ VideoSession-BdsEnD7P.js:143
+setTimeout
+(anonymous) @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:53
+Promise.then
+s @ VideoSession-BdsEnD7P.js:53
+(anonymous) @ VideoSession-BdsEnD7P.js:53
+_e @ VideoSession-BdsEnD7P.js:53
+pingPongLoop @ VideoSession-BdsEnD7P.js:143
+o @ VideoSession-BdsEnD7P.js:143
+shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1  POST https://r.stripe.com/b net::ERR_NAME_NOT_RESOLVED
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+e @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+c @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+setTimeout
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+log @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+log @ controller-with-preconnect-092006a996cb8b31d014206aff716714.js:1
+ke @ controller-with-preconnect-092006a996cb8b31d014206aff716714.js:1
+(anonymous) @ controller-with-preconnect-092006a996cb8b31d014206aff716714.js:1
+shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1 Uncaught (in promise) FetchError: Error fetching https://r.stripe.com/b: Failed to fetch
+    at shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1:227156
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+Promise.catch
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+e @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+c @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+setTimeout
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+(anonymous) @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+value @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+log @ shared-4b9ca1ebc23c676c6e19da6f4c58dbd5.js:1
+log @ controller-with-preconnect-092006a996cb8b31d014206aff716714.js:1
+ke @ controller-with-preconnect-092006a996cb8b31d014206aff716714.js:1
+(anonymous) @ controller-with-preconnect-092006a996cb8b31d014206aff716714.js:1
