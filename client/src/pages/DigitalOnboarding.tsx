@@ -70,7 +70,7 @@ export default function DigitalOnboarding() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Select from AI Coaching ($299), Live Coaching ($599), or Combined packages ($799) based on your preferences and readiness.
+                Select from AI Coaching ($19.99/month), Live Coaching ($599), or Combined packages ($799) based on your preferences and readiness.
               </CardDescription>
             </CardContent>
           </Card>
@@ -88,7 +88,7 @@ export default function DigitalOnboarding() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
                 <h3 className="font-semibold mb-2 text-blue-900">🤖 AI Coaching</h3>
-                <p className="text-sm text-blue-800 mb-3">24/7 availability, personalized guidance, 6 sessions for $299</p>
+                <p className="text-sm text-blue-800 mb-3">24/7 availability, personalized guidance, $19.99/month</p>
                 <ul className="text-xs text-blue-700 space-y-1">
                   <li>• Immediate responses</li>
                   <li>• Privacy and comfort</li>
