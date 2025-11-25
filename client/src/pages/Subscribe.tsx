@@ -118,26 +118,29 @@ const CoachingPurchaseForm = ({ clientSecret, planName, planPrice, onSuccess }: 
 const pricingPlans = [
   {
     id: 'ai_coaching',
-    name: 'AI Coaching Package',
-    price: '$299',
-    description: 'Six AI coaching sessions guided by proprietary algorithms',
+    name: 'AI Coaching',
+    price: '$19.99',
+    priceType: 'monthly',
+    description: 'Unlimited access to 6 specialized AI coaches',
     features: [
-      '6 AI coaching sessions (50 minutes each)',
+      'Unlimited AI coaching conversations',
+      '6 specialized AI coaches',
       '24/7 availability',
       'Personalized wellness insights',
       'Progress tracking & analytics',
       'Resource library access',
-      'Email support'
+      'Cancel anytime'
     ],
     popular: false,
-    sessions: 6,
+    sessions: 'unlimited',
     sessionType: 'AI',
-    savings: '50% off live coaching rates'
+    savings: 'Best value for ongoing support'
   },
   {
     id: 'live_coaching',
     name: 'Live Coaching Package',
     price: '$599',
+    priceType: 'one-time',
     description: 'Six professional live coaching sessions with certified coaches',
     features: [
       '6 live coaching sessions (50 minutes each)',
@@ -158,6 +161,7 @@ const pricingPlans = [
     id: 'combined',
     name: 'Combined Package',
     price: '$799',
+    priceType: 'one-time',
     description: 'Best value - both AI and live coaching sessions',
     features: [
       '6 AI coaching sessions',
@@ -337,7 +341,7 @@ export default function Subscribe() {
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <div className="text-3xl font-bold text-purple-600">
                     {plan.price}
-                    <span className="text-sm text-gray-500 font-normal"> one-time</span>
+                    <span className="text-sm text-gray-500 font-normal"> {plan.priceType === 'monthly' ? '/month' : 'one-time'}</span>
                   </div>
                   <p className="text-gray-600">{plan.description}</p>
                 </CardHeader>
@@ -363,7 +367,7 @@ export default function Subscribe() {
               <CardContent>
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-semibold">{selectedPlan.name}</h3>
-                  <p className="text-2xl font-bold text-purple-600">{selectedPlan.price} one-time</p>
+                  <p className="text-2xl font-bold text-purple-600">{selectedPlan.price}{selectedPlan.priceType === 'monthly' ? '/month' : ' one-time'}</p>
                   <p className="text-gray-600 mt-2">{selectedPlan.description}</p>
                 </div>
                 

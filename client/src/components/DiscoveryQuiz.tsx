@@ -58,7 +58,7 @@ const currentNeedsOptions = [
 
 const supportPreferences = [
   { id: 'live', label: 'I want to talk to a real coach', description: 'Live Coaching Package - $599' },
-  { id: 'ai', label: 'I prefer tools to explore on my own', description: 'AI Coaching Package - $299' },
+  { id: 'ai', label: 'I prefer tools to explore on my own', description: 'AI Coaching - $19.99/month' },
   { id: 'mix', label: 'A mix of both', description: 'Combined Package - $799' },
   { id: 'unsure', label: "I'm not sure—help me explore options", description: 'We\'ll recommend the best fit' },
 ];
@@ -200,7 +200,7 @@ export default function DiscoveryQuiz() {
         groupSupport,
         pricing: {
           live: 599,
-          ai: 299,
+          ai: 19.99,
           combined: 799
         }
       }
@@ -296,9 +296,9 @@ export default function DiscoveryQuiz() {
                 results.supportPreference === 'ai' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
               }`}>
                 <div className="text-center">
-                  <h3 className="font-semibold mb-2">AI Coaching Package</h3>
-                  <div className="text-2xl font-bold text-blue-600 mb-2">${results.recommendedPath.pricing.ai}</div>
-                  <p className="text-sm text-gray-600 mb-4">6 AI coaching sessions</p>
+                  <h3 className="font-semibold mb-2">AI Coaching</h3>
+                  <div className="text-2xl font-bold text-blue-600 mb-2">${results.recommendedPath.pricing.ai}<span className="text-sm font-normal">/month</span></div>
+                  <p className="text-sm text-gray-600 mb-4">Unlimited AI coaching access</p>
                   <Button 
                     className="w-full" 
                     variant={results.supportPreference === 'ai' ? 'default' : 'outline'}
