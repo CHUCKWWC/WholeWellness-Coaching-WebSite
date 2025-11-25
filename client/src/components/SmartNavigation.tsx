@@ -338,29 +338,31 @@ export default function SmartNavigation() {
           </div>
         </div>
         
-        {/* Quick Access Navigation - Mobile Only */}
-        <div className="lg:hidden border-t border-gray-200 bg-white/80 backdrop-blur-sm">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-2 px-4 py-3 min-w-max">
-              {quickAccessItems.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <button
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 whitespace-nowrap",
-                      location === item.href 
-                        ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm" 
-                        : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
-                    )}
-                    data-testid={`chip-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    {item.icon && <span className="text-base">{item.icon}</span>}
-                    {item.label}
-                  </button>
-                </Link>
-              ))}
+        {/* Quick Access Navigation - Mobile Only - Hidden for anonymous users */}
+        {isAuthenticated && (
+          <div className="lg:hidden border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 px-4 py-3 min-w-max">
+                {quickAccessItems.map((item) => (
+                  <Link key={item.href} href={item.href}>
+                    <button
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 whitespace-nowrap",
+                        location === item.href 
+                          ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm" 
+                          : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                      )}
+                      data-testid={`chip-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      {item.icon && <span className="text-base">{item.icon}</span>}
+                      {item.label}
+                    </button>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </nav>
       
       {/* Smart Search Modal */}
