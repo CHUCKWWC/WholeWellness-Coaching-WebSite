@@ -22,7 +22,6 @@ import { ChatUIProvider, useChatUI } from "@/ui/ChatUIContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import CoachLayout from "@/layouts/CoachLayout";
 import MemberLayout from "@/layouts/MemberLayout";
-import { CrisisSupportBanner } from "@/components/CrisisSupportBanner";
 import { SkipToContent } from "@/components/SkipToContent";
 import DashboardRouter from "@/components/DashboardRouter";
 import SmartOnboarding from "@/components/SmartOnboarding";
@@ -146,7 +145,6 @@ function Router() {
   return (
     <div className="min-h-screen flex flex-col">
       <SkipToContent />
-      <CrisisSupportBanner />
       <SmartNavigation />
       <main id="main-content" className="flex-1 safe-bottom md:pb-0">
         <Switch>
