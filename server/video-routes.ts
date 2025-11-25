@@ -199,9 +199,18 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       roomCode: session.roomCode,
       hostUrl: `/session/${session.id}/join`
     });
-  } catch (error) {
-    console.error("Error creating instant video session:", error);
-    res.status(500).json({ error: "Failed to create instant session" });
+  } catch (error: any) {
+    logger.error("[INSTANT-SESSION] ✗ Error creating session:", {
+      errorMessage: error?.message,
+      errorCode: error?.code,
+      errorDetail: error?.detail,
+      stack: error?.stack,
+      coachId,
+    });
+    res.status(500).json({ 
+      error: "Failed to create instant session",
+      details: error?.message || "Unknown database error"
+    });
   }
 });
 
