@@ -11,16 +11,18 @@ import { Loader2, CreditCard, Shield, CheckCircle, Star, Clock, Users } from 'lu
 import { useLocation } from 'wouter';
 import StripeBuyButton from "@/components/StripeBuyButton";
 
-const AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXWPCFHAup9QfDRmD7BfWZL";
-const LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
-const COMBINED_COACHING_BUY_BUTTON_ID = "buy_btn_1SXWRZFHAup9QfDREiqdoQwv";
+// Stripe Buy Button IDs from environment variables
+const AI_COACHING_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_AI_COACHING_BUY_BUTTON_ID || "buy_btn_1SXWPCFHAup9QfDRmD7BfWZL";
+const LIVE_COACHING_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_LIVE_COACHING_BUY_BUTTON_ID || "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
+const COMBINED_COACHING_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_COMBINED_BUY_BUTTON_ID || "buy_btn_1SXWRZFHAup9QfDREiqdoQwv";
+const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_LIVE_PUBLIC_KEY || import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  console.error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+if (!STRIPE_PUBLISHABLE_KEY) {
+  console.error('Missing required Stripe key: VITE_STRIPE_LIVE_PUBLIC_KEY or VITE_STRIPE_PUBLIC_KEY');
 }
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
 interface CoachingPurchaseFormProps {
   clientSecret: string;
@@ -372,22 +374,31 @@ export default function Subscribe() {
                 </div>
                 
                 {selectedPlan.id === 'ai_coaching' ? (
-                  <div className="space-y-4">
-                    <StripeBuyButton buyButtonId={AI_COACHING_BUY_BUTTON_ID} />
+                  <div className="space-y-4" data-testid="ai-coaching-payment-section">
+                    <StripeBuyButton 
+                      buyButtonId={AI_COACHING_BUY_BUTTON_ID} 
+                      publishableKey={STRIPE_PUBLISHABLE_KEY}
+                    />
                     <p className="text-xs text-gray-500 text-center">
                       Secure subscription powered by Stripe. Cancel anytime.
                     </p>
                   </div>
                 ) : selectedPlan.id === 'live_coaching' ? (
-                  <div className="space-y-4">
-                    <StripeBuyButton buyButtonId={LIVE_COACHING_BUY_BUTTON_ID} />
+                  <div className="space-y-4" data-testid="live-coaching-payment-section">
+                    <StripeBuyButton 
+                      buyButtonId={LIVE_COACHING_BUY_BUTTON_ID}
+                      publishableKey={STRIPE_PUBLISHABLE_KEY}
+                    />
                     <p className="text-xs text-gray-500 text-center">
                       Secure one-time payment powered by Stripe.
                     </p>
                   </div>
                 ) : selectedPlan.id === 'combined' ? (
-                  <div className="space-y-4">
-                    <StripeBuyButton buyButtonId={COMBINED_COACHING_BUY_BUTTON_ID} />
+                  <div className="space-y-4" data-testid="combined-coaching-payment-section">
+                    <StripeBuyButton 
+                      buyButtonId={COMBINED_COACHING_BUY_BUTTON_ID}
+                      publishableKey={STRIPE_PUBLISHABLE_KEY}
+                    />
                     <p className="text-xs text-gray-500 text-center">
                       Best value! Secure one-time payment powered by Stripe.
                     </p>
