@@ -27,10 +27,6 @@ externalPort = 3001
 localPort = 40685
 externalPort = 3000
 
-[[ports]]
-localPort = 45253
-externalPort = 3002
-
 [workflows]
 runButton = "Project"
 
@@ -63,3 +59,4 @@ defaultBucketID = "replit-objstore-aca463dc-bf86-4098-a6d3-5e4137b2921a"
 [userenv.shared]
 VITE_STRIPE_LIVE_PUBLIC_KEY = "pk_live_51RZWPDFHAup9QfDR9nOmIfophtS5wsyFRYf6rTzzB9jg1PjHYSWEAtzL8me4CLAo07aWY1UnnxGZ9dZni9A4WOzC00xaDMx9fU"
 STRIPE_AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w"
+STRIPE_LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w"

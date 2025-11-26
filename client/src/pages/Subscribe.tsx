@@ -12,6 +12,7 @@ import { useLocation } from 'wouter';
 import StripeBuyButton from "@/components/StripeBuyButton";
 
 const AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
+const LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -375,6 +376,13 @@ export default function Subscribe() {
                     <StripeBuyButton buyButtonId={AI_COACHING_BUY_BUTTON_ID} />
                     <p className="text-xs text-gray-500 text-center">
                       Secure subscription powered by Stripe. Cancel anytime.
+                    </p>
+                  </div>
+                ) : selectedPlan.id === 'live_coaching' ? (
+                  <div className="space-y-4">
+                    <StripeBuyButton buyButtonId={LIVE_COACHING_BUY_BUTTON_ID} />
+                    <p className="text-xs text-gray-500 text-center">
+                      Secure one-time payment powered by Stripe.
                     </p>
                   </div>
                 ) : (
