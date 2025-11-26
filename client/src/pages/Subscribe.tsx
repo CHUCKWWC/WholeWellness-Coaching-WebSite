@@ -13,6 +13,7 @@ import StripeBuyButton from "@/components/StripeBuyButton";
 
 const AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
 const LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
+const COMBINED_COACHING_BUY_BUTTON_ID = "buy_btn_1SXWRZFHAup9QfDREiqdoQwv";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -166,20 +167,19 @@ const pricingPlans = [
     name: 'Combined Package',
     price: '$799',
     priceType: 'one-time',
-    description: 'Best value - both AI and live coaching sessions',
+    description: 'Best value - unlimited AI sessions for one year + 6 live sessions with a human coach',
     features: [
-      '6 AI coaching sessions',
-      '6 live coaching sessions', 
-      '12 total sessions (50 minutes each)',
+      'Unlimited AI coaching sessions for 1 year',
+      '6 live coaching sessions with certified coaches', 
       'Hybrid coaching approach',
-      'Flexible scheduling options',
       'All premium features included',
+      'Flexible scheduling options',
       'Maximum support & guidance'
     ],
     popular: false,
     sessions: 12,
     sessionType: 'Hybrid',
-    savings: '$99 savings vs separate packages'
+    savings: 'Best value package!'
   }
 ];
 
@@ -383,6 +383,13 @@ export default function Subscribe() {
                     <StripeBuyButton buyButtonId={LIVE_COACHING_BUY_BUTTON_ID} />
                     <p className="text-xs text-gray-500 text-center">
                       Secure one-time payment powered by Stripe.
+                    </p>
+                  </div>
+                ) : selectedPlan.id === 'combined' ? (
+                  <div className="space-y-4">
+                    <StripeBuyButton buyButtonId={COMBINED_COACHING_BUY_BUTTON_ID} />
+                    <p className="text-xs text-gray-500 text-center">
+                      Best value! Secure one-time payment powered by Stripe.
                     </p>
                   </div>
                 ) : (
