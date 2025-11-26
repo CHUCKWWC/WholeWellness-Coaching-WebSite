@@ -11,7 +11,7 @@ import { Loader2, CreditCard, Shield, CheckCircle, Star, Clock, Users } from 'lu
 import { useLocation } from 'wouter';
 import StripeBuyButton from "@/components/StripeBuyButton";
 
-const AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
+const AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXWPCFHAup9QfDRmD7BfWZL";
 const LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
 const COMBINED_COACHING_BUY_BUTTON_ID = "buy_btn_1SXWRZFHAup9QfDREiqdoQwv";
 
