@@ -132,6 +132,8 @@ export const corsOptions = {
       'https://wholewellness-coaching-website.replit.app',
       'https://wellness-central-charleswatson6.replit.app',
       'https://wholewellnesscoaching.org',
+      'https://wholewellness-coaching.org', // Production domain with hyphen
+      'https://www.wholewellness-coaching.org', // www subdomain
       // Add your production domain here
       process.env.FRONTEND_URL
     ].filter(Boolean);
