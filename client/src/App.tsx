@@ -108,6 +108,7 @@ const Coaches = lazy(() => import("@/pages/Coaches"));
 const UserTutorial = lazy(() => import("@/pages/UserTutorial"));
 const CoachTutorial = lazy(() => import("@/pages/CoachTutorial"));
 const AdminTutorial = lazy(() => import("@/pages/AdminTutorial"));
+const RegistrationConfirmation = lazy(() => import("@/pages/RegistrationConfirmation"));
 
 // Enhanced lazy route wrapper component with performance optimizations
 const LazyRoute = ({ component: Component, loadingText, ...props }: any) => (
@@ -154,6 +155,7 @@ function Router() {
           <Route path="/services" component={Services} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/registration-confirmation" component={(props) => <LazyRoute component={RegistrationConfirmation} loadingText="Loading confirmation..." {...props} />} />
           <Route path="/email-confirm" component={EmailConfirm} />
           <Route path="/programs" component={(props) => <LazyRoute component={Programs} loadingText="Loading Programs..." {...props} />} />
           <Route path="/ai-coaching" component={(props) => <LazyRoute component={AICoaching} loadingText="Initializing AI Coaching..." {...props} />} />

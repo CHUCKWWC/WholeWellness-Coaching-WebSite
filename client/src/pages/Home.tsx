@@ -8,7 +8,7 @@ import OnboardingWelcome from "@/components/OnboardingWelcome";
 import GuidedTour from "@/components/GuidedTour";
 import DashboardQuickAccess from "@/components/DashboardQuickAccess";
 import AuthenticatedWelcome from "@/components/AuthenticatedWelcome";
-// FirstTimeUserExperience removed as obsolete component
+import { WelcomeChecklist } from "@/components/WelcomeChecklist";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showChecklist, setShowChecklist] = useState(false);
 
   // Show welcome experience for first-time visitors (highest priority)
   useEffect(() => {
@@ -58,6 +59,18 @@ export default function Home() {
           setShowOnboarding(true);
         }, 1000);
         return () => clearTimeout(timer);
+      }
+    }
+  }, [isAuthenticated, user]);
+
+  // Show welcome checklist for first-time login users
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const isFirstLogin = sessionStorage.getItem('firstLogin');
+      const checklistDismissed = localStorage.getItem('welcomeChecklistDismissed');
+      if (isFirstLogin === 'true' && checklistDismissed !== 'true') {
+        setShowChecklist(true);
+        sessionStorage.removeItem('firstLogin');
       }
     }
   }, [isAuthenticated, user]);
@@ -118,6 +131,14 @@ export default function Home() {
       {isAuthenticated && (
         <section className="py-8 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {showChecklist && (
+              <div className="mb-8">
+                <WelcomeChecklist 
+                  userName={user?.firstName || user?.name?.split(' ')[0]} 
+                  onDismiss={() => setShowChecklist(false)}
+                />
+              </div>
+            )}
             <AuthenticatedWelcome />
             <DashboardQuickAccess />
           </div>
