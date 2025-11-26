@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { ContextualHelpTrigger } from '@/components/HelpSystem';
 import HelpBubble from '@/components/HelpBubble';
+import StripeBuyButton from '@/components/StripeBuyButton';
 
 
 interface DonationPreset {
@@ -272,21 +273,12 @@ export default function Donate() {
               <p className="text-center text-sm text-gray-600 dark:text-gray-400 max-w-xl">
                 Support our mission with a secure donation through Stripe. Your contribution helps provide life-changing coaching to those who need it most.
               </p>
-              <a 
-                href="https://donate.stripe.com/eVq28rbau9tM4PI5lT" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block"
-              >
-                <Button 
-                  size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg font-semibold"
-                  data-testid="button-stripe-donate"
-                >
-                  <Heart className="h-5 w-5 mr-2" />
-                  Donate Now with Stripe
-                </Button>
-              </a>
+              <div data-testid="stripe-donation-button">
+                <StripeBuyButton 
+                  buyButtonId={import.meta.env.VITE_STRIPE_DONATION_BUY_BUTTON_ID}
+                  publishableKey={import.meta.env.VITE_STRIPE_LIVE_PUBLIC_KEY}
+                />
+              </div>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>🔒 Secure checkout</span>
                 <span>•</span>

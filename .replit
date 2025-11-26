@@ -16,10 +16,6 @@ localPort = 5000
 externalPort = 5000
 
 [[ports]]
-localPort = 35007
-externalPort = 3002
-
-[[ports]]
 localPort = 35841
 externalPort = 80
 
@@ -64,3 +60,4 @@ defaultBucketID = "replit-objstore-aca463dc-bf86-4098-a6d3-5e4137b2921a"
 VITE_STRIPE_LIVE_PUBLIC_KEY = "pk_live_51RZWPDFHAup9QfDR9nOmIfophtS5wsyFRYf6rTzzB9jg1PjHYSWEAtzL8me4CLAo07aWY1UnnxGZ9dZni9A4WOzC00xaDMx9fU"
 STRIPE_AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w"
 STRIPE_LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w"
+VITE_STRIPE_DONATION_BUY_BUTTON_ID = "buy_btn_1SXXLFFHAup9QfDR4aMoE4cW"
