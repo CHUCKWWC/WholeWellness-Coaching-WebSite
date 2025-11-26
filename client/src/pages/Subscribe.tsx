@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CreditCard, Shield, CheckCircle, Star, Clock, Users } from 'lucide-react';
 import { useLocation } from 'wouter';
+import StripeBuyButton from "@/components/StripeBuyButton";
+
+const AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -367,13 +370,23 @@ export default function Subscribe() {
                   <p className="text-gray-600 mt-2">{selectedPlan.description}</p>
                 </div>
                 
-                <Button 
-                  onClick={createPurchase}
-                  className="w-full py-3 text-lg bg-purple-600 hover:bg-purple-700"
-                >
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  Continue to Payment
-                </Button>
+                {selectedPlan.id === 'ai_coaching' ? (
+                  <div className="space-y-4">
+                    <StripeBuyButton buyButtonId={AI_COACHING_BUY_BUTTON_ID} />
+                    <p className="text-xs text-gray-500 text-center">
+                      Secure subscription powered by Stripe. Cancel anytime.
+                    </p>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={createPurchase}
+                    className="w-full py-3 text-lg bg-purple-600 hover:bg-purple-700"
+                    data-testid="button-continue-payment"
+                  >
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Continue to Payment
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
