@@ -57,22 +57,68 @@ export default function VideoSession() {
   };
 
   const handleError = (error: any, errorType: string) => {
+    const getErrorDetails = (err: any) => {
+      const details: any = {
+        type: err?.name || 'UnknownError',
+        message: err?.message || 'Unknown error occurred',
+        code: err?.code || err?.action || 'UNKNOWN',
+        description: err?.description || null,
+        action: err?.action || null,
+        isTerminal: err?.isTerminal || false,
+        nativeError: err?.nativeError?.message || null,
+      };
+
+      if (err?.code === 2003 || err?.action === 'INIT') {
+        details.suggestion = 'Room code may be invalid or expired. Please request a new session link.';
+        details.category = 'ROOM_CODE_ISSUE';
+      } else if (err?.code === 3001 || err?.action === 'TRACK') {
+        details.suggestion = 'Camera or microphone access was denied. Please allow permissions and try again.';
+        details.category = 'PERMISSION_DENIED';
+      } else if (err?.code === 4005 || err?.message?.includes('token')) {
+        details.suggestion = 'Authentication token is invalid or expired. Please rejoin the session.';
+        details.category = 'TOKEN_ISSUE';
+      } else if (err?.message?.includes('network') || err?.message?.includes('connection')) {
+        details.suggestion = 'Network connection issue. Please check your internet and try again.';
+        details.category = 'NETWORK_ISSUE';
+      } else if (err?.message?.includes('role')) {
+        details.suggestion = 'Role configuration error. The session may not be set up correctly.';
+        details.category = 'ROLE_MISMATCH';
+      } else {
+        details.suggestion = 'An unexpected error occurred. Please try refreshing the page.';
+        details.category = 'UNKNOWN';
+      }
+
+      return details;
+    };
+
+    const errorDetails = getErrorDetails(error);
+    
     const errorData = {
       type: errorType,
-      error: error,
+      error: JSON.stringify(error, Object.getOwnPropertyNames(error || {})),
       message: error?.message || 'Unknown error',
       code: error?.code,
       sessionId,
+      roomCode: sessionData?.session?.roomCode,
       userAgent: navigator.userAgent,
       platform: navigator.platform,
       deviceType: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop',
       isIOS: /iPhone|iPad|iPod/.test(navigator.userAgent),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      errorDetails,
+      participantName,
+      userId: user?.id || 'guest',
     };
     
-    console.error('[100ms ERROR]', errorData);
+    console.error('[100ms ERROR - DETAILED]', {
+      ...errorData,
+      rawError: error,
+      errorStack: error?.stack,
+    });
     
-    // Send to backend for persistent logging
+    console.error(`[100ms] Category: ${errorDetails.category}`);
+    console.error(`[100ms] Suggestion: ${errorDetails.suggestion}`);
+    
     fetch('/api/video/log-error', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -179,6 +225,18 @@ export default function VideoSession() {
       </div>
     );
   }
+
+  const isCoachOrAdmin = user?.role === 'coach' || user?.role === 'admin';
+  const joinRole = isCoachOrAdmin ? 'host' : 'guest';
+
+  console.log('[100ms] Preparing to join with:', {
+    roomCode: session.roomCode,
+    userName: participantName,
+    role: joinRole,
+    userId: user?.id || 'guest',
+    isAuthenticated,
+    userRole: user?.role
+  });
 
   return (
     <div className="h-screen w-full relative" data-testid="video-session-container">

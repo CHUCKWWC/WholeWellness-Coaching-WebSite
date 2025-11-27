@@ -20,7 +20,10 @@ import {
   generateAuthToken, 
   endSession, 
   getRecording, 
-  createRoomWithCode 
+  createRoomWithCode,
+  getAvailableRoles,
+  validateRoomCode,
+  getTemplateRoles
 } from "./video-service";
 
 logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully");
@@ -66,6 +69,194 @@ router.get("/health", async (req, res) => {
     res.json({ 
       status: "error", 
       sdk: "not_initialized",
+      error: error.message
+    });
+  }
+});
+
+// Diagnostic endpoint: Get available roles from 100ms template
+router.get("/diagnose/roles", async (req, res) => {
+  try {
+    logger.info("[VIDEO-DIAGNOSE] Fetching available roles from 100ms...");
+    
+    const templateRoles = await getTemplateRoles();
+    
+    if (!templateRoles) {
+      return res.json({
+        status: "warning",
+        message: "No templates found in 100ms dashboard",
+        availableRoles: [],
+        recommendation: "Create a template in your 100ms dashboard first"
+      });
+    }
+    
+    logger.info(`[VIDEO-DIAGNOSE] ✓ Template roles found: ${templateRoles.roles.join(', ')}`);
+    
+    // Check if "guest" role exists
+    const hasGuestRole = templateRoles.roles.includes('guest');
+    const recommendation = hasGuestRole 
+      ? 'Your template has "guest" role configured correctly'
+      : `Your template does NOT have "guest" role. Available roles: ${templateRoles.roles.join(', ')}. Update the code to use one of these roles, or add "guest" role in 100ms dashboard.`;
+    
+    res.json({
+      status: "ok",
+      templateId: templateRoles.templateId,
+      availableRoles: templateRoles.roles,
+      hasGuestRole,
+      recommendation
+    });
+  } catch (error: any) {
+    logger.error("[VIDEO-DIAGNOSE] ✗ Failed to fetch roles:", error);
+    res.json({
+      status: "error",
+      error: error.message,
+      recommendation: "Check if HMS_ACCESS_KEY and HMS_SECRET are correctly configured"
+    });
+  }
+});
+
+// Diagnostic endpoint: Validate a specific room code (looks up room_id from database)
+router.get("/diagnose/room-code/:roomCode", async (req, res) => {
+  try {
+    const { roomCode } = req.params;
+    logger.info(`[VIDEO-DIAGNOSE] Validating room code: ${roomCode}`);
+    
+    // First, try to find the session in the database to get the room_id
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(sql`LOWER(${videoSessions.roomCode}) = LOWER(${roomCode})`);
+    
+    if (!session) {
+      return res.json({
+        status: "warning",
+        roomCode,
+        message: "Room code not found in database. Cannot validate with 100ms API without room_id.",
+        recommendation: "This session may not exist in the system. Create a new session."
+      });
+    }
+    
+    const validation = await validateRoomCode(roomCode, session.roomId);
+    
+    if (validation.valid) {
+      logger.info(`[VIDEO-DIAGNOSE] ✓ Room code is valid: ${roomCode}`);
+      res.json({
+        status: "ok",
+        roomCode,
+        sessionId: session.id,
+        sessionTitle: session.title,
+        sessionStatus: session.status,
+        ...validation,
+        message: `Room code is valid and ${validation.enabled ? 'enabled' : 'disabled'}`
+      });
+    } else {
+      logger.warn(`[VIDEO-DIAGNOSE] ✗ Room code is invalid: ${roomCode}`);
+      res.json({
+        status: "error",
+        roomCode,
+        sessionId: session.id,
+        sessionTitle: session.title,
+        sessionStatus: session.status,
+        ...validation,
+        recommendation: "This room code may have expired or the room was disabled. Create a new session."
+      });
+    }
+  } catch (error: any) {
+    logger.error("[VIDEO-DIAGNOSE] ✗ Room code validation failed:", error);
+    res.json({
+      status: "error",
+      error: error.message
+    });
+  }
+});
+
+// Diagnostic endpoint: Full session diagnosis
+router.get("/diagnose/session/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    logger.info(`[VIDEO-DIAGNOSE] Running full diagnosis for session: ${sessionId}`);
+    
+    // Get session from database
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+    
+    if (!session) {
+      return res.json({
+        status: "error",
+        message: "Session not found in database",
+        sessionId
+      });
+    }
+    
+    // Validate room code if exists (pass room_id for proper validation)
+    let roomCodeValidation = null;
+    if (session.roomCode && session.roomId) {
+      roomCodeValidation = await validateRoomCode(session.roomCode, session.roomId);
+    }
+    
+    // Get template roles
+    let templateInfo = null;
+    try {
+      templateInfo = await getTemplateRoles();
+    } catch (e: any) {
+      logger.warn("[VIDEO-DIAGNOSE] Could not fetch template info:", e.message);
+    }
+    
+    // Get participants
+    const participants = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.sessionId, sessionId));
+    
+    const diagnosis = {
+      status: "complete",
+      session: {
+        id: session.id,
+        title: session.title,
+        status: session.status,
+        roomId: session.roomId,
+        roomCode: session.roomCode,
+        createdAt: session.createdAt,
+        sessionType: session.sessionType,
+      },
+      roomCodeValidation: roomCodeValidation || { error: "No room code to validate" },
+      templateInfo: templateInfo || { error: "Could not fetch template info" },
+      participantCount: participants.length,
+      issues: [] as string[],
+      recommendations: [] as string[]
+    };
+    
+    // Analyze and add issues/recommendations
+    if (session.status === 'completed' || session.status === 'cancelled') {
+      diagnosis.issues.push("Session is ended or cancelled");
+      diagnosis.recommendations.push("Create a new session to start a video call");
+    }
+    
+    if (!session.roomCode) {
+      diagnosis.issues.push("Session has no room code");
+      diagnosis.recommendations.push("Recreate the session to generate a new room code");
+    } else if (roomCodeValidation && !roomCodeValidation.valid) {
+      diagnosis.issues.push("Room code is invalid or expired");
+      diagnosis.recommendations.push("Create a new instant session to get a fresh room code");
+    }
+    
+    if (templateInfo && !templateInfo.roles.includes('guest')) {
+      diagnosis.issues.push("Template does not have 'guest' role");
+      diagnosis.recommendations.push(`Update code to use one of: ${templateInfo.roles.join(', ')}`);
+    }
+    
+    logger.info(`[VIDEO-DIAGNOSE] Diagnosis complete for session ${sessionId}:`, {
+      issueCount: diagnosis.issues.length,
+      issues: diagnosis.issues
+    });
+    
+    res.json(diagnosis);
+  } catch (error: any) {
+    logger.error("[VIDEO-DIAGNOSE] ✗ Session diagnosis failed:", error);
+    res.json({
+      status: "error",
       error: error.message
     });
   }

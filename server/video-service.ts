@@ -122,14 +122,180 @@ export async function createRoomCode(roomId: string, role: string = "guest"): Pr
   }
 
   try {
-    const roomCode = await hmsClient.roomCodes.create({
+    const roomCode = await (hmsClient.roomCodes as any).create({
       room_id: roomId,
       role: role,
     });
 
-    return roomCode.code;
+    return (roomCode as any).code;
   } catch (error) {
     console.error("Error creating room code:", error);
+    throw error;
+  }
+}
+
+// Get available roles from a room (diagnostic function)
+export async function getAvailableRoles(roomId: string): Promise<{ roles: string[], roomCodes: any[] }> {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
+  }
+
+  try {
+    logger.info(`[getAvailableRoles] Fetching roles for room ${roomId}...`);
+    
+    // Generate management token
+    const tokenResponse = await (hmsClient.auth as any).getManagementToken({});
+    const managementToken = (tokenResponse as any).token || tokenResponse;
+    
+    // Call the REST API to get room codes (which contains all roles)
+    const response = await fetch(`https://api.100ms.live/v2/room-codes/room/${roomId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${managementToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch room codes: ${response.status} ${errorText}`);
+    }
+    
+    const roomCodesResponse = await response.json();
+    const roomCodes = roomCodesResponse.data || roomCodesResponse;
+    const roles = roomCodes.map((code: any) => code.role);
+    
+    logger.info(`[getAvailableRoles] Found roles: ${roles.join(', ')}`);
+    
+    return { roles, roomCodes };
+  } catch (error: any) {
+    logger.error("[getAvailableRoles] Error:", error.message);
+    throw error;
+  }
+}
+
+// Validate a room code by checking if it's active (requires room_id)
+export async function validateRoomCode(roomCode: string, roomId?: string): Promise<{
+  valid: boolean;
+  roomId?: string;
+  role?: string;
+  enabled?: boolean;
+  error?: string;
+  allCodes?: any[];
+}> {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
+  }
+
+  try {
+    logger.info(`[validateRoomCode] Validating room code: ${roomCode}${roomId ? ` for room: ${roomId}` : ''}...`);
+    
+    // Generate management token
+    const tokenResponse = await (hmsClient.auth as any).getManagementToken({});
+    const managementToken = (tokenResponse as any).token || tokenResponse;
+    
+    // If we have a room_id, use it to fetch room codes
+    if (roomId) {
+      const response = await fetch(`https://api.100ms.live/v2/room-codes/room/${roomId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${managementToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.warn(`[validateRoomCode] Failed to fetch room codes: ${response.status} ${errorText}`);
+        return { 
+          valid: false, 
+          error: `Failed to fetch room codes: ${response.status}` 
+        };
+      }
+      
+      const roomCodesResponse = await response.json();
+      const allCodes = roomCodesResponse.data || roomCodesResponse;
+      
+      // Find the matching room code (case-insensitive)
+      const matchingCode = allCodes.find((c: any) => 
+        c.code?.toLowerCase() === roomCode.toLowerCase()
+      );
+      
+      if (matchingCode) {
+        logger.info(`[validateRoomCode] ✓ Room code is valid:`, matchingCode);
+        return {
+          valid: true,
+          roomId: matchingCode.room_id,
+          role: matchingCode.role,
+          enabled: matchingCode.enabled !== false,
+          allCodes
+        };
+      } else {
+        logger.warn(`[validateRoomCode] Room code not found in room's codes. Available codes: ${allCodes.map((c: any) => c.code).join(', ')}`);
+        return {
+          valid: false,
+          error: `Room code '${roomCode}' not found for room. Available: ${allCodes.map((c: any) => c.code).join(', ')}`,
+          allCodes
+        };
+      }
+    }
+    
+    // Without room_id, we can't easily validate (100ms API doesn't support lookup by code alone)
+    logger.warn(`[validateRoomCode] No room_id provided, cannot validate room code`);
+    return { 
+      valid: false, 
+      error: `Cannot validate room code without room_id. 100ms API requires room_id to fetch room codes.` 
+    };
+  } catch (error: any) {
+    logger.error("[validateRoomCode] Error:", error.message);
+    return { valid: false, error: error.message };
+  }
+}
+
+// Get template roles from 100ms dashboard
+export async function getTemplateRoles(): Promise<{ templateId: string, roles: string[] } | null> {
+  if (!hmsClient) {
+    throw new Error("100ms SDK not initialized. Please configure HMS_ACCESS_KEY and HMS_SECRET.");
+  }
+
+  try {
+    logger.info(`[getTemplateRoles] Fetching template roles...`);
+    
+    // Generate management token
+    const tokenResponse = await (hmsClient.auth as any).getManagementToken({});
+    const managementToken = (tokenResponse as any).token || tokenResponse;
+    
+    // Get templates list
+    const response = await fetch(`https://api.100ms.live/v2/templates`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${managementToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch templates: ${response.status} ${errorText}`);
+    }
+    
+    const templatesResponse = await response.json();
+    const templates = templatesResponse.data || templatesResponse;
+    
+    if (templates && templates.length > 0) {
+      const template = templates[0];
+      const roles = template.roles ? Object.keys(template.roles) : [];
+      logger.info(`[getTemplateRoles] Template: ${template.name}, Roles: ${roles.join(', ')}`);
+      
+      return {
+        templateId: template.id,
+        roles: roles
+      };
+    }
+    
+    return null;
+  } catch (error: any) {
+    logger.error("[getTemplateRoles] Error:", error.message);
     throw error;
   }
 }
@@ -162,16 +328,16 @@ export async function createRoomWithCode(options: {
 
     // The 100ms SDK returns the room ID in a property, not directly as 'id'
     // It could be room.id, room.data.id, or just room itself as a string
-    const roomId = typeof room === 'string' ? room : (room.id || room.data?.id || room);
+    const roomId = typeof room === 'string' ? room : ((room as any).id || (room as any).data?.id || room);
     logger.info(`[createRoomWithCode] Extracted room ID: ${roomId}`);
 
     logger.info(`[createRoomWithCode] Step 2: Creating room codes for room ${roomId}...`);
     
     // WORKAROUND: The SDK's roomCodes.create() has a bug, so we'll use the REST API directly
     // Generate management token
-    const tokenResponse = await hmsClient.auth.getManagementToken({ roomId });
+    const tokenResponse = await (hmsClient.auth as any).getManagementToken({});
     // The SDK returns an object with a 'token' property, not the token string directly
-    const managementToken = tokenResponse.token || tokenResponse;
+    const managementToken = (tokenResponse as any).token || tokenResponse;
     logger.info(`[createRoomWithCode] Generated management token: ${typeof managementToken}`);
     
     // Call the REST API directly to create room codes
