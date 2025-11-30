@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { HMSPrebuilt } from "@100mslive/roomkit-react";
+import { JitsiMeeting } from "@jitsi/react-sdk";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, UserPlus } from "lucide-react";
 import ShareSessionDialog from "@/components/video/ShareSessionDialog";
-import "@100mslive/roomkit-react/index.css";
 
 export default function VideoSession() {
   const { sessionId } = useParams();
@@ -15,6 +14,8 @@ export default function VideoSession() {
   const { user, isAuthenticated } = useAuth();
   const [hasLeft, setHasLeft] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [jitsiError, setJitsiError] = useState<string | null>(null);
+  const jitsiApiRef = useRef<any>(null);
 
   // Get participant name from sessionStorage (set by JoinSession page for guests)
   const storedSession = sessionStorage.getItem('videoSession');
@@ -35,6 +36,24 @@ export default function VideoSession() {
     enabled: !!sessionId,
   });
 
+  // Get Jitsi room configuration
+  const { data: jitsiConfig } = useQuery({
+    queryKey: ['/api/video/sessions', sessionId, 'jitsi-config'],
+    queryFn: async () => {
+      const response = await fetch(`/api/video/sessions/${sessionId}/jitsi-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: participantName,
+          userId: user?.id || `guest_${Date.now()}`,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to get Jitsi config');
+      return response.json();
+    },
+    enabled: !!sessionId && !!sessionData?.session,
+  });
+
   // Clean up session storage on unmount
   useEffect(() => {
     return () => {
@@ -43,7 +62,7 @@ export default function VideoSession() {
   }, []);
 
   const handleLeave = () => {
-    console.log('[100ms] User left the session', { sessionId, user: user?.email });
+    console.log('[Jitsi] User left the session', { sessionId, user: user?.email });
     setHasLeft(true);
     
     // Redirect based on user type
@@ -56,85 +75,56 @@ export default function VideoSession() {
     }
   };
 
-  const handleError = (error: any, errorType: string) => {
-    const getErrorDetails = (err: any) => {
-      const details: any = {
-        type: err?.name || 'UnknownError',
-        message: err?.message || 'Unknown error occurred',
-        code: err?.code || err?.action || 'UNKNOWN',
-        description: err?.description || null,
-        action: err?.action || null,
-        isTerminal: err?.isTerminal || false,
-        nativeError: err?.nativeError?.message || null,
-      };
-
-      if (err?.code === 2003 || err?.action === 'INIT') {
-        details.suggestion = 'Room code may be invalid or expired. Please request a new session link.';
-        details.category = 'ROOM_CODE_ISSUE';
-      } else if (err?.code === 3001 || err?.action === 'TRACK') {
-        details.suggestion = 'Camera or microphone access was denied. Please allow permissions and try again.';
-        details.category = 'PERMISSION_DENIED';
-      } else if (err?.code === 4005 || err?.message?.includes('token')) {
-        details.suggestion = 'Authentication token is invalid or expired. Please rejoin the session.';
-        details.category = 'TOKEN_ISSUE';
-      } else if (err?.message?.includes('network') || err?.message?.includes('connection')) {
-        details.suggestion = 'Network connection issue. Please check your internet and try again.';
-        details.category = 'NETWORK_ISSUE';
-      } else if (err?.message?.includes('role')) {
-        details.suggestion = 'Role configuration error. The session may not be set up correctly.';
-        details.category = 'ROLE_MISMATCH';
-      } else {
-        details.suggestion = 'An unexpected error occurred. Please try refreshing the page.';
-        details.category = 'UNKNOWN';
-      }
-
-      return details;
-    };
-
-    const errorDetails = getErrorDetails(error);
+  const handleError = (error: any) => {
+    console.error('[Jitsi ERROR]', error);
+    setJitsiError(error?.message || 'An error occurred with the video call');
     
-    const errorData = {
-      type: errorType,
-      error: JSON.stringify(error, Object.getOwnPropertyNames(error || {})),
-      message: error?.message || 'Unknown error',
-      code: error?.code,
-      sessionId,
-      roomCode: sessionData?.session?.roomCode,
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      deviceType: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop',
-      isIOS: /iPhone|iPad|iPod/.test(navigator.userAgent),
-      timestamp: new Date().toISOString(),
-      errorDetails,
-      participantName,
-      userId: user?.id || 'guest',
-    };
-    
-    console.error('[100ms ERROR - DETAILED]', {
-      ...errorData,
-      rawError: error,
-      errorStack: error?.stack,
-    });
-    
-    console.error(`[100ms] Category: ${errorDetails.category}`);
-    console.error(`[100ms] Suggestion: ${errorDetails.suggestion}`);
-    
+    // Log error to backend
     fetch('/api/video/log-error', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(errorData)
+      body: JSON.stringify({
+        type: 'JITSI_ERROR',
+        error: JSON.stringify(error),
+        message: error?.message || 'Unknown error',
+        sessionId,
+        roomCode: sessionData?.session?.roomCode,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        deviceType: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop',
+        isIOS: /iPhone|iPad|iPod/.test(navigator.userAgent),
+        timestamp: new Date().toISOString(),
+        participantName,
+        userId: user?.id || 'guest',
+      })
     }).catch(err => console.error('Failed to log error to backend:', err));
   };
 
-  const handleJoin = () => {
-    console.log('[100ms] Successfully joined session', {
-      sessionId,
-      roomCode: session?.roomCode,
-      user: user?.email || 'guest',
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      timestamp: new Date().toISOString()
+  const handleJitsiIFrameRef = (iframeRef: HTMLDivElement) => {
+    if (iframeRef) {
+      iframeRef.style.height = '100%';
+      iframeRef.style.width = '100%';
+    }
+  };
+
+  const handleApiReady = (api: any) => {
+    console.log('[Jitsi] API ready', { sessionId });
+    jitsiApiRef.current = api;
+    
+    // Listen for participant left event
+    api.addListener('videoConferenceLeft', () => {
+      handleLeave();
     });
+    
+    // Listen for errors
+    api.addListener('errorOccurred', (error: any) => {
+      handleError(error);
+    });
+  };
+
+  const handleReadyToClose = () => {
+    console.log('[Jitsi] Ready to close');
+    handleLeave();
   };
 
   if (isLoading) {
@@ -159,7 +149,7 @@ export default function VideoSession() {
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             This session could not be found or you don't have permission to access it.
           </p>
-          <Button onClick={() => setLocation('/')}>
+          <Button onClick={() => setLocation('/')} data-testid="button-return-home">
             Return Home
           </Button>
         </Card>
@@ -181,7 +171,10 @@ export default function VideoSession() {
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             This session has already ended.
           </p>
-          <Button onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}>
+          <Button 
+            onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}
+            data-testid="button-return-dashboard"
+          >
             Return to Dashboard
           </Button>
         </Card>
@@ -189,7 +182,7 @@ export default function VideoSession() {
     );
   }
 
-  if (!session.roomCode) {
+  if (!session.roomId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <Card className="p-8 text-center max-w-md">
@@ -198,9 +191,9 @@ export default function VideoSession() {
             Invalid Session
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            This session doesn't have a valid room code.
+            This session doesn't have a valid room configuration.
           </p>
-          <Button onClick={() => setLocation('/')}>
+          <Button onClick={() => setLocation('/')} data-testid="button-return-home-invalid">
             Return Home
           </Button>
         </Card>
@@ -218,7 +211,10 @@ export default function VideoSession() {
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             Thanks for joining!
           </p>
-          <Button onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}>
+          <Button 
+            onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}
+            data-testid="button-return-dashboard-left"
+          >
             Return to Dashboard
           </Button>
         </Card>
@@ -226,33 +222,134 @@ export default function VideoSession() {
     );
   }
 
-  const isCoachOrAdmin = user?.role === 'coach' || user?.role === 'admin';
-  const joinRole = isCoachOrAdmin ? 'host' : 'guest';
+  if (jitsiError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <Card className="p-8 text-center max-w-md">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+            Connection Error
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            {jitsiError}
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button 
+              onClick={() => setJitsiError(null)} 
+              variant="outline"
+              data-testid="button-try-again"
+            >
+              Try Again
+            </Button>
+            <Button 
+              onClick={() => setLocation('/')}
+              data-testid="button-return-home-error"
+            >
+              Return Home
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
-  console.log('[100ms] Preparing to join with:', {
-    roomCode: session.roomCode,
+  // Wait for Jitsi config to be loaded
+  if (!jitsiConfig && sessionData?.session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="p-8 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600 dark:text-gray-300">Preparing video conference...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  const isCoachOrAdmin = user?.role === 'coach' || user?.role === 'admin';
+  const domain = jitsiConfig?.domain || 'meet.jit.si';
+  const roomName = jitsiConfig?.roomName || session.roomId;
+
+  console.log('[Jitsi] Preparing to join with:', {
+    domain,
+    roomName,
     userName: participantName,
-    role: joinRole,
     userId: user?.id || 'guest',
     isAuthenticated,
-    userRole: user?.role
+    userRole: user?.role,
+    isModerator: isCoachOrAdmin,
+    jaasEnabled: jitsiConfig?.isJaasEnabled,
+    hasJwt: !!jitsiConfig?.jwt,
   });
+
+  // Build JitsiMeeting props - only include jwt if it exists and is non-empty
+  const jitsiProps: any = {
+    domain,
+    roomName,
+    configOverwrite: jitsiConfig?.configOverwrite || {
+      startWithAudioMuted: true,
+      startWithVideoMuted: false,
+      disableDeepLinking: true,
+      prejoinPageEnabled: true,
+      enableWelcomePage: false,
+      enableClosePage: false,
+      disableInviteFunctions: false,
+      enableNoisyMicDetection: true,
+      enableNoAudioDetection: true,
+      toolbarButtons: [
+        'camera',
+        'chat',
+        'closedcaptions',
+        'desktop',
+        'filmstrip',
+        'fullscreen',
+        'hangup',
+        'microphone',
+        'participants-pane',
+        'raisehand',
+        'select-background',
+        'settings',
+        'tileview',
+        'toggle-camera',
+        'videoquality',
+      ],
+    },
+    interfaceConfigOverwrite: jitsiConfig?.interfaceConfigOverwrite || {
+      SHOW_JITSI_WATERMARK: true,
+      SHOW_WATERMARK_FOR_GUESTS: false,
+      SHOW_BRAND_WATERMARK: false,
+      SHOW_POWERED_BY: false,
+      SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+      MOBILE_APP_PROMO: false,
+      HIDE_INVITE_MORE_HEADER: false,
+      DISABLE_JOIN_LEAVE_NOTIFICATIONS: false,
+      TOOLBAR_ALWAYS_VISIBLE: false,
+      TOOLBAR_TIMEOUT: 4000,
+    },
+    userInfo: {
+      displayName: participantName,
+      email: user?.email || '',
+    },
+    onApiReady: handleApiReady,
+    onReadyToClose: handleReadyToClose,
+    getIFrameRef: handleJitsiIFrameRef,
+    spinner: () => (
+      <div className="flex items-center justify-center h-full bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-white">Connecting to video session...</p>
+        </div>
+      </div>
+    ),
+  };
+
+  // Only add jwt prop if it exists and is non-empty (for JaaS)
+  if (jitsiConfig?.jwt) {
+    jitsiProps.jwt = jitsiConfig.jwt;
+  }
 
   return (
     <div className="h-screen w-full relative" data-testid="video-session-container">
-      <HMSPrebuilt
-        roomCode={session.roomCode}
-        options={{
-          userName: participantName,
-          userId: user?.id || `guest_${Date.now()}`,
-          rememberDeviceSelection: true,
-        }}
-        onLeave={handleLeave}
-        onJoin={handleJoin}
-        onError={(error: any, errorType: string) => handleError(error, errorType)}
-        logo="/logo.png"
-        style={{ height: "100vh", width: "100%" }}
-      />
+      <JitsiMeeting {...jitsiProps} />
       
       {/* Floating Invite Button - Only show for coaches */}
       {user?.role === 'coach' && (

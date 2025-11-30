@@ -79,16 +79,16 @@ Preferred communication style: Simple, everyday language.
 - **Multi-assessment System**: Comprehensive assessment types with database architecture and API. Supports anonymous assessment submissions where guests can complete assessments without creating an account by providing their email address. Email is stored in the responses JSON field for follow-up communications.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
-- **Video Conferencing System**: 100ms-powered video sessions using HMSPrebuilt component for battle-tested reliability. Features include:
-  - Migrated from custom implementation to @100mslive/roomkit-react HMSPrebuilt component (October 2025)
-  - 90% code reduction in VideoSession component (483 → 150 lines)
-  - Room codes generated via 100ms Management API instead of random strings
+- **Video Conferencing System**: Jitsi-powered video sessions using @jitsi/react-sdk JitsiMeeting component (November 2025). Features include:
+  - Migrated from 100ms to Jitsi for open-source video conferencing
+  - Supports both public Jitsi Meet servers (meet.jit.si) and JaaS (Jitsi as a Service) with JWT authentication
+  - JaaS integration provides moderation, user identity, recording, and transcription features
   - Coach-initiated instant and scheduled sessions
   - Client pre-registration with shareable room codes
   - Guest access without authentication
-  - Automatic video permissions handling
-  - Recording, transcription, and AI summaries
-  - Reliable error recovery and network resilience
+  - Automatic video permissions handling with prejoin page
+  - Role-based access: coaches get moderator privileges, participants get standard access
+  - Environment variables for JaaS: JAAS_APP_ID, JAAS_API_KEY, JAAS_PRIVATE_KEY
 - **Media Upload System**: Comprehensive media upload capabilities using Replit Object Storage with presigned URLs, supporting pictures, videos, documents, and audio. Features include:
   - Uppy.js-powered multi-file upload with progress tracking
   - Direct-to-storage uploads via presigned URLs for security and performance
@@ -114,16 +114,13 @@ Preferred communication style: Simple, everyday language.
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
-  - **CSP Configuration for 100ms Video**: Both server (server/security.ts) and client (client/index.html meta tag) CSP policies configured to allow 100ms video conferencing domains:
-    - `https://*.100ms.live` (wildcard for all 100ms subdomains)
-    - `https://auth.100ms.live` (authentication endpoint - explicit)
-    - `https://prod-init.100ms.live` (initialization endpoint - explicit)
-    - `https://api.100ms.live` (API endpoint - explicit)
-    - `wss://*.100ms.live` (WebSocket connections)
-    - `media-src 'self' blob: https://*.100ms.live` (CRITICAL for iOS video/audio streams)
-  - Critical fix (October 2025): Updated client-side CSP meta tag to match server policy, preventing "Endpoint is not reachable" errors
-  - iOS compatibility fix (October 2025): Added `media-src` directive to CSP for camera/microphone access on iOS devices
-  - **Video Error Logging**: Comprehensive connection error tracking with iOS-specific diagnostics (/api/video/log-error endpoint)
+  - **CSP Configuration for Jitsi Video**: Both server (server/security.ts) and client (client/index.html meta tag) CSP policies configured to allow Jitsi video conferencing domains:
+    - `https://meet.jit.si` and `wss://meet.jit.si` (public Jitsi Meet servers)
+    - `https://8x8.vc` and `wss://8x8.vc` (JaaS - Jitsi as a Service)
+    - `https://*.jitsi.net` and `wss://*.jitsi.net` (Jitsi CDN and services)
+    - `media-src 'self' blob: https://meet.jit.si https://8x8.vc https://*.jitsi.net` (for video/audio streams)
+    - `frame-src` includes Jitsi domains for iframe embedding
+  - **Video Error Logging**: Comprehensive connection error tracking with device-specific diagnostics (/api/video/log-error endpoint)
 - **Performance**: Initial JS bundle <200KB gzipped, code splitting, WebP/AVIF images with responsive srcset, Gzip/brotli compression, CDN caching, indexed database fields.
 
 ## External Dependencies
@@ -134,7 +131,7 @@ Preferred communication style: Simple, everyday language.
 - **SendGrid**: Transactional email service.
 - **Stripe**: Payment processing and subscription management.
 - **n8n**: Workflow automation and AI integration.
-- **100ms**: Video conferencing infrastructure for live coach-client sessions with recording and transcription capabilities.
+- **Jitsi**: Open-source video conferencing via public Jitsi Meet servers (meet.jit.si) or JaaS (8x8.vc) for premium features.
 - **Google OAuth**: Social login and admin authentication.
 - **Gmail API**: Email sending for notifications.
 - **Drizzle ORM**: Type-safe database operations.

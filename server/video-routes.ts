@@ -16,17 +16,16 @@ import {
 import { eq, and, sql } from "drizzle-orm";
 import { log as logger } from "./logger";
 import { 
-  createRoom, 
-  generateAuthToken, 
-  endSession, 
-  getRecording, 
-  createRoomWithCode,
-  getAvailableRoles,
-  validateRoomCode,
-  getTemplateRoles
-} from "./video-service";
+  generateRoomCode,
+  generateRoomName,
+  getRoomConfig,
+  createSessionConfig,
+  isJaasConfigured,
+  getJitsiDomain,
+  generateJaasToken
+} from "./jitsi-service";
 
-logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully");
+logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully (Jitsi integration)");
 import OpenAI from "openai";
 import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth";
 import { getUncachableSendGridClient } from "./sendgrid-service";
@@ -34,135 +33,52 @@ import { getUncachableSendGridClient } from "./sendgrid-service";
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Generate a random room code (lowercase with hyphens for consistency)
-function generateRoomCode(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const randomString = () => Array.from(
-    { length: 3 }, 
-    () => chars[Math.floor(Math.random() * chars.length)]
-  ).join('');
-  
-  return `${randomString()}-${randomString()}-${randomString()}`;
-}
-
-// Health check endpoint to test 100ms SDK initialization
+// Health check endpoint to test Jitsi service
 router.get("/health", async (req, res) => {
   try {
     logger.info("[VIDEO-HEALTH] Health check called");
     
-    // Test if we can create a simple room
-    const testRoom = await createRoomWithCode({
-      name: "Health Check Test Room",
-      description: "Test room to verify SDK initialization",
-      recording: false,
-      role: "guest"
-    });
+    const jaasEnabled = isJaasConfigured();
+    const domain = getJitsiDomain();
+    const testRoomCode = generateRoomCode();
     
-    logger.info("[VIDEO-HEALTH] ✓ SDK working, room created:", testRoom.roomCode);
+    logger.info(`[VIDEO-HEALTH] ✓ Jitsi service ready (JaaS: ${jaasEnabled ? 'enabled' : 'disabled'})`);
     res.json({ 
       status: "ok", 
-      sdk: "initialized",
-      testRoomCode: testRoom.roomCode
+      provider: "jitsi",
+      jaasEnabled,
+      domain,
+      testRoomCode
     });
   } catch (error: any) {
-    logger.error("[VIDEO-HEALTH] ✗ SDK test failed:", error);
+    logger.error("[VIDEO-HEALTH] ✗ Health check failed:", error);
     res.json({ 
       status: "error", 
-      sdk: "not_initialized",
+      provider: "jitsi",
       error: error.message
     });
   }
 });
 
-// Diagnostic endpoint: Get available roles from 100ms template
-router.get("/diagnose/roles", async (req, res) => {
+// Diagnostic endpoint: Check Jitsi configuration
+router.get("/diagnose/config", async (req, res) => {
   try {
-    logger.info("[VIDEO-DIAGNOSE] Fetching available roles from 100ms...");
+    logger.info("[VIDEO-DIAGNOSE] Checking Jitsi configuration...");
     
-    const templateRoles = await getTemplateRoles();
-    
-    if (!templateRoles) {
-      return res.json({
-        status: "warning",
-        message: "No templates found in 100ms dashboard",
-        availableRoles: [],
-        recommendation: "Create a template in your 100ms dashboard first"
-      });
-    }
-    
-    logger.info(`[VIDEO-DIAGNOSE] ✓ Template roles found: ${templateRoles.roles.join(', ')}`);
-    
-    // Check if "guest" role exists
-    const hasGuestRole = templateRoles.roles.includes('guest');
-    const recommendation = hasGuestRole 
-      ? 'Your template has "guest" role configured correctly'
-      : `Your template does NOT have "guest" role. Available roles: ${templateRoles.roles.join(', ')}. Update the code to use one of these roles, or add "guest" role in 100ms dashboard.`;
+    const jaasEnabled = isJaasConfigured();
+    const domain = getJitsiDomain();
     
     res.json({
       status: "ok",
-      templateId: templateRoles.templateId,
-      availableRoles: templateRoles.roles,
-      hasGuestRole,
-      recommendation
+      provider: "jitsi",
+      jaasEnabled,
+      domain,
+      message: jaasEnabled 
+        ? "JaaS is configured. Using 8x8.vc with JWT authentication."
+        : "Using public Jitsi Meet servers (meet.jit.si). Configure JAAS_APP_ID, JAAS_API_KEY, and JAAS_PRIVATE_KEY for premium features."
     });
   } catch (error: any) {
-    logger.error("[VIDEO-DIAGNOSE] ✗ Failed to fetch roles:", error);
-    res.json({
-      status: "error",
-      error: error.message,
-      recommendation: "Check if HMS_ACCESS_KEY and HMS_SECRET are correctly configured"
-    });
-  }
-});
-
-// Diagnostic endpoint: Validate a specific room code (looks up room_id from database)
-router.get("/diagnose/room-code/:roomCode", async (req, res) => {
-  try {
-    const { roomCode } = req.params;
-    logger.info(`[VIDEO-DIAGNOSE] Validating room code: ${roomCode}`);
-    
-    // First, try to find the session in the database to get the room_id
-    const [session] = await db
-      .select()
-      .from(videoSessions)
-      .where(sql`LOWER(${videoSessions.roomCode}) = LOWER(${roomCode})`);
-    
-    if (!session) {
-      return res.json({
-        status: "warning",
-        roomCode,
-        message: "Room code not found in database. Cannot validate with 100ms API without room_id.",
-        recommendation: "This session may not exist in the system. Create a new session."
-      });
-    }
-    
-    const validation = await validateRoomCode(roomCode, session.roomId);
-    
-    if (validation.valid) {
-      logger.info(`[VIDEO-DIAGNOSE] ✓ Room code is valid: ${roomCode}`);
-      res.json({
-        status: "ok",
-        roomCode,
-        sessionId: session.id,
-        sessionTitle: session.title,
-        sessionStatus: session.status,
-        ...validation,
-        message: `Room code is valid and ${validation.enabled ? 'enabled' : 'disabled'}`
-      });
-    } else {
-      logger.warn(`[VIDEO-DIAGNOSE] ✗ Room code is invalid: ${roomCode}`);
-      res.json({
-        status: "error",
-        roomCode,
-        sessionId: session.id,
-        sessionTitle: session.title,
-        sessionStatus: session.status,
-        ...validation,
-        recommendation: "This room code may have expired or the room was disabled. Create a new session."
-      });
-    }
-  } catch (error: any) {
-    logger.error("[VIDEO-DIAGNOSE] ✗ Room code validation failed:", error);
+    logger.error("[VIDEO-DIAGNOSE] ✗ Config check failed:", error);
     res.json({
       status: "error",
       error: error.message
@@ -170,11 +86,11 @@ router.get("/diagnose/room-code/:roomCode", async (req, res) => {
   }
 });
 
-// Diagnostic endpoint: Full session diagnosis
+// Diagnostic endpoint: Check session status
 router.get("/diagnose/session/:sessionId", async (req, res) => {
   try {
     const { sessionId } = req.params;
-    logger.info(`[VIDEO-DIAGNOSE] Running full diagnosis for session: ${sessionId}`);
+    logger.info(`[VIDEO-DIAGNOSE] Running diagnosis for session: ${sessionId}`);
     
     // Get session from database
     const [session] = await db
@@ -190,20 +106,6 @@ router.get("/diagnose/session/:sessionId", async (req, res) => {
       });
     }
     
-    // Validate room code if exists (pass room_id for proper validation)
-    let roomCodeValidation = null;
-    if (session.roomCode && session.roomId) {
-      roomCodeValidation = await validateRoomCode(session.roomCode, session.roomId);
-    }
-    
-    // Get template roles
-    let templateInfo = null;
-    try {
-      templateInfo = await getTemplateRoles();
-    } catch (e: any) {
-      logger.warn("[VIDEO-DIAGNOSE] Could not fetch template info:", e.message);
-    }
-    
     // Get participants
     const participants = await db
       .select()
@@ -212,6 +114,7 @@ router.get("/diagnose/session/:sessionId", async (req, res) => {
     
     const diagnosis = {
       status: "complete",
+      provider: "jitsi",
       session: {
         id: session.id,
         title: session.title,
@@ -221,8 +124,8 @@ router.get("/diagnose/session/:sessionId", async (req, res) => {
         createdAt: session.createdAt,
         sessionType: session.sessionType,
       },
-      roomCodeValidation: roomCodeValidation || { error: "No room code to validate" },
-      templateInfo: templateInfo || { error: "Could not fetch template info" },
+      jaasEnabled: isJaasConfigured(),
+      domain: getJitsiDomain(),
       participantCount: participants.length,
       issues: [] as string[],
       recommendations: [] as string[]
@@ -237,21 +140,9 @@ router.get("/diagnose/session/:sessionId", async (req, res) => {
     if (!session.roomCode) {
       diagnosis.issues.push("Session has no room code");
       diagnosis.recommendations.push("Recreate the session to generate a new room code");
-    } else if (roomCodeValidation && !roomCodeValidation.valid) {
-      diagnosis.issues.push("Room code is invalid or expired");
-      diagnosis.recommendations.push("Create a new instant session to get a fresh room code");
     }
     
-    if (templateInfo && !templateInfo.roles.includes('guest')) {
-      diagnosis.issues.push("Template does not have 'guest' role");
-      diagnosis.recommendations.push(`Update code to use one of: ${templateInfo.roles.join(', ')}`);
-    }
-    
-    logger.info(`[VIDEO-DIAGNOSE] Diagnosis complete for session ${sessionId}:`, {
-      issueCount: diagnosis.issues.length,
-      issues: diagnosis.issues
-    });
-    
+    logger.info(`[VIDEO-DIAGNOSE] Diagnosis complete for session ${sessionId}`);
     res.json(diagnosis);
   } catch (error: any) {
     logger.error("[VIDEO-DIAGNOSE] ✗ Session diagnosis failed:", error);
@@ -338,26 +229,13 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       recordingEnabled = true
     } = req.body;
     
-    // Create 100ms room with room code (for Prebuilt component)
-    let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    let roomCode = `fallback-${Math.random().toString(36).substr(2, 6)}`;
+    // Create Jitsi room configuration
+    const sessionConfig = createSessionConfig(`instant_${Date.now()}`, title);
+    const roomId = sessionConfig.roomName;
+    const roomCode = sessionConfig.roomCode;
     
-    logger.info(`[INSTANT-SESSION] Creating 100ms room with createRoomWithCode...`);
-    try {
-      const room = await createRoomWithCode({
-        name: title,
-        description,
-        recording: recordingEnabled,
-        role: "guest", // Participants will join as guests
-      });
-      roomId = room.roomId;
-      roomCode = room.roomCode.toLowerCase(); // Ensure lowercase for consistency
-      logger.info(`[INSTANT-SESSION] ✓ 100ms room created successfully: ${roomCode}`);
-    } catch (error) {
-      logger.error(`[INSTANT-SESSION] ✗ 100ms room creation failed:`, error);
-      logger.warn(`[INSTANT-SESSION] Using fallback room code: ${roomCode}`);
-      // Fallback values already set above (already lowercase)
-    }
+    logger.info(`[INSTANT-SESSION] Created Jitsi room: ${roomCode} (JaaS: ${sessionConfig.isJaasEnabled})`);
+    logger.info(`[INSTANT-SESSION] Room name: ${roomId}, Domain: ${sessionConfig.domain}`);
 
     // Create session in database
     const [session] = await db.insert(videoSessions).values({
@@ -436,24 +314,12 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
       }
     }
     
-    // Generate room code
-    const roomCode = generateRoomCode();
+    // Create Jitsi room configuration
+    const sessionConfig = createSessionConfig(`scheduled_${Date.now()}`, title);
+    const roomId = sessionConfig.roomName;
+    const roomCode = sessionConfig.roomCode;
     
-    // Create 100ms room (will fail gracefully if credentials not set)
-    let roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    try {
-      const room = await createRoom(roomCode, {
-        name: title,
-        description,
-        recording: recordingEnabled,
-        maxParticipants,
-      });
-      // Use our unique ID to avoid conflicts with existing rooms
-      // Append timestamp to ensure uniqueness even if 100ms returns same roomId
-      roomId = `${room.roomId}_${Date.now()}`;
-    } catch (error) {
-      console.warn("100ms room creation failed, using fallback:", error);
-    }
+    logger.info(`[SESSION-CREATE] Created Jitsi room: ${roomCode} (JaaS: ${sessionConfig.isJaasEnabled})`);
 
     // Create session in database
     const [session] = await db.insert(videoSessions).values({
@@ -480,26 +346,14 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
       });
     }
 
-    // Add client as participant if provided
+    // Add client as participant if provided (Jitsi uses JWTs, not pre-generated tokens)
     if (clientId) {
-      // Generate auth token for the client
-      let authToken = `fallback_token_${clientId}_${Date.now()}`;
-      try {
-        authToken = await generateAuthToken(
-          session.roomId,
-          clientId,
-          "participant"
-        );
-      } catch (error) {
-        console.warn("100ms token generation failed for client, using fallback:", error);
-      }
-
       await db.insert(sessionParticipants).values({
         sessionId: session.id,
         userId: clientId,
         role: "participant",
         isActive: true,
-        authToken,
+        authToken: null, // Jitsi generates JWT on-the-fly when joining
       });
     }
 
@@ -646,30 +500,26 @@ router.post("/sessions/join-public", async (req, res) => {
       console.warn("Guest user creation warning:", userError);
     }
 
-    // Generate auth token for 100ms
-    let authToken = `fallback_token_${guestId}_${Date.now()}`;
-    try {
-      authToken = await generateAuthToken(
-        session.roomId, 
-        guestId, 
-        "participant"
-      );
-    } catch (error) {
-      console.warn("100ms token generation failed for guest, using fallback:", error);
-    }
+    // Generate Jitsi JWT for the guest (if JaaS is configured)
+    const jitsiConfig = getRoomConfig({
+      roomName: session.roomId,
+      userId: guestId,
+      userName: name,
+      moderator: false, // Guests are not moderators
+    });
 
     // Add guest participant to session
     const [participant] = await db.insert(sessionParticipants).values({
       sessionId: session.id,
       userId: guestId,
       role: "participant",
-      authToken,
+      authToken: jitsiConfig.jwt || null, // Store JWT if available
       isActive: true,
     }).returning();
 
     res.json({ 
       success: true, 
-      authToken,
+      jitsiConfig,
       roomId: session.roomId,
       sessionId: session.id,
       participant,
@@ -678,6 +528,53 @@ router.post("/sessions/join-public", async (req, res) => {
   } catch (error) {
     console.error("Error joining session publicly:", error);
     res.status(500).json({ error: "Failed to join session" });
+  }
+});
+
+// Get Jitsi configuration for a session
+router.post("/sessions/:sessionId/jitsi-config", async (req: AuthenticatedRequest | any, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { userName, userId: clientUserId } = req.body;
+    
+    // Get authenticated user info if available
+    const userId = req.user?.id || clientUserId || `guest_${Date.now()}`;
+    const displayName = req.user?.firstName || userName || 'Guest';
+    const userEmail = req.user?.email;
+    const isCoachOrAdmin = req.user?.role === 'coach' || req.user?.role === 'admin';
+    
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // Check if session is active
+    if (session.status === 'completed' || session.status === 'cancelled') {
+      return res.status(400).json({ error: "This session has ended" });
+    }
+
+    // For instant sessions, check if user is the coach for moderator status
+    const isModerator = isCoachOrAdmin || session.coachId === userId;
+
+    // Generate Jitsi room configuration
+    const jitsiConfig = getRoomConfig({
+      roomName: session.roomId,
+      userId,
+      userName: displayName,
+      userEmail,
+      moderator: isModerator,
+    });
+
+    logger.info(`[JITSI-CONFIG] Generated config for ${displayName} (moderator: ${isModerator})`);
+
+    res.json(jitsiConfig);
+  } catch (error: any) {
+    logger.error("[JITSI-CONFIG] Error:", error);
+    res.status(500).json({ error: "Failed to get Jitsi configuration" });
   }
 });
 
@@ -756,20 +653,16 @@ router.post("/sessions/:sessionId/join-token", async (req: AuthenticatedRequest 
     const isAdmin = req.user && req.user.role === 'admin';
 
     // SECURITY FIX: Determine role server-side, NEVER trust client input
-    // Only coach or admin gets host role, everyone else is participant
-    const assignedRole = (isCoach || isAdmin) ? "host" : "participant";
+    // Only coach or admin gets moderator role, everyone else is participant
+    const assignedRole = (isCoach || isAdmin) ? "moderator" : "participant";
 
-    // Generate auth token for 100ms
-    let authToken = `fallback_token_${userId}_${Date.now()}`;
-    try {
-      authToken = await generateAuthToken(
-        session.roomId, 
-        userId, 
-        assignedRole
-      );
-    } catch (error) {
-      console.warn("100ms token generation failed, using fallback:", error);
-    }
+    // Generate Jitsi config with JWT (if JaaS is configured)
+    const jitsiConfig = getRoomConfig({
+      roomName: session.roomId,
+      userId: userId || `guest_${Date.now()}`,
+      userName,
+      moderator: isCoach || isAdmin,
+    });
 
     // For instant sessions with guest users, create a guest user record first
     if (session.sessionType === "instant" && userId && userId.startsWith("guest_") && !req.user) {
@@ -801,7 +694,7 @@ router.post("/sessions/:sessionId/join-token", async (req: AuthenticatedRequest 
         sessionId,
         userId: userId || `guest_anonymous_${Date.now()}`,
         role: assignedRole,
-        authToken,
+        authToken: jitsiConfig.jwt || null,
       }).returning();
       
       res.json({ 
