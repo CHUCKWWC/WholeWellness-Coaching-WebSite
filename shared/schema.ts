@@ -494,6 +494,13 @@ export const coaches = pgTable("coaches", {
   website: varchar("website"),
   socialLinks: jsonb("social_links").$type<{instagram?: string, linkedin?: string, twitter?: string, facebook?: string}>().default({}),
   clientCount: integer("client_count").default(0),
+  // Google Calendar Integration fields
+  googleId: text("google_id"),
+  googleEmail: text("google_email"),
+  googleAccessToken: text("google_access_token"),
+  googleRefreshToken: text("google_refresh_token"),
+  googleTokenExpiry: timestamp("google_token_expiry", { withTimezone: true }),
+  googleCalendarId: text("google_calendar_id").default("primary"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1917,7 +1924,7 @@ export const videoSessions = pgTable("video_sessions", {
   sessionType: varchar("session_type").notNull(), // "one-on-one", "workshop", "group"
   title: varchar("title").notNull(),
   description: text("description"),
-  roomId: varchar("room_id").unique().notNull(), // 100ms room ID
+  roomId: varchar("room_id").unique().notNull(), // Jitsi room ID
   roomCode: varchar("room_code").unique(), // Easy join code for participants
   status: varchar("status").default("scheduled"), // scheduled, in_progress, completed, cancelled
   scheduledStartTime: timestamp("scheduled_start_time").notNull(),
@@ -1929,6 +1936,9 @@ export const videoSessions = pgTable("video_sessions", {
   recordingUrl: varchar("recording_url"),
   transcriptEnabled: boolean("transcript_enabled").default(true),
   aiSummaryEnabled: boolean("ai_summary_enabled").default(true),
+  // Google Meet/Calendar Integration fields
+  meetUrl: text("meet_url"), // Google Meet URL for the session
+  googleEventId: text("google_event_id"), // Google Calendar event ID for cancellation/rescheduling
   metadata: jsonb("metadata"), // Additional session data
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
