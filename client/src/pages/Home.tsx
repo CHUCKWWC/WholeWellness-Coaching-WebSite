@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import type { Testimonial } from "@shared/schema";
 import diverseWomanImg from "@assets/BDCC_1764804690385.jpeg";
-import curlyHairWomanImg from "@assets/wwc_ (2)_1751919370270.jpg";
+import curlyHairWomanImg from "@assets/DLCC_1764804834792.JPEG";
 import diversityIconsImg from "@assets/wwc_ (2)_1751919370272.webp";
 import teamHandsImg from "@assets/wwc_ (9)_1751919370287.jpg";
 
@@ -206,7 +206,7 @@ export default function Home() {
             <div className="order-1 lg:order-2">
               <img 
                 src={curlyHairWomanImg} 
-                alt="Diverse woman with curly hair in supportive coaching environment" 
+                alt="Diverse group of friends enjoying time together at a marina" 
                 className="rounded-2xl shadow-lg w-full h-auto" 
               />
             </div>
