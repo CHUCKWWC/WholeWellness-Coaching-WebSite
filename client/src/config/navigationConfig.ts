@@ -18,39 +18,40 @@ export interface NavCategory {
 
 export type UserRole = 'guest' | 'user' | 'coach' | 'admin' | 'super_admin';
 
-// Main navigation items (always visible)
+// Helper function to get role-appropriate dashboard href
+export const getDashboardHref = (role: UserRole): string => {
+  const dashboardRoutes: Record<UserRole, string> = {
+    guest: '/login',
+    user: '/member-portal',
+    coach: '/coach-dashboard',
+    admin: '/admin-dashboard',
+    super_admin: '/admin-dashboard'
+  };
+  return dashboardRoutes[role] || '/member-portal';
+};
+
+// Main navigation items - ONLY visible to authenticated users
+// Guests see only the Sign In button (no navigation menu)
 export const getMainNavItems = (role: UserRole): NavItem[] => {
+  // Guests get no main nav items - they only see Sign In button
+  if (role === 'guest') {
+    return [];
+  }
+
+  const dashboardHref = getDashboardHref(role);
+  
   const allItems: NavItem[] = [
     { 
       href: "/", 
       label: "Home", 
-      tooltip: "Your wellness dashboard and starting point" 
+      tooltip: "Your wellness dashboard and starting point",
+      roles: ['user', 'coach', 'admin', 'super_admin']
     },
     { 
-      href: "/ai-coaching", 
-      label: "AI Coaching", 
-      tooltip: "Instant support from 6 specialized AI coaches",
-      badge: "Popular",
-      badgeColor: "bg-blue-100 text-blue-700"
-    },
-    { 
-      href: "/wellness-journey", 
-      label: "Wellness Journey", 
-      tooltip: "Personalized plans, goal tracking, and AI insights",
-      badge: "New",
-      badgeColor: "bg-green-100 text-green-700",
-      roles: ['user', 'coach', 'admin', 'super_admin'] // Require authentication
-    },
-    { 
-      href: "/assessments", 
-      label: "Assessments", 
-      tooltip: "Discover your wellness needs with comprehensive evaluations" 
-    },
-    { 
-      href: "/coaches", 
-      label: "Find a Coach", 
-      tooltip: "Browse our directory of verified professional coaches",
-      roles: ['guest', 'user'] // Public directory, hide from coaches/admins
+      href: dashboardHref, 
+      label: "Dashboard", 
+      tooltip: "Access your personalized dashboard",
+      roles: ['user', 'coach', 'admin', 'super_admin']
     },
     { 
       href: "/donate", 
@@ -58,42 +59,59 @@ export const getMainNavItems = (role: UserRole): NavItem[] => {
       tooltip: "Support our mission to provide life-changing coaching",
       badge: "❤️",
       badgeColor: "bg-red-100 text-red-700",
-      roles: ['guest', 'user'] // Don't show donate to coaches/admins
+      roles: ['user'] // Only show donate to regular users, not coaches/admins
     },
   ];
 
   return allItems.filter(item => !item.roles || item.roles.includes(role));
 };
 
-// Dropdown navigation categories
+// Wellness Tools dropdown - includes AI Coaching, Assessments, and wellness features
+export const getWellnessToolsItems = (role: UserRole): NavItem[] => {
+  // No wellness tools for guests - they only see Sign In button
+  if (role === 'guest') {
+    return [];
+  }
+
+  const items: NavItem[] = [
+    { href: "/ai-coaching", label: "AI Coaching", icon: "🤖", badge: "Popular", badgeColor: "bg-blue-100 text-blue-700" },
+    { href: "/assessments", label: "Assessments", icon: "📋" },
+    { href: "/wellness-journey", label: "Wellness Journey", icon: "🎯", badge: "New", badgeColor: "bg-green-100 text-green-700" },
+    { href: "/mental-wellness-hub", label: "Mental Wellness", icon: "🧠" },
+    { href: "/resources", label: "Resources", icon: "📚" },
+  ];
+
+  return items;
+};
+
+// Connect & Support dropdown - includes coaching, events, and contact options
+export const getConnectSupportItems = (role: UserRole): NavItem[] => {
+  // No connect/support items for guests - they only see Sign In button
+  if (role === 'guest') {
+    return [];
+  }
+
+  const allItems: NavItem[] = [
+    { href: "/coaches", label: "Find a Coach", icon: "👨‍🏫", roles: ['user'] },
+    { href: "/tutorial", label: "How to Use Site", icon: "📖" },
+    { href: "/events", label: "Upcoming Events", icon: "📆" },
+    { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user'] },
+    { href: "/contact", label: "Contact Us", icon: "💬" },
+    { href: "/about", label: "About Us", icon: "ℹ️" },
+    { href: "/coach-certifications", label: "Become a Coach", icon: "🎓", roles: ['user'] },
+  ];
+
+  return allItems.filter(item => !item.roles || item.roles.includes(role));
+};
+
+// Dropdown navigation categories (for legacy "More" menu if needed)
 export const getDropdownCategories = (role: UserRole): NavCategory[] => {
+  // Guests get no dropdown categories
+  if (role === 'guest') {
+    return [];
+  }
+
   const allCategories: NavCategory[] = [
-    {
-      title: "Professional Development",
-      items: [
-        { href: "/coach-certifications", label: "Certification Courses", icon: "🎓" },
-        { href: "/coach-signup", label: "Become a Coach", icon: "👩‍🏫", roles: ['guest', 'user'] }
-      ]
-    },
-    {
-      title: "Wellness Tools",
-      items: [
-        { href: "/wellness-journey", label: "My Wellness Journey", icon: "🎯", roles: ['user', 'coach', 'admin', 'super_admin'] },
-        { href: "/mental-wellness-hub", label: "Mental Wellness", icon: "🧠" },
-        { href: "/resources", label: "Resources", icon: "📚" }
-      ]
-    },
-    {
-      title: "Connect & Support",
-      items: [
-        { href: "/coaches", label: "Find a Coach", icon: "👨‍🏫", roles: ['guest', 'user'] },
-        { href: "/tutorial", label: "How to Use Site", icon: "📖", roles: ['guest', 'user'] },
-        { href: "/events", label: "Upcoming Events", icon: "📆" },
-        { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user'] }, // Auth required
-        { href: "/contact", label: "Contact Us", icon: "💬" },
-        { href: "/about", label: "About Us", icon: "ℹ️" }
-      ]
-    },
     {
       title: "Coach Tools",
       roles: ['coach', 'admin', 'super_admin'],
