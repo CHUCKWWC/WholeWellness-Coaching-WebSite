@@ -33,12 +33,18 @@ Preferred communication style: Simple, everyday language.
 - **UI Components**: Radix UI with Tailwind CSS for a custom design system.
 - **Styling**: Tailwind CSS.
 - **UX Optimization**: Guided welcome flows, smart navigation, quick-start dashboards, guided tours, and visual progress indicators.
-- **Navigation System**: 
-  - Role-aware navigation that adapts menu items based on user role (guest, user/member, coach, admin, super_admin)
-  - Unified login system with automatic role detection and smart redirects
+- **Navigation System** (Updated December 2025): 
+  - **Guest Experience**: Minimal navigation showing only Sign In button - no menu items or hamburger menu visible until authenticated
+  - **Authenticated Navigation**: Full navigation appears after login with role-appropriate items:
+    - **Main Items**: Home, Dashboard (role-aware routing), Donate (members only)
+    - **Wellness Tools Dropdown**: AI Coaching, Assessments, Wellness Journey, Mental Wellness, Resources
+    - **Connect & Support Dropdown**: Find a Coach, How to Use Site, Events, Book Appointment, Contact Us, About Us
+    - **More Dropdown**: Coach Tools (coaches only), Admin Tools (admins only)
+  - **Role-Aware Dashboard Routing**: Dashboard button routes to /member-portal (members), /coach-dashboard (coaches), or /admin-dashboard (admins)
+  - **Mobile Navigation**: Hidden for guests; authenticated users see organized collapsible sections
   - DashboardRouter component for automatic role-based dashboard routing
   - Breadcrumb navigation on key pages for location awareness
-  - Mobile-optimized quick access navigation with role-specific items
+  - Key files: client/src/config/navigationConfig.ts, client/src/components/SmartNavigation.tsx
 - **User Guidance**:
   - HelpTooltip component for contextual inline help
   - EmptyState component with clear CTAs for empty data states
