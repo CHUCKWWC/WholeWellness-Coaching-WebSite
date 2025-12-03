@@ -3,7 +3,12 @@ import sgMail from '@sendgrid/mail';
 let connectionSettings: any;
 
 async function getCredentials() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  
+  if (!hostname) {
+    throw new Error('REPLIT_CONNECTORS_HOSTNAME not configured');
+  }
+  
   const xReplitToken = process.env.REPL_IDENTITY 
     ? 'repl ' + process.env.REPL_IDENTITY 
     : process.env.WEB_REPL_RENEWAL 
@@ -14,20 +19,33 @@ async function getCredentials() {
     throw new Error('X_REPLIT_TOKEN not found for repl/depl');
   }
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
+  try {
+    const response = await fetch(
+      'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
+      {
+        headers: {
+          'Accept': 'application/json',
+          'X_REPLIT_TOKEN': xReplitToken
+        }
       }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch SendGrid credentials: ${response.status} ${response.statusText}`);
     }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  if (!connectionSettings || (!connectionSettings.settings.api_key || !connectionSettings.settings.from_email)) {
-    throw new Error('SendGrid not connected');
+    
+    const data = await response.json();
+    connectionSettings = data.items?.[0];
+    
+    if (!connectionSettings || !connectionSettings.settings?.api_key || !connectionSettings.settings?.from_email) {
+      throw new Error('SendGrid not connected. Please connect SendGrid in the Replit integrations panel.');
+    }
+    
+    return {apiKey: connectionSettings.settings.api_key, email: connectionSettings.settings.from_email};
+  } catch (error) {
+    console.error('SendGrid credentials error:', error);
+    throw new Error(`SendGrid configuration error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  return {apiKey: connectionSettings.settings.api_key, email: connectionSettings.settings.from_email};
 }
 
 export async function getUncachableSendGridClient() {
