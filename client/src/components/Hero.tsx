@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Heart } from "lucide-react";
 import diverseTeamImg from "@assets/wwc_ (5)_1751919370279.jpg";
 
 export default function Hero() {
@@ -8,6 +9,20 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
+            {/* Donate Button Above Heading */}
+            <div className="mb-6">
+              <Link href="/donate">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                  data-testid="button-hero-donate"
+                >
+                  <Heart className="h-5 w-5 mr-2 fill-current" />
+                  Donate Now
+                </Button>
+              </Link>
+            </div>
+            
             <h1 className="text-4xl lg:text-6xl font-bold text-secondary mb-6 leading-tight">
               Empowering Lives Through{" "}
               <span className="text-primary">Accessible Coaching</span>
