@@ -10,7 +10,8 @@ import {
   ExternalLink, 
   Loader2,
   Video,
-  Unlink
+  Unlink,
+  RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -36,7 +37,7 @@ export default function GoogleCalendarIntegrationCard() {
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const { data: status, isLoading } = useQuery<CalendarStatus>({
+  const { data: status, isLoading, error, refetch } = useQuery<CalendarStatus>({
     queryKey: ['/api/video/google/calendar/status'],
     refetchInterval: isConnecting ? 2000 : false,
   });
@@ -63,33 +64,49 @@ export default function GoogleCalendarIntegrationCard() {
     try {
       setIsConnecting(true);
       const response = await fetch('/api/video/google/calendar/auth');
+      
+      if (!response.ok) {
+        throw new Error('Failed to get authorization URL');
+      }
+      
       const data = await response.json();
       
-      if (data.authUrl) {
-        const popup = window.open(
-          data.authUrl,
-          'google-calendar-auth',
-          'width=600,height=700,left=200,top=100'
-        );
+      if (!data.authUrl) {
+        throw new Error('No authorization URL received');
+      }
+      
+      const popup = window.open(
+        data.authUrl,
+        'google-calendar-auth',
+        'width=600,height=700,left=200,top=100'
+      );
 
-        const checkPopupClosed = setInterval(() => {
-          if (popup?.closed) {
-            clearInterval(checkPopupClosed);
-            setIsConnecting(false);
-            queryClient.invalidateQueries({ queryKey: ['/api/video/google/calendar/status'] });
-          }
-        }, 500);
-
-        setTimeout(() => {
+      const checkPopupClosed = setInterval(async () => {
+        if (popup?.closed) {
           clearInterval(checkPopupClosed);
           setIsConnecting(false);
-        }, 120000);
-      }
+          
+          await queryClient.invalidateQueries({ queryKey: ['/api/video/google/calendar/status'] });
+          
+          const updatedStatus = queryClient.getQueryData<CalendarStatus>(['/api/video/google/calendar/status']);
+          if (updatedStatus?.connected) {
+            toast({
+              title: 'Calendar Connected',
+              description: 'Your Google Calendar is now connected. Video sessions will create Google Meet links automatically.',
+            });
+          }
+        }
+      }, 500);
+
+      setTimeout(() => {
+        clearInterval(checkPopupClosed);
+        setIsConnecting(false);
+      }, 120000);
     } catch (error) {
       setIsConnecting(false);
       toast({
         title: 'Connection Failed',
-        description: 'Failed to start Google Calendar connection',
+        description: error instanceof Error ? error.message : 'Failed to start Google Calendar connection',
         variant: 'destructive',
       });
     }
@@ -101,6 +118,44 @@ export default function GoogleCalendarIntegrationCard() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Calendar className="h-5 w-5 text-red-600" />
+              Google Calendar
+            </CardTitle>
+            <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Error
+            </Badge>
+          </div>
+          <CardDescription className="text-red-700 dark:text-red-400">
+            Unable to check calendar connection status
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {error instanceof Error ? error.message : 'Please try again later'}
+            </p>
+            <Button 
+              onClick={() => refetch()}
+              variant="outline"
+              className="w-full border-red-300 text-red-700 hover:bg-red-100"
+              data-testid="button-retry-calendar-status"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
           </div>
         </CardContent>
       </Card>
