@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import type { Testimonial } from "@shared/schema";
-import diverseWomanImg from "@assets/wwc_ (4)_1751919370276.jpg";
+import diverseWomanImg from "@assets/BDCC_1764804690385.jpeg";
 import curlyHairWomanImg from "@assets/wwc_ (2)_1751919370270.jpg";
 import diversityIconsImg from "@assets/wwc_ (2)_1751919370272.webp";
 import teamHandsImg from "@assets/wwc_ (9)_1751919370287.jpg";
@@ -178,7 +178,7 @@ export default function Home() {
             <div>
               <img 
                 src={diverseWomanImg} 
-                alt="Professional African American woman in leadership coaching session" 
+                alt="Diverse group of people smiling together in a warm, welcoming environment" 
                 className="rounded-2xl shadow-lg w-full h-auto" 
               />
             </div>
