@@ -472,7 +472,7 @@ export default function WixBooking() {
                       <FormItem>
                         <FormLabel>Phone (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="(555) 123-4567" {...field} />
+                          <Input placeholder="(210) 201-2422" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

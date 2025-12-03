@@ -494,7 +494,7 @@ export default function BookingPage() {
                       <FormItem>
                         <FormLabel>Phone (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="(555) 123-4567" {...field} className="min-h-[48px]" data-testid="input-phone" />
+                          <Input placeholder="(210) 201-2422" {...field} className="min-h-[48px]" data-testid="input-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

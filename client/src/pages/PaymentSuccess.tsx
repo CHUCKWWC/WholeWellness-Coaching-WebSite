@@ -70,7 +70,7 @@ export default function PaymentSuccess() {
               </p>
               <p className="text-sm">
                 <strong>Email:</strong> support@wholewellnesscoaching.org<br />
-                <strong>Phone:</strong> (555) 123-4567
+                <strong>Phone:</strong> (210) 201-2422
               </p>
             </div>
 

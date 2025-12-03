@@ -85,7 +85,7 @@ export default function Contact() {
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Call Us",
-      content: "(555) 123-4567",
+      content: "(210) 201-2422",
       description: "Monday - Friday, 9AM - 6PM"
     },
     {

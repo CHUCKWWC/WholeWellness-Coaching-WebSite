@@ -194,7 +194,7 @@ export default function WeightLossIntake() {
                         <FormItem>
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
-                            <Input placeholder="(555) 123-4567" {...field} />
+                            <Input placeholder="(210) 201-2422" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
