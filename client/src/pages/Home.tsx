@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import type { Testimonial } from "@shared/schema";
 import diverseWomanImg from "@assets/BDCC_1764804690385.jpeg";
-import curlyHairWomanImg from "@assets/DLCC_1764804834792.JPEG";
+import curlyHairWomanImg from "@assets/DLCC_1764804834792.jpeg";
 import diversityIconsImg from "@assets/wwc_ (2)_1751919370272.webp";
 import teamHandsImg from "@assets/wwc_ (9)_1751919370287.jpg";
 
