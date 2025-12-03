@@ -79,16 +79,17 @@ Preferred communication style: Simple, everyday language.
 - **Multi-assessment System**: Comprehensive assessment types with database architecture and API. Supports anonymous assessment submissions where guests can complete assessments without creating an account by providing their email address. Email is stored in the responses JSON field for follow-up communications.
 - **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
 - **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
-- **Video Conferencing System**: Jitsi-powered video sessions using @jitsi/react-sdk JitsiMeeting component (November 2025). Features include:
-  - Migrated from 100ms to Jitsi for open-source video conferencing
-  - Supports both public Jitsi Meet servers (meet.jit.si) and JaaS (Jitsi as a Service) with JWT authentication
-  - JaaS integration provides moderation, user identity, recording, and transcription features
-  - Coach-initiated instant and scheduled sessions
-  - Client pre-registration with shareable room codes
-  - Guest access without authentication
-  - Automatic video permissions handling with prejoin page
-  - Role-based access: coaches get moderator privileges, participants get standard access
-  - Environment variables for JaaS: JAAS_APP_ID, JAAS_API_KEY, JAAS_PRIVATE_KEY
+- **Video Conferencing System**: Google Meet-powered video sessions via Google Calendar API (December 2025). Features include:
+  - Migrated from Jitsi to Google Meet for reliable, enterprise-grade video conferencing
+  - OAuth2 integration with Google Calendar for seamless Meet link generation
+  - Coach-initiated instant and scheduled sessions with automatic calendar events
+  - Automatic Google Meet link creation when coach connects their Google Calendar
+  - Client invitation emails with direct Meet join links
+  - Guest access via room codes (fallback when Meet not available)
+  - GoogleCalendarIntegrationCard component in coach dashboard for connection management
+  - Token refresh handled automatically (Google tokens expire in ~1 hour)
+  - Environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALENDAR_REDIRECT_URI
+  - Key files: server/google-calendar-service.ts, server/video-routes.ts, client/src/components/coach/GoogleCalendarIntegrationCard.tsx
 - **Media Upload System**: Comprehensive media upload capabilities using Replit Object Storage with presigned URLs, supporting pictures, videos, documents, and audio. Features include:
   - Uppy.js-powered multi-file upload with progress tracking
   - Direct-to-storage uploads via presigned URLs for security and performance
@@ -114,12 +115,10 @@ Preferred communication style: Simple, everyday language.
 
 ### System Design Choices
 - **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
-  - **CSP Configuration for Jitsi Video**: Both server (server/security.ts) and client (client/index.html meta tag) CSP policies configured to allow Jitsi video conferencing domains:
-    - `https://meet.jit.si` and `wss://meet.jit.si` (public Jitsi Meet servers)
-    - `https://8x8.vc` and `wss://8x8.vc` (JaaS - Jitsi as a Service)
-    - `https://*.jitsi.net` and `wss://*.jitsi.net` (Jitsi CDN and services)
-    - `media-src 'self' blob: https://meet.jit.si https://8x8.vc https://*.jitsi.net` (for video/audio streams)
-    - `frame-src` includes Jitsi domains for iframe embedding
+  - **CSP Configuration for Google Meet**: Both server (server/security.ts) and client (client/index.html meta tag) CSP policies configured to allow Google domains:
+    - `*.google.com` and `*.googleapis.com` for Google APIs and Meet
+    - `https://meet.google.com` for video conferencing
+    - `frame-src` includes Google domains for OAuth popups
   - **Video Error Logging**: Comprehensive connection error tracking with device-specific diagnostics (/api/video/log-error endpoint)
 - **Performance**: Initial JS bundle <200KB gzipped, code splitting, WebP/AVIF images with responsive srcset, Gzip/brotli compression, CDN caching, indexed database fields.
 
@@ -131,7 +130,7 @@ Preferred communication style: Simple, everyday language.
 - **SendGrid**: Transactional email service.
 - **Stripe**: Payment processing and subscription management.
 - **n8n**: Workflow automation and AI integration.
-- **Jitsi**: Open-source video conferencing via public Jitsi Meet servers (meet.jit.si) or JaaS (8x8.vc) for premium features.
+- **Google Meet**: Enterprise video conferencing via Google Calendar API integration. Coaches connect their Google Calendar to automatically generate Meet links for sessions.
 - **Google OAuth**: Social login and admin authentication.
 - **Gmail API**: Email sending for notifications.
 - **Drizzle ORM**: Type-safe database operations.

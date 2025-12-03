@@ -1,21 +1,18 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { JitsiMeeting } from "@jitsi/react-sdk";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, UserPlus } from "lucide-react";
-import ShareSessionDialog from "@/components/video/ShareSessionDialog";
+import { Loader2, AlertCircle, Video, ExternalLink, Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function VideoSession() {
   const { sessionId } = useParams();
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
-  const [hasLeft, setHasLeft] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
-  const [jitsiError, setJitsiError] = useState<string | null>(null);
-  const jitsiApiRef = useRef<any>(null);
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   // Get participant name from sessionStorage (set by JoinSession page for guests)
   const storedSession = sessionStorage.getItem('videoSession');
@@ -36,24 +33,6 @@ export default function VideoSession() {
     enabled: !!sessionId,
   });
 
-  // Get Jitsi room configuration
-  const { data: jitsiConfig } = useQuery({
-    queryKey: ['/api/video/sessions', sessionId, 'jitsi-config'],
-    queryFn: async () => {
-      const response = await fetch(`/api/video/sessions/${sessionId}/jitsi-config`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: participantName,
-          userId: user?.id || `guest_${Date.now()}`,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to get Jitsi config');
-      return response.json();
-    },
-    enabled: !!sessionId && !!sessionData?.session,
-  });
-
   // Clean up session storage on unmount
   useEffect(() => {
     return () => {
@@ -61,11 +40,37 @@ export default function VideoSession() {
     };
   }, []);
 
-  const handleLeave = () => {
-    console.log('[Jitsi] User left the session', { sessionId, user: user?.email });
-    setHasLeft(true);
-    
-    // Redirect based on user type
+  // Auto-redirect to Google Meet if available
+  useEffect(() => {
+    if (sessionData?.session?.meetUrl) {
+      // Small delay to show the redirect message
+      const timer = setTimeout(() => {
+        window.open(sessionData.session.meetUrl, '_blank');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionData?.session?.meetUrl]);
+
+  const handleJoinMeet = () => {
+    if (sessionData?.session?.meetUrl) {
+      window.open(sessionData.session.meetUrl, '_blank');
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const link = sessionData?.session?.meetUrl;
+    if (link) {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Google Meet link copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleReturn = () => {
     if (user?.role === 'coach') {
       setLocation('/coach-dashboard');
     } else if (isAuthenticated) {
@@ -73,58 +78,6 @@ export default function VideoSession() {
     } else {
       setLocation('/');
     }
-  };
-
-  const handleError = (error: any) => {
-    console.error('[Jitsi ERROR]', error);
-    setJitsiError(error?.message || 'An error occurred with the video call');
-    
-    // Log error to backend
-    fetch('/api/video/log-error', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'JITSI_ERROR',
-        error: JSON.stringify(error),
-        message: error?.message || 'Unknown error',
-        sessionId,
-        roomCode: sessionData?.session?.roomCode,
-        userAgent: navigator.userAgent,
-        platform: navigator.platform,
-        deviceType: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop',
-        isIOS: /iPhone|iPad|iPod/.test(navigator.userAgent),
-        timestamp: new Date().toISOString(),
-        participantName,
-        userId: user?.id || 'guest',
-      })
-    }).catch(err => console.error('Failed to log error to backend:', err));
-  };
-
-  const handleJitsiIFrameRef = (iframeRef: HTMLDivElement) => {
-    if (iframeRef) {
-      iframeRef.style.height = '100%';
-      iframeRef.style.width = '100%';
-    }
-  };
-
-  const handleApiReady = (api: any) => {
-    console.log('[Jitsi] API ready', { sessionId });
-    jitsiApiRef.current = api;
-    
-    // Listen for participant left event
-    api.addListener('videoConferenceLeft', () => {
-      handleLeave();
-    });
-    
-    // Listen for errors
-    api.addListener('errorOccurred', (error: any) => {
-      handleError(error);
-    });
-  };
-
-  const handleReadyToClose = () => {
-    console.log('[Jitsi] Ready to close');
-    handleLeave();
   };
 
   if (isLoading) {
@@ -172,7 +125,7 @@ export default function VideoSession() {
             This session has already ended.
           </p>
           <Button 
-            onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}
+            onClick={handleReturn}
             data-testid="button-return-dashboard"
           >
             Return to Dashboard
@@ -182,198 +135,128 @@ export default function VideoSession() {
     );
   }
 
-  if (!session.roomId) {
+  // If session has Google Meet URL
+  if (session.meetUrl) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <Card className="p-8 text-center max-w-md">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-            Invalid Session
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            This session doesn't have a valid room configuration.
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
+        <Card className="p-8 text-center max-w-lg shadow-xl" data-testid="video-session-container">
+          <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Video className="w-8 h-8 text-white" />
+          </div>
+          
+          <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+            {session.title}
+          </h1>
+          
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Welcome, {participantName}! Your video session is ready.
           </p>
-          <Button onClick={() => setLocation('/')} data-testid="button-return-home-invalid">
-            Return Home
-          </Button>
-        </Card>
-      </div>
-    );
-  }
 
-  if (hasLeft) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <Card className="p-8 text-center max-w-md">
-          <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-            You've left the session
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Thanks for joining!
-          </p>
-          <Button 
-            onClick={() => setLocation(user?.role === 'coach' ? '/coach-dashboard' : '/dashboard')}
-            data-testid="button-return-dashboard-left"
-          >
-            Return to Dashboard
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+              This session uses <strong>Google Meet</strong> for video conferencing.
+            </p>
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              A new tab will open automatically, or click the button below.
+            </p>
+          </div>
 
-  if (jitsiError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <Card className="p-8 text-center max-w-md">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-            Connection Error
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            {jitsiError}
-          </p>
-          <div className="flex gap-2 justify-center">
+          <div className="space-y-3">
             <Button 
-              onClick={() => setJitsiError(null)} 
-              variant="outline"
-              data-testid="button-try-again"
+              onClick={handleJoinMeet}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg"
+              data-testid="button-join-meet"
             >
-              Try Again
+              <Video className="w-5 h-5 mr-2" />
+              Join Google Meet
+              <ExternalLink className="w-4 h-4 ml-2" />
             </Button>
+
             <Button 
-              onClick={() => setLocation('/')}
-              data-testid="button-return-home-error"
+              variant="outline"
+              onClick={handleCopyLink}
+              className="w-full"
+              data-testid="button-copy-link"
             >
-              Return Home
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 mr-2 text-green-500" />
+                  Link Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Meet Link
+                </>
+              )}
+            </Button>
+
+            <Button 
+              variant="ghost"
+              onClick={handleReturn}
+              className="w-full text-gray-500"
+              data-testid="button-return-dashboard-meet"
+            >
+              Return to Dashboard
             </Button>
           </div>
+
+          {session.description && (
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {session.description}
+              </p>
+            </div>
+          )}
         </Card>
       </div>
     );
   }
 
-  // Wait for Jitsi config to be loaded
-  if (!jitsiConfig && sessionData?.session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="p-8 text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-gray-600 dark:text-gray-300">Preparing video conference...</p>
-        </Card>
-      </div>
-    );
-  }
-
-  const isCoachOrAdmin = user?.role === 'coach' || user?.role === 'admin';
-  const domain = jitsiConfig?.domain || 'meet.jit.si';
-  const roomName = jitsiConfig?.roomName || session.roomId;
-
-  console.log('[Jitsi] Preparing to join with:', {
-    domain,
-    roomName,
-    userName: participantName,
-    userId: user?.id || 'guest',
-    isAuthenticated,
-    userRole: user?.role,
-    isModerator: isCoachOrAdmin,
-    jaasEnabled: jitsiConfig?.isJaasEnabled,
-    hasJwt: !!jitsiConfig?.jwt,
-  });
-
-  // Build JitsiMeeting props - only include jwt if it exists and is non-empty
-  const jitsiProps: any = {
-    domain,
-    roomName,
-    configOverwrite: jitsiConfig?.configOverwrite || {
-      startWithAudioMuted: true,
-      startWithVideoMuted: false,
-      disableDeepLinking: true,
-      prejoinPageEnabled: true,
-      enableWelcomePage: false,
-      enableClosePage: false,
-      disableInviteFunctions: false,
-      enableNoisyMicDetection: true,
-      enableNoAudioDetection: true,
-      toolbarButtons: [
-        'camera',
-        'chat',
-        'closedcaptions',
-        'desktop',
-        'filmstrip',
-        'fullscreen',
-        'hangup',
-        'microphone',
-        'participants-pane',
-        'raisehand',
-        'select-background',
-        'settings',
-        'tileview',
-        'toggle-camera',
-        'videoquality',
-      ],
-    },
-    interfaceConfigOverwrite: jitsiConfig?.interfaceConfigOverwrite || {
-      SHOW_JITSI_WATERMARK: true,
-      SHOW_WATERMARK_FOR_GUESTS: false,
-      SHOW_BRAND_WATERMARK: false,
-      SHOW_POWERED_BY: false,
-      SHOW_PROMOTIONAL_CLOSE_PAGE: false,
-      MOBILE_APP_PROMO: false,
-      HIDE_INVITE_MORE_HEADER: false,
-      DISABLE_JOIN_LEAVE_NOTIFICATIONS: false,
-      TOOLBAR_ALWAYS_VISIBLE: false,
-      TOOLBAR_TIMEOUT: 4000,
-    },
-    userInfo: {
-      displayName: participantName,
-      email: user?.email || '',
-    },
-    onApiReady: handleApiReady,
-    onReadyToClose: handleReadyToClose,
-    getIFrameRef: handleJitsiIFrameRef,
-    spinner: () => (
-      <div className="flex items-center justify-center h-full bg-gray-900">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-white">Connecting to video session...</p>
-        </div>
-      </div>
-    ),
-  };
-
-  // Only add jwt prop if it exists and is non-empty (for JaaS)
-  if (jitsiConfig?.jwt) {
-    jitsiProps.jwt = jitsiConfig.jwt;
-  }
-
+  // Fallback: No Google Meet URL (coach hasn't connected calendar)
   return (
-    <div className="h-screen w-full relative" data-testid="video-session-container">
-      <JitsiMeeting {...jitsiProps} />
-      
-      {/* Floating Invite Button - Only show for coaches */}
-      {user?.role === 'coach' && (
-        <div className="absolute top-4 right-4 z-50">
-          <Button
-            onClick={() => setShowShareDialog(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
-            size="sm"
-            data-testid="button-invite-participants"
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Invite
-          </Button>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 p-4">
+      <Card className="p-8 text-center max-w-lg shadow-xl" data-testid="video-session-container">
+        <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertCircle className="w-8 h-8 text-white" />
         </div>
-      )}
+        
+        <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+          {session.title}
+        </h1>
+        
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          Welcome, {participantName}!
+        </p>
 
-      {/* Share Session Dialog */}
-      <ShareSessionDialog
-        open={showShareDialog}
-        onOpenChange={setShowShareDialog}
-        roomCode={session.roomCode}
-        sessionId={session.id}
-        sessionTitle={session.title}
-      />
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+          <p className="text-sm text-amber-700 dark:text-amber-300">
+            <strong>Google Meet link not available</strong>
+          </p>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+            The coach needs to connect their Google Calendar to create video sessions with Google Meet.
+          </p>
+        </div>
+
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Room Code:</p>
+          <p className="text-2xl font-mono font-bold text-purple-600 dark:text-purple-400 tracking-wider">
+            {session.roomCode}
+          </p>
+        </div>
+
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Please contact your coach to obtain the meeting link or ask them to connect their Google Calendar.
+        </p>
+
+        <Button 
+          onClick={handleReturn}
+          className="w-full"
+          data-testid="button-return-dashboard-fallback"
+        >
+          Return to Dashboard
+        </Button>
+      </Card>
     </div>
   );
 }

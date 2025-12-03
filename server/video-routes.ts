@@ -8,6 +8,7 @@ import {
   workshopDetails,
   bookings,
   users,
+  coaches,
   insertVideoSessionSchema,
   insertSessionParticipantSchema,
   insertSessionTranscriptSchema,
@@ -16,16 +17,18 @@ import {
 import { eq, and, sql } from "drizzle-orm";
 import { log as logger } from "./logger";
 import { 
-  generateRoomCode,
-  generateRoomName,
-  getRoomConfig,
-  createSessionConfig,
-  isJaasConfigured,
-  getJitsiDomain,
-  generateJaasToken
-} from "./jitsi-service";
+  createMeetEvent,
+  updateMeetEvent,
+  cancelMeetEvent,
+  isCalendarConnected,
+  getCalendarConnectionStatus,
+  getAuthUrl,
+  handleOAuthCallback,
+  disconnectCalendar,
+  generateRoomCode
+} from "./google-calendar-service";
 
-logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully (Jitsi integration)");
+logger.info("[VIDEO-ROUTES] Video-routes module loaded successfully (Google Meet integration)");
 import OpenAI from "openai";
 import { requireAuth, requireCoachRole, type AuthenticatedRequest } from "./auth";
 import { getUncachableSendGridClient } from "./sendgrid-service";
@@ -33,179 +36,134 @@ import { getUncachableSendGridClient } from "./sendgrid-service";
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Health check endpoint to test Jitsi service
+// Health check endpoint
 router.get("/health", async (req, res) => {
   try {
     logger.info("[VIDEO-HEALTH] Health check called");
-    
-    const jaasEnabled = isJaasConfigured();
-    const domain = getJitsiDomain();
-    const testRoomCode = generateRoomCode();
-    
-    logger.info(`[VIDEO-HEALTH] ✓ Jitsi service ready (JaaS: ${jaasEnabled ? 'enabled' : 'disabled'})`);
     res.json({ 
       status: "ok", 
-      provider: "jitsi",
-      jaasEnabled,
-      domain,
-      testRoomCode
+      provider: "google-meet",
+      message: "Google Meet integration active"
     });
   } catch (error: any) {
     logger.error("[VIDEO-HEALTH] ✗ Health check failed:", error);
     res.json({ 
       status: "error", 
-      provider: "jitsi",
+      provider: "google-meet",
       error: error.message
     });
   }
 });
 
-// Diagnostic endpoint: Check Jitsi configuration
-router.get("/diagnose/config", async (req, res) => {
+// Google Calendar OAuth - initiate connection
+router.get("/google/calendar/auth", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
-    logger.info("[VIDEO-DIAGNOSE] Checking Jitsi configuration...");
-    
-    const jaasEnabled = isJaasConfigured();
-    const domain = getJitsiDomain();
-    
-    res.json({
-      status: "ok",
-      provider: "jitsi",
-      jaasEnabled,
-      domain,
-      message: jaasEnabled 
-        ? "JaaS is configured. Using 8x8.vc with JWT authentication."
-        : "Using public Jitsi Meet servers (meet.jit.si). Configure JAAS_APP_ID, JAAS_API_KEY, and JAAS_PRIVATE_KEY for premium features."
-    });
+    const coachId = req.user!.id;
+    const authUrl = getAuthUrl(coachId);
+    res.json({ authUrl });
   } catch (error: any) {
-    logger.error("[VIDEO-DIAGNOSE] ✗ Config check failed:", error);
-    res.json({
-      status: "error",
-      error: error.message
-    });
+    logger.error("[GOOGLE-OAUTH] Error generating auth URL:", error);
+    res.status(500).json({ error: "Failed to generate Google auth URL" });
   }
 });
 
-// Diagnostic endpoint: Check session status
-router.get("/diagnose/session/:sessionId", async (req, res) => {
+// Google Calendar OAuth callback
+router.get("/google/calendar/callback", async (req, res) => {
   try {
-    const { sessionId } = req.params;
-    logger.info(`[VIDEO-DIAGNOSE] Running diagnosis for session: ${sessionId}`);
+    const { code, state: coachId } = req.query;
     
-    // Get session from database
-    const [session] = await db
-      .select()
-      .from(videoSessions)
-      .where(eq(videoSessions.id, sessionId));
-    
-    if (!session) {
-      return res.json({
-        status: "error",
-        message: "Session not found in database",
-        sessionId
-      });
+    if (!code || !coachId || typeof code !== 'string' || typeof coachId !== 'string') {
+      return res.status(400).send(`
+        <html>
+          <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1 style="color: #dc2626;">Error</h1>
+            <p>Invalid authorization request. Please try again.</p>
+            <a href="/coach-dashboard" style="color: #7c3aed;">Return to Dashboard</a>
+          </body>
+        </html>
+      `);
     }
+
+    await handleOAuthCallback(code, coachId);
     
-    // Get participants
-    const participants = await db
-      .select()
-      .from(sessionParticipants)
-      .where(eq(sessionParticipants.sessionId, sessionId));
-    
-    const diagnosis = {
-      status: "complete",
-      provider: "jitsi",
-      session: {
-        id: session.id,
-        title: session.title,
-        status: session.status,
-        roomId: session.roomId,
-        roomCode: session.roomCode,
-        createdAt: session.createdAt,
-        sessionType: session.sessionType,
-      },
-      jaasEnabled: isJaasConfigured(),
-      domain: getJitsiDomain(),
-      participantCount: participants.length,
-      issues: [] as string[],
-      recommendations: [] as string[]
-    };
-    
-    // Analyze and add issues/recommendations
-    if (session.status === 'completed' || session.status === 'cancelled') {
-      diagnosis.issues.push("Session is ended or cancelled");
-      diagnosis.recommendations.push("Create a new session to start a video call");
-    }
-    
-    if (!session.roomCode) {
-      diagnosis.issues.push("Session has no room code");
-      diagnosis.recommendations.push("Recreate the session to generate a new room code");
-    }
-    
-    logger.info(`[VIDEO-DIAGNOSE] Diagnosis complete for session ${sessionId}`);
-    res.json(diagnosis);
+    res.send(`
+      <html>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1 style="color: #16a34a;">✓ Google Calendar Connected!</h1>
+          <p>Your Google Calendar is now connected. You can create video sessions with Google Meet.</p>
+          <script>
+            setTimeout(() => {
+              window.close();
+              if (!window.closed) {
+                window.location.href = '/coach-dashboard';
+              }
+            }, 2000);
+          </script>
+          <a href="/coach-dashboard" style="color: #7c3aed;">Return to Dashboard</a>
+        </body>
+      </html>
+    `);
   } catch (error: any) {
-    logger.error("[VIDEO-DIAGNOSE] ✗ Session diagnosis failed:", error);
-    res.json({
-      status: "error",
-      error: error.message
-    });
+    logger.error("[GOOGLE-OAUTH] Callback error:", error);
+    res.status(500).send(`
+      <html>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1 style="color: #dc2626;">Connection Failed</h1>
+          <p>${error.message || 'Failed to connect Google Calendar'}</p>
+          <a href="/coach-dashboard" style="color: #7c3aed;">Return to Dashboard</a>
+        </body>
+      </html>
+    `);
   }
 });
 
-// Log connection errors (for iOS debugging)
+// Get Google Calendar connection status
+router.get("/google/calendar/status", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+  try {
+    const coachId = req.user!.id;
+    const status = await getCalendarConnectionStatus(coachId);
+    res.json(status);
+  } catch (error: any) {
+    logger.error("[GOOGLE-CALENDAR] Error getting status:", error);
+    res.status(500).json({ error: "Failed to get calendar status" });
+  }
+});
+
+// Disconnect Google Calendar
+router.post("/google/calendar/disconnect", requireCoachRole, async (req: AuthenticatedRequest, res) => {
+  try {
+    const coachId = req.user!.id;
+    await disconnectCalendar(coachId);
+    res.json({ success: true, message: "Google Calendar disconnected" });
+  } catch (error: any) {
+    logger.error("[GOOGLE-CALENDAR] Error disconnecting:", error);
+    res.status(500).json({ error: "Failed to disconnect calendar" });
+  }
+});
+
+// Log connection errors
 router.post("/log-error", async (req, res) => {
   try {
     const { 
       type, 
       error, 
       message, 
-      code, 
       sessionId, 
       userAgent, 
       platform, 
       deviceType,
-      isIOS, 
-      timestamp,
-      errorDetails 
+      timestamp 
     } = req.body;
     
-    // Extract device info for better diagnostics
-    const isChrome = /Chrome/.test(userAgent);
-    const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-    const isFirefox = /Firefox/.test(userAgent);
-    
     logger.error("[VIDEO-CONNECTION-ERROR]", {
-      // Error classification
       errorType: type,
-      errorClass: errorDetails?.type || 'unknown',
       errorMessage: message,
-      errorCode: code,
-      
-      // Session info
       sessionId,
       timestamp,
-      
-      // Device info
       deviceType: deviceType || 'unknown',
       platform,
-      isIOS: isIOS ? 'YES' : 'NO',
-      isAndroid: /Android/.test(userAgent) ? 'YES' : 'NO',
-      
-      // Browser detection
-      browser: isChrome ? 'Chrome' : isSafari ? 'Safari' : isFirefox ? 'Firefox' : 'Unknown',
       userAgent,
-      
-      // User-facing suggestion from client
-      suggestion: errorDetails?.suggestion || 'No suggestion available',
-      
-      // Full error for debugging
       fullError: error,
-      
-      // Network/connection hints
-      networkHint: message?.toLowerCase().includes('network') ? 'Network-related' : 
-                   message?.toLowerCase().includes('permission') ? 'Permission-related' : 
-                   message?.toLowerCase().includes('timeout') ? 'Timeout' : 'Unknown'
     });
     
     res.json({ 
@@ -218,7 +176,7 @@ router.post("/log-error", async (req, res) => {
   }
 });
 
-// Create instant video session (coach-only, no client required)
+// Create instant video session (coach-only)
 router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
     const coachId = req.user!.id;
@@ -226,16 +184,41 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       title = "Instant Video Session",
       description = "Quick video call",
       maxParticipants = 10,
-      recordingEnabled = true
+      recordingEnabled = true,
+      clientEmail
     } = req.body;
     
-    // Create Jitsi room configuration
-    const sessionConfig = createSessionConfig(`instant_${Date.now()}`, title);
-    const roomId = sessionConfig.roomName;
-    const roomCode = sessionConfig.roomCode;
+    // Check if coach has Google Calendar connected
+    const isConnected = await isCalendarConnected(coachId);
     
-    logger.info(`[INSTANT-SESSION] Created Jitsi room: ${roomCode} (JaaS: ${sessionConfig.isJaasEnabled})`);
-    logger.info(`[INSTANT-SESSION] Room name: ${roomId}, Domain: ${sessionConfig.domain}`);
+    let meetUrl: string | null = null;
+    let googleEventId: string | null = null;
+    const roomCode = generateRoomCode();
+    const roomId = `wwc_instant_${Date.now()}`;
+    
+    if (isConnected) {
+      try {
+        const startTime = new Date();
+        const endTime = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
+        
+        const meetEvent = await createMeetEvent(coachId, {
+          title,
+          description,
+          startTime,
+          endTime,
+          attendeeEmails: clientEmail ? [clientEmail] : undefined,
+        });
+        
+        meetUrl = meetEvent.meetUrl;
+        googleEventId = meetEvent.eventId;
+        
+        logger.info(`[INSTANT-SESSION] Created Google Meet: ${meetUrl}`);
+      } catch (meetError: any) {
+        logger.warn(`[INSTANT-SESSION] Google Meet creation failed, continuing without:`, meetError.message);
+      }
+    } else {
+      logger.info(`[INSTANT-SESSION] Coach ${coachId} has not connected Google Calendar`);
+    }
 
     // Create session in database
     const [session] = await db.insert(videoSessions).values({
@@ -245,8 +228,10 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       description,
       roomId,
       roomCode,
+      meetUrl,
+      googleEventId,
       scheduledStartTime: new Date(),
-      scheduledEndTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours default
+      scheduledEndTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
       maxParticipants,
       recordingEnabled,
       transcriptEnabled: true,
@@ -255,30 +240,26 @@ router.post("/sessions/instant", requireCoachRole, async (req: AuthenticatedRequ
       actualStartTime: new Date()
     }).returning();
 
-    // Generate join link - use the protocol and host from the request
+    // Generate join link
     const protocol = req.protocol;
     const host = req.get('host');
     const baseUrl = process.env.FRONTEND_URL || `${protocol}://${host}`;
-    const joinLink = `${baseUrl}/join/${session.roomCode}`;
+    const joinLink = meetUrl || `${baseUrl}/join/${session.roomCode}`;
 
     res.json({ 
       success: true, 
       session,
       joinLink,
+      meetUrl,
       roomCode: session.roomCode,
-      hostUrl: `/session/${session.id}/join`
+      hostUrl: meetUrl || `/session/${session.id}/join`,
+      calendarConnected: isConnected
     });
   } catch (error: any) {
-    logger.error("[INSTANT-SESSION] ✗ Error creating session:", {
-      errorMessage: error?.message,
-      errorCode: error?.code,
-      errorDetail: error?.detail,
-      stack: error?.stack,
-      coachId,
-    });
+    logger.error("[INSTANT-SESSION] ✗ Error creating session:", error);
     res.status(500).json({ 
       error: "Failed to create instant session",
-      details: error?.message || "Unknown database error"
+      details: error?.message || "Unknown error"
     });
   }
 });
@@ -289,6 +270,7 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
     const { 
       bookingId,
       clientId,
+      clientEmail,
       sessionType, 
       title, 
       description,
@@ -314,12 +296,33 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
       }
     }
     
-    // Create Jitsi room configuration
-    const sessionConfig = createSessionConfig(`scheduled_${Date.now()}`, title);
-    const roomId = sessionConfig.roomName;
-    const roomCode = sessionConfig.roomCode;
+    const roomCode = generateRoomCode();
+    const roomId = `wwc_scheduled_${Date.now()}`;
     
-    logger.info(`[SESSION-CREATE] Created Jitsi room: ${roomCode} (JaaS: ${sessionConfig.isJaasEnabled})`);
+    // Check if coach has Google Calendar connected
+    const isConnected = await isCalendarConnected(coachId);
+    
+    let meetUrl: string | null = null;
+    let googleEventId: string | null = null;
+    
+    if (isConnected) {
+      try {
+        const meetEvent = await createMeetEvent(coachId, {
+          title,
+          description,
+          startTime: new Date(scheduledStartTime),
+          endTime: new Date(scheduledEndTime),
+          attendeeEmails: clientEmail ? [clientEmail] : undefined,
+        });
+        
+        meetUrl = meetEvent.meetUrl;
+        googleEventId = meetEvent.eventId;
+        
+        logger.info(`[SESSION-CREATE] Created Google Meet: ${meetUrl}`);
+      } catch (meetError: any) {
+        logger.warn(`[SESSION-CREATE] Google Meet creation failed:`, meetError.message);
+      }
+    }
 
     // Create session in database
     const [session] = await db.insert(videoSessions).values({
@@ -330,6 +333,8 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
       description,
       roomId,
       roomCode,
+      meetUrl,
+      googleEventId,
       scheduledStartTime: new Date(scheduledStartTime),
       scheduledEndTime: new Date(scheduledEndTime),
       maxParticipants,
@@ -346,26 +351,25 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
       });
     }
 
-    // Add client as participant if provided (Jitsi uses JWTs, not pre-generated tokens)
+    // Add client as participant if provided
     if (clientId) {
       await db.insert(sessionParticipants).values({
         sessionId: session.id,
         userId: clientId,
         role: "participant",
         isActive: true,
-        authToken: null, // Jitsi generates JWT on-the-fly when joining
+        authToken: null,
       });
     }
 
     // Update booking if this session is linked to one
     if (bookingId) {
       try {
-        const meetingUrl = `/session/${session.id}/join`;
+        const meetingUrl = meetUrl || `/session/${session.id}/join`;
         await db.update(videoSessions).set({
           status: "confirmed"
         }).where(eq(videoSessions.id, session.id));
         
-        // Update booking with meeting URL
         await db.update(bookings).set({
           meetingUrl,
           status: "confirmed",
@@ -373,15 +377,16 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
         }).where(eq(bookings.id, bookingId));
       } catch (updateError) {
         console.error("Error updating booking:", updateError);
-        // Continue even if booking update fails
       }
     }
 
     res.json({ 
       success: true, 
       session,
-      joinUrl: `/session/${session.id}/join`,
-      roomCode: session.roomCode
+      joinUrl: meetUrl || `/session/${session.id}/join`,
+      meetUrl,
+      roomCode: session.roomCode,
+      calendarConnected: isConnected
     });
   } catch (error) {
     console.error("Error creating video session:", error);
@@ -389,12 +394,11 @@ router.post("/sessions/create", requireCoachRole, async (req: AuthenticatedReque
   }
 });
 
-// Get session details (with optional auth for guest participants)
+// Get session details
 router.get("/sessions/:sessionId", async (req: AuthenticatedRequest | any, res) => {
   try {
     const { sessionId } = req.params;
     
-    // Check if this is an authenticated request
     let userId: string | null = null;
     if (req.user && req.user.id) {
       userId = req.user.id;
@@ -411,10 +415,8 @@ router.get("/sessions/:sessionId", async (req: AuthenticatedRequest | any, res) 
 
     // For instant sessions, allow public viewing
     if (session.sessionType === "instant") {
-      // For instant sessions, anyone can view basic session info
-      // This allows guests to join and view the session
+      // Anyone can view basic session info for instant sessions
     } else {
-      // For non-instant sessions, check authorization
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -422,7 +424,6 @@ router.get("/sessions/:sessionId", async (req: AuthenticatedRequest | any, res) 
       const isCoach = session.coachId === userId;
       const isAdmin = req.user && req.user.role === 'admin';
       
-      // Check if user is a participant
       const [participant] = await db
         .select()
         .from(sessionParticipants)
@@ -438,7 +439,6 @@ router.get("/sessions/:sessionId", async (req: AuthenticatedRequest | any, res) 
       }
     }
 
-    // Get participants
     const participants = await db
       .select()
       .from(sessionParticipants)
@@ -451,7 +451,7 @@ router.get("/sessions/:sessionId", async (req: AuthenticatedRequest | any, res) 
   }
 });
 
-// Public join endpoint - join with room code (no auth required)
+// Public join endpoint - join with room code
 router.post("/sessions/join-public", async (req, res) => {
   try {
     const { roomCode, name } = req.body;
@@ -460,7 +460,7 @@ router.post("/sessions/join-public", async (req, res) => {
       return res.status(400).json({ error: "Room code and name are required" });
     }
 
-    // Find session by room code (case-insensitive comparison using SQL LOWER function)
+    // Find session by room code
     const [session] = await db
       .select()
       .from(videoSessions)
@@ -470,60 +470,57 @@ router.post("/sessions/join-public", async (req, res) => {
       return res.status(404).json({ error: "Invalid room code" });
     }
 
-    // Check if session is still active
     if (session.status === "completed" || session.status === "cancelled") {
       return res.status(400).json({ error: "This session has ended" });
     }
 
-    // Generate a guest ID for non-authenticated users
+    // If session has Google Meet URL, redirect there
+    if (session.meetUrl) {
+      return res.json({ 
+        success: true, 
+        meetUrl: session.meetUrl,
+        sessionId: session.id,
+        sessionTitle: session.title,
+        redirectToMeet: true
+      });
+    }
+
+    // Fallback: Create guest user and participant record
     const guestId = `guest_${name.replace(/\s+/g, '_')}_${Date.now()}`;
     
-    // Create a temporary guest user in the users table to satisfy foreign key constraint
     try {
-      // For guests, create a dummy password hash since they won't be logging in
       const dummyPasswordHash = await bcrypt.hash(`guest_${Date.now()}`, 10);
       
       await db.insert(users).values({
         id: guestId,
-        email: `${guestId}@guest.wholewellness.com`, // Unique email for guest
-        passwordHash: dummyPasswordHash, // Required field, but won't be used for guests
+        email: `${guestId}@guest.wholewellness.com`,
+        passwordHash: dummyPasswordHash,
         firstName: name.split(' ')[0] || name,
         lastName: name.split(' ').slice(1).join(' ') || 'Guest',
-        role: "user", // Give basic user role
-        provider: "guest", // Mark as guest provider
-        hasCompletedOnboarding: true, // Skip onboarding for guests
+        role: "user",
+        provider: "guest",
+        hasCompletedOnboarding: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
     } catch (userError) {
-      // If user creation fails (e.g., ID already exists), continue anyway
       console.warn("Guest user creation warning:", userError);
     }
 
-    // Generate Jitsi JWT for the guest (if JaaS is configured)
-    const jitsiConfig = getRoomConfig({
-      roomName: session.roomId,
-      userId: guestId,
-      userName: name,
-      moderator: false, // Guests are not moderators
-    });
-
-    // Add guest participant to session
-    const [participant] = await db.insert(sessionParticipants).values({
+    await db.insert(sessionParticipants).values({
       sessionId: session.id,
       userId: guestId,
       role: "participant",
-      authToken: jitsiConfig.jwt || null, // Store JWT if available
+      authToken: null,
       isActive: true,
-    }).returning();
+    });
 
     res.json({ 
       success: true, 
-      jitsiConfig,
-      roomId: session.roomId,
       sessionId: session.id,
-      participant,
-      sessionTitle: session.title
+      sessionTitle: session.title,
+      meetUrl: session.meetUrl,
+      redirectToMeet: !!session.meetUrl
     });
   } catch (error) {
     console.error("Error joining session publicly:", error);
@@ -531,17 +528,10 @@ router.post("/sessions/join-public", async (req, res) => {
   }
 });
 
-// Get Jitsi configuration for a session
-router.post("/sessions/:sessionId/jitsi-config", async (req: AuthenticatedRequest | any, res) => {
+// Get session config (for joining)
+router.post("/sessions/:sessionId/config", async (req: AuthenticatedRequest | any, res) => {
   try {
     const { sessionId } = req.params;
-    const { userName, userId: clientUserId } = req.body;
-    
-    // Get authenticated user info if available
-    const userId = req.user?.id || clientUserId || `guest_${Date.now()}`;
-    const displayName = req.user?.firstName || userName || 'Guest';
-    const userEmail = req.user?.email;
-    const isCoachOrAdmin = req.user?.role === 'coach' || req.user?.role === 'admin';
     
     const [session] = await db
       .select()
@@ -552,48 +542,36 @@ router.post("/sessions/:sessionId/jitsi-config", async (req: AuthenticatedReques
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // Check if session is active
     if (session.status === 'completed' || session.status === 'cancelled') {
       return res.status(400).json({ error: "This session has ended" });
     }
 
-    // For instant sessions, check if user is the coach for moderator status
-    const isModerator = isCoachOrAdmin || session.coachId === userId;
-
-    // Generate Jitsi room configuration
-    const jitsiConfig = getRoomConfig({
-      roomName: session.roomId,
-      userId,
-      userName: displayName,
-      userEmail,
-      moderator: isModerator,
+    res.json({
+      sessionId: session.id,
+      title: session.title,
+      meetUrl: session.meetUrl,
+      roomCode: session.roomCode,
+      status: session.status,
+      hasGoogleMeet: !!session.meetUrl
     });
-
-    logger.info(`[JITSI-CONFIG] Generated config for ${displayName} (moderator: ${isModerator})`);
-
-    res.json(jitsiConfig);
   } catch (error: any) {
-    logger.error("[JITSI-CONFIG] Error:", error);
-    res.status(500).json({ error: "Failed to get Jitsi configuration" });
+    logger.error("[SESSION-CONFIG] Error:", error);
+    res.status(500).json({ error: "Failed to get session configuration" });
   }
 });
 
-// Generate join token for participant (allows guests for instant sessions)
+// Generate join token for participant
 router.post("/sessions/:sessionId/join-token", async (req: AuthenticatedRequest | any, res) => {
   try {
     const { sessionId } = req.params;
     
-    // Check if authenticated
     let userId: string | null = null;
     let userName: string = "Guest";
-    let userRole: string = "participant";
     
     if (req.user && req.user.id) {
       userId = req.user.id;
       userName = req.user.firstName || "User";
-      userRole = req.user.role === 'coach' ? 'moderator' : 'participant';
     } else {
-      // For unauthenticated users (guests), get their info from request body
       const { participantName } = req.body;
       if (participantName) {
         userName = participantName;
@@ -610,112 +588,19 @@ router.post("/sessions/:sessionId/join-token", async (req: AuthenticatedRequest 
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // AUTHORIZATION: For instant sessions, allow guests. For other sessions, check authorization
-    if (session.sessionType === "instant") {
-      // Instant sessions are open to all - guests can join
-      // No authorization check needed for instant sessions
-    } else {
-      // For non-instant sessions, check authorization
-      if (!userId) {
-        return res.status(401).json({ error: "Authentication required for this session type" });
-      }
-      
-      const isCoach = session.coachId === userId;
-      const isAdmin = req.user && req.user.role === 'admin';
-      
-      // Check if user is an invited participant
-      const [existingParticipant] = await db
-        .select()
-        .from(sessionParticipants)
-        .where(and(
-          eq(sessionParticipants.sessionId, sessionId),
-          eq(sessionParticipants.userId, userId)
-        ));
-
-      if (!isCoach && !existingParticipant && !isAdmin) {
-        return res.status(403).json({ error: "Unauthorized: You are not invited to this session" });
-      }
+    // For instant sessions, allow guests
+    if (session.sessionType !== "instant" && !userId) {
+      return res.status(401).json({ error: "Authentication required for this session type" });
     }
-    
-    // Check if user is an invited participant (for instant sessions too, to avoid duplicates)
-    let existingParticipant: any = null;
-    if (userId) {
-      [existingParticipant] = await db
-        .select()
-        .from(sessionParticipants)
-        .where(and(
-          eq(sessionParticipants.sessionId, sessionId),
-          eq(sessionParticipants.userId, userId)
-        ));
-    }
-    
-    const isCoach = session.coachId === userId;
-    const isAdmin = req.user && req.user.role === 'admin';
 
-    // SECURITY FIX: Determine role server-side, NEVER trust client input
-    // Only coach or admin gets moderator role, everyone else is participant
-    const assignedRole = (isCoach || isAdmin) ? "moderator" : "participant";
-
-    // Generate Jitsi config with JWT (if JaaS is configured)
-    const jitsiConfig = getRoomConfig({
-      roomName: session.roomId,
-      userId: userId || `guest_${Date.now()}`,
-      userName,
-      moderator: isCoach || isAdmin,
+    // Return Meet URL if available
+    res.json({ 
+      success: true, 
+      meetUrl: session.meetUrl,
+      roomCode: session.roomCode,
+      sessionId: session.id,
+      hasGoogleMeet: !!session.meetUrl
     });
-
-    // For instant sessions with guest users, create a guest user record first
-    if (session.sessionType === "instant" && userId && userId.startsWith("guest_") && !req.user) {
-      try {
-        // Create a temporary guest user in the users table
-        const dummyPasswordHash = await bcrypt.hash(`guest_${Date.now()}`, 10);
-        
-        await db.insert(users).values({
-          id: userId,
-          email: `${userId}@guest.wholewellness.com`,
-          passwordHash: dummyPasswordHash,
-          firstName: userName,
-          lastName: 'Guest',
-          role: "user",
-          provider: "guest",
-          hasCompletedOnboarding: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-      } catch (userError) {
-        // If user creation fails (e.g., ID already exists), continue anyway
-        console.warn("Guest user creation warning in join-token:", userError);
-      }
-    }
-
-    // Add participant to session if not already added
-    if (!existingParticipant) {
-      const [participant] = await db.insert(sessionParticipants).values({
-        sessionId,
-        userId: userId || `guest_anonymous_${Date.now()}`,
-        role: assignedRole,
-        authToken: jitsiConfig.jwt || null,
-      }).returning();
-      
-      res.json({ 
-        success: true, 
-        authToken,
-        roomId: session.roomId,
-        participant
-      });
-    } else {
-      // Update existing participant's auth token
-      await db.update(sessionParticipants)
-        .set({ authToken, role: assignedRole })
-        .where(eq(sessionParticipants.id, existingParticipant.id));
-      
-      res.json({ 
-        success: true, 
-        authToken,
-        roomId: session.roomId,
-        participant: { ...existingParticipant, role: assignedRole, authToken }
-      });
-    }
   } catch (error) {
     console.error("Error generating join token:", error);
     res.status(500).json({ error: "Failed to generate join token" });
@@ -737,7 +622,6 @@ router.post("/sessions/:sessionId/start", requireAuth, async (req: Authenticated
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // AUTHORIZATION: Only the coach or admin can start the session
     if (session.coachId !== userId && req.user!.role !== 'admin') {
       return res.status(403).json({ error: "Unauthorized: Only the session coach can start this session" });
     }
@@ -749,7 +633,7 @@ router.post("/sessions/:sessionId/start", requireAuth, async (req: Authenticated
       })
       .where(eq(videoSessions.id, sessionId));
 
-    res.json({ success: true });
+    res.json({ success: true, meetUrl: session.meetUrl });
   } catch (error) {
     console.error("Error starting session:", error);
     res.status(500).json({ error: "Failed to start session" });
@@ -772,16 +656,8 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // AUTHORIZATION: Only the coach or admin can end the session
     if (session.coachId !== userId && req.user!.role !== 'admin') {
       return res.status(403).json({ error: "Unauthorized: Only the session coach can end this session" });
-    }
-
-    // End 100ms session
-    try {
-      await endSession(session.roomId);
-    } catch (error) {
-      console.warn("100ms session end failed:", error);
     }
 
     // Update session status
@@ -797,7 +673,6 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
       let aiSummary = null;
       let keyPoints: string[] = [];
 
-      // Generate AI summary if enabled
       if (session.aiSummaryEnabled) {
         try {
           const completion = await openai.chat.completions.create({
@@ -815,15 +690,12 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
           });
 
           aiSummary = completion.choices[0].message.content;
-          
-          // Extract key points (simplified)
           keyPoints = aiSummary?.match(/[-•]\s*(.+)/g)?.map(p => p.trim()) || [];
         } catch (error) {
           console.error("Error generating AI summary:", error);
         }
       }
 
-      // Save transcript
       await db.insert(sessionTranscripts).values({
         sessionId,
         transcript,
@@ -836,6 +708,46 @@ router.post("/sessions/:sessionId/end", requireAuth, async (req: AuthenticatedRe
   } catch (error) {
     console.error("Error ending session:", error);
     res.status(500).json({ error: "Failed to end session" });
+  }
+});
+
+// Cancel session
+router.post("/sessions/:sessionId/cancel", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user!.id;
+
+    const [session] = await db
+      .select()
+      .from(videoSessions)
+      .where(eq(videoSessions.id, sessionId));
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    if (session.coachId !== userId && req.user!.role !== 'admin') {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    // Cancel Google Calendar event if exists
+    if (session.googleEventId) {
+      try {
+        await cancelMeetEvent(userId, session.googleEventId);
+        logger.info(`[SESSION-CANCEL] Google Calendar event cancelled: ${session.googleEventId}`);
+      } catch (cancelError: any) {
+        logger.warn(`[SESSION-CANCEL] Failed to cancel Google event:`, cancelError.message);
+      }
+    }
+
+    await db.update(videoSessions)
+      .set({ status: "cancelled" })
+      .where(eq(videoSessions.id, sessionId));
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error cancelling session:", error);
+    res.status(500).json({ error: "Failed to cancel session" });
   }
 });
 
@@ -854,7 +766,6 @@ router.get("/sessions/:sessionId/transcript", requireAuth, async (req: Authentic
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // AUTHORIZATION: Only coach, participants, or admins can view transcript
     const isCoach = session.coachId === userId;
     const isAdmin = req.user!.role === 'admin';
     
@@ -869,7 +780,7 @@ router.get("/sessions/:sessionId/transcript", requireAuth, async (req: Authentic
     const isParticipant = !!participant;
 
     if (!isCoach && !isParticipant && !isAdmin) {
-      return res.status(403).json({ error: "Unauthorized: You don't have access to this transcript" });
+      return res.status(403).json({ error: "Unauthorized" });
     }
 
     const [transcript] = await db
@@ -888,59 +799,7 @@ router.get("/sessions/:sessionId/transcript", requireAuth, async (req: Authentic
   }
 });
 
-// Send transcript to participants
-router.post("/sessions/:sessionId/send-transcript", requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { sessionId } = req.params;
-    const userId = req.user!.id;
-
-    const [session] = await db
-      .select()
-      .from(videoSessions)
-      .where(eq(videoSessions.id, sessionId));
-
-    if (!session) {
-      return res.status(404).json({ error: "Session not found" });
-    }
-
-    // AUTHORIZATION: Only the coach or admin can send transcripts
-    if (session.coachId !== userId && req.user!.role !== 'admin') {
-      return res.status(403).json({ error: "Unauthorized: Only the session coach can send transcripts" });
-    }
-
-    const [transcript] = await db
-      .select()
-      .from(sessionTranscripts)
-      .where(eq(sessionTranscripts.sessionId, sessionId));
-
-    if (!transcript) {
-      return res.status(404).json({ error: "Transcript not found" });
-    }
-
-    const participants = await db
-      .select()
-      .from(sessionParticipants)
-      .where(eq(sessionParticipants.sessionId, sessionId));
-
-    // TODO: Send email with transcript to coach and participants
-    // This would integrate with your email service
-
-    // Mark as sent
-    await db.update(sessionTranscripts)
-      .set({ 
-        sentToCoach: true,
-        sentToParticipants: true
-      })
-      .where(eq(sessionTranscripts.sessionId, sessionId));
-
-    res.json({ success: true, message: "Transcript sent to all participants" });
-  } catch (error) {
-    console.error("Error sending transcript:", error);
-    res.status(500).json({ error: "Failed to send transcript" });
-  }
-});
-
-// List coach's sessions (coach-only)
+// List coach's sessions
 router.get("/sessions", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
     const coachId = req.user!.id;
@@ -969,13 +828,12 @@ router.get("/sessions", requireCoachRole, async (req: AuthenticatedRequest, res)
   }
 });
 
-// Create session from booking (coach-only)
+// Create session from booking
 router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: AuthenticatedRequest, res) => {
   try {
     const { bookingId } = req.params;
     const coachId = req.user!.id;
 
-    // Get booking details
     const [booking] = await db
       .select()
       .from(bookings)
@@ -985,29 +843,39 @@ router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: A
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    // AUTHORIZATION: Only the assigned coach or admin can create session from booking
     if (booking.coachId !== coachId && req.user!.role !== 'admin') {
-      return res.status(403).json({ error: "Unauthorized: This booking is not assigned to you" });
+      return res.status(403).json({ error: "Unauthorized" });
     }
 
-    // Generate room code
     const roomCode = generateRoomCode();
+    const roomId = `wwc_booking_${Date.now()}`;
     
-    // Create 100ms room
-    let roomId = `room_${Date.now()}`;
-    try {
-      const room = await createRoom(roomCode, {
-        name: `${booking.serviceType} session with ${booking.fullName}`,
-        description: booking.message || "",
-        recording: true,
-        maxParticipants: 1,
-      });
-      roomId = room.roomId;
-    } catch (error) {
-      console.warn("100ms room creation failed, using fallback:", error);
+    // Check if coach has Google Calendar connected
+    const isConnected = await isCalendarConnected(coachId);
+    
+    let meetUrl: string | null = null;
+    let googleEventId: string | null = null;
+    
+    if (isConnected) {
+      try {
+        const startTime = booking.scheduledDate || new Date();
+        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+        
+        const meetEvent = await createMeetEvent(coachId, {
+          title: `${booking.serviceType} session with ${booking.fullName}`,
+          description: booking.message || undefined,
+          startTime,
+          endTime,
+          attendeeEmails: booking.email ? [booking.email] : undefined,
+        });
+        
+        meetUrl = meetEvent.meetUrl;
+        googleEventId = meetEvent.eventId;
+      } catch (meetError: any) {
+        logger.warn(`[SESSION-FROM-BOOKING] Google Meet creation failed:`, meetError.message);
+      }
     }
 
-    // Create session
     const [session] = await db.insert(videoSessions).values({
       bookingId: booking.id,
       coachId,
@@ -1016,18 +884,21 @@ router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: A
       description: booking.message,
       roomId,
       roomCode,
+      meetUrl,
+      googleEventId,
       scheduledStartTime: booking.scheduledDate || new Date(),
-      scheduledEndTime: new Date(Date.now() + 60 * 60 * 1000), // 1 hour default
+      scheduledEndTime: new Date(Date.now() + 60 * 60 * 1000),
       maxParticipants: 1,
       recordingEnabled: true,
       transcriptEnabled: true,
       aiSummaryEnabled: true,
     }).returning();
 
-    // Update booking with meeting URL
+    const meetingUrl = meetUrl || `/session/${session.id}/join`;
+    
     await db.update(bookings)
       .set({ 
-        meetingUrl: `/session/${session.id}/join`,
+        meetingUrl,
         status: "confirmed"
       })
       .where(eq(bookings.id, booking.id));
@@ -1035,8 +906,10 @@ router.post("/sessions/from-booking/:bookingId", requireCoachRole, async (req: A
     res.json({ 
       success: true, 
       session,
-      joinUrl: `/session/${session.id}/join`,
-      roomCode: session.roomCode
+      joinUrl: meetingUrl,
+      meetUrl,
+      roomCode: session.roomCode,
+      calendarConnected: isConnected
     });
   } catch (error) {
     console.error("Error creating session from booking:", error);
@@ -1050,7 +923,6 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
     const { sessionId } = req.params;
     const { email, recipientName } = req.body;
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       return res.status(400).json({ error: "Recipient email is required" });
@@ -1059,12 +931,6 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
       return res.status(400).json({ error: "Invalid email address format" });
     }
 
-    // Validate sessionId is a non-empty string (UUID)
-    if (!sessionId || typeof sessionId !== 'string') {
-      return res.status(400).json({ error: "Invalid session ID" });
-    }
-
-    // Get session details (sessionId is a UUID string, not an integer)
     const [session] = await db
       .select()
       .from(videoSessions)
@@ -1074,12 +940,10 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // Verify user has access (coach owner or admin)
     if (session.coachId !== req.user!.id && req.user!.role !== 'admin') {
-      return res.status(403).json({ error: "Unauthorized: You don't have permission to invite to this session" });
+      return res.status(403).json({ error: "Unauthorized" });
     }
 
-    // Get coach details
     const [coach] = await db
       .select()
       .from(users)
@@ -1087,13 +951,14 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
 
     const coachName = coach?.fullName || "Your Coach";
     
-    // Generate join link
     const protocol = req.protocol;
     const host = req.get('host');
     const baseUrl = process.env.FRONTEND_URL || `${protocol}://${host}`;
-    const joinLink = `${baseUrl}/join/${session.roomCode}`;
+    
+    // Use Meet URL if available, otherwise use room code join
+    const joinLink = session.meetUrl || `${baseUrl}/join/${session.roomCode}`;
+    const isGoogleMeet = !!session.meetUrl;
 
-    // Create email content
     const emailSubject = `${coachName} invites you to: ${session.title}`;
     const recipientDisplayName = recipientName || "there";
 
@@ -1106,14 +971,12 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
       </head>
       <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-          <!-- Header -->
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
               Video Session Invitation
             </h1>
           </div>
 
-          <!-- Body -->
           <div style="padding: 40px 30px;">
             <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
               Hi ${recipientDisplayName},
@@ -1134,15 +997,14 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
               ` : ''}
             </div>
 
-            <!-- Join Button -->
             <div style="text-align: center; margin: 30px 0;">
               <a href="${joinLink}" 
-                 style="background-color: #667eea; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
-                Join Video Session
+                 style="background-color: ${isGoogleMeet ? '#1a73e8' : '#667eea'}; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                ${isGoogleMeet ? 'Join with Google Meet' : 'Join Video Session'}
               </a>
             </div>
 
-            <!-- Alternative Join Method -->
+            ${!isGoogleMeet ? `
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="color: #666666; font-size: 14px; margin: 0 0 10px 0; text-align: center;">
                 <strong>Or join manually:</strong>
@@ -1156,13 +1018,13 @@ router.post("/sessions/:sessionId/invite", requireAuth, async (req: Authenticate
                 </code>
               </div>
             </div>
+            ` : ''}
 
             <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0; text-align: center;">
-              No account needed - join as a guest instantly!
+              ${isGoogleMeet ? 'Click the button above to join via Google Meet!' : 'No account needed - join as a guest instantly!'}
             </p>
           </div>
 
-          <!-- Footer -->
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e9ecef;">
             <p style="color: #999999; font-size: 12px; margin: 0;">
               WholeWellness Coaching Platform<br>
@@ -1183,18 +1045,13 @@ Session: ${session.title}
 ${session.description ? `Description: ${session.description}\n` : ''}
 
 JOIN NOW:
-Click here to join instantly: ${joinLink}
-
-Or visit ${baseUrl}/join and enter room code: ${session.roomCode}
-
-No account needed - join as a guest!
+${isGoogleMeet ? `Join with Google Meet: ${joinLink}` : `Click here to join: ${joinLink}\n\nOr visit ${baseUrl}/join and enter room code: ${session.roomCode}`}
 
 ---
 WholeWellness Coaching Platform
 Empowering wellness journeys
     `;
 
-    // Send email via SendGrid
     try {
       const { client, fromEmail } = await getUncachableSendGridClient();
       await client.send({

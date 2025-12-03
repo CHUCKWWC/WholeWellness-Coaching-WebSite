@@ -73,17 +73,12 @@ export const securityHeaders = helmet({
         "*.googleapis.com",
         "https://fonts.gstatic.com",
         "https://fonts.googleapis.com",
-        "https://meet.jit.si", // Jitsi Meet public servers
-        "wss://meet.jit.si", // Jitsi WebSocket connections
-        "https://8x8.vc", // JaaS (Jitsi as a Service)
-        "wss://8x8.vc", // JaaS WebSocket connections
-        "https://*.jitsi.net", // Jitsi CDN and services
-        "wss://*.jitsi.net" // Jitsi WebSocket connections
+        "https://meet.google.com" // Google Meet
       ],
       // Images (including through SW)
       "img-src": ["'self'", "data:", "blob:", "https://*"],
-      // Media sources for video/audio (CRITICAL for iOS video calls)
-      "media-src": ["'self'", "blob:", "https://meet.jit.si", "https://8x8.vc", "https://*.jitsi.net"],
+      // Media sources for video/audio
+      "media-src": ["'self'", "blob:", "https://meet.google.com"],
       // Web fonts
       "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
       // Google Fonts CSS and inline styles
@@ -92,23 +87,21 @@ export const securityHeaders = helmet({
         "'unsafe-inline'", // Required for CSS-in-JS libraries
         "https://fonts.googleapis.com"
       ],
-      // Scripts (Stripe, Vite, Google Tag Manager, Jitsi, etc.)
+      // Scripts (Stripe, Vite, Google Tag Manager, etc.)
       "script-src": [
         "'self'",
         "'unsafe-inline'", // Required for Vite in development
         "https://js.stripe.com",
         "*.google.com",
-        "*.googletagmanager.com",
-        "https://meet.jit.si",
-        "https://8x8.vc"
+        "*.googletagmanager.com"
       ],
-      // Frames for Stripe iframes, Jitsi, YouTube, etc.
-      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com", "https://meet.jit.si", "https://8x8.vc", "https://*.jitsi.net", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+      // Frames for Stripe iframes, Google Meet, YouTube, etc.
+      "frame-src": ["'self'", "https://js.stripe.com", "*.google.com", "https://meet.google.com", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
       // Child frames for embedded content
-      "child-src": ["'self'", "blob:", "https://meet.jit.si", "https://8x8.vc"],
+      "child-src": ["'self'", "blob:"],
       // Allow Replit to embed the application
       "frame-ancestors": ["'self'", "https://*.replit.dev", "https://*.replit.app", "https://replit.com"],
-      "worker-src": ["'self'", "blob:", "https://meet.jit.si", "https://8x8.vc"], // Allow Jitsi service workers (critical for iOS)
+      "worker-src": ["'self'", "blob:"],
       "object-src": ["'none'"],
       "base-uri": ["'self'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null

@@ -62,10 +62,6 @@
 
 
 
-    "@jitsi/react-sdk": "^1.4.4",
-
-
-
     "@jridgewell/trace-mapping": "^0.3.25",
 
 

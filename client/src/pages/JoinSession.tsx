@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Video, Users, Loader2, Info } from 'lucide-react';
+import { Video, Users, Loader2, Info, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,23 +43,32 @@ export default function JoinSession() {
     setIsJoining(true);
     try {
       const response = await apiRequest('POST', '/api/video/sessions/join-public', {
-        roomCode: roomCode.toLowerCase().trim(),
+        roomCode: roomCode.trim().toUpperCase(),
         name: name.trim()
       });
 
       if (response.success) {
-        // Store session info for video component
+        // Store session info
         sessionStorage.setItem('participantName', name.trim());
         sessionStorage.setItem('videoSession', JSON.stringify({
-          authToken: response.authToken,
-          roomId: response.roomId,
           sessionId: response.sessionId,
           userName: name.trim(),
           role: 'participant'
         }));
 
-        // Redirect to video session page
-        setLocation(`/session/${response.sessionId}/join`);
+        // If there's a Google Meet URL, redirect directly
+        if (response.meetUrl && response.redirectToMeet) {
+          toast({
+            title: 'Redirecting to Google Meet',
+            description: 'Opening video session in a new tab...',
+          });
+          window.open(response.meetUrl, '_blank');
+          // Also navigate to session page for reference
+          setLocation(`/session/${response.sessionId}/join`);
+        } else {
+          // Redirect to video session page
+          setLocation(`/session/${response.sessionId}/join`);
+        }
       }
     } catch (error: any) {
       console.error('Failed to join session:', error);
@@ -107,7 +116,7 @@ export default function JoinSession() {
                   Room Code
                 </div>
                 <div className="text-center text-2xl font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider">
-                  {roomCode}
+                  {roomCode.toUpperCase()}
                 </div>
               </div>
             ) : (
@@ -116,11 +125,11 @@ export default function JoinSession() {
                 <Input
                   id="roomCode"
                   type="text"
-                  placeholder="Enter room code (e.g., abc-xyz-def)"
+                  placeholder="Enter room code (e.g., ABC123)"
                   value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value.toLowerCase())}
+                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                   required
-                  className="text-center text-lg font-mono tracking-wider"
+                  className="text-center text-lg font-mono tracking-wider uppercase"
                   data-testid="input-room-code"
                 />
               </div>
@@ -146,7 +155,22 @@ export default function JoinSession() {
             </Button>
           </form>
 
-          <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="mt-6 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Video className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-green-900 dark:text-green-200 mb-1">
+                  Powered by Google Meet
+                </p>
+                <p className="text-green-800 dark:text-green-300">
+                  Sessions use Google Meet for reliable video conferencing. 
+                  You'll be redirected to join the meeting.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div className="flex items-start gap-2">
               <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div className="text-sm">
@@ -154,8 +178,7 @@ export default function JoinSession() {
                   Camera & Microphone Required
                 </p>
                 <p className="text-blue-800 dark:text-blue-300">
-                  You'll need to allow camera and microphone access when joining the video session. 
-                  Your browser will ask for permission after you click "Join Session".
+                  You'll need to allow camera and microphone access when joining the video session.
                 </p>
               </div>
             </div>

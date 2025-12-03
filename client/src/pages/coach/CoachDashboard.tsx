@@ -22,6 +22,7 @@ import ClientDetailView from "@/components/coach/ClientDetailView";
 import CoachCalendar from "@/components/coach/CoachCalendar";
 import PerformanceCharts from "@/components/coach/PerformanceCharts";
 import CoachEventManagement from "@/components/coach/CoachEventManagement";
+import GoogleCalendarIntegrationCard from "@/components/coach/GoogleCalendarIntegrationCard";
 import { useQuery } from "@tanstack/react-query";
 import type { Booking as SchemaBooking } from "@shared/schema";
 
@@ -501,6 +502,11 @@ export default function CoachDashboard() {
                 </Button>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Google Calendar Integration */}
+          <div className="mt-6">
+            <GoogleCalendarIntegrationCard />
           </div>
 
           {/* Quick Actions */}
