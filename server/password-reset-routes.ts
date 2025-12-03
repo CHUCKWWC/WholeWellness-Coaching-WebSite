@@ -3,7 +3,25 @@ import { storage } from './supabase-client-storage';
 import { AuthService } from './auth';
 import { z } from 'zod';
 import crypto from 'crypto';
-import { sendEmail } from './email-service';
+import { getUncachableSendGridClient } from './sendgrid-service';
+
+// SendGrid email sending helper using Replit integration
+async function sendPasswordResetEmail(to: string, subject: string, html: string, text: string) {
+  try {
+    const { client, fromEmail } = await getUncachableSendGridClient();
+    await client.send({
+      to,
+      from: fromEmail,
+      subject,
+      html,
+      text,
+    });
+    console.log(`Password reset email sent to ${to}`);
+  } catch (error) {
+    console.error('SendGrid email error:', error);
+    throw new Error('Failed to send email. Please try again later.');
+  }
+}
 
 // Password reset request schema
 const passwordResetRequestSchema = z.object({
@@ -54,11 +72,11 @@ export async function requestPasswordReset(req: Request, res: Response) {
       // Construct reset URL
       const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
 
-      // Send reset email
-      await sendEmail({
-        to: email,
-        subject: 'WholeWellness Coaching - Password Reset Request',
-        html: `
+      // Send reset email via SendGrid
+      await sendPasswordResetEmail(
+        email,
+        'WholeWellness Coaching - Password Reset Request',
+        `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #2c7a7b;">Password Reset Request</h2>
             <p>Hello ${user.firstName || 'there'},</p>
@@ -79,8 +97,7 @@ export async function requestPasswordReset(req: Request, res: Response) {
             </p>
           </div>
         `,
-        text: `
-Password Reset Request
+        `Password Reset Request
 
 Hello ${user.firstName || 'there'},
 
@@ -91,9 +108,8 @@ ${resetUrl}
 
 This link will expire in 1 hour.
 
-If you didn't request a password reset, please ignore this email or contact support if you have concerns.
-        `,
-      });
+If you didn't request a password reset, please ignore this email or contact support if you have concerns.`
+      );
 
       console.log(`Password reset email sent to ${email}`);
     } else {
@@ -161,11 +177,11 @@ export async function resetPassword(req: Request, res: Response) {
       updatedAt: new Date(),
     });
 
-    // Send confirmation email
-    await sendEmail({
-      to: user.email,
-      subject: 'WholeWellness Coaching - Password Changed Successfully',
-      html: `
+    // Send confirmation email via SendGrid
+    await sendPasswordResetEmail(
+      user.email,
+      'WholeWellness Coaching - Password Changed Successfully',
+      `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #2c7a7b;">Password Changed Successfully</h2>
           <p>Hello ${user.firstName || 'there'},</p>
@@ -182,8 +198,7 @@ export async function resetPassword(req: Request, res: Response) {
           </p>
         </div>
       `,
-      text: `
-Password Changed Successfully
+      `Password Changed Successfully
 
 Hello ${user.firstName || 'there'},
 
@@ -191,9 +206,8 @@ Your password has been successfully changed.
 
 If you did not make this change, please contact our support team immediately.
 
-You can now sign in at: ${process.env.FRONTEND_URL || 'http://localhost:5000'}/login
-      `,
-    });
+You can now sign in at: ${process.env.FRONTEND_URL || 'http://localhost:5000'}/login`
+    );
 
     console.log(`Password reset successful for user ${user.email}`);
 
