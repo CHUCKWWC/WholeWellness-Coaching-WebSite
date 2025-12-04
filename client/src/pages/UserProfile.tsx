@@ -291,7 +291,7 @@ export default function UserProfile() {
                   className="w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                 <Button
                   variant="secondary"
                   onClick={() => openUpload('cover')}
@@ -736,7 +736,7 @@ export default function UserProfile() {
                           <video
                             src={user.introVideoUrl}
                             controls
-                            className="w-full h-48 rounded-lg bg-black"
+                            className="w-full h-48 rounded-lg bg-gray-900"
                             data-testid="video-intro"
                           />
                         ) : (

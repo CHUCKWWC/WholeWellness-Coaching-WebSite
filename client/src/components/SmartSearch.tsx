@@ -135,7 +135,7 @@ export default function SmartSearch({ isOpen, onClose }: SmartSearchProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20">
+    <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-start justify-center pt-20">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b">
           <div className="relative">

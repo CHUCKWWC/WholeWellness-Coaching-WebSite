@@ -189,7 +189,7 @@ export default function ClientDetailView({ clientId, clientName, clientEmail, on
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" data-testid="client-detail-view">
+    <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-50 p-4" data-testid="client-detail-view">
       <Card className="w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">

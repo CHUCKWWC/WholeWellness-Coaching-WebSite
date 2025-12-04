@@ -131,7 +131,7 @@ export function InteractiveTutorial({
       {/* Tutorial Overlay */}
       <div 
         ref={overlayRef}
-        className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+        className="fixed inset-0 bg-gray-900/60 z-50 backdrop-blur-sm"
         style={{ pointerEvents: highlightedElement ? 'none' : 'auto' }}
       >
         {/* Spotlight effect for highlighted element */}

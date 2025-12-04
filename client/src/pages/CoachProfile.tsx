@@ -381,7 +381,7 @@ export default function CoachProfile() {
                   />
                   {isEditMode && (
                     <button
-                      className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 bg-gray-900/60 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => openUpload('profile')}
                       data-testid="button-upload-profile"
                     >
@@ -494,7 +494,7 @@ export default function CoachProfile() {
                           alt={video.title}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-gray-900/40 flex items-center justify-center">
                           <Play className="h-8 w-8 text-white" />
                         </div>
                       </div>
