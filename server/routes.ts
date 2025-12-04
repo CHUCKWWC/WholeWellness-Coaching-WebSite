@@ -3722,12 +3722,42 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
-  // Privacy settings endpoint
+  // Get privacy settings (stored in user's permissions JSON field as privacySettings key)
+  app.get("/api/user/privacy-settings", requireAuth as any, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.id);
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get privacy settings from permissions field, with defaults
+      const permissions = (currentUser.permissions as any) || {};
+      const savedSettings = permissions.privacySettings || {};
+      
+      res.json({
+        profileVisibility: savedSettings.profileVisibility || 'members',
+        showAssessmentResults: savedSettings.showAssessmentResults || false,
+        allowCoachMessages: savedSettings.allowCoachMessages !== false,
+        showActivityStatus: savedSettings.showActivityStatus !== false,
+        dataSharing: savedSettings.dataSharing || false
+      });
+    } catch (error) {
+      console.error("Error getting privacy settings:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update privacy settings endpoint (stores in user's permissions JSON field)
   app.put("/api/user/privacy-settings", requireAuth as any, async (req: any, res) => {
     try {
       const { profileVisibility, showAssessmentResults, allowCoachMessages, showActivityStatus, dataSharing } = req.body;
       
-      // Store privacy settings as JSON in user preferences
+      const currentUser = await storage.getUser(req.user.id);
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Build privacy settings object
       const privacySettings = {
         profileVisibility: profileVisibility || 'members',
         showAssessmentResults: !!showAssessmentResults,
@@ -3737,15 +3767,23 @@ When to refer to licensed therapists and emergency resources for relationship cr
         updatedAt: new Date().toISOString()
       };
       
-      // Update user with privacy settings stored in a JSON field
-      // For now, we'll store in the permissions field since we don't have a dedicated privacy field
-      const currentUser = await storage.getUser(req.user.id);
-      if (!currentUser) {
-        return res.status(404).json({ message: "User not found" });
+      // Merge with existing permissions
+      const existingPermissions = (currentUser.permissions as any) || {};
+      const updatedPermissions = {
+        ...existingPermissions,
+        privacySettings
+      };
+
+      // Persist to database
+      const updatedUser = await storage.updateUser(req.user.id, { 
+        permissions: updatedPermissions 
+      });
+
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to save privacy settings" });
       }
       
-      // We'll add privacy settings to a dedicated field - for now log and confirm
-      console.log('[Privacy Settings] Saving for user:', req.user.id, privacySettings);
+      console.log('[Privacy Settings] Saved for user:', req.user.id, privacySettings);
       
       res.json({ 
         success: true, 

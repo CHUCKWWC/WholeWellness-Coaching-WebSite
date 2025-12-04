@@ -55,6 +55,20 @@ export default function Settings() {
     enabled: !!user,
   });
 
+  // Fetch privacy settings
+  interface PrivacySettings {
+    profileVisibility: "public" | "members" | "private";
+    showAssessmentResults: boolean;
+    allowCoachMessages: boolean;
+    showActivityStatus: boolean;
+    dataSharing: boolean;
+  }
+
+  const { data: privacySettings } = useQuery<PrivacySettings>({
+    queryKey: ['/api/user/privacy-settings'],
+    enabled: !!user,
+  });
+
   // Update form when profile loads
   useEffect(() => {
     if (profile) {
@@ -66,6 +80,17 @@ export default function Settings() {
       setWebsite(profile.website || "");
     }
   }, [profile]);
+
+  // Update privacy settings form when data loads
+  useEffect(() => {
+    if (privacySettings) {
+      setProfileVisibility(privacySettings.profileVisibility || "members");
+      setShowAssessmentResults(privacySettings.showAssessmentResults || false);
+      setAllowCoachMessages(privacySettings.allowCoachMessages !== false);
+      setShowActivityStatus(privacySettings.showActivityStatus !== false);
+      setDataSharing(privacySettings.dataSharing || false);
+    }
+  }, [privacySettings]);
 
   // Profile update mutation
   const updateProfileMutation = useMutation({

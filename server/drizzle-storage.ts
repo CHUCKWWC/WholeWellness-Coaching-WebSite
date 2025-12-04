@@ -25,10 +25,12 @@ import {
   appointments,
   programs,
   chatSessions,
-  chatMessages
+  chatMessages,
+  resources,
+  knowledgeBase
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
-import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction, Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage } from "@shared/schema";
+import type { User, InsertUser, Booking, InsertBooking, AssessmentType, InsertAssessmentType, UserAssessment, InsertUserAssessment, CoachInteraction, InsertCoachInteraction, Program, InsertProgram, ChatSession, InsertChatSession, ChatMessage, InsertChatMessage, Resource, InsertResource, KnowledgeBase, InsertKnowledgeBase } from "@shared/schema";
 import type { IStorage } from "./supabase-client-storage";
 
 class DrizzleStorage implements Partial<IStorage> {
@@ -1017,6 +1019,78 @@ class DrizzleStorage implements Partial<IStorage> {
 
   async getAppointmentsByClient(clientId: string): Promise<any[]> {
     return await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.startDateTime));
+  }
+
+  // Resources methods
+  async getAllResources(): Promise<Resource[]> {
+    try {
+      const result = await db.select().from(resources).orderBy(desc(resources.createdAt));
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting all resources:', error);
+      return [];
+    }
+  }
+
+  async getResourcesByType(type: string): Promise<Resource[]> {
+    try {
+      const result = await db.select().from(resources).where(eq(resources.type, type)).orderBy(desc(resources.createdAt));
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting resources by type:', error);
+      return [];
+    }
+  }
+
+  async getResourcesByCategory(category: string): Promise<Resource[]> {
+    try {
+      const result = await db.select().from(resources).where(eq(resources.category, category)).orderBy(desc(resources.createdAt));
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting resources by category:', error);
+      return [];
+    }
+  }
+
+  async createResource(insertResource: InsertResource): Promise<Resource> {
+    try {
+      const [result] = await db.insert(resources).values(insertResource).returning();
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error creating resource:', error);
+      throw error;
+    }
+  }
+
+  // Knowledge Base methods
+  async getAllKnowledgeBase(): Promise<KnowledgeBase[]> {
+    try {
+      const result = await db.select().from(knowledgeBase).where(eq(knowledgeBase.status, 'published')).orderBy(desc(knowledgeBase.priority));
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting knowledge base articles:', error);
+      return [];
+    }
+  }
+
+  async getKnowledgeBaseBySlug(slug: string): Promise<KnowledgeBase | undefined> {
+    try {
+      const [result] = await db.select().from(knowledgeBase).where(eq(knowledgeBase.slug, slug)).limit(1);
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting knowledge base article by slug:', error);
+      return undefined;
+    }
+  }
+
+  async getKnowledgeBaseByCategory(category: string): Promise<KnowledgeBase[]> {
+    try {
+      const result = await db.select().from(knowledgeBase).where(and(eq(knowledgeBase.category, category), eq(knowledgeBase.status, 'published'))).orderBy(desc(knowledgeBase.priority));
+      return result;
+    } catch (error) {
+      console.error('[DrizzleStorage] Error getting knowledge base articles by category:', error);
+      return [];
+    }
   }
 }
 
