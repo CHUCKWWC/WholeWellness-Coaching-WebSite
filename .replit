@@ -35,6 +35,10 @@ externalPort = 3000
 localPort = 40911
 externalPort = 3003
 
+[[ports]]
+localPort = 42659
+externalPort = 4200
+
 [workflows]
 runButton = "Project"
 
@@ -71,3 +75,7 @@ STRIPE_LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w"
 VITE_STRIPE_AI_COACHING_BUY_BUTTON_ID = "buy_btn_1SXWPCFHAup9QfDRmD7BfWZL"
 VITE_STRIPE_LIVE_COACHING_BUY_BUTTON_ID = "buy_btn_1SXW87FHAup9QfDRAgIqhD8w"
 VITE_STRIPE_COMBINED_BUY_BUTTON_ID = "buy_btn_1SXWRZFHAup9QfDREiqdoQwv"
+VITE_STRIPE_LIVE_COACHING_LINK = "https://buy.stripe.com/bJe28rdiC7lEdme15D3oA03"
+VITE_STRIPE_DONATION_LINK = "https://donate.stripe.com/3cIfZhfqKgWe1Dw7u13oA05"
+VITE_STRIPE_AI_COACHING_LINK = "https://buy.stripe.com/3cIfZh0vQ0Xg4PIcOl3oA04"
+VITE_STRIPE_COMBINED_LINK = "https://buy.stripe.com/4gMdR992mfSabe601z3oA02"

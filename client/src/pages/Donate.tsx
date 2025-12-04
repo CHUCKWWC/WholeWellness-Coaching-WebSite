@@ -17,7 +17,10 @@ import { useToast } from "@/hooks/use-toast";
 import { SuccessAnimation } from "@/components/ui/success-animation";
 import { ContextualHelpTrigger } from '@/components/HelpSystem';
 import HelpBubble from '@/components/HelpBubble';
-import StripeBuyButton from '@/components/StripeBuyButton';
+import { CreditCard as PaymentIcon } from "lucide-react";
+
+// Stripe Payment Link for donations
+const DONATION_PAYMENT_LINK = import.meta.env.VITE_STRIPE_DONATION_LINK || "https://donate.stripe.com/3cIfZhfqKgWe1Dw7u13oA05";
 
 
 interface DonationPreset {
@@ -274,10 +277,14 @@ export default function Donate() {
                 Support our mission with a secure donation through Stripe. Your contribution helps provide life-changing coaching to those who need it most.
               </p>
               <div data-testid="stripe-donation-button">
-                <StripeBuyButton 
-                  buyButtonId={import.meta.env.VITE_STRIPE_DONATION_BUY_BUTTON_ID}
-                  publishableKey={import.meta.env.VITE_STRIPE_LIVE_PUBLIC_KEY}
-                />
+                <Button 
+                  onClick={() => window.open(DONATION_PAYMENT_LINK, '_blank')}
+                  className="py-6 px-8 text-lg bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-quick-donate"
+                >
+                  <PaymentIcon className="mr-2 h-5 w-5" />
+                  Donate Now
+                </Button>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>🔒 Secure checkout</span>

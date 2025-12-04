@@ -11,10 +11,10 @@ import { Loader2, CreditCard, Shield, CheckCircle, Star, Clock, Users } from 'lu
 import { useLocation } from 'wouter';
 import StripeBuyButton from "@/components/StripeBuyButton";
 
-// Stripe Buy Button IDs from environment variables
-const AI_COACHING_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_AI_COACHING_BUY_BUTTON_ID || "buy_btn_1SXWPCFHAup9QfDRmD7BfWZL";
-const LIVE_COACHING_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_LIVE_COACHING_BUY_BUTTON_ID || "buy_btn_1SXW87FHAup9QfDRAgIqhD8w";
-const COMBINED_COACHING_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_COMBINED_BUY_BUTTON_ID || "buy_btn_1SXWRZFHAup9QfDREiqdoQwv";
+// Stripe Payment Links from environment variables
+const AI_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_AI_COACHING_LINK || "https://buy.stripe.com/3cIfZh0vQ0Xg4PIcOl3oA04";
+const LIVE_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_LIVE_COACHING_LINK || "https://buy.stripe.com/bJe28rdiC7lEdme15D3oA03";
+const COMBINED_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_COMBINED_LINK || "https://buy.stripe.com/4gMdR992mfSabe601z3oA02";
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_LIVE_PUBLIC_KEY || import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
@@ -375,30 +375,42 @@ export default function Subscribe() {
                 
                 {selectedPlan.id === 'ai_coaching' ? (
                   <div className="space-y-4" data-testid="ai-coaching-payment-section">
-                    <StripeBuyButton 
-                      buyButtonId={AI_COACHING_BUY_BUTTON_ID} 
-                      publishableKey={STRIPE_PUBLISHABLE_KEY}
-                    />
+                    <Button 
+                      onClick={() => window.open(AI_COACHING_PAYMENT_LINK, '_blank')}
+                      className="w-full py-6 text-lg bg-purple-600 hover:bg-purple-700"
+                      data-testid="button-ai-coaching-checkout"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Subscribe - $19.99/month
+                    </Button>
                     <p className="text-xs text-gray-500 text-center">
                       Secure subscription powered by Stripe. Cancel anytime.
                     </p>
                   </div>
                 ) : selectedPlan.id === 'live_coaching' ? (
                   <div className="space-y-4" data-testid="live-coaching-payment-section">
-                    <StripeBuyButton 
-                      buyButtonId={LIVE_COACHING_BUY_BUTTON_ID}
-                      publishableKey={STRIPE_PUBLISHABLE_KEY}
-                    />
+                    <Button 
+                      onClick={() => window.open(LIVE_COACHING_PAYMENT_LINK, '_blank')}
+                      className="w-full py-6 text-lg bg-purple-600 hover:bg-purple-700"
+                      data-testid="button-live-coaching-checkout"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Purchase - $599.00
+                    </Button>
                     <p className="text-xs text-gray-500 text-center">
                       Secure one-time payment powered by Stripe.
                     </p>
                   </div>
                 ) : selectedPlan.id === 'combined' ? (
                   <div className="space-y-4" data-testid="combined-coaching-payment-section">
-                    <StripeBuyButton 
-                      buyButtonId={COMBINED_COACHING_BUY_BUTTON_ID}
-                      publishableKey={STRIPE_PUBLISHABLE_KEY}
-                    />
+                    <Button 
+                      onClick={() => window.open(COMBINED_COACHING_PAYMENT_LINK, '_blank')}
+                      className="w-full py-6 text-lg bg-purple-600 hover:bg-purple-700"
+                      data-testid="button-combined-checkout"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Purchase - $799.00
+                    </Button>
                     <p className="text-xs text-gray-500 text-center">
                       Best value! Secure one-time payment powered by Stripe.
                     </p>
