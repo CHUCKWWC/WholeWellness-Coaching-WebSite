@@ -36,13 +36,19 @@ interface MeetEventResult {
 export function createOAuth2Client(): OAuth2Client {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  
+  // Build the correct redirect URI - the route is at /api/video/google/calendar/callback
+  const baseUrl = process.env.REPLIT_DOMAINS?.split(',')[0] 
+    ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
+    : 'http://localhost:5000';
   const redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI || 
-    `${process.env.REPLIT_DOMAINS?.split(',')[0] ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 'http://localhost:5000'}/api/google/calendar/callback`;
+    `${baseUrl}/api/video/google/calendar/callback`;
 
   if (!clientId || !clientSecret) {
     logger.warn('[GOOGLE-CALENDAR] Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
   }
 
+  logger.info(`[GOOGLE-CALENDAR] OAuth redirect URI: ${redirectUri}`);
   return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 }
 
