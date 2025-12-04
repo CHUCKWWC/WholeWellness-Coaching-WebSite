@@ -170,7 +170,7 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-800">Welcome Journey</h2>
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline">{currentStep + 1} of {onboardingSteps.length}</Badge>
+                    <Badge variant="outline" className="text-[#0d0c0c]">{currentStep + 1} of {onboardingSteps.length}</Badge>
                     <Button 
                       variant="ghost" 
                       size="sm" 

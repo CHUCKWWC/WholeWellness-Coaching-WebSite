@@ -7,7 +7,6 @@ import { Check, Sparkles, Users, Zap, ArrowRight, Shield, Clock, Star } from "lu
 
 const AI_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_AI_COACHING_LINK || "https://buy.stripe.com/3cIfZh0vQ0Xg4PIcOl3oA04";
 const LIVE_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_LIVE_COACHING_LINK || "https://buy.stripe.com/bJe28rdiC7lEdme15D3oA03";
-const COMBINED_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_COMBINED_LINK || "https://buy.stripe.com/4gMdR992mfSabe601z3oA02";
 
 interface Package {
   id: string;
@@ -36,7 +35,8 @@ const packages: Package[] = [
       "Personalized insights",
       "Progress tracking",
       "Wellness resources library",
-      "Mobile-friendly access"
+      "Mobile-friendly access",
+      "Cancel anytime"
     ],
     paymentLink: AI_COACHING_PAYMENT_LINK,
     color: "from-blue-500 to-cyan-500"
@@ -45,7 +45,7 @@ const packages: Package[] = [
     id: "live",
     name: "Live Coaching",
     price: "$599",
-    period: " one-time",
+    period: " for 6 sessions",
     description: "Work directly with a certified professional coach",
     icon: <Users className="h-8 w-8" />,
     features: [
@@ -59,24 +59,6 @@ const packages: Package[] = [
     popular: true,
     paymentLink: LIVE_COACHING_PAYMENT_LINK,
     color: "from-purple-500 to-pink-500"
-  },
-  {
-    id: "combined",
-    name: "Complete Wellness",
-    price: "$799",
-    period: " one-time",
-    description: "The ultimate coaching experience with AI + live support",
-    icon: <Zap className="h-8 w-8" />,
-    features: [
-      "Everything in AI Coaching",
-      "Everything in Live Coaching",
-      "Priority coach matching",
-      "Extended session times",
-      "Lifetime resource access",
-      "Community group access"
-    ],
-    paymentLink: COMBINED_COACHING_PAYMENT_LINK,
-    color: "from-amber-500 to-orange-500"
   }
 ];
 
@@ -110,7 +92,7 @@ export default function PackageSelection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
           {packages.map((pkg) => (
             <Card 
               key={pkg.id}
