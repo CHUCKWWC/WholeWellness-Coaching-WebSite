@@ -3,151 +3,53 @@
 ## Overview
 The Wholewellness Coaching Platform is a nonprofit digital solution providing life coaching to underserved individuals, particularly women who have survived domestic violence. It integrates AI-powered coaching, professional coach services, donation/membership management, and administrative tools. The platform aims to expand access to wellness support, foster community, and empower individuals through personalized coaching, strategic lead generation, and smart matching.
 
-**UX Score: 10/10** - Comprehensive UX improvements completed (November 2025):
-- **Triple-Feedback Pattern:** ConfirmDialog → Toast → SuccessAnimation sequence provides clear, immediate, and delightful feedback for all user actions
-- **LoadingSkeleton Component:** 6 variants (card, list, form, dashboard, profile, table) replace all loading spinners across dashboards, profiles, and content areas
-- **SuccessAnimation Component:** 3 variants (simple, celebration, sparkle) provide contextual celebratory feedback:
-  - Simple: Basic actions and cancellations
-  - Celebration: Major milestones (donations, bookings)
-  - Sparkle: Profile updates and achievements
-- **Integration Coverage:**
-  - Phase 1: AdminDashboard, CoachDashboard, WixBooking (cancel/create)
-  - Phase 2: UserProfile, CoachProfile, Donate page
-  - Phase 3: AI Coaching (skipped - existing chat UX optimal)
-- **Donation Flow:** Smart routing with Stripe checkout as primary path and graceful fallback with SuccessAnimation when Stripe unavailable
-- **State Management:** Robust error handling with automatic SuccessAnimation reset on mutation failure
-- **Production Ready:** All 6 implementation bugs resolved (imports, CSRF, type validation, debug logging)
-
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-
-## Hardcoded Coach Accounts (Full Access)
-- **Dr. Smith:** dr.csmith@wholewellness-coaching.org / AKAbizdoc7 (Coach ID: COACH-DRSMITH-001)
-- **Dasha Lazaryuk:** dasha.lazaryuk@wholewellness-coaching.org / Wwc4life2025 (Coach ID: COACH-DASHA-002)
-- Both accounts have active coach records in the database with verified status
 
 ## System Architecture
 
 ### UI/UX Decisions
-- **Frontend Framework**: React with TypeScript, built with Vite.
+- **Frontend**: React with TypeScript and Vite.
 - **UI Components**: Radix UI with Tailwind CSS for a custom design system.
-- **Styling**: Tailwind CSS.
-- **UX Optimization**: Guided welcome flows, smart navigation, quick-start dashboards, guided tours, and visual progress indicators.
-- **Navigation System** (Updated December 2025): 
-  - **Guest Experience**: Minimal navigation showing only Sign In button - no menu items or hamburger menu visible until authenticated
-  - **Authenticated Navigation**: Full navigation appears after login with role-appropriate items:
-    - **Main Items**: Home, Dashboard (role-aware routing), Donate (members only)
-    - **Wellness Tools Dropdown**: AI Coaching, Assessments, Wellness Journey, Mental Wellness, Resources
-    - **Connect & Support Dropdown**: Find a Coach, How to Use Site, Events, Book Appointment, Contact Us, About Us
-    - **More Dropdown**: Coach Tools (coaches only), Admin Tools (admins only)
-  - **Role-Aware Dashboard Routing**: Dashboard button routes to /member-portal (members), /coach-dashboard (coaches), or /admin-dashboard (admins)
-  - **Mobile Navigation**: Hidden for guests; authenticated users see organized collapsible sections
-  - DashboardRouter component for automatic role-based dashboard routing
-  - Breadcrumb navigation on key pages for location awareness
-  - Key files: client/src/config/navigationConfig.ts, client/src/components/SmartNavigation.tsx
-- **User Guidance**:
-  - HelpTooltip component for contextual inline help
-  - EmptyState component with clear CTAs for empty data states
-  - Role-specific quick actions and dashboard layouts
-  - Consolidated duplicate pages for cleaner navigation (unified login, single assessments page)
-- **Unified Onboarding System** (Enhanced November 2025):
-  - SmartOnboarding component that detects user type and adapts flow dynamically
-  - Automatic role detection from authentication state or manual selection
-  - Unified entry point at /onboarding route
-  - Seamless integration of client (8-step) and coach (7-step) onboarding flows
-  - **OnboardingHero**: Immersive welcome page with animated gradients, feature highlights, and estimated time
-  - **EnhancedProgressBar**: Shows step progress with personalized greeting using entered name and time remaining
-  - **MilestoneBanner**: Celebratory popups at steps 2, 4, 6 with confetti animations and motivational messages
-  - **TestimonialsCarousel**: Auto-rotating success stories from clients and coaches on hero page
-  - **FormFieldHelp**: Contextual help tooltips for complex form fields with clear explanations
-  - **Framer Motion Animations**: Smooth transitions, staggered reveals, and interactive hover states throughout
-  - **Mobile-Optimized**: Responsive grid layouts, touch-friendly targets (min 44px), adaptive content
-  - **Auto-Save**: Periodic data persistence with localStorage fallback for form recovery
-- **"Commitment First" Fitness Checkout Flow** (December 2025):
-  - Combined Registration + Payment flow at /fitness-checkout
-  - Hero CTA "Start My Wellness Journey" routes directly to checkout
-  - Seamless Stripe integration for $19.99/month Premium Wellness Membership
-  - User flow: Click Hero CTA → Register (or login) → Pay via Stripe → Redirect to /onboarding → Complete intake → Member Portal
-  - Payment success automatically upgrades membershipLevel to 'supporter'
-  - SendGrid welcome/receipt email sent on successful payment
-  - Intake reminder email function available for follow-up campaigns
-  - Key files: client/src/pages/FitnessCheckout.tsx, server/routes.ts (/api/create-subscription-intent endpoint), server/sendgrid-service.ts (sendWellnessPaymentReceipt, sendIntakeReminderEmail)
-- **Progress Indicators**:
-  - StepProgressIndicator with visual milestones for multi-step processes
-  - CompactProgressIndicator for tight spaces
-  - MilestoneProgressIndicator for journey tracking
-  - Color-coded states: completed (green), current (purple), upcoming (gray)
-  - Integrated into all onboarding flows for clear position awareness
+- **Navigation**: Role-aware navigation system with distinct experiences for guests and authenticated users, including main items, wellness tools, connect & support, and admin/coach tools. Dashboard routing is role-specific.
+- **User Guidance**: HelpTooltips, EmptyState components, and role-specific quick actions.
+- **Onboarding**: Unified, dynamic SmartOnboarding component with automatic role detection, animated elements, milestone banners, testimonials, and auto-save.
+- **"Commitment First" Fitness Checkout**: Combined registration and payment flow integrated with Stripe for Premium Wellness Membership, including email notifications.
+- **Progress Indicators**: Various visual progress indicators for multi-step processes and journey tracking.
 
 ### Technical Implementations
-- **Backend**: Node.js with Express.js, TypeScript, ES modules.
-- **Database**: PostgreSQL via Drizzle ORM, hosted on Neon (local development database).
-- **Authentication**: Custom JWT-based authentication with bcrypt, migrated to local PostgreSQL database.
-  - Centralized storage system (app-storage.ts) with proxy pattern
-  - DrizzleStorage implementation for local database operations
-  - Seamless fallback to Supabase for unimplemented features
-  - All core user operations (login, registration, session management) use local database
-- **API**: RESTful API with modular routes, CORS, JSON parsing, and centralized error handling.
-- **AI Coaching System**: 6 specialized AI coaches using OpenAI Assistants API for persistent, customizable conversations with a modern chat UI.
-- **Conversation Intelligence**: AI-powered summarization, emotion detection, key topic extraction, personalized insights, and automated email delivery.
-- **Mental Health Safety**: Crisis detection system with admin alerts, human handoff, and emergency resources.
-- **Multi-assessment System**: Comprehensive assessment types with database architecture and API. Supports anonymous assessment submissions where guests can complete assessments without creating an account by providing their email address. Email is stored in the responses JSON field for follow-up communications.
-- **Certification System**: Manages coach certification, enrollment, progress, and certificate issuance with Google Drive integration.
-- **Wellness Journey Recommender**: AI-powered personalized wellness journeys, goal tracking, and progress monitoring.
-- **Video Conferencing System**: Google Meet-powered video sessions via Google Calendar API (December 2025). Features include:
-  - Migrated from Jitsi to Google Meet for reliable, enterprise-grade video conferencing
-  - OAuth2 integration with Google Calendar for seamless Meet link generation
-  - Coach-initiated instant and scheduled sessions with automatic calendar events
-  - Automatic Google Meet link creation when coach connects their Google Calendar
-  - Client invitation emails with direct Meet join links
-  - Guest access via room codes (fallback when Meet not available)
-  - GoogleCalendarIntegrationCard component in coach dashboard for connection management
-  - Token refresh handled automatically (Google tokens expire in ~1 hour)
-  - Environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALENDAR_REDIRECT_URI
-  - Key files: server/google-calendar-service.ts, server/video-routes.ts, client/src/components/coach/GoogleCalendarIntegrationCard.tsx
-- **Media Upload System**: Comprehensive media upload capabilities using Replit Object Storage with presigned URLs, supporting pictures, videos, documents, and audio. Features include:
-  - Uppy.js-powered multi-file upload with progress tracking
-  - Direct-to-storage uploads via presigned URLs for security and performance
-  - Owner-verified ACL policies preventing cross-account access
-  - MediaGallery component with filtering, preview, and delete
-  - Integration with user and coach profiles for profile pictures, cover photos, and intro videos
-  - Backend tracks all uploaded media with metadata in PostgreSQL
-  - SimpleFileUploader component for single-file scenarios
-- **Tutorial & Help System**: Interactive HTML mockup-based tutorial system with numbered click targets showing users exactly what to interact with. Features include:
-  - **Architecture**: Discriminated union slide model (`ImageSlide | HtmlSlide`) supporting both legacy image slides and new HTML mockup slides
-  - **HTML Mockup Slides**: 5 user tutorial slides + 1 coach tutorial slide using real page mockups (HomepageMockup, LoginMockup, AICoachingMockup, CoachesMockup)
-  - **Interactive Click Targets**: Numbered overlay badges positioned on mockups showing exactly where to click, with labels and descriptions
-  - **TutorialSlideshow Component**: Type-safe slideshow with prev/next navigation, slide indicators, conditional download (image-only), and thumbnail navigation for mixed slide decks
-  - **HtmlTutorialSlide Component**: Renders mockups with absolutely positioned numbered overlays using percentage-based coordinates for responsive design
-  - **UserTutorial Page** (/tutorial): Publicly accessible guide covering Welcome, AI Coaching ($19.99/month), Login, Professional Coaches, and Wellness Journey
-  - **CoachTutorial Page** (/coach-tutorial): Protected coach training covering Dashboard Overview with stats and quick actions
-  - **Data-Driven Architecture**: Centralized slide data in `client/src/data/tutorialSlides.tsx` with typed objects instead of pre-rendered components
-  - **Backward Compatibility**: Supports adding legacy image slides to mixed decks; thumbnails render for image slides even when HTML slides present
-  - **Pro Tips System**: Each slide includes contextual usage tips displayed below mockup
-  - **Navigation Integration**: "Help & Tutorials" section in role-aware navigation
-  - **Enterprise Security**: ProtectedRoute with stable React hooks, hasRedirected state preventing loops, no content flash for unauthorized users
-  - **Dark Mode Support**: Full dark mode compatibility with proper contrast and styling
+- **Backend**: Node.js with Express.js, TypeScript.
+- **Database**: PostgreSQL via Drizzle ORM.
+- **Authentication**: Custom JWT-based authentication with bcrypt, utilizing a local PostgreSQL database.
+- **API**: RESTful API with modular routes, CORS, and centralized error handling.
+- **AI Coaching System**: 6 specialized AI coaches using OpenAI Assistants API for customizable conversations.
+- **Conversation Intelligence**: AI-powered summarization, emotion detection, and insights.
+- **Mental Health Safety**: Crisis detection system with alerts and human handoff.
+- **Multi-assessment System**: Supports various assessment types, including anonymous submissions.
+- **Certification System**: Manages coach certification and progress.
+- **Wellness Journey Recommender**: AI-powered personalized wellness journeys.
+- **Video Conferencing**: Google Meet-powered sessions via Google Calendar API, allowing coaches to generate Meet links.
+- **Media Upload System**: Comprehensive media upload using Replit Object Storage with presigned URLs, supporting various file types and integrated with profiles.
+- **Settings & Preferences System**: User-configurable profile, privacy, and appearance settings (light/dark mode).
+- **Wellness Resources Database**: Populated with articles, worksheets, videos, and podcasts.
+- **Knowledge Base System**: Contains help articles across multiple categories.
+- **Tutorial & Help System**: Interactive, HTML mockup-based tutorial system with numbered click targets and contextual tips, accessible to users and coaches.
 
 ### System Design Choices
-- **Security**: Helmet middleware for CSP, HSTS, X-Content-Type-Options; strict CORS; short-lifetime, SameSite, HttpOnly, Secure tokens; tiered rate limiting; environment variables for secrets; webhook signature verification.
-  - **CSP Configuration for Google Meet**: Both server (server/security.ts) and client (client/index.html meta tag) CSP policies configured to allow Google domains:
-    - `*.google.com` and `*.googleapis.com` for Google APIs and Meet
-    - `https://meet.google.com` for video conferencing
-    - `frame-src` includes Google domains for OAuth popups
-  - **Video Error Logging**: Comprehensive connection error tracking with device-specific diagnostics (/api/video/log-error endpoint)
-- **Performance**: Initial JS bundle <200KB gzipped, code splitting, WebP/AVIF images with responsive srcset, Gzip/brotli compression, CDN caching, indexed database fields.
+- **Security**: Helmet middleware (CSP, HSTS), strict CORS, JWT security (SameSite, HttpOnly, Secure), tiered rate limiting, environment variables, webhook signature verification, and CSP configuration for Google Meet.
+- **Performance**: Optimized for fast loading with code splitting, image optimization, compression, CDN caching, and indexed database fields.
 
 ## External Dependencies
 
-- **Neon (PostgreSQL)**: Primary database for development and production (via DATABASE_URL environment variable)
-- **Supabase**: Legacy fallback for features not yet migrated to local storage.
-- **OpenAI**: AI coaching, conversation summarization, and insights generation.
+- **Neon (PostgreSQL)**: Primary database.
+- **Supabase**: Legacy fallback for certain features.
+- **OpenAI**: AI coaching, summarization, and insights.
 - **SendGrid**: Transactional email service.
 - **Stripe**: Payment processing and subscription management.
 - **n8n**: Workflow automation and AI integration.
-- **Google Meet**: Enterprise video conferencing via Google Calendar API integration. Coaches connect their Google Calendar to automatically generate Meet links for sessions.
+- **Google Meet**: Enterprise video conferencing via Google Calendar API.
 - **Google OAuth**: Social login and admin authentication.
-- **Gmail API**: Email sending for notifications.
+- **Gmail API**: Email notifications.
 - **Drizzle ORM**: Type-safe database operations.
 - **Zod**: Runtime type validation.
 - **TanStack Query**: Server state management.
