@@ -1,0 +1,282 @@
+This is the “Commitment First” WholeWellness fitness flow—translated into exact steps your dev team (or Replit-you) can follow without guesswork.
+
+Rhythm and poetry in the vision, precision in the execution.
+
+WholeWellness Landing Page Flow — Implementation Instructions
+
+This guide covers everything needed to ship the onboarding flow:
+
+• Page structure
+• UI copy
+• Routing
+• Stripe setup
+• Post-payment redirect
+• Intake logic
+• Success dashboard
+• Email automation
+
+Everything is sequenced in the right order so the user experience is clean, confident, and friction-free.
+
+1. LANDING PAGE (Phase 1)
+Purpose: Spark commitment and move the user straight into payment.
+Components You Must Build
+
+Hero Section
+
+H1: Empowering Lives Through Accessible, Transformational Coaching
+
+Sub-headline: Coaching for Everyone — Affordable, Attainable, and Built to Lift You.
+
+Supporting line: A supportive path toward lasting personal change, designed for those who’ve been overlooked or unsure where to begin.
+
+Primary CTA Button:
+Start My Wellness Journey
+
+CTA Behavior:
+
+On click → route to: /checkout
+
+Design Notes
+
+Keep the hero section spacious, simple, and emotionally calm.
+
+Use warm colors, not aggressive fitness tones.
+
+Remove distractions—no menus except Login/Sign Up.
+
+2. CHECKOUT + ACCOUNT CREATION (Phase 2)
+Purpose: Capture payment before introspection begins.
+Implementation Steps
+
+Step A: Account Creation Form
+Fields:
+
+name
+
+email
+
+password
+
+Step B: Stripe Payment
+
+Embed Stripe Checkout or use a Stripe Payment Element inside your page.
+
+The moment payment succeeds, Stripe calls your payment_intent.succeeded webhook.
+
+Critical Requirement: Payment → Redirect
+
+After successful payment:
+
+Redirect user to:
+/intake
+
+You achieve this in one of two ways:
+
+Option 1 — Stripe Checkout Sessions
+At checkout session creation:
+
+success_url: "https://wholewellnesscoaching.org/intake?session_id={CHECKOUT_SESSION_ID}",
+cancel_url: "https://wholewellnesscoaching.org/cancel"
+
+
+Option 2 — Stripe Webhook
+
+When webhook receives payment_intent.succeeded,
+
+Mark user as “paid” in Supabase.
+
+Frontend automatically routes them to the intake page.
+
+3. INTAKE PAGE (Phase 3)
+Purpose: Gather all personal and fitness data after commitment.
+Page Elements You Must Include
+
+Header:
+You’re In. Now Let’s Personalize Your Path.
+
+Sub-text:
+You’ve taken the first step. Help us understand where you’re starting so we can tailor your coaching plan.
+
+Progress indicator:
+Step 2 of 3 — Share Your Story
+
+Form Requirements
+
+Collect:
+
+Primary goals
+
+Current challenges
+
+Medical considerations
+
+Fitness experience
+
+Lifestyle factors (schedule, barriers, habits)
+
+Coaching preferences
+
+“Your Why” (open text)
+
+On Submit:
+
+Save intake to Supabase table intake_profiles
+
+Link intake to the user’s user_id
+
+Update user status to intake_completed = true
+
+Then Redirect to:
+/welcome
+
+4. SUCCESS DASHBOARD (Phase 4)
+Purpose: Give immediate value so the user feels their journey has begun.
+Page Elements
+
+Headline:
+Welcome to WholeWellness. Your Journey Has Officially Begun.
+
+Sub-headline:
+Your coach is reviewing your intake and preparing your personalized plan.
+
+Immediate Value Options
+
+You must include at least one of the following:
+
+“Watch Your 2-Minute Welcome Video”
+
+“Download Your Starter Guide”
+
+“Begin the 7-Day Momentum Challenge”
+
+“Try Today’s Breathing Reset”
+
+If coaching involves live sessions:
+
+Booking Component:
+
+Add a Calendly embed or a custom scheduling module.
+
+5. EMAIL AUTOMATION (The Safety Net)
+
+Even if the user stops halfway, automation pulls them back.
+
+You must configure 3 emails:
+Email 1: Payment Receipt
+
+Sent automatically by Stripe.
+
+You must add:
+
+Login link
+
+“Continue your intake” link if intake not completed
+
+Email 2: Intake Reminder (Immediate)
+
+Triggered by successful transaction.
+
+Subject: Welcome to WholeWellness — Finish Your Profile
+Body:
+You’re nearly there. Complete your intake so we can build your plan:
+→ /intake
+
+Email 3: Coach Review (24 Hours After Intake)
+
+Triggered by intake_completed = true.
+
+Subject: Your Coach Is Reviewing Your Profile
+Body:
+We’ve received your intake and your roadmap is being prepared.
+
+6. SUPABASE STRUCTURE
+Table: users
+
+Add fields:
+
+stripe_customer_id
+
+has_paid (boolean)
+
+intake_completed (boolean)
+
+Table: intake_profiles
+
+Fields:
+
+user_id
+
+fitness_goals
+
+challenges
+
+medical_notes
+
+experience_level
+
+lifestyle_data
+
+preferences
+
+why_statement
+
+created_at
+
+7. ROUTING LOGIC
+/
+
+Landing page → CTA → /checkout
+
+/checkout
+
+Account + payment → redirect on success → /intake
+
+/intake
+
+Form submission → /welcome
+
+/welcome
+
+Final onboarding page → offers value + booking
+
+8. WHAT YOUR DEV MUST IMPLEMENT
+
+Here is the exact checklist:
+
+Frontend
+
+✔ Hero page
+✔ Checkout page
+✔ Intake page
+✔ Success dashboard
+✔ Redirect logic
+✔ Loading states
+✔ Error states
+✔ Authentication handling
+
+Backend
+
+✔ Stripe Checkout session creation
+✔ Stripe webhook for payment confirmation
+✔ Supabase table updates
+✔ Intake saving
+✔ Email triggers (n8n recommended)
+
+Automation
+
+✔ Payment receipt (Stripe)
+✔ Intake reminder (n8n or Supabase cron)
+✔ Coach review email
+
+9. OPTIONAL (But Strongly Recommended)
+A. “Warm Start” welcome video
+
+It skyrockets completion rates.
+
+B. A single-sentence progress bar under the logo
+
+“You’re closer than you think.”
+
+C. Pre-filled answers for overwhelmed users
+
+Helps reduce drop-offs.
