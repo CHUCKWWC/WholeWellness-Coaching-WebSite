@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles, Users, Zap, ArrowRight, Shield, Clock, Star } from "lucide-react";
 
 const AI_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_AI_COACHING_LINK || "https://buy.stripe.com/3cIfZh0vQ0Xg4PIcOl3oA04";
-const LIVE_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_LIVE_COACHING_LINK || "https://buy.stripe.com/bJe28rdiC7lEdme15D3oA03";
+const COMBO_COACHING_PAYMENT_LINK = import.meta.env.VITE_STRIPE_COMBO_COACHING_LINK || "https://buy.stripe.com/combo_placeholder";
 
 interface Package {
   id: string;
@@ -42,22 +42,24 @@ const packages: Package[] = [
     color: "from-blue-500 to-cyan-500"
   },
   {
-    id: "live",
-    name: "Live Coaching",
-    price: "$599",
-    period: " for 6 sessions",
-    description: "Work directly with a certified professional coach",
-    icon: <Users className="h-8 w-8" />,
+    id: "combo",
+    name: "Complete Wellness Combo",
+    price: "$799",
+    period: " one-time",
+    description: "The ultimate package: AI coaching plus live professional sessions",
+    icon: <Zap className="h-8 w-8" />,
     features: [
-      "6 one-on-one sessions",
+      "Everything in AI Coaching",
+      "6 live coaching sessions",
       "Personalized coaching plan",
       "Video calls via Google Meet",
-      "Email support between sessions",
+      "Priority email support",
       "Session recordings",
-      "Certificate of completion"
+      "Certificate of completion",
+      "3 months AI access included"
     ],
     popular: true,
-    paymentLink: LIVE_COACHING_PAYMENT_LINK,
+    paymentLink: COMBO_COACHING_PAYMENT_LINK,
     color: "from-purple-500 to-pink-500"
   }
 ];
