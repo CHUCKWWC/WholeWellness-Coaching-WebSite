@@ -335,7 +335,7 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="hover:shadow-lg transition-shadow duration-300 h-full">
+                    <Card className="hover:shadow-lg transition-shadow duration-300 h-full bg-[#173a47]">
                       <CardContent className="p-6 bg-[#173a47]">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 text-white">
