@@ -228,15 +228,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Google Drive service
   const googleDriveService = new GoogleDriveService();
   
-  // Initialize Stripe (if key exists)
+  // Initialize Stripe - try connector first, fallback to env var
   let stripe: Stripe | null = null;
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16',
-    });
-  } else {
-    console.warn('Stripe secret key not found. Payment features will be disabled.');
+  let useConnectorStripe = false;
+  
+  // Import stripe connector functions
+  const { getUncachableStripeClient, getStripePublishableKey } = await import('./stripeClient');
+  
+  // Try to use Stripe connector, fallback to env var
+  try {
+    stripe = await getUncachableStripeClient();
+    useConnectorStripe = true;
+    console.log('Using Stripe connector for payments');
+  } catch (connectorError) {
+    console.warn('Stripe connector not available, trying env var:', connectorError);
+    if (process.env.STRIPE_SECRET_KEY) {
+      stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2023-10-16' as any,
+      });
+    } else {
+      console.warn('Stripe secret key not found. Payment features will be disabled.');
+    }
   }
+  
+  // Endpoint to get Stripe publishable key for frontend
+  app.get('/api/stripe/config', async (req, res) => {
+    try {
+      if (useConnectorStripe) {
+        const publishableKey = await getStripePublishableKey();
+        return res.json({ publishableKey });
+      } else if (process.env.VITE_STRIPE_PUBLIC_KEY) {
+        return res.json({ publishableKey: process.env.VITE_STRIPE_PUBLIC_KEY });
+      }
+      return res.status(503).json({ message: 'Stripe not configured' });
+    } catch (error: any) {
+      console.error('Error fetching Stripe config:', error);
+      return res.status(503).json({ message: 'Failed to get Stripe configuration' });
+    }
+  });
 
   // Session management functions
   async function createSession(userId: string): Promise<string> {

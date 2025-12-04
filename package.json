@@ -486,7 +486,11 @@
 
 
 
-    "stripe": "^18.4.0",
+    "stripe": "^18.5.0",
+
+
+
+    "stripe-replit-sync": "^0.0.12",
 
 
 

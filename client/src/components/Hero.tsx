@@ -33,9 +33,9 @@ export default function Hero() {
               A supportive path to personal development for those who need it most.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/register">
-                <Button size="lg" className="bg-primary text-white hover:bg-secondary transition-colors shadow-lg">
-                  Get Started
+              <Link href="/fitness-checkout">
+                <Button size="lg" className="bg-primary text-white hover:bg-secondary transition-colors shadow-lg" data-testid="button-start-journey">
+                  Start My Wellness Journey
                 </Button>
               </Link>
               <Link href="/about">
