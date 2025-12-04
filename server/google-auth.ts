@@ -3,13 +3,23 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { storage } from './supabase-client-storage';
 import { AuthService } from './auth';
 
-// Google OAuth Configuration
-const GOOGLE_CLIENT_ID = '69500810131-qbh0549lkmau91vmihq0c757407lk5ba.apps.googleusercontent.com';
-const GOOGLE_CLIENT_SECRET = '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';
+// Google OAuth Configuration - Read from environment variables for security
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 
 export function setupGoogleAuth() {
-  // Use the custom domain for OAuth callback
-  const callbackURL = "https://wholewellnesscoaching.org/auth/google/callback";
+  // Validate required environment variables
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    console.warn('[Google Auth] Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET environment variables. Google OAuth will not work.');
+    return;
+  }
+
+  // Use REPLIT_DEV_DOMAIN for development or custom domain for production
+  const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+    : process.env.GOOGLE_CALENDAR_REDIRECT_URI?.replace('/api/google-calendar/callback', '') 
+    || 'https://wholewellnesscoaching.org';
+  const callbackURL = `${baseUrl}/auth/google/callback`;
     
   passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,

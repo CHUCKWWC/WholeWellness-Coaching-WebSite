@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, Mail, ArrowLeft, Eye, EyeOff, AlertCircle, Info } from "lucide-react";
+import { Lock, Mail, ArrowLeft, Eye, EyeOff, AlertCircle, Info, Loader2 } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -87,6 +88,13 @@ export default function Login() {
   const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<LoginError | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = () => {
+    setIsGoogleLoading(true);
+    // Redirect to the Google OAuth endpoint
+    window.location.href = '/auth/google';
+  };
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -333,6 +341,35 @@ export default function Login() {
                 </Button>
               </form>
             </Form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Sign In Button */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full min-h-[48px] text-base flex items-center justify-center gap-3 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading || loginMutation.isPending}
+              data-testid="button-google-signin"
+            >
+              {isGoogleLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <SiGoogle className="w-5 h-5 text-[#4285F4]" />
+              )}
+              {isGoogleLoading ? "Connecting..." : "Sign in with Google"}
+            </Button>
 
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
