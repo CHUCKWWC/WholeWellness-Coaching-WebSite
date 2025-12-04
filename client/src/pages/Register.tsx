@@ -80,7 +80,8 @@ export default function Register() {
       sessionStorage.setItem('registeredName', variables.firstName);
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/registration-confirmation");
+      // Redirect to package selection as step 2 of onboarding flow
+      setLocation("/choose-package");
     },
     onError: (error: any) => {
       const errorMessage = error.message || "Failed to create account. Please try again.";
