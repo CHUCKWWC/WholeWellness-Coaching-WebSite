@@ -174,7 +174,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-4 sm:py-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-4 sm:py-8">
       <div className="container max-w-6xl mx-auto px-3 sm:px-4">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>

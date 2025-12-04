@@ -31,7 +31,7 @@ export default function EmailConfirm() {
   }, [setLocation]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
       <div className="max-w-md mx-auto px-4">
         <Card>
           <CardHeader className="text-center">

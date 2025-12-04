@@ -153,7 +153,7 @@ export default function AdminCrisisAlerts() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-6" data-testid="crisis-alerts-dashboard">
+    <div className="min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-6" data-testid="crisis-alerts-dashboard">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

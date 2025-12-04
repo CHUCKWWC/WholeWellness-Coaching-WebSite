@@ -9,7 +9,7 @@ export default function UserTutorial() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-teal-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 sm:py-12 px-4">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-8 sm:py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div 

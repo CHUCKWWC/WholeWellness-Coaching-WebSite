@@ -345,7 +345,7 @@ export default function CoachProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Edit/Save Buttons */}
       <div className="fixed top-20 right-4 z-40 flex gap-2">
         {isEditMode ? (

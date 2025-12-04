@@ -55,7 +55,7 @@ export default function Impact() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary to-secondary text-white overflow-hidden">
         <div className="absolute inset-0 bg-gray-900/20"></div>
