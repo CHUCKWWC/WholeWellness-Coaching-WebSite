@@ -61,6 +61,7 @@ const DonationPortal = lazy(() => import("@/pages/DonationPortal"));
 const CoachPortal = lazy(() => import("@/pages/CoachPortal"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const Accessibility = lazy(() => import("@/pages/Accessibility"));
 const OnboardingWizard = lazy(() => import("@/pages/OnboardingWizard"));
 const PasswordReset = lazy(() => import("@/pages/PasswordReset"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
@@ -203,6 +204,7 @@ function Router() {
           <Route path="/coach-portal" component={(props) => <LazyRoute component={CoachPortal} loadingText="Loading Coach Portal..." {...props} />} />
           <Route path="/privacy" component={(props) => <LazyRoute component={Privacy} loadingText="Loading Privacy Policy..." {...props} />} />
           <Route path="/terms" component={(props) => <LazyRoute component={Terms} loadingText="Loading Terms of Service..." {...props} />} />
+          <Route path="/accessibility" component={(props) => <LazyRoute component={Accessibility} loadingText="Loading Accessibility Statement..." {...props} />} />
           <Route path="/onboarding" component={SmartOnboarding} />
           <Route path="/onboarding-wizard" component={(props) => <LazyRoute component={OnboardingWizard} loadingText="Setting up your journey..." {...props} />} />
           <Route path="/reset-password" component={(props) => <LazyRoute component={PasswordReset} loadingText="Loading password reset..." {...props} />} />

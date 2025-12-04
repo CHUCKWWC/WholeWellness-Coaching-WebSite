@@ -16,18 +16,18 @@ const serviceLinks = [
 ];
 
 const resourceLinks = [
-  { href: "/programs", label: "Support Groups" },
-  { href: "/programs", label: "Workshops" },
+  { href: "/programs", label: "Support Groups & Workshops" },
   { href: "/resources", label: "Article Library" },
-  { href: "/resources", label: "Podcast" },
+  { href: "/resources?type=podcast", label: "Podcasts" },
+  { href: "/events", label: "Upcoming Events" },
   { href: "/members", label: "Member Portal" },
 ];
 
 const socialLinks = [
-  { href: "#", Icon: Facebook, label: "Facebook" },
-  { href: "#", Icon: Instagram, label: "Instagram" },
-  { href: "#", Icon: Linkedin, label: "LinkedIn" },
-  { href: "#", Icon: Twitter, label: "Twitter" },
+  { href: "https://facebook.com/wholewellnesscoaching", Icon: Facebook, label: "Facebook" },
+  { href: "https://instagram.com/wholewellnesscoaching", Icon: Instagram, label: "Instagram" },
+  { href: "https://linkedin.com/company/wholewellnesscoaching", Icon: Linkedin, label: "LinkedIn" },
+  { href: "https://twitter.com/wholewellness", Icon: Twitter, label: "Twitter/X" },
 ];
 
 const contactDetails = [
@@ -214,13 +214,31 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-6">Contact Info</h4>
             <div className="space-y-3 text-gray-300">
-              {contactDetails.map(({ icon, lines }, index) => (
+              {contactDetails.map(({ icon, lines, type }, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <span className="mt-1 text-white/80">{icon}</span>
                   <div className="space-y-1">
-                    {lines.map((line) => (
-                      <p key={line}>{line}</p>
-                    ))}
+                    {type === "email" ? (
+                      <a 
+                        href={`mailto:${lines[0]}`}
+                        className="hover:text-white transition-colors"
+                        data-testid="link-contact-email-desktop"
+                      >
+                        {lines[0]}
+                      </a>
+                    ) : type === "phone" ? (
+                      <a 
+                        href={`tel:${lines[0].replace(/[^0-9+]/g, '')}`}
+                        className="hover:text-white transition-colors"
+                        data-testid="link-contact-phone-desktop"
+                      >
+                        {lines[0]}
+                      </a>
+                    ) : (
+                      lines.map((line) => (
+                        <p key={line}>{line}</p>
+                      ))
+                    )}
                   </div>
                 </div>
               ))}
@@ -239,7 +257,7 @@ export default function Footer() {
               <Link href="/terms" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-terms">Terms of Service</Link>
               <Link href="/coach-signup" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-become-coach">Become a Coach</Link>
               <Link href="/coach-profile" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-coach-portal">Coaches Portal</Link>
-              <a href="#" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-accessibility">Accessibility</a>
+              <Link href="/accessibility" className="inline-block py-3 px-2 hover:text-white transition-colors min-h-[48px] touch-target" data-testid="link-accessibility">Accessibility</Link>
             </div>
           </div>
         </div>

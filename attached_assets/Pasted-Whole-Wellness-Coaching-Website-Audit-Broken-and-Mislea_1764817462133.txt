@@ -1,0 +1,27 @@
+Whole Wellness Coaching Website Audit
+Broken and Misleading Links
+Link Label or Destination	Observed Behavior	Evidence
+Podcast (footer navigation)	The Podcast link in the footer doesn’t lead to a podcast listing. The podcasts path returns a 404 Page Not Found message instead of podcast content.	The /podcasts page shows a heading “404 Page Not Found” with the note “Did you forget to add the page to the router?”
+wholewellnesscoaching.org
+.
+Support Groups (footer navigation)	Clicking Support Groups in the footer leads to a 404 page.	The /support‑groups path displays the same 404 page with the message “Page Not Found”
+wholewellnesscoaching.org
+.
+Workshops (footer navigation)	Selecting the Workshops link produces another 404 error.	The workshops route is missing; the 404 page indicates it hasn’t been added to the router
+wholewellnesscoaching.org
+.
+Podcast link in Resources	The site’s resources section lists a Podcast category, but there is no working podcast page.	The podcast and podcasts paths both show the 404 page
+wholewellnesscoaching.org
+.
+Resource pages (e.g., Healthy Eating Guide)	In the Resource Library, clicking the Access button for items such as Healthy Eating Guide opens a new tab that returns a 404 error.	The path /resources/healthy‑eating displays the same 404 error page
+wholewellnesscoaching.org
+.
+Other resource items (Workout Routines, Mindfulness Meditation)	The Access buttons for other resources redirect to the site’s home page rather than to resource content; users are not told why they were redirected.	After clicking Access for “Workout Routines,” the site redirects to the homepage (observed using the browsing tools).
+Social media icons (footer)	The Facebook, Instagram, LinkedIn and Twitter/X icons in the footer are not linked to any external pages. They simply reload the Resource Library section (#) without providing social‑media profiles.	Clicking the icons scrolls to the top of the page and the URL adds #; no social‑media pages open (observed in navigation testing).
+Accessibility link (footer)	The Accessibility link in the footer doesn’t lead anywhere; it only adds # to the URL.	Clicking it leaves the user on the same page with a # anchor; there is no accessibility statement or page (observed during testing).
+Internal calls‑to‑action on the Services page	Buttons such as Free consultation, Group support available, Skills assessment, Wellness toolkit and Communication tools look interactive but are not linked to any form or page. They behave like static labels.	During navigation, clicking these buttons produces no navigation or form; the page remains static (observed in navigation testing).
+Resource Library (Podcasts category)	The Resource Library lists a “Podcasts” tab, but there is no content or page supporting it; it redirects to the same broken podcast path.	When selecting Access for audio content, the path results in a 404 error similar to the podcast page
+wholewellnesscoaching.org
+.
+Email and phone in Contact Info	The email (info@wholewellnesscoaching.org) and phone number are not clickable mailto: or tel: links.	Clicking these items does nothing; there is no automatic email client or dialer activation (observed in navigation testing).
+Overall User‑Experience Findings
