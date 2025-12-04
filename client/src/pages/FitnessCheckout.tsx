@@ -186,17 +186,20 @@ export default function FitnessCheckout() {
   // Initialize payment intent
   const initializePayment = async (uid: string) => {
     try {
-      const response = await apiRequest("POST", "/api/create-subscription-intent", {
+      const data = await apiRequest<{ clientSecret: string }>("POST", "/api/create-subscription-intent", {
         planId: "wellness_membership",
         amount: MEMBERSHIP_PRICE,
       });
-      const data = await response.json();
-      setClientSecret(data.clientSecret);
-    } catch (error) {
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+      } else {
+        throw new Error("No client secret returned");
+      }
+    } catch (error: any) {
       console.error("Failed to initialize payment:", error);
       toast({
         title: "Payment Setup Error",
-        description: "Unable to set up payment. Please try again.",
+        description: error.message || "Unable to set up payment. Please try again.",
         variant: "destructive",
       });
     }

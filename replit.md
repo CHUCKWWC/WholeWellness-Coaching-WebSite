@@ -63,6 +63,15 @@ Preferred communication style: Simple, everyday language.
   - **Framer Motion Animations**: Smooth transitions, staggered reveals, and interactive hover states throughout
   - **Mobile-Optimized**: Responsive grid layouts, touch-friendly targets (min 44px), adaptive content
   - **Auto-Save**: Periodic data persistence with localStorage fallback for form recovery
+- **"Commitment First" Fitness Checkout Flow** (December 2025):
+  - Combined Registration + Payment flow at /fitness-checkout
+  - Hero CTA "Start My Wellness Journey" routes directly to checkout
+  - Seamless Stripe integration for $19.99/month Premium Wellness Membership
+  - User flow: Click Hero CTA → Register (or login) → Pay via Stripe → Redirect to /onboarding → Complete intake → Member Portal
+  - Payment success automatically upgrades membershipLevel to 'supporter'
+  - SendGrid welcome/receipt email sent on successful payment
+  - Intake reminder email function available for follow-up campaigns
+  - Key files: client/src/pages/FitnessCheckout.tsx, server/routes.ts (/api/create-subscription-intent endpoint), server/sendgrid-service.ts (sendWellnessPaymentReceipt, sendIntakeReminderEmail)
 - **Progress Indicators**:
   - StepProgressIndicator with visual milestones for multi-step processes
   - CompactProgressIndicator for tight spaces

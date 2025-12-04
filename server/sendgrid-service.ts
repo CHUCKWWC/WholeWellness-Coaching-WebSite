@@ -262,3 +262,186 @@ export async function sendCrisisAlertEmail(
     return false;
   }
 }
+
+export interface WellnessPaymentReceiptData {
+  userName: string;
+  email: string;
+  amount: number;
+  planName: string;
+  transactionId?: string;
+  nextBillingDate?: string;
+}
+
+export async function sendWellnessPaymentReceipt(
+  toEmail: string,
+  data: WellnessPaymentReceiptData
+): Promise<boolean> {
+  try {
+    const { client, fromEmail } = await getUncachableSendGridClient();
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : 'https://wholewellnesscoaching.org';
+
+    const msg = {
+      to: toEmail,
+      from: fromEmail,
+      subject: `🎉 Welcome to WholeWellness - Payment Confirmed`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
+          
+          <div style="text-align: center; padding: 30px 0; border-bottom: 2px solid #7c3aed;">
+            <h1 style="color: #7c3aed; margin: 0;">🎉 Welcome to WholeWellness!</h1>
+            <p style="color: #64748b; margin: 8px 0;">Your wellness journey starts now</p>
+          </div>
+
+          <div style="padding: 30px 0;">
+            <h2 style="color: #1e293b;">Hi ${data.userName},</h2>
+            <p style="color: #475569; font-size: 1.1em;">
+              Thank you for joining the WholeWellness community! Your payment has been processed successfully.
+            </p>
+            
+            <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 24px; margin: 24px 0;">
+              <h3 style="color: #7c3aed; margin-top: 0;">Payment Receipt</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #64748b;">Plan:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 600;">${data.planName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #64748b;">Amount:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #7c3aed;">$${(data.amount / 100).toFixed(2)}</td>
+                </tr>
+                ${data.transactionId ? `
+                <tr>
+                  <td style="padding: 8px 0; color: #64748b;">Transaction ID:</td>
+                  <td style="padding: 8px 0; text-align: right; font-size: 0.85em;">${data.transactionId}</td>
+                </tr>
+                ` : ''}
+                ${data.nextBillingDate ? `
+                <tr>
+                  <td style="padding: 8px 0; color: #64748b;">Next billing:</td>
+                  <td style="padding: 8px 0; text-align: right;">${data.nextBillingDate}</td>
+                </tr>
+                ` : ''}
+              </table>
+            </div>
+
+            <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 24px 0;">
+              <h3 style="color: #10b981; margin-top: 0;">🚀 What's Next?</h3>
+              <p style="margin-bottom: 0;">Complete your wellness intake to get personalized coaching recommendations. This only takes about 5 minutes!</p>
+            </div>
+
+            <div style="text-align: center; padding: 20px 0;">
+              <a href="${baseUrl}/onboarding?source=payment" 
+                 style="display: inline-block; background: #7c3aed; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1.1em;">
+                Start My Wellness Intake
+              </a>
+            </div>
+          </div>
+
+          <div style="text-align: center; padding: 30px 0; border-top: 2px solid #e5e7eb; margin-top: 40px;">
+            <p style="color: #64748b; margin: 8px 0;">
+              Questions? Reply to this email or visit our <a href="${baseUrl}/contact" style="color: #7c3aed;">Help Center</a>
+            </p>
+            <p style="color: #94a3b8; font-size: 0.85em;">
+              © ${new Date().getFullYear()} WholeWellness Coaching. All rights reserved.
+            </p>
+          </div>
+
+        </body>
+        </html>
+      `,
+      text: `Welcome to WholeWellness, ${data.userName}!\n\nThank you for joining! Your payment of $${(data.amount / 100).toFixed(2)} for ${data.planName} has been processed successfully.\n\nWhat's Next?\nComplete your wellness intake to get personalized coaching recommendations: ${baseUrl}/onboarding?source=payment\n\nQuestions? Visit ${baseUrl}/contact\n\nWholeWellness Team`,
+    };
+
+    await client.send(msg);
+    console.log(`Welcome/payment receipt email sent to ${toEmail}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending payment receipt email:', error);
+    return false;
+  }
+}
+
+export async function sendIntakeReminderEmail(
+  toEmail: string,
+  userName: string
+): Promise<boolean> {
+  try {
+    const { client, fromEmail } = await getUncachableSendGridClient();
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : 'https://wholewellnesscoaching.org';
+
+    const msg = {
+      to: toEmail,
+      from: fromEmail,
+      subject: `🌟 ${userName}, complete your wellness intake to unlock personalized coaching`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px;">
+          
+          <div style="text-align: center; padding: 30px 0; border-bottom: 2px solid #7c3aed;">
+            <h1 style="color: #7c3aed; margin: 0;">WholeWellness</h1>
+            <p style="color: #64748b; margin: 8px 0;">Your personalized journey awaits</p>
+          </div>
+
+          <div style="padding: 30px 0;">
+            <h2 style="color: #1e293b;">Hi ${userName},</h2>
+            <p style="color: #475569; font-size: 1.1em;">
+              We noticed you haven't completed your wellness intake yet. Take 5 minutes now to unlock:
+            </p>
+            
+            <ul style="color: #475569; padding-left: 20px;">
+              <li style="margin: 12px 0;">✨ Personalized AI coaching tailored to your goals</li>
+              <li style="margin: 12px 0;">📊 Custom wellness assessments and tracking</li>
+              <li style="margin: 12px 0;">🎯 Matched recommendations for professional coaches</li>
+              <li style="margin: 12px 0;">💪 Progress tracking and milestone celebrations</li>
+            </ul>
+
+            <div style="text-align: center; padding: 24px 0;">
+              <a href="${baseUrl}/onboarding" 
+                 style="display: inline-block; background: #7c3aed; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1.1em;">
+                Complete My Intake Now
+              </a>
+            </div>
+
+            <p style="color: #64748b; text-align: center; font-size: 0.9em;">
+              Takes less than 5 minutes • Start your transformation today
+            </p>
+          </div>
+
+          <div style="text-align: center; padding: 30px 0; border-top: 2px solid #e5e7eb; margin-top: 40px;">
+            <p style="color: #64748b; margin: 8px 0;">
+              Questions? <a href="${baseUrl}/contact" style="color: #7c3aed;">Contact us</a>
+            </p>
+            <p style="color: #94a3b8; font-size: 0.85em;">
+              © ${new Date().getFullYear()} WholeWellness Coaching. All rights reserved.
+            </p>
+          </div>
+
+        </body>
+        </html>
+      `,
+      text: `Hi ${userName},\n\nWe noticed you haven't completed your wellness intake yet.\n\nTake 5 minutes to unlock:\n• Personalized AI coaching\n• Custom wellness assessments\n• Matched coach recommendations\n• Progress tracking\n\nComplete your intake: ${baseUrl}/onboarding\n\nWholeWellness Team`,
+    };
+
+    await client.send(msg);
+    console.log(`Intake reminder email sent to ${toEmail}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending intake reminder email:', error);
+    return false;
+  }
+}

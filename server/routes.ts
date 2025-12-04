@@ -67,6 +67,7 @@ import { authLimiter } from "./security";
 import { assessmentRoutes } from "./assessment-routes";
 import { requireAuth, requireCoachRole, optionalAuth, type AuthenticatedRequest, AuthService } from "./auth";
 import { coachSessionNotes, chatSummaries } from "@shared/schema";
+import { sendWellnessPaymentReceipt } from "./sendgrid-service";
 // Admin auth now uses OAuth only - no password login exports
 
 // Sample resources seeding function
@@ -2102,6 +2103,67 @@ When to refer to licensed therapists and emergency resources for relationship cr
     }
   });
 
+  // Create wellness membership subscription intent (for fitness checkout flow)
+  app.post('/api/create-subscription-intent', requireAuth as any, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(400).json({ message: 'Stripe not configured' });
+    }
+
+    try {
+      const { planId, amount } = req.body;
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      if (!planId || !amount) {
+        return res.status(400).json({ message: 'Missing required fields: planId and amount' });
+      }
+
+      // Validate the wellness membership amount ($19.99 = 1999 cents)
+      if (planId === 'wellness_membership' && amount !== 1999) {
+        return res.status(400).json({ message: 'Invalid membership amount' });
+      }
+
+      // Create or retrieve Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          metadata: {
+            userId: user.id,
+          },
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+
+      // Create payment intent for wellness membership
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        customer: stripeCustomerId,
+        setup_future_usage: 'off_session',
+        metadata: {
+          userId: user.id,
+          planId: planId,
+          type: 'wellness_membership',
+        },
+      });
+
+      console.log(`💳 Wellness membership payment intent created for user ${user.id}: $${amount / 100}`);
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+      });
+    } catch (error: any) {
+      console.error('Subscription intent creation error:', error);
+      res.status(500).json({ message: error.message || 'Failed to create payment intent' });
+    }
+  });
+
   // Stripe webhook handler
   app.post('/api/stripe/webhook', async (req, res) => {
     if (!stripe) {
@@ -2111,10 +2173,11 @@ When to refer to licensed therapists and emergency resources for relationship cr
     try {
       const event = req.body;
       
-      // Handle coach application payment success
+      // Handle payment intent success
       if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
         
+        // Handle coach application payment success
         if (paymentIntent.metadata?.type === 'coach_application_fee') {
           const userId = paymentIntent.metadata.userId;
           const amount = paymentIntent.amount / 100; // Convert from cents
@@ -2126,6 +2189,54 @@ When to refer to licensed therapists and emergency resources for relationship cr
             await CoachEarningsSystem.trackEarnings(userId, amount, 'coach_application_fee');
             
             console.log(`🎉 Coach application fee processed - user ${userId} should now have coach role`);
+          }
+        }
+
+        // Handle wellness membership payment success
+        if (paymentIntent.metadata?.type === 'wellness_membership') {
+          const userId = paymentIntent.metadata?.userId;
+          const amountCents = paymentIntent.amount || 0;
+          const amount = amountCents / 100; // Convert from cents
+          
+          if (!userId) {
+            console.error('Wellness membership payment missing userId in metadata');
+          } else {
+            console.log(`💳 Wellness membership payment received: $${amount} for user ${userId}`);
+            
+            try {
+              // First verify user exists
+              const userCheck = await storage.getUserById(userId);
+              if (!userCheck) {
+                console.error(`User ${userId} not found for wellness membership upgrade`);
+              } else {
+                // Upgrade user to supporter membership level
+                await storage.updateUser(userId, { 
+                  membershipLevel: 'supporter',
+                  stripeCustomerId: paymentIntent.customer as string || undefined,
+                });
+                
+                console.log(`🎉 User ${userId} upgraded to supporter membership level`);
+
+                // Send welcome/payment receipt email
+                if (userCheck.email) {
+                  try {
+                    await sendWellnessPaymentReceipt(userCheck.email, {
+                      userName: userCheck.firstName || 'Valued Member',
+                      email: userCheck.email,
+                      amount: amountCents,
+                      planName: 'Premium Wellness Membership',
+                      transactionId: paymentIntent.id,
+                    });
+                    console.log(`📧 Welcome email sent to ${userCheck.email}`);
+                  } catch (emailError) {
+                    console.error('Error sending welcome email:', emailError);
+                    // Don't fail the webhook for email errors
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error upgrading user membership:', error);
+            }
           }
         }
       }
