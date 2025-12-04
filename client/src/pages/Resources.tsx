@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,13 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Download, Play, FileText, Headphones } from "lucide-react";
+import { Search, Download, Play, FileText, Headphones, Lock, ExternalLink } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Link, useLocation } from "wouter";
 import type { Resource } from "@shared/schema";
 
 export default function Resources() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
+  const { toast } = useToast();
+  const [location] = useLocation();
+
+  // Handle URL query params for filtering
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const typeParam = params.get('type');
+    if (typeParam) {
+      setFilterType(typeParam);
+    }
+  }, [location]);
 
   const { data: resources, isLoading } = useQuery<Resource[]>({
     queryKey: ["/api/resources"],
@@ -26,8 +39,21 @@ export default function Resources() {
       // Download file if it has a file path
       window.open(resource.filePath, '_blank');
     } else {
-      // Navigate to resource detail page as fallback
-      window.location.href = `/resources/${resource.id}`;
+      // Show a helpful message instead of navigating to a 404
+      toast({
+        title: "Resource Coming Soon",
+        description: resource.isFree 
+          ? "This resource is being prepared and will be available shortly. Check back soon!"
+          : "This resource requires a membership. Subscribe to access our full resource library.",
+        variant: resource.isFree ? "default" : "destructive",
+        action: !resource.isFree ? (
+          <Link href="/subscribe">
+            <Button size="sm" variant="outline">
+              Subscribe
+            </Button>
+          </Link>
+        ) : undefined,
+      });
     }
   };
 
@@ -216,6 +242,8 @@ interface ResourceGridProps {
 }
 
 function ResourceGrid({ resources, isLoading }: ResourceGridProps) {
+  const { toast } = useToast();
+
   const handleResourceAccess = (resource: Resource) => {
     // Open resource in new tab if it has a URL
     if (resource.url) {
@@ -224,8 +252,14 @@ function ResourceGrid({ resources, isLoading }: ResourceGridProps) {
       // Download file if it has a file path
       window.open(resource.filePath, '_blank');
     } else {
-      // Navigate to resource detail page as fallback
-      window.location.href = `/resources/${resource.id}`;
+      // Show a helpful message instead of navigating to a 404
+      toast({
+        title: "Resource Coming Soon",
+        description: resource.isFree 
+          ? "This resource is being prepared and will be available shortly. Check back soon!"
+          : "This resource requires a membership. Subscribe to access our full resource library.",
+        variant: resource.isFree ? "default" : "destructive",
+      });
     }
   };
 

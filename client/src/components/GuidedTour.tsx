@@ -88,7 +88,8 @@ export default function GuidedTour({ isOpen, onClose }: GuidedTourProps) {
   };
 
   const skipTour = () => {
-    localStorage.setItem('hasSeenTour', 'true');
+    // Use sessionStorage for once-per-session behavior
+    sessionStorage.setItem('hasSeenTour', 'true');
     onClose();
   };
 

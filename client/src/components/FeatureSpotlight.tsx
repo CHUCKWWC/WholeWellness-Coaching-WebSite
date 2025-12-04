@@ -54,11 +54,12 @@ export default function FeatureSpotlight() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const hasSeenSpotlight = localStorage.getItem('hasSeenFeatureSpotlight');
-    if (!hasSeenSpotlight) {
+    // Use sessionStorage for once-per-session behavior (clears when browser closes)
+    const hasSeenThisSession = sessionStorage.getItem('hasSeenFeatureSpotlight');
+    if (!hasSeenThisSession) {
       const timer = setTimeout(() => {
         setIsVisible(true);
-      }, 5000); // Show spotlight after 5 seconds
+      }, 8000); // Show spotlight after 8 seconds (less intrusive)
       return () => clearTimeout(timer);
     }
   }, []);
@@ -74,7 +75,7 @@ export default function FeatureSpotlight() {
 
   const dismissSpotlight = () => {
     setIsVisible(false);
-    localStorage.setItem('hasSeenFeatureSpotlight', 'true');
+    sessionStorage.setItem('hasSeenFeatureSpotlight', 'true');
   };
 
   if (!isVisible) return null;

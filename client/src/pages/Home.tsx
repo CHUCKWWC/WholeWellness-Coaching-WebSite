@@ -27,25 +27,25 @@ export default function Home() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showChecklist, setShowChecklist] = useState(false);
 
-  // Show welcome experience for first-time visitors (highest priority)
+  // Show welcome experience for first-time visitors this session (once per session)
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {
       const timer = setTimeout(() => {
         setShowWelcome(true);
-      }, 1500); // Show welcome first
+      }, 2000); // Show welcome after 2 seconds (less intrusive)
       return () => clearTimeout(timer);
     }
   }, []);
 
-  // Show guided tour for returning visitors who haven't seen it
+  // Show guided tour for returning visitors who haven't seen it this session
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    const hasSeenTour = localStorage.getItem('hasSeenTour');
+    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    const hasSeenTour = sessionStorage.getItem('hasSeenTour');
     if (hasSeenWelcome && !hasSeenTour) {
       const timer = setTimeout(() => {
         setShowTour(true);
-      }, 2000);
+      }, 3000); // Delay tour to reduce overlapping pop-ups
       return () => clearTimeout(timer);
     }
   }, []);
@@ -84,12 +84,12 @@ export default function Home() {
 
   const closeTour = () => {
     setShowTour(false);
-    localStorage.setItem('hasSeenTour', 'true');
+    sessionStorage.setItem('hasSeenTour', 'true');
   };
 
   const closeWelcome = () => {
     setShowWelcome(false);
-    localStorage.setItem('hasSeenWelcome', 'true');
+    sessionStorage.setItem('hasSeenWelcome', 'true');
   };
   const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],

@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Calendar, Users, ClipboardCheck, Package, MessageCircle } from "lucide-react";
 
 export default function Services() {
   const services = [
@@ -10,42 +11,54 @@ export default function Services() {
       icon: "🛡️",
       description: "Specialized support for survivors, focusing on rebuilding confidence, establishing boundaries, and creating a new path forward.",
       features: ["Free initial consultation", "Safety planning", "Trauma-informed approach", "Confidential support"],
-      highlight: "Free consultation"
+      highlight: "Free consultation",
+      highlightLink: "/booking",
+      highlightIcon: Calendar
     },
     {
       title: "Divorce & Widowhood Support", 
       icon: "💔",
       description: "Guidance through major life transitions, helping you process grief, rediscover identity, and build a fulfilling new chapter.",
       features: ["Group & individual sessions", "Grief processing", "Identity rebuilding", "Future planning"],
-      highlight: "Group support available"
+      highlight: "Group support available",
+      highlightLink: "/programs",
+      highlightIcon: Users
     },
     {
       title: "Career Development",
       icon: "💼", 
       description: "Professional growth coaching to help you navigate career transitions, build confidence, and achieve your professional goals.",
       features: ["Skills assessment included", "Resume building", "Interview preparation", "Networking strategies"],
-      highlight: "Skills assessment"
+      highlight: "Skills assessment",
+      highlightLink: "/assessments",
+      highlightIcon: ClipboardCheck
     },
     {
       title: "Life Balance Coaching",
       icon: "⚖️",
       description: "Holistic approach to wellness, helping you create harmony between personal, professional, and health goals.",
       features: ["Wellness toolkit provided", "Time management", "Stress reduction", "Goal setting"],
-      highlight: "Wellness toolkit"
+      highlight: "Wellness toolkit",
+      highlightLink: "/resources",
+      highlightIcon: Package
     },
     {
       title: "Relationship Coaching", 
       icon: "❤️",
       description: "Support for building healthy relationships, setting boundaries, and finding love and passion at any stage of life.",
       features: ["Communication tools", "Boundary setting", "Dating guidance", "Relationship skills"],
-      highlight: "Communication tools"
+      highlight: "Communication tools",
+      highlightLink: "/resources?category=relationship",
+      highlightIcon: MessageCircle
     },
     {
       title: "Personal Development",
       icon: "🎓",
       description: "Self-discovery coaching to help you identify strengths, clarify goals, and develop the mindset for lasting positive change.",
       features: ["Resource library access", "Goal clarification", "Strength identification", "Mindset coaching"],
-      highlight: "Resource library access"
+      highlight: "Resource library access",
+      highlightLink: "/resources",
+      highlightIcon: Package
     },
     {
       title: "Weight Loss Coaching",
@@ -53,6 +66,8 @@ export default function Services() {
       description: "Comprehensive weight loss program with personalized meal plans, exercise guidance, and ongoing support for sustainable results.",
       features: ["Comprehensive intake assessment", "Personalized 6-week meal plan", "Exercise routines", "Supplement guidance"],
       highlight: "Free intake assessment",
+      highlightLink: "/weight-loss-intake",
+      highlightIcon: ClipboardCheck,
       specialized: true
     }
   ];
@@ -133,9 +148,16 @@ export default function Services() {
                     ))}
                   </div>
                   
-                  <Badge variant="secondary" className="mb-4">
-                    {service.highlight}
-                  </Badge>
+                  <Link href={service.highlightLink}>
+                    <Badge 
+                      variant="secondary" 
+                      className="mb-4 cursor-pointer hover:bg-primary hover:text-white transition-colors flex items-center gap-1 w-fit"
+                      data-testid={`badge-${service.title.toLowerCase().replace(/\s+/g, '-')}-highlight`}
+                    >
+                      {service.highlightIcon && <service.highlightIcon className="w-3 h-3" />}
+                      {service.highlight}
+                    </Badge>
+                  </Link>
                   
                   {service.specialized && (
                     <div className="mt-4">
