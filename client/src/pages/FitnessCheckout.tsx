@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Mail, Lock, Eye, EyeOff, Loader2, Check, Heart, Shield, Star, ArrowLeft } from "lucide-react";
 import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
-import { SocialLogin } from "@/components/SocialLogin";
+import SocialLogin from "@/components/SocialLogin";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
