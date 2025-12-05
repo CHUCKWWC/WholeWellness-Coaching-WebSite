@@ -1,14 +1,8 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Hero from "@/components/Hero";
 import TestimonialCard from "@/components/TestimonialCard";
-import BookingForm from "@/components/BookingForm";
-import AuthForm from "@/components/AuthForm";
-import OnboardingWelcome from "@/components/OnboardingWelcome";
-import GuidedTour from "@/components/GuidedTour";
 import DashboardQuickAccess from "@/components/DashboardQuickAccess";
 import AuthenticatedWelcome from "@/components/AuthenticatedWelcome";
-import { WelcomeChecklist } from "@/components/WelcomeChecklist";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -22,75 +16,6 @@ import teamHandsImg from "@assets/wwc_ (9)_1751919370287.jpg";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [showChecklist, setShowChecklist] = useState(false);
-
-  // Show welcome experience for first-time visitors this session (once per session)
-  useEffect(() => {
-    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
-    if (!hasSeenWelcome) {
-      const timer = setTimeout(() => {
-        setShowWelcome(true);
-      }, 2000); // Show welcome after 2 seconds (less intrusive)
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Show guided tour for returning visitors who haven't seen it this session
-  useEffect(() => {
-    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
-    const hasSeenTour = sessionStorage.getItem('hasSeenTour');
-    if (hasSeenWelcome && !hasSeenTour) {
-      const timer = setTimeout(() => {
-        setShowTour(true);
-      }, 3000); // Delay tour to reduce overlapping pop-ups
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Show onboarding for authenticated users
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${user.id}`);
-      if (!hasSeenOnboarding && !showOnboarding) {
-        const timer = setTimeout(() => {
-          setShowOnboarding(true);
-        }, 1000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isAuthenticated, user]);
-
-  // Show welcome checklist for first-time login users
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const isFirstLogin = sessionStorage.getItem('firstLogin');
-      const checklistDismissed = localStorage.getItem('welcomeChecklistDismissed');
-      if (isFirstLogin === 'true' && checklistDismissed !== 'true') {
-        setShowChecklist(true);
-        sessionStorage.removeItem('firstLogin');
-      }
-    }
-  }, [isAuthenticated, user]);
-
-  const completeOnboarding = () => {
-    setShowOnboarding(false);
-    if (user) {
-      localStorage.setItem(`hasSeenOnboarding_${user.id}`, 'true');
-    }
-  };
-
-  const closeTour = () => {
-    setShowTour(false);
-    sessionStorage.setItem('hasSeenTour', 'true');
-  };
-
-  const closeWelcome = () => {
-    setShowWelcome(false);
-    sessionStorage.setItem('hasSeenWelcome', 'true');
-  };
   const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],
   });
@@ -118,27 +43,98 @@ export default function Home() {
     }
   ];
 
+  const quickStart = [
+    {
+      title: "Create your account",
+      description: "Tell us your goals and we tailor the first coaching steps for you.",
+      action: {
+        href: "/register",
+        label: "Get started free"
+      }
+    },
+    {
+      title: "Choose a plan",
+      description: "Securely activate payments so you can book sessions without friction.",
+      action: {
+        href: "/subscribe",
+        label: "See pricing"
+      }
+    },
+    {
+      title: "Book a session",
+      description: "Pick your coach, lock in times, and keep progress visible in your dashboard.",
+      action: {
+        href: "/booking",
+        label: "Schedule now"
+      }
+    }
+  ];
+
+  const securityHighlights = [
+    "Secure checkout powered by our subscription flow",
+    "Private dashboards for authenticated members and coaches",
+    "Navigation trimmed to only what your role needs"
+  ];
+
   return (
     <div>
       <Hero />
-      
-      {/* First Time User Experience removed with obsolete component cleanup */}
-      
-      {/* Guided Tour */}
-      <GuidedTour isOpen={showTour} onClose={closeTour} />
-      
+
+      {/* Simplified onboarding for every visitor */}
+      <section className="py-10 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              <h2 className="text-3xl font-bold text-secondary">Start fast and stay focused</h2>
+              <p className="text-gray-700 max-w-2xl">
+                New members get a clear path: sign up, pick a plan, and book time with a coach. We removed distracting pop-ups so you can get moving in under a minute.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {quickStart.map((step) => (
+                  <Card key={step.title} className="h-full">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="font-semibold text-lg text-secondary">{step.title}</div>
+                      <p className="text-gray-600 text-sm leading-relaxed">{step.description}</p>
+                      <Link href={step.action.href}>
+                        <Button className="w-full" variant="outline">{step.action.label}</Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+            <Card className="bg-white shadow-sm border-2 border-blue-100">
+              <CardContent className="p-6 space-y-4">
+                <h3 className="text-xl font-semibold text-secondary">Your data stays safe</h3>
+                <p className="text-gray-600 text-sm">
+                  We streamlined navigation so only the essentials appear for each role, and checkout happens through our secure subscription flow.
+                </p>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {securityHighlights.map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <span className="text-green-600">●</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex gap-2">
+                  <Link href="/subscribe">
+                    <Button className="flex-1">Choose a plan</Button>
+                  </Link>
+                  <Link href="/donate">
+                    <Button variant="outline" className="flex-1">Support us</Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Authenticated User Section - prominently placed after hero */}
       {isAuthenticated && (
-        <section className="py-8 bg-gray-50 dark:bg-gray-900">
+        <section className="py-8 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {showChecklist && (
-              <div className="mb-8">
-                <WelcomeChecklist 
-                  userName={user?.firstName || user?.name?.split(' ')[0]} 
-                  onDismiss={() => setShowChecklist(false)}
-                />
-              </div>
-            )}
             <AuthenticatedWelcome />
             <DashboardQuickAccess />
           </div>
@@ -401,12 +397,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Onboarding Welcome */}
-      <OnboardingWelcome 
-        isOpen={showOnboarding}
-        onComplete={completeOnboarding}
-        userType={user ? 'new' : 'new'}
-      />
     </div>
   );
 }
