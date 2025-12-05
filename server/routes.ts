@@ -3888,18 +3888,20 @@ When to refer to licensed therapists and emergency resources for relationship cr
   
   app.get('/auth/google/callback', 
     passport.authenticate('google', { 
-      failureRedirect: '/?error=auth_failed',
+      failureRedirect: '/login?error=auth_failed',
       session: false  // Disable session to prevent issues
     }), 
     async (req, res) => {
       try {
         if (!req.user) {
           console.error('No user data received from Google OAuth');
-          return res.redirect('/?error=no_user_data');
+          return res.redirect('/login?error=no_user_data');
         }
 
+        const user = req.user as any;
+        
         // Generate JWT token for the authenticated user
-        const token = generateGoogleAuthToken(req.user);
+        const token = generateGoogleAuthToken(user);
         
         // Set the token as a secure HTTP-only cookie
         res.cookie('auth_token', token, {
@@ -3909,11 +3911,36 @@ When to refer to licensed therapists and emergency resources for relationship cr
           maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         
-        // Redirect to the homepage with success indicator
-        res.redirect('/?auth=success');
+        // Determine role-appropriate dashboard redirect
+        let redirectPath = '/';
+        const userRole = user.role || 'user';
+        
+        // Check if user needs onboarding first
+        if (!user.hasCompletedOnboarding) {
+          redirectPath = '/digital-onboarding';
+        } else {
+          // Route to role-appropriate dashboard
+          switch (userRole) {
+            case 'admin':
+            case 'super_admin':
+              redirectPath = '/admin-dashboard';
+              break;
+            case 'coach':
+              redirectPath = '/coach-dashboard';
+              break;
+            case 'user':
+            case 'member':
+            default:
+              redirectPath = '/member-portal';
+              break;
+          }
+        }
+        
+        console.log(`[Google OAuth] User ${user.email} authenticated, redirecting to ${redirectPath}`);
+        res.redirect(redirectPath);
       } catch (error) {
         console.error('OAuth callback error:', error);
-        res.redirect('/?error=auth_failed');
+        res.redirect('/login?error=auth_failed');
       }
     }
   );

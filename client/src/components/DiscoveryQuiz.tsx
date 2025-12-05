@@ -90,7 +90,11 @@ const readinessLevels = [
   },
 ];
 
-export default function DiscoveryQuiz() {
+interface DiscoveryQuizProps {
+  onComplete?: () => void;
+}
+
+export default function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps = {}) {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedNeeds, setSelectedNeeds] = useState<string[]>([]);
   const [situationDetails, setSituationDetails] = useState<Record<string, string>>({});
@@ -381,12 +385,21 @@ export default function DiscoveryQuiz() {
             You're not alone—your healing, clarity, and growth journey starts here. Let's take your next step together.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={() => window.location.href = '/ai-coaching'}>
-              Try AI Chat Free
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/digital-onboarding'}>
-              Book Discovery Call
-            </Button>
+            {onComplete ? (
+              <Button onClick={onComplete} className="min-h-[48px] px-8" data-testid="button-continue-assessment">
+                Continue to Next Steps
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : (
+              <>
+                <Button onClick={() => window.location.href = '/ai-coaching'}>
+                  Try AI Chat Free
+                </Button>
+                <Button variant="outline" onClick={() => window.location.href = '/digital-onboarding'}>
+                  Book Discovery Call
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

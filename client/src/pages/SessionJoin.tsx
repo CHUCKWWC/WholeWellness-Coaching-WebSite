@@ -34,7 +34,7 @@ export default function SessionJoin() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-6">
             <Skeleton className="h-8 w-3/4 mb-4" />
@@ -48,7 +48,7 @@ export default function SessionJoin() {
 
   if (!sessionData) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-2xl font-bold mb-4">Session Not Found</h2>
@@ -70,7 +70,7 @@ export default function SessionJoin() {
   const canJoin = !isUpcoming || (new Date().getTime() > sessionTime.getTime() - 15 * 60 * 1000); // 15 min before
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardContent className="p-8">
           {/* Session Header */}

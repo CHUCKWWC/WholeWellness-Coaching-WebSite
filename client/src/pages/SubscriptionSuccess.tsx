@@ -1,124 +1,111 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight, Home, Calendar, Star, Users } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, ArrowRight, ClipboardCheck, Star, Sparkles } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 export default function SubscriptionSuccess() {
   const [, setLocation] = useLocation();
+  const [countdown, setCountdown] = useState(5);
+  const [autoRedirect, setAutoRedirect] = useState(true);
+
+  useEffect(() => {
+    if (!autoRedirect) return;
+    
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setLocation('/discovery-assessment');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [autoRedirect, setLocation]);
+
+  const handleContinue = () => {
+    setAutoRedirect(false);
+    setLocation('/discovery-assessment');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
       <div className="max-w-2xl mx-auto px-4">
-        <Card className="border-purple-200">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="h-8 w-8 text-purple-600" />
+        <div className="text-center mb-8">
+          <Badge className="mb-4 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+            Step 3 of 4
+          </Badge>
+        </div>
+
+        <Card className="border-green-200 dark:border-green-800 shadow-xl">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+              <CheckCircle className="h-10 w-10 text-white" />
             </div>
-            <CardTitle className="text-purple-700">Purchase Successful!</CardTitle>
+            <CardTitle className="text-2xl text-green-700 dark:text-green-300">Payment Successful!</CardTitle>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Welcome to your coaching program! Your payment has been processed successfully.
+            </p>
           </CardHeader>
+          
           <CardContent className="space-y-6">
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">
-                Welcome to your coaching program! Your payment has been processed successfully.
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 p-6 rounded-xl">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Star className="h-5 w-5 text-purple-600" />
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-300">
+                  One More Step!
+                </h3>
+              </div>
+              <p className="text-center text-purple-700 dark:text-purple-300">
+                Complete a brief discovery assessment to help us personalize your coaching experience.
               </p>
-              
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <Star className="h-5 w-5 text-purple-600" />
-                  <h3 className="text-lg font-semibold text-purple-900">
-                    You're all set!
-                  </h3>
-                </div>
-                <p className="text-purple-700">
-                  Your coaching program is now active and your coach matching process has begun.
-                  You'll receive an email confirmation and coach assignment within 24-48 hours.
-                </p>
-              </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-900">What happens next?</h3>
-              <div className="grid gap-3">
-                <div className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 font-semibold text-sm">1</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Confirmation Email</h4>
-                    <p className="text-sm text-gray-600">
-                      You'll receive a purchase confirmation email with all the details.
-                    </p>
-                  </div>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <ClipboardCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                
-                <div className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 font-semibold text-sm">2</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Coach Matching</h4>
-                    <p className="text-sm text-gray-600">
-                      We'll match you with a qualified coach based on your preferences and needs.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 font-semibold text-sm">3</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">First Session</h4>
-                    <p className="text-sm text-gray-600">
-                      Your coach will reach out to schedule your first session within 48 hours.
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Discovery Assessment</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Takes about 3-5 minutes</p>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                <h4 className="font-medium text-blue-900">Your Program Benefits</h4>
-              </div>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Professional coaching sessions as per your program</li>
-                <li>• Messaging support during your program period</li>
-                <li>• Access to resource library and tools</li>
-                <li>• Progress tracking and personalized plans</li>
-                <li>• Priority support during program period</li>
-                <li>• Progress reports throughout your program</li>
-              </ul>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                This short assessment helps us understand your goals, challenges, and preferences 
+                so we can match you with the right coach and resources.
+              </p>
             </div>
 
             <div className="space-y-3">
               <Button 
-                onClick={() => setLocation('/member-portal')}
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                onClick={handleContinue}
+                className="w-full min-h-[52px] text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                data-testid="button-continue-assessment"
               >
-                <Home className="mr-2 h-4 w-4" />
-                Go to Member Portal
+                <Sparkles className="mr-2 h-5 w-5" />
+                Continue to Assessment
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               
-              <Button 
-                onClick={() => setLocation('/ai-coaching')}
-                variant="outline"
-                className="w-full"
-              >
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Start with AI Coaching
-              </Button>
+              {autoRedirect && (
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                  Automatically continuing in {countdown} seconds...
+                </p>
+              )}
             </div>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-2">
-                You can manage your program anytime from your member portal.
-              </p>
-              <p className="text-xs text-gray-500">
-                Need help? Contact us at{' '}
+            <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                A confirmation email has been sent to your inbox.
+                <br />
+                Need help?{' '}
                 <a href="mailto:hello@wholewellnesscoaching.org" className="text-purple-600 hover:underline">
-                  hello@wholewellnesscoaching.org
+                  Contact us
                 </a>
               </p>
             </div>

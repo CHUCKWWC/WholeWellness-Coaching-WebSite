@@ -215,7 +215,7 @@ export function OnboardingExperience({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" />
+      <div className="fixed inset-0 bg-gray-900/60 z-40 backdrop-blur-sm" />
       
       <div className="fixed inset-0 z-50 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">

@@ -273,7 +273,7 @@ export default function VideoSession({ sessionId, coachId, clientId, sessionType
                   muted
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 px-2 py-1 rounded text-sm">
+                <div className="absolute bottom-4 left-4 bg-gray-900/70 px-2 py-1 rounded text-sm">
                   You ({isCoach ? 'Coach' : 'Client'})
                 </div>
                 {!isVideoEnabled && (
@@ -295,7 +295,7 @@ export default function VideoSession({ sessionId, coachId, clientId, sessionType
                       <VideoOff className="w-12 h-12 text-gray-400" />
                     )}
                   </div>
-                  <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 px-2 py-1 rounded text-sm">
+                  <div className="absolute bottom-4 left-4 bg-gray-900/70 px-2 py-1 rounded text-sm">
                     {participant.name}
                   </div>
                   <div className="absolute top-4 right-4">

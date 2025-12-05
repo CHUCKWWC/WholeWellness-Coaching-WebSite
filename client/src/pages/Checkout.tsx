@@ -172,7 +172,7 @@ export default function Checkout() {
 
   // Make SURE to wrap the form in <Elements> which provides the stripe context.
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4">
         <Elements stripe={stripePromise} options={{ clientSecret }}>
           <CheckoutForm amount={amount} description={description} />

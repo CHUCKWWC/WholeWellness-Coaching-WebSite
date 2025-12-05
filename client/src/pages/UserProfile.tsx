@@ -255,7 +255,7 @@ export default function UserProfile() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
@@ -277,7 +277,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Profile Header Card */}
         <Card className="mb-8">
@@ -291,7 +291,7 @@ export default function UserProfile() {
                   className="w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                 <Button
                   variant="secondary"
                   onClick={() => openUpload('cover')}
@@ -736,7 +736,7 @@ export default function UserProfile() {
                           <video
                             src={user.introVideoUrl}
                             controls
-                            className="w-full h-48 rounded-lg bg-black"
+                            className="w-full h-48 rounded-lg bg-gray-900"
                             data-testid="video-intro"
                           />
                         ) : (

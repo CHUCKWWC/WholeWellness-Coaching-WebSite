@@ -150,7 +150,7 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -170,7 +170,7 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-800">Welcome Journey</h2>
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline">{currentStep + 1} of {onboardingSteps.length}</Badge>
+                    <Badge variant="outline" className="text-[#0d0c0c]">{currentStep + 1} of {onboardingSteps.length}</Badge>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -335,15 +335,15 @@ export default function OnboardingWelcome({ isOpen, onComplete, userType = 'new'
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="hover:shadow-lg transition-shadow duration-300 h-full">
+                    <Card className="hover:shadow-lg transition-shadow duration-300 h-full bg-[#173a47] border-[#1e4a59]">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 text-white">
                             {feature.icon}
                           </div>
-                          <h4 className="font-semibold text-gray-900">{feature.title}</h4>
+                          <h4 className="font-semibold text-white">{feature.title}</h4>
                         </div>
-                        <p className="text-sm text-gray-600">{feature.description}</p>
+                        <p className="text-sm text-gray-300">{feature.description}</p>
                       </CardContent>
                     </Card>
                   </motion.div>

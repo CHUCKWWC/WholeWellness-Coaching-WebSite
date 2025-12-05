@@ -175,7 +175,7 @@ export default function Donate() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60"
           >
             <motion.div
               initial={{ scale: 0, rotate: -180 }}

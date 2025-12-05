@@ -14,8 +14,11 @@ import {
   Video,
   Eye,
   BarChart3,
-  CalendarDays
+  CalendarDays,
+  ExternalLink,
+  X
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import QuickStartVideoButton from "@/components/coach/QuickStartVideoButton";
 import StartVideoSessionDialog from "@/components/coach/StartVideoSessionDialog";
 import ClientDetailView from "@/components/coach/ClientDetailView";
@@ -68,10 +71,22 @@ const normalizeBooking = (booking: SchemaBooking): ComponentBooking => ({
   status: booking.status ?? 'pending',
 });
 
+interface CalendarStatus {
+  connected: boolean;
+  email?: string;
+}
+
 export default function CoachDashboard() {
   const { user } = useAuth();
   const [selectedClient, setSelectedClient] = useState<{ id: string; name: string; email: string } | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [calendarBannerDismissed, setCalendarBannerDismissed] = useState(false);
+  
+  // Check Google Calendar connection status
+  const { data: calendarStatus } = useQuery<CalendarStatus>({
+    queryKey: ['/api/video/google/calendar/status'],
+    enabled: !!user,
+  });
 
   // Fetch coach's bookings
   const { data: rawBookings = [], isLoading: isLoadingBookings, error: bookingsError } = useQuery<SchemaBooking[]>({
@@ -305,6 +320,42 @@ export default function CoachDashboard() {
           />
         </div>
       </div>
+
+      {/* Google Calendar Connection Banner */}
+      {!calendarStatus?.connected && !calendarBannerDismissed && (
+        <Alert className="mb-6 border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30" data-testid="alert-calendar-connect">
+          <Video className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-800 dark:text-amber-200 flex items-center justify-between">
+            <span>Enable Video Conferencing</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0 hover:bg-amber-200 dark:hover:bg-amber-800"
+              onClick={() => setCalendarBannerDismissed(true)}
+              data-testid="button-dismiss-calendar-banner"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            <p className="mb-3">
+              Connect your Google Calendar to automatically create Google Meet links for video sessions with your clients.
+            </p>
+            <Button 
+              size="sm" 
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {
+                const element = document.querySelector('[data-testid="button-connect-google-calendar"]');
+                element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+              data-testid="button-scroll-to-calendar"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Set Up Video Conferencing
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

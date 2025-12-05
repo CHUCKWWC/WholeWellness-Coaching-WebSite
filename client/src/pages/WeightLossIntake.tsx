@@ -118,7 +118,7 @@ export default function WeightLossIntake() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 py-12">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">

@@ -49,7 +49,7 @@ export default function CoachSignup() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-20">
         <div className="container mx-auto px-4">

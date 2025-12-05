@@ -70,7 +70,7 @@ export default function AssessmentResults() {
   const responseEntries = Object.entries(responses);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 py-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="mb-6">

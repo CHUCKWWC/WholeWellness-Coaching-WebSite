@@ -241,7 +241,7 @@ export default function Subscribe() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading...</p>
@@ -253,7 +253,7 @@ export default function Subscribe() {
   // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
         <div className="max-w-4xl mx-auto px-4">
           <Card className="border-blue-200">
             <CardHeader>
@@ -287,7 +287,7 @@ export default function Subscribe() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
         <div className="max-w-4xl mx-auto px-4">
           <Card className="border-red-200">
             <CardHeader>
@@ -311,7 +311,7 @@ export default function Subscribe() {
 
   if (!clientSecret) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -451,7 +451,7 @@ export default function Subscribe() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-12">
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>

@@ -268,7 +268,7 @@ export default function CoachPortal() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-12">
             <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -283,7 +283,7 @@ export default function CoachPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

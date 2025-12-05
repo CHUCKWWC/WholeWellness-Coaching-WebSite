@@ -70,7 +70,7 @@ export default function UserProfileView() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#e4e6eb] dark:bg-gray-900">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         <div className="max-w-[1440px] mx-auto">
           <Skeleton className="h-[656px] w-full" />
         </div>
@@ -80,7 +80,7 @@ export default function UserProfileView() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-[#e4e6eb] dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <Card className="p-6">
           <p className="text-gray-600 dark:text-gray-400">User profile not found</p>
         </Card>

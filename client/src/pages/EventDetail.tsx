@@ -83,7 +83,7 @@ export default function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Skeleton className="h-12 w-3/4 mb-4" />
           <Skeleton className="h-64 w-full mb-6" />
@@ -95,7 +95,7 @@ export default function EventDetail() {
 
   if (!eventData) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Event Not Found</h2>
           <Link href="/events">
@@ -114,7 +114,7 @@ export default function EventDetail() {
   const isRegistered = !!eventData.userRegistration;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link href="/events">

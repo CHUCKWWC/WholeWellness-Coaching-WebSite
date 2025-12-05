@@ -159,7 +159,7 @@ export default function VideoUpload({
               <video
                 src={previewUrl}
                 controls
-                className="w-full h-48 object-cover rounded-lg bg-black"
+                className="w-full h-48 object-cover rounded-lg bg-gray-900"
                 poster="/api/placeholder/400/200"
               >
                 Your browser does not support the video tag.

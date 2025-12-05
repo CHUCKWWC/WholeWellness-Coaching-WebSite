@@ -69,7 +69,7 @@ export default function RegistrationConfirmation() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <Card className="shadow-xl border-green-200 dark:border-green-800">
           <CardHeader className="text-center pb-6">
