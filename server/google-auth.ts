@@ -14,11 +14,8 @@ export function setupGoogleAuth() {
     return;
   }
 
-  // Use REPLIT_DEV_DOMAIN for development or custom domain for production
-  const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-    : process.env.GOOGLE_CALENDAR_REDIRECT_URI?.replace('/api/google-calendar/callback', '') 
-    || 'https://wholewellnesscoaching.org';
+  // Always use production domain for Google OAuth callback
+  const baseUrl = 'https://wholewellnesscoaching.org';
   const callbackURL = `${baseUrl}/auth/google/callback`;
     
   passport.use(new GoogleStrategy({
