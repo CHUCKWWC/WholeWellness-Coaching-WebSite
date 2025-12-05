@@ -178,9 +178,9 @@ export default function Coaches() {
   return (
     <>
 
-      <div className="min-h-screen bg-gradient-to-br from-warm to-white">
+      <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-primary/10 to-purple-50 py-16">
+        <section className="bg-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl lg:text-5xl font-bold text-secondary mb-4">
@@ -254,7 +254,7 @@ export default function Coaches() {
         </section>
 
         {/* Call to Action */}
-        <section className="py-16 bg-gradient-to-r from-blue-50 to-purple-50">
+        <section className="py-16 bg-white border-t border-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-bold text-secondary mb-4">
               Ready to Start Your Wellness Journey?
