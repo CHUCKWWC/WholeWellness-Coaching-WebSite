@@ -30,36 +30,49 @@ export const getDashboardHref = (role: UserRole): string => {
   return dashboardRoutes[role] || '/member-portal';
 };
 
-// Main navigation items - ONLY visible to authenticated users
-// Guests see only the Sign In button (no navigation menu)
 export const getMainNavItems = (role: UserRole): NavItem[] => {
-  // Guests get no main nav items - they only see Sign In button
-  if (role === 'guest') {
-    return [];
-  }
-
   const dashboardHref = getDashboardHref(role);
-  
+
   const allItems: NavItem[] = [
-    { 
-      href: "/", 
-      label: "Home", 
-      tooltip: "Your wellness dashboard and starting point",
-      roles: ['user', 'coach', 'admin', 'super_admin']
+    {
+      href: "/",
+      label: "Home",
+      tooltip: "Start here to explore our mission and offers",
+      roles: ['guest', 'user', 'coach', 'admin', 'super_admin']
     },
-    { 
-      href: dashboardHref, 
-      label: "Dashboard", 
+    {
+      href: dashboardHref,
+      label: "Dashboard",
       tooltip: "Access your personalized dashboard",
       roles: ['user', 'coach', 'admin', 'super_admin']
     },
-    { 
-      href: "/donate", 
-      label: "Donate", 
+    {
+      href: "/services",
+      label: "Services",
+      tooltip: "See how coaching can support your goals",
+      roles: ['guest', 'user', 'coach', 'admin', 'super_admin']
+    },
+    {
+      href: "/programs",
+      label: "Programs",
+      tooltip: "Browse curated wellness programs",
+      roles: ['guest', 'user', 'coach', 'admin', 'super_admin']
+    },
+    {
+      href: "/subscribe",
+      label: "Plans",
+      tooltip: "Choose a plan and activate payments securely",
+      badge: "Save",
+      badgeColor: "bg-emerald-100 text-emerald-700",
+      roles: ['guest', 'user']
+    },
+    {
+      href: "/donate",
+      label: "Donate",
       tooltip: "Support our mission to provide life-changing coaching",
       badge: "❤️",
       badgeColor: "bg-red-100 text-red-700",
-      roles: ['user'] // Only show donate to regular users, not coaches/admins
+      roles: ['guest', 'user'] // Only show donate to guests and regular users
     },
   ];
 
@@ -68,36 +81,26 @@ export const getMainNavItems = (role: UserRole): NavItem[] => {
 
 // Wellness Tools dropdown - includes AI Coaching, Assessments, and wellness features
 export const getWellnessToolsItems = (role: UserRole): NavItem[] => {
-  // No wellness tools for guests - they only see Sign In button
-  if (role === 'guest') {
-    return [];
-  }
-
   const items: NavItem[] = [
     { href: "/ai-coaching", label: "AI Coaching", icon: "🤖", badge: "Popular", badgeColor: "bg-blue-100 text-blue-700" },
     { href: "/assessments", label: "Assessments", icon: "📋" },
-    { href: "/wellness-journey", label: "Wellness Journey", icon: "🎯", badge: "New", badgeColor: "bg-green-100 text-green-700" },
-    { href: "/mental-wellness-hub", label: "Mental Wellness", icon: "🧠" },
+    { href: "/wellness-journey", label: "Wellness Journey", icon: "🎯", badge: "New", badgeColor: "bg-green-100 text-green-700", roles: ['user', 'coach', 'admin', 'super_admin'] },
+    { href: "/mental-wellness-hub", label: "Mental Wellness", icon: "🧠", roles: ['user', 'coach', 'admin', 'super_admin'] },
     { href: "/resources", label: "Resources", icon: "📚" },
   ];
 
-  return items;
+  return items.filter(item => !item.roles || item.roles.includes(role));
 };
 
 // Connect & Support dropdown - includes coaching, events, and contact options
 export const getConnectSupportItems = (role: UserRole): NavItem[] => {
-  // No connect/support items for guests - they only see Sign In button
-  if (role === 'guest') {
-    return [];
-  }
-
   const allItems: NavItem[] = [
-    { href: "/coaches", label: "Find a Coach", icon: "👨‍🏫", roles: ['user'] },
-    { href: "/tutorial", label: "How to Use Site", icon: "📖" },
-    { href: "/events", label: "Upcoming Events", icon: "📆" },
-    { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['user'] },
-    { href: "/contact", label: "Contact Us", icon: "💬" },
-    { href: "/about", label: "About Us", icon: "ℹ️" },
+    { href: "/coaches", label: "Find a Coach", icon: "👨‍🏫", roles: ['guest', 'user'] },
+    { href: "/tutorial", label: "How to Use Site", icon: "📖", roles: ['guest', 'user', 'coach', 'admin', 'super_admin'] },
+    { href: "/events", label: "Upcoming Events", icon: "📆", roles: ['guest', 'user', 'coach', 'admin', 'super_admin'] },
+    { href: "/booking", label: "Book Appointment", icon: "📅", roles: ['guest', 'user'] },
+    { href: "/contact", label: "Contact Us", icon: "💬", roles: ['guest', 'user', 'coach', 'admin', 'super_admin'] },
+    { href: "/about", label: "About Us", icon: "ℹ️", roles: ['guest', 'user', 'coach', 'admin', 'super_admin'] },
     { href: "/coach-certifications", label: "Become a Coach", icon: "🎓", roles: ['user'] },
   ];
 

@@ -139,105 +139,103 @@ export default function SmartNavigation() {
               <Logo />
             </div>
 
-            {/* Desktop Navigation - Only visible for authenticated users */}
-            {isAuthenticated && (
-              <div className="hidden lg:flex lg:items-center lg:space-x-2">
-                {/* Search Button */}
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowSearch(true)}
-                  className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
-                  data-testid="button-search"
-                >
-                  <Search className="h-4 w-4" />
-                  Search
-                </Button>
+            {/* Desktop Navigation - visible for all users with role-aware options */}
+            <div className="hidden lg:flex lg:items-center lg:space-x-2">
+              {/* Search Button */}
+              <Button
+                variant="ghost"
+                onClick={() => setShowSearch(true)}
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
+                data-testid="button-search"
+              >
+                <Search className="h-4 w-4" />
+                Search
+              </Button>
 
-                {/* Main nav items: Home, Dashboard, Donate */}
-                {mainNavItems.map((item) => (
-                  <NavLink key={item.href} {...item} />
-                ))}
+              {/* Main nav items: Home, Dashboard, Donate */}
+              {mainNavItems.map((item) => (
+                <NavLink key={item.href} {...item} />
+              ))}
 
-                {/* Wellness Tools Dropdown */}
-                {wellnessToolsItems.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center gap-2" data-testid="dropdown-wellness-tools">
-                        Wellness Tools
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="w-56">
-                      {wellnessToolsItems.map((item) => (
-                        <Link key={item.href} href={item.href}>
-                          <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
-                            <span className="text-lg">{item.icon}</span>
-                            <span className="flex-1">{item.label}</span>
-                            {item.badge && (
-                              <Badge className={`text-xs ${item.badgeColor}`}>
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </DropdownMenuItem>
-                        </Link>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+              {/* Wellness Tools Dropdown */}
+              {wellnessToolsItems.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2" data-testid="dropdown-wellness-tools">
+                      Wellness Tools
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    {wellnessToolsItems.map((item) => (
+                      <Link key={item.href} href={item.href}>
+                        <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
+                          <span className="text-lg">{item.icon}</span>
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge && (
+                            <Badge className={`text-xs ${item.badgeColor}`}>
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </DropdownMenuItem>
+                      </Link>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
-                {/* Connect & Support Dropdown */}
-                {connectSupportItems.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center gap-2" data-testid="dropdown-connect-support">
-                        Connect & Support
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="w-56">
-                      {connectSupportItems.map((item) => (
-                        <Link key={item.href} href={item.href}>
-                          <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
-                            <span className="text-lg">{item.icon}</span>
-                            {item.label}
-                          </DropdownMenuItem>
-                        </Link>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+              {/* Connect & Support Dropdown */}
+              {connectSupportItems.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2" data-testid="dropdown-connect-support">
+                      Connect & Support
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    {connectSupportItems.map((item) => (
+                      <Link key={item.href} href={item.href}>
+                        <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
+                          <span className="text-lg">{item.icon}</span>
+                          {item.label}
+                        </DropdownMenuItem>
+                      </Link>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
-                {/* More Dropdown - Only for coach/admin tools */}
-                {dropdownCategories.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center gap-2" data-testid="dropdown-more">
-                        More
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-64">
-                      {dropdownCategories.map((category, categoryIndex) => (
-                        <div key={categoryIndex}>
-                          <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            {category.title}
-                          </DropdownMenuLabel>
-                          {category.items.map((item) => (
-                            <Link key={item.href} href={item.href}>
-                              <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
-                                <span className="text-lg">{item.icon}</span>
-                                {item.label}
-                              </DropdownMenuItem>
-                            </Link>
-                          ))}
-                          {categoryIndex < dropdownCategories.length - 1 && <DropdownMenuSeparator />}
-                        </div>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            )}
+              {/* More Dropdown - Only for coach/admin tools */}
+              {dropdownCategories.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2" data-testid="dropdown-more">
+                      More
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    {dropdownCategories.map((category, categoryIndex) => (
+                      <div key={categoryIndex}>
+                        <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          {category.title}
+                        </DropdownMenuLabel>
+                        {category.items.map((item) => (
+                          <Link key={item.href} href={item.href}>
+                            <DropdownMenuItem className="flex items-center gap-3 cursor-pointer">
+                              <span className="text-lg">{item.icon}</span>
+                              {item.label}
+                            </DropdownMenuItem>
+                          </Link>
+                        ))}
+                        {categoryIndex < dropdownCategories.length - 1 && <DropdownMenuSeparator />}
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
 
             {/* User Section */}
             <div className="flex items-center space-x-4">
@@ -306,7 +304,12 @@ export default function SmartNavigation() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <Link href="/register">
+                    <Button variant="outline" className="h-11 min-h-[48px] touch-target" data-testid="button-get-started">
+                      Get Started
+                    </Button>
+                  </Link>
                   <Link href="/login">
                     <Button className="bg-blue-600 hover:bg-blue-700 h-11 min-h-[48px] touch-target" data-testid="button-sign-in">
                       Sign In
@@ -315,138 +318,151 @@ export default function SmartNavigation() {
                 </div>
               )}
 
-              {/* Mobile Menu - Only visible for authenticated users */}
-              {isAuthenticated && (
-                <div className="lg:hidden">
-                  <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="sm" data-testid="button-mobile-menu">
-                        <Menu className="h-5 w-5" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent>
-                      <div className="flex flex-col space-y-4 mt-8">
-                        {/* Main nav items: Home, Dashboard, Donate */}
-                        {mainNavItems.map((item) => (
-                          <Link key={item.href} href={item.href}>
-                            <Button
-                              variant={location === item.href ? "default" : "ghost"}
-                              className="w-full justify-start gap-3"
-                              onClick={() => setIsOpen(false)}
-                            >
-                              {item.label}
-                              {item.badge && (
-                                <Badge className={`text-xs ml-auto ${item.badgeColor}`}>
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </Button>
-                          </Link>
-                        ))}
-                        
-                        {/* Wellness Tools Section */}
-                        {wellnessToolsItems.length > 0 && (
-                          <div className="border-t pt-4 mt-4">
-                            <h4 className="text-sm font-semibold text-gray-500 mb-2">
-                              Wellness Tools
-                            </h4>
-                            {wellnessToolsItems.map((item) => (
-                              <Link key={item.href} href={item.href}>
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start gap-3 mb-1"
-                                  onClick={() => setIsOpen(false)}
-                                >
-                                  <span>{item.icon}</span>
-                                  <span className="flex-1">{item.label}</span>
-                                  {item.badge && (
-                                    <Badge className={`text-xs ${item.badgeColor}`}>
-                                      {item.badge}
-                                    </Badge>
-                                  )}
-                                </Button>
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {/* Connect & Support Section */}
-                        {connectSupportItems.length > 0 && (
-                          <div className="border-t pt-4 mt-4">
-                            <h4 className="text-sm font-semibold text-gray-500 mb-2">
-                              Connect & Support
-                            </h4>
-                            {connectSupportItems.map((item) => (
-                              <Link key={item.href} href={item.href}>
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start gap-3 mb-1"
-                                  onClick={() => setIsOpen(false)}
-                                >
-                                  <span>{item.icon}</span>
-                                  {item.label}
-                                </Button>
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {/* Coach/Admin Tools Section */}
-                        {dropdownCategories.length > 0 && (
-                          <div className="border-t pt-4 mt-4">
-                            {dropdownCategories.map((category) => (
-                              <div key={category.title} className="mb-4">
-                                <h4 className="text-sm font-semibold text-gray-500 mb-2">
-                                  {category.title}
-                                </h4>
-                                {category.items.map((item) => (
-                                  <Link key={item.href} href={item.href}>
-                                    <Button
-                                      variant="ghost"
-                                      className="w-full justify-start gap-3 mb-1"
-                                      onClick={() => setIsOpen(false)}
-                                    >
-                                      <span>{item.icon}</span>
-                                      {item.label}
-                                    </Button>
-                                  </Link>
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {/* Admin Dashboard Access in Mobile - Only show to authenticated admin users */}
-                        {isAdminAuthenticated && (
-                          <div className="border-t pt-4 mt-4">
-                            <h4 className="text-sm font-semibold text-gray-500 mb-2">
-                              Administration
-                            </h4>
-                            <Link href="/admin-dashboard">
+              {/* Mobile Menu - role aware navigation for everyone */}
+              <div className="lg:hidden">
+                <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="sm" data-testid="button-mobile-menu">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <div className="flex flex-col space-y-4 mt-8">
+                      {/* Main nav items: Home, Dashboard, Donate */}
+                      {mainNavItems.map((item) => (
+                        <Link key={item.href} href={item.href}>
+                          <Button
+                            variant={location === item.href ? "default" : "ghost"}
+                            className="w-full justify-start gap-3"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            {item.label}
+                            {item.badge && (
+                              <Badge className={`text-xs ml-auto ${item.badgeColor}`}>
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </Button>
+                        </Link>
+                      ))}
+
+                      {/* Wellness Tools Section */}
+                      {wellnessToolsItems.length > 0 && (
+                        <div className="border-t pt-4 mt-4">
+                          <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                            Wellness Tools
+                          </h4>
+                          {wellnessToolsItems.map((item) => (
+                            <Link key={item.href} href={item.href}>
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start gap-3 mb-1 text-blue-600"
+                                className="w-full justify-start gap-3 mb-1"
                                 onClick={() => setIsOpen(false)}
                               >
-                                <span>🛡️</span>
-                                Admin Dashboard
+                                <span>{item.icon}</span>
+                                <span className="flex-1">{item.label}</span>
+                                {item.badge && (
+                                  <Badge className={`text-xs ${item.badgeColor}`}>
+                                    {item.badge}
+                                  </Badge>
+                                )}
                               </Button>
                             </Link>
-                          </div>
-                        )}
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-              )}
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Connect & Support Section */}
+                      {connectSupportItems.length > 0 && (
+                        <div className="border-t pt-4 mt-4">
+                          <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                            Connect & Support
+                          </h4>
+                          {connectSupportItems.map((item) => (
+                            <Link key={item.href} href={item.href}>
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start gap-3 mb-1"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <span>{item.icon}</span>
+                                {item.label}
+                              </Button>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Coach/Admin Tools Section */}
+                      {dropdownCategories.length > 0 && (
+                        <div className="border-t pt-4 mt-4">
+                          {dropdownCategories.map((category) => (
+                            <div key={category.title} className="mb-4">
+                              <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                                {category.title}
+                              </h4>
+                              {category.items.map((item) => (
+                                <Link key={item.href} href={item.href}>
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start gap-3 mb-1"
+                                    onClick={() => setIsOpen(false)}
+                                  >
+                                    <span>{item.icon}</span>
+                                    {item.label}
+                                  </Button>
+                                </Link>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Admin Dashboard Access in Mobile - Only show to authenticated admin users */}
+                      {isAdminAuthenticated && (
+                        <div className="border-t pt-4 mt-4">
+                          <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                            Administration
+                          </h4>
+                          <Link href="/admin-dashboard">
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start gap-3 mb-1 text-blue-600"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              <span>🛡️</span>
+                              Admin Dashboard
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+
+                      {!isAuthenticated && (
+                        <div className="border-t pt-4 mt-4 space-y-2">
+                          <Link href="/register">
+                            <Button className="w-full" onClick={() => setIsOpen(false)}>
+                              Create your account
+                            </Button>
+                          </Link>
+                          <Link href="/subscribe">
+                            <Button variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
+                              Explore plans
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
 
 
             </div>
           </div>
         </div>
         
-        {/* Quick Access Navigation - Mobile Only - Hidden for anonymous users */}
-        {isAuthenticated && (
+        {/* Quick Access Navigation - Mobile Only */}
+        {quickAccessItems.length > 0 && (
           <div className="lg:hidden border-t border-gray-200 bg-white/80 backdrop-blur-sm">
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 px-4 py-3 min-w-max">
@@ -455,8 +471,8 @@ export default function SmartNavigation() {
                     <button
                       className={cn(
                         "flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 whitespace-nowrap",
-                        location === item.href 
-                          ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm" 
+                        location === item.href
+                          ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
                           : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                       )}
                       data-testid={`chip-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
